@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>哈宝 · 交互全景</title>
+  <link rel="stylesheet" href="habao.css" />
+</head>
+<body>
+  <div class="studio">
+    <aside class="studio-nav">
+      <div class="studio-brand">
+        <img src="assets/brand_logo.png" alt="哈宝" />
+        <div>
+          <h1>哈宝交互全景</h1>
+          <p>V10.15 · 真机模拟</p>
+        </div>
+      </div>
+      <div class="mode-row">
+        <button id="mode-login" type="button">未登录</button>
+        <button id="mode-new" type="button">未入组</button>
+        <button id="mode-demo" type="button" class="on">已入组</button>
+      </div>
+      <div class="sim-row">
+        <button id="mode-sim" type="button">真机模拟</button>
+      </div>
+      <input class="nav-search" id="nav-search" placeholder="搜索界面 / 文案 / 代码" />
+      <div id="nav-tree"></div>
+    </aside>
+
+    <main class="studio-stage">
+      <div class="phone-wrap" id="phone-wrap">
+        <div class="phone">
+          <div class="phone-screen">
+            <div id="app"></div>
+            <div class="overlay-root" id="overlay"></div>
+            <div class="island"></div>
+            <div class="status-bar">
+              <span id="clock-now">9:41</span>
+              <span class="right">
+                <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="0.6"/><rect x="4.5" y="5" width="3" height="7" rx="0.6"/><rect x="9" y="2.5" width="3" height="9.5" rx="0.6"/><rect x="13.5" y="0" width="3" height="12" rx="0.6"/></svg>
+                <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 10.5a1.2 1.2 0 1 0 0-2.4 1.2 1.2 0 0 0 0 2.4Z"/><path d="M4.2 7.2a5.2 5.2 0 0 1 7.6 0"/><path d="M1.8 4.6a8.6 8.6 0 0 1 12.4 0"/></svg>
+                <svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3" stroke="currentColor" fill="none"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill="currentColor"/><rect x="22.5" y="3.5" width="2" height="5" rx="1" fill="currentColor"/></svg>
+              </span>
+            </div>
+            <div class="home-ind"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <aside class="studio-spec">
+      <div id="spec"></div>
+    </aside>
+  </div>
+  <script src="habao.js"></script>
+</body>
+</html>
