@@ -68,6 +68,9 @@
     pills: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.5 3.5a5 5 0 0 1 7 7l-7 7a5 5 0 1 1-7-7l7-7Zm5.6 1.4-4.2 4.2 5 5 4.2-4.2a3 3 0 0 0-5-5Z"/></svg>`,
     leaf: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 20c8 0 14-6 14-14 0-1-.1-2-.3-3C11 4 4 10 4 18c0 .7.1 1.4.3 2H5Zm7-6.5c-2.2 2.4-4.2 3.8-6.2 4.6.8-2.2 2.2-4.4 4.4-6.8 2.4-2.6 5-4.4 7.8-5.3-1.2 2.8-3.2 5.3-6 7.5Z"/></svg>`,
     moon: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M14.3 3.1A8.8 8.8 0 1 0 21 14.6 7.2 7.2 0 0 1 14.3 3.1Z"/></svg>`,
+    // 方案四时段图标：凌晨 / 夜间要有区别，按 SF Symbols moon.zzz.fill / moon.stars.fill 补两枚
+    moonZzz: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 5.2a6.4 6.4 0 1 0 6.4 6.4 5 5 0 0 1-6.4-6.4Z"/><path d="M15.4 2.2h5.2v1.3l-3.3 3.8h3.4v1.4h-5.5V7.4l3.3-3.8h-3.1V2.2Z"/></svg>`,
+    moonStars: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 5.2a6.4 6.4 0 1 0 6.4 6.4 5 5 0 0 1-6.4-6.4Z"/><path d="M17.6 1.6l.9 2.3 2.3.9-2.3.9-.9 2.3-.9-2.3-2.3-.9 2.3-.9.9-2.3Z"/><path d="M17.2 7l.6 1.5 1.5.6-1.5.6-.6 1.5-.6-1.5-1.5-.6 1.5-.6.6-1.5Z"/></svg>`,
     sunrise: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 18h16v2H4v-2Zm8-14 1.2 3.2H16l-2.6 2 1 3.2L12 10.6 9.6 12.4l1-3.2L8 7.2h2.8L12 4ZM2 14h2.1a8 8 0 0 1 15.8 0H22v2H2v-2Z"/></svg>`,
     sun: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 1h2v3h-2V1Zm0 19h2v3h-2v-3ZM1 11h3v2H1v-2Zm19 0h3v2h-3v-2ZM4.2 3.8l1.4-1.4 2.1 2.1-1.4 1.4-2.1-2.1Zm12.1 12.1 1.4-1.4 2.1 2.1-1.4 1.4-2.1-2.1ZM3.8 19.8l1.4 1.4 2.1-2.1-1.4-1.4-2.1 2.1Zm12.1-12.1 1.4 1.4 2.1-2.1-1.4-1.4-2.1 2.1ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Z"/></svg>`,
     noon: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.5 2.5 7 6h10l-1.5-3.5h-7ZM4 8v2h1l1.2 11h11.6L19 10h1V8H4Zm8 3.2A2.6 2.6 0 0 0 9.5 14c0 1.6 1.4 2.2 2.5 3.1 1.1-.9 2.5-1.5 2.5-3.1A2.6 2.6 0 0 0 12 11.2Z"/></svg>`,
@@ -485,6 +488,7 @@
       { id: "select-type", t: "选择类型", code: "CreateScheduleFlowView", how: "cover" },
       { id: "report-sub", t: "基础报告", code: "BodyReportSubReportView", how: "cover" },
       { id: "questionnaire", t: "随访问卷", code: "FollowUpQuestionnaireFlowView", how: "cover" },
+      { id: "q-progress", t: "答题进度", code: "FollowUpQuestionMatrixView", how: "cover" },
       { id: "walk-session", t: "户外散步", code: "OutdoorWalkSessionView", how: "cover" },
       { id: "walk-records", t: "散步记录", code: "WalkRecordsSheet", how: "cover" },
       { id: "consult-history", t: "历史记录", code: "ConsultHistoryView", how: "cover" },
@@ -532,7 +536,7 @@
     "ocr-capture": { code: "IntakeCaptureView", note: "组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "按组分区预览。与首次上传、身体报告·基础报告共用同一份存量。入组可改类别 / 删组（必传出院记录至少留一组）；复查不改类别。右上入组「解析」、存档「提交」。无存量时空态只留文案，拍资料走左上「拍摄」，页内不再放「拍摄资料」钮。" },
-    "first-rest": { code: "CreateScheduleFlowView", note: "点名称换预设；点时刻出时/分步进（分步长 5）。默认六项（起床 / 三餐 / 午休 / 睡觉，不含测血压）。「稍后」关整段创建流回首页；上传出院记录替换本页，不压栈。" },
+    "first-rest": { code: "CreateScheduleFlowView", note: "点名称换预设；点时刻出居中「时刻调整」弹层（标题为事项名，双列时/分步进，分步长 5，取消 / 完成，点遮罩取消）。默认六项（起床 / 三餐 / 午休 / 睡觉，不含测血压）。「稍后」关整段创建流回首页；底栏「拍照上传病历」替换本页，不压栈。" },
     "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。顶栏「计划 / 解析依据」两枚 Tab（同构健康计划未完成/已完成），默认落计划；解析依据页先写疾病信息字段，再按用药 / 测血压 / 复查分段，结合卡片日程说明来源；各段正文后附着对应来源资料缩略图（疾病信息 / 用药 / 测血压 → 出院记录，复查 → 出院记录与手术记录），没拍过该类型就不占位。作息区按入口条件展示：首次入组才带作息 / 饮食 / 测血压，已入组重走用药与复查只有用药 + 复查；复查置底标红。操作卡底栏编辑/删除，改动回写本次草稿。改时刻走编辑页，确认页不拖卡片改时段。「确认」首次入组回首页点亮时钟、已入组落回健康计划页；「稍后」关整段流回进入处；重新解析回到拍摄；自主新建未入组时添加即入组回首页、已入组时追加进本次草稿并回本页。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），进与首次上传 / 基础报告同一份资料详情，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
@@ -544,7 +548,8 @@
     "body-test": { code: "BodyTestRunView", note: "户外原地踏步三分钟。停止或倒计时归零后直进感受问卷，无完成中转页。" },
     "body-test-sit": { code: "BodyTestRunView", note: "室内 1 分钟坐立。次数大号读数 + 倒计时 + 同龄参考。停止后问卷顶部两栏「测试时长 / 完成次数」。" },
     borg: { code: "BorgQuestionnaireView", note: "体测停止后直进，顶部读本次 BodyTestRecord。户外三栏「步行时间 / 步行距离 / 平均步频」；室内坐立两栏「测试时长 / 完成次数」（不要写成步行）。时长「N 秒 / N 分钟」，步频带「步/分」。左树可先点「坐立体测」再进本页预览坐立摘要。未选说话能力时点生成会提示。" },
-    questionnaire: { code: "FollowUpQuestionBank", note: "51 题一题一屏。必答门禁：未作答「下一步」置灰，第 1 题「上一步」置灰。提交后出结果页，再 dismiss 回问卷随访，不把随访再压一层。" },
+    questionnaire: { code: "FollowUpQuestionBank", note: "51 题一题一屏。必答门禁：未作答「下一步」置灰，第 1 题「上一步」置灰。单选后不自动跳下一题。提交后出结果页，再 dismiss 回问卷随访，不把随访再压一层。右上「题号」进答题进度。" },
+    "q-progress": { code: "FollowUpQuestionMatrixView", note: "全屏「答题进度」，导航只左「返回」无右钮。按题库顺序把连续同章节切成一卡（一般情况 15 题 / 生活质量 36 题）。6 列圆号：当前题实蓝白字、已答绿底绿字、未答淡蓝底淡蓝字，当前态优先。点号跳那一题并关页；本页无统计行、无图例，也不自动滚到当前题。" },
   };
 
   const S = {
@@ -684,6 +689,8 @@
     // SEED 原地变异：保住所有已捕获的数组引用（30+ 处按名读）
     SEED.length = 0;
     SEED0.forEach((t) => SEED.push({ ...t }));
+    ARCHIVE_DEMO.review.groups.length = 0;
+    ARCHIVE_DEMO0.review.forEach((g) => ARCHIVE_DEMO.review.groups.push({ ...g }));
     taskSeq = 0;
   }
 
@@ -711,7 +718,7 @@
       { act: "firstCreate", label: "首页底缘「首次创建计划」" },
       { screen: "first-rest", label: "基础作息 6 项预设" },
       { act: "editRestTime", label: "改作息时刻", optional: true },
-      { act: "uploadDischarge", label: "上传出院记录" },
+      { act: "uploadDischarge", label: "拍照上传病历" },
       { screen: "ocr-capture", label: "拍摄页（出院记录必传）" },
       { act: "shutter", label: "拍一张" },
       { act: "ocrConfirm", label: "确认 → 资料详情" },
@@ -722,7 +729,7 @@
     ]},
     { id: "first-manual", label: "未入组 · 分支：自主新建直接入组", cold: "new", steps: [
       { act: "firstCreate", label: "首次创建" },
-      { act: "uploadDischarge", label: "上传出院记录" },
+      { act: "uploadDischarge", label: "拍照上传病历" },
       { act: "ocrConfirm", label: "确认 → 资料详情" },
       { act: "ocrParse", label: "解析" },
       { act: "manualCreate", label: "确认页「自主新建计划」" },
@@ -731,7 +738,7 @@
     ]},
     { id: "first-reparse", label: "未入组 · 分支：重新解析病例", cold: "new", steps: [
       { act: "firstCreate", label: "首次创建" },
-      { act: "uploadDischarge", label: "上传出院记录" },
+      { act: "uploadDischarge", label: "拍照上传病历" },
       { act: "ocrConfirm", label: "确认 → 资料详情" },
       { act: "ocrParse", label: "解析" },
       { act: "reparseCase", label: "确认页「重新解析病例」" },
@@ -1843,7 +1850,14 @@
     });
   }
   function finishArchive() {
-    const fromCheckIn = isVisitCapture() && S.apptCapture;
+    const visit = isVisitCapture();
+    const fromCheckIn = visit && S.apptCapture;
+    // 复查提交后把本批并入「资料合集」的复查报告 —— 否则上传完仍是写死的空态
+    if (visit) {
+      S.docGroups.filter((g) => g.pages > 0).forEach((g) => {
+        ARCHIVE_DEMO.review.groups.push({ title: groupDisplayName(g), pages: g.pages });
+      });
+    }
     S.captureMode = "intake";
     seedDocGroups(0);
     if (fromCheckIn) completeTodayAppointments();
@@ -2023,6 +2037,7 @@
     bindClicks(document.querySelector(".phone-screen"));
     bindClicks(overlay());
     bindHomeGestures();
+    bindScheme4();
     bindTimePick();
     bindLongPresses();
     bindSwipes();
@@ -2525,6 +2540,20 @@
         S.completed[id] = true;
         if (S.screen === "home") refreshHomeSoft(); else render();
       },
+      // 方案四：先记下打卡时刻（已完成卡的祝语要读它），分流仍照旧走 checkin
+      s4Checkin() {
+        const id = el.dataset.id;
+        const was = !!S.completed[id];
+        if (!was) {
+          if (!S.s4DoneAt) S.s4DoneAt = {};
+          S.s4DoneAt[id] = demoNowHM();
+        }
+        act("checkin", el);
+        // 方案四不归 refreshHomeSoft 管（那是方案一的局部重绘），状态真变了就整体重画
+        if (S.screen === "home" && !!S.completed[id] !== was) render();
+      },
+      // 方案四空栏「添加xx计划」：先落到该时段，再复用方案一的 addToday（它认 S.block）
+      s4AddToday() { S.block = +el.dataset.b; act("addToday", el); },
       detail() { S.taskId = el.dataset.id; S.taskMode = "view"; S.draft = null; S.editorCollapsed = []; go("task-view", "cover"); },
       addToday() {
         S.addTitle = `添加${BLOCKS[S.block].title}计划`;
@@ -3484,8 +3513,9 @@
         renderTop();
       },
       qPrev() { if (S.qIndex > 0) S.qIndex -= 1; renderTop(); },
-      openQGrid() { openOverlay("qGrid"); },
-      qJump() { S.qIndex = +el.dataset.i; scrollResetOnce = true; closeOverlay(); },
+      // V10.50：题号矩阵由贴底 sheet 改成全屏「答题进度」页（章节分卡 + 6 列圆号）
+      openQGrid() { present("q-progress", "cover"); },
+      qJump() { S.qIndex = +el.dataset.i; scrollResetOnce = true; back(); },
       shareVitals() { openOverlay("reportPoster", { kind: "vitals" }); },
       shareAnalysis() { openOverlay("reportPoster", { kind: "report" }); },
       qFinish() {
@@ -3712,6 +3742,293 @@
     `;
   }
 
+  /* ───────────────── 首页方案四：时段泳道 + 底部扇形拨盘 ─────────────────
+     与真机 TodaySchemeFourView 同构：横向泳道一屏一栏、整栏吸附；
+     底部扇形拨盘与泳道双向联动，320ms 联动锁防对打。
+     只服务 S.scheme === 3，方案一（S.scheme === 0）的渲染与状态一律不动。 */
+
+  /// 时段图标：真机 DialTimeBlock.icon（moon.zzz.fill / sunrise.fill / … / moon.stars.fill）
+  const S4_ICONS = ["moonZzz", "sunrise", "sun", "noon", "haze", "set", "moonStars"];
+  /// 拨盘几何：弧顶固定在本视图顶缘下 6，扇形只向下铺（真机 BottomFanDial.arcTopInset）
+  const S4_FAN_H = 132;
+  const S4_ARC_TOP = 6;
+  const S4_SWEEP = 140;
+  const S4_BAND = 44;
+  /// 单段圆心角：7 段均分 140°（真机 fanDegrees / (blocks.count - 1)）
+  const S4_SEG = S4_SWEEP / 6;
+  /// 横滑多少 pt 换一段（真机 spanPx）
+  const S4_DRAG_PX = 48;
+
+  /// 问候语：真机 greetingPrefix 的同一套切分
+  function s4Greeting(h) {
+    if (h < 6) return "夜深了";
+    if (h < 9) return "早上好";
+    if (h < 12) return "上午好";
+    if (h < 14) return "中午好";
+    if (h < 18) return "下午好";
+    if (h < 21) return "傍晚好";
+    return "晚上好";
+  }
+  /// 范围文案：真机 timeRangeLabel，小时不补零、夜间写 24:00
+  function s4Range(id) { return `${BLOCKS[id].start}:00~${BLOCKS[id].end}:00`; }
+  /// 当前选中时段：没手动选过就按「现在」落段（真机 selectedBlock 初值）
+  function s4Cur() {
+    const v = S.s4Block;
+    return v == null || v < 0 || v > 6 ? blockOf(demoNowHM().h).id : v;
+  }
+  /// 打卡时刻：真机 completionEndDate → wallClockLabel，没有就不写时刻
+  function s4DoneClock(id) {
+    const at = S.s4DoneAt && S.s4DoneAt[id];
+    return at ? `${at.h}:${pad(at.m)}` : "";
+  }
+  function s4DotsHTML(cur) {
+    return BLOCKS.map((b) => `<i class="${b.id === cur ? "on" : ""}"></i>`).join("");
+  }
+  function s4CapHTML(cur) {
+    return `${I[S4_ICONS[cur]]}<span>${BLOCKS[cur].title} ${s4Range(cur)}</span>`;
+  }
+
+  // ── 泳道卡（真机 LaneTaskCard）──
+
+  function s4CardHTML(t) {
+    const done = !!S.completed[t.id];
+    const clock = s4DoneClock(t.id);
+    return `
+      <div class="s4-card ${done ? "done" : ""} ${t.cat === "appointment" ? "appt" : ""}">
+        <span class="s4-badge">${done ? "已完成" : "未完成"}</span>
+        <button class="s4-more" data-act="detail" data-id="${t.id}" type="button">查看详情${I.chevR}</button>
+        <div class="s4-card-main">
+          <div class="s4-card-l">
+            <h3 class="s4-card-t">${t.title}</h3>
+            <p class="s4-card-plan">计划时间：${blockOf(t.h).title}${t.h}:${pad(t.m)}</p>
+          </div>
+          <span class="s4-art">${(CAT_ICON[t.cat] || CAT_ICON.rest)()}</span>
+        </div>
+        ${done ? `
+          <div class="s4-done-row">
+            <span class="s4-praise">${I.check}${clock ? `已在${clock}完成，真棒！` : "已完成，真棒！"}</span>
+            <button class="s4-undo" data-act="s4Checkin" data-id="${t.id}" type="button">取消</button>
+          </div>` : `
+          <button class="s4-check" data-act="s4Checkin" data-id="${t.id}" type="button">
+            ${t.cat === "medication" ? I.pills : I.tap}打卡
+          </button>`}
+      </div>`;
+  }
+
+  // ── 空时段（真机 emptyLane）──
+
+  function s4EmptyHTML(b) {
+    return `
+      <div class="s4-empty">
+        ${S.enrolled ? `
+          <button class="s4-add" data-act="s4AddToday" data-b="${b.id}" type="button">
+            <span class="s4-add-plus">${I.plus}</span>
+            <span class="s4-add-t">添加${b.title}计划</span>
+          </button>` : `
+          <button class="s4-first" data-act="firstCreate" type="button">首次创建计划</button>`}
+        <div class="s4-none">
+          <span class="s4-none-mark">${I.calLarge}</span>
+          <span class="s4-none-t">暂无计划</span>
+        </div>
+      </div>`;
+  }
+
+  // ── 泳道栏（真机 laneColumn）──
+
+  function s4LaneHTML(b, i) {
+    const tasks = S.enrolled ? liveTasks().filter((t) => blockOf(t.h).id === b.id) : [];
+    return `
+      <div class="s4-lane" data-b="${b.id}">
+        <div class="s4-lane-head">
+          <span class="s4-lane-ico">${I[S4_ICONS[b.id]]}</span>
+          <span class="s4-lane-t">${b.title}</span>
+          <span class="s4-lane-r">${s4Range(b.id)}</span>
+          <span class="s4-dots">${s4DotsHTML(s4Cur())}</span>
+        </div>
+        <div class="s4-lane-body">
+          ${tasks.length ? `<div class="s4-cards">${tasks.map((t, k) => `
+            <div class="s4-row">
+              <span class="s4-rail${k === 0 ? " first" : ""}${k === tasks.length - 1 ? " last" : ""}"><i></i></span>
+              ${s4CardHTML(t)}
+            </div>`).join("")}</div>` : s4EmptyHTML(b)}
+        </div>
+      </div>`;
+  }
+
+  // ── 底部扇形拨盘（真机 BottomFanDial）──
+
+  /// 0° = 正上方，左负右正（真机 BottomFanDial.point）
+  function s4FanGeo() {
+    const el = document.getElementById("s4-fan");
+    const w = Math.round(el?.clientWidth || document.querySelector(".phone-screen")?.clientWidth || 393);
+    const r = Math.max(w * 0.62, 200);
+    return { w, r, cx: w / 2, cy: r + S4_ARC_TOP };
+  }
+  function s4FanPt(g, radius, deg) {
+    const a = (deg * Math.PI) / 180;
+    return [g.cx + Math.sin(a) * radius, g.cy - Math.cos(a) * radius];
+  }
+  function s4FanArc(g, radius, d0, d1) {
+    const [x0, y0] = s4FanPt(g, radius, d0);
+    const [x1, y1] = s4FanPt(g, radius, d1);
+    return `M${x0.toFixed(2)} ${y0.toFixed(2)}A${radius.toFixed(2)} ${radius.toFixed(2)} 0 ${Math.abs(d1 - d0) > 180 ? 1 : 0} ${d1 > d0 ? 1 : 0} ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+  }
+  function s4FanHTML() {
+    const g = s4FanGeo();
+    const half = S4_SWEEP / 2;
+    const inner = g.r - S4_BAND;
+    const band = `${s4FanArc(g, g.r, -half, half)}L${s4FanPt(g, inner, half).map((n) => n.toFixed(2)).join(" ")}${s4FanArc(g, inner, half, -half).slice(1)}Z`;
+    const ticks = Array.from({ length: 13 }, (_, i) => {
+      const deg = -half + (i / 12) * S4_SWEEP;
+      const major = i % 2 === 0;
+      const [ax, ay] = s4FanPt(g, g.r - 5, deg);
+      const [bx, by] = s4FanPt(g, g.r - (major ? 17 : 11), deg);
+      return `<path d="M${ax.toFixed(2)} ${ay.toFixed(2)}L${bx.toFixed(2)} ${by.toFixed(2)}" stroke="#1054E0" stroke-opacity="${major ? 0.35 : 0.18}" stroke-width="${major ? 2 : 1}"/>`;
+    }).join("");
+    return `
+      <svg class="s4-fan-svg" id="s4-fan-svg" viewBox="0 0 ${g.w} ${S4_FAN_H}" fill="none">
+        <defs>
+          <linearGradient id="s4-fan-grad" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0" stop-color="#1054E0" stop-opacity="0.20"/>
+            <stop offset="1" stop-color="#1054E0" stop-opacity="0.08"/>
+          </linearGradient>
+        </defs>
+        <path d="${band}" fill="url(#s4-fan-grad)"/>
+        <path d="${s4FanArc(g, g.r, -half, half)}" stroke="#1054E0" stroke-opacity="0.32" stroke-width="2.5"/>
+        ${ticks}
+        <path id="s4-hl" d="${s4FanArc(g, g.r - 9, -S4_SEG / 2 + 1, S4_SEG / 2 - 1)}" stroke="#1054E0" stroke-opacity="0.6" stroke-width="7" stroke-linecap="round"/>
+      </svg>
+      <div class="s4-cap" id="s4-cap">${s4CapHTML(s4Cur())}</div>`;
+  }
+
+  // ── 双向联动（真机 selectBlockFromDial / lockSync）──
+
+  let s4LockTimer = 0;
+  let s4ScrollTimer = 0;
+  let s4Tween = 0;
+  function s4Lock(driver) {
+    S.s4Driver = driver;
+    clearTimeout(s4LockTimer);
+    s4LockTimer = setTimeout(() => { S.s4Driver = "idle"; }, 320);
+  }
+  function s4PaintSel(cur) {
+    document.querySelectorAll(".s4-dots").forEach((d) => { d.innerHTML = s4DotsHTML(cur); });
+    const cap = document.getElementById("s4-cap");
+    if (cap) cap.innerHTML = s4CapHTML(cur);
+  }
+  function s4ScrollTo(id, animate) {
+    const sc = document.getElementById("s4-lanes");
+    const lane = sc && sc.querySelector(".s4-lane");
+    if (!sc || !lane) return;
+    const to = id * (lane.offsetWidth + 20);
+    cancelAnimationFrame(s4Tween);
+    if (!animate) { sc.scrollLeft = to; return; }
+    const from = sc.scrollLeft;
+    const t0 = performance.now();
+    sc.style.scrollSnapType = "none"; // 补间期间让开吸附，否则每帧被拉回
+    const tick = (now) => {
+      const t = Math.min(1, (now - t0) / 280);
+      const e = t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2;
+      sc.scrollLeft = from + (to - from) * e;
+      if (t < 1) s4Tween = requestAnimationFrame(tick);
+      else sc.style.scrollSnapType = "";
+    };
+    s4Tween = requestAnimationFrame(tick);
+  }
+  function s4Select(id, driver) {
+    const next = Math.max(0, Math.min(6, id));
+    s4Lock(driver);
+    S.s4Block = next;
+    s4PaintSel(next);
+    if (driver === "dial") s4ScrollTo(next, true);
+  }
+  function s4PhoneScale() {
+    const m = /scale\(([\d.]+)\)/.exec(document.getElementById("phone-wrap")?.style.transform || "");
+    return m ? +m[1] : 1;
+  }
+  function bindScheme4() {
+    const sc = document.getElementById("s4-lanes");
+    if (sc) {
+      s4ScrollTo(s4Cur(), false);
+      sc.onscroll = () => {
+        if (S.s4Driver === "dial") return; // 拨盘在驱动，别对打
+        const lane = sc.querySelector(".s4-lane");
+        if (!lane) return;
+        const id = Math.max(0, Math.min(6, Math.round(sc.scrollLeft / (lane.offsetWidth + 20))));
+        // 选中段跟手落状态：中途若有重绘（toast、打卡），泳道不会跳回旧栏
+        if (id !== s4Cur()) S.s4Block = id;
+        clearTimeout(s4ScrollTimer);
+        s4ScrollTimer = setTimeout(() => {
+          if (S.s4Driver === "dial") return;
+          s4Lock("list");
+          s4PaintSel(s4Cur()); // 停稳后再换胶囊文案与圆点
+        }, 90);
+      };
+    }
+    const fan = document.getElementById("s4-fan");
+    if (!fan) return;
+    const hl = document.getElementById("s4-hl");
+    const g = s4FanGeo();
+    const paint = (deg) => {
+      if (hl) hl.setAttribute("d", s4FanArc(g, g.r - 9, deg - S4_SEG / 2 + 1, deg + S4_SEG / 2 - 1));
+    };
+    let x0 = 0;
+    let base = 0;
+    let dragging = false;
+    fan.onpointerdown = (e) => {
+      dragging = true;
+      x0 = e.clientX;
+      base = s4Cur();
+      try { fan.setPointerCapture(e.pointerId); } catch { /* 探针合成的 pointer 捕不了，不影响拖动 */ }
+    };
+    fan.onpointermove = (e) => {
+      if (!dragging) return;
+      // 右滑 → 更早时段；高亮弧跟手反向偏移（真机 dragOffsetDegrees）
+      paint((-(e.clientX - x0) / s4PhoneScale() / S4_DRAG_PX) * S4_SEG);
+    };
+    const end = (e) => {
+      if (!dragging) return;
+      dragging = false;
+      paint(0); // 松手瞬间回正到顶部正中
+      const next = base - Math.round((e.clientX - x0) / s4PhoneScale() / S4_DRAG_PX);
+      s4Select(next, "dial");
+    };
+    fan.onpointerup = end;
+    fan.onpointercancel = end;
+  }
+
+  /// 方案四整屏：品牌行 + 问候头 + 三入口 + 泳道区 + 底部扇形拨盘
+  function scheme4Home() {
+    const now = demoNowHM();
+    const entries = [["schedule", I.cal, "健康计划"], ["vitals", I.ecg, "血压监测"], ["report", I.doc, "身体报告"]];
+    return `
+      <div class="page s4-page">
+        <div class="s4-brand">
+          <img src="${A.logo}" alt="" />
+          <span>哈宝</span>
+        </div>
+        <div class="s4-greet">
+          <div class="s4-greet-txt">
+            <h2 class="s4-hello"><span>${s4Greeting(now.h)}，</span>${S.name}</h2>
+            <p class="s4-weather">今天天气很凉爽，气温26~18度</p>
+          </div>
+          <button class="circle-btn lg dbg-btn" data-act="openDebug" type="button" aria-label="开发菜单">${I.ellipsis}</button>
+          <button class="circle-btn lg" data-go="profile" type="button" aria-label="个人中心">${I.person}</button>
+        </div>
+        <div class="s4-entries">
+          ${entries.map(([go, ico, label]) => `
+            <button class="s4-entry" data-go="${go}" type="button">
+              <span class="s4-entry-ico">${ico}</span>
+              <span class="s4-entry-t">${label}</span>
+            </button>`).join("")}
+        </div>
+        <div class="s4-stage">
+          <div class="s4-lanes" id="s4-lanes">${BLOCKS.map(s4LaneHTML).join("")}</div>
+          <div class="s4-fan" id="s4-fan">${s4FanHTML()}</div>
+        </div>
+      </div>`;
+  }
+
   const screens = {
     "onboard-login": () => `
       <div class="page px24" style="padding-top:78px">
@@ -3783,6 +4100,7 @@
       </div>`,
 
     home: () => {
+      if (S.scheme === 3) return scheme4Home(); // 方案四：时段泳道 + 底部扇形拨盘
       const mh = homeModuleHeight(S.enrolled);
       return `
         <div class="page home-page">
@@ -3951,7 +4269,7 @@
           </div>
         </div>
         <div class="pad-16" style="padding-bottom:36px">
-          <button class="cta h64" data-act="uploadDischarge" type="button">${I.cam}上传出院记录</button>
+          <button class="cta h64" data-act="uploadDischarge" type="button">${I.cam}拍照上传病历</button>
         </div>
       </div>`,
 
@@ -4370,6 +4688,34 @@
             <button class="cta-ghost" ${S.qIndex === 0 ? "disabled" : `data-act="qPrev"`} type="button">上一步</button>
             <button class="cta" ${answered ? `data-act="qNext"` : "disabled"} type="button">${S.qIndex === 50 ? "提交" : "下一步"}</button>
           </div>
+        </div>
+      </div>`;
+    },
+
+    // V10.50：答题进度（真机 FollowUpQuestionMatrixView）——按题库顺序把连续同章节切成一卡，
+    // 6 列圆号，当前题实蓝 / 已答绿 / 未答淡蓝，点号跳题并关页；本页无统计行、无图例、不自动滚到当前题
+    "q-progress": () => {
+      const done = (q) => {
+        const a = S.answers[q.id];
+        return q.kind === "wheel" ? a != null : Array.isArray(a) ? a.length > 0 : a != null && a !== "";
+      };
+      const cards = [];
+      QUESTIONS.forEach((q, i) => {
+        const last = cards[cards.length - 1];
+        if (last && last.section === q.section) last.items.push(i);
+        else cards.push({ section: q.section, items: [i] });
+      });
+      return `
+      <div class="page">
+        ${navBar(cap(I.chevL, "返回"), "答题进度")}
+        <div class="scroll px20" style="padding-top:8px;padding-bottom:32px">
+          ${cards.map((c) => `
+            <div class="q-card">
+              <div class="q-card-title">${c.section}</div>
+              <div class="q-grid">
+                ${c.items.map((i) => `<button class="q-cell ${i === S.qIndex ? "on" : ""} ${done(QUESTIONS[i]) ? "done" : ""}" data-act="qJump" data-i="${i}" type="button">${i + 1}</button>`).join("")}
+              </div>
+            </div>`).join("")}
         </div>
       </div>`;
     },
@@ -5633,6 +5979,8 @@
     ] },
     review: { title: "复查报告", empty: "还没有复查报告", groups: [] },
   };
+  /// 复查批次是运行时累积的（提交复查资料后并入「资料合集」），复位时回初始快照
+  const ARCHIVE_DEMO0 = { review: ARCHIVE_DEMO.review.groups.slice() };
 
   /// 集章选中日的完成集合：今日取真实打卡态，过去日按 Demo 采样（日历格与页面共用，保证两处一致）
   /// Demo：入组首日之前没有计划，用来走空态
@@ -5669,8 +6017,8 @@
     return cells.join("");
   }
 
-  /// 首页方案（真机 TodayScheme，仅 Debug 菜单驱动）——本原型只渲染方案一，
-  /// 其余三套在此仅作状态与说明，方便对照真机知道共有几套、各是什么
+  /// 首页方案（真机 TodayScheme，仅 Debug 菜单驱动）——本原型渲染方案一与方案四，
+  /// 中间两套在此仅作状态与说明，方便对照真机知道共有几套、各是什么
   const SCHEMES = [
     { name: "康复时钟", desc: "拖拽打卡康复时钟 + 底坞三圆（正式默认）" },
     { name: "打卡圆钮", desc: "以「点击打卡」圆钮为视觉中心，多任务左右滑动分页" },
@@ -5711,27 +6059,6 @@
           <div class="flex center gap16">
             ${[["微信", "demoShare", "#07C160"], ["小红书", "demoShare", "#FF2442"], ["保存图片", "savedAlbum", "#1054E0"], ["取消", "close", "#828EA5"]]
               .map(([t, a, c]) => `<button class="share-ch" data-act="${a}" type="button" style="--ch:${c}"><i></i><span>${t}</span></button>`).join("")}
-          </div>
-        </div>
-      </div>`;
-    },
-    // 题号矩阵：一眼看清哪些题已答、点号直达（真机 FollowQuestionnaireFlowView 题号面板）
-    qGrid: () => {
-      const done = (q) => {
-        const a = S.answers[q.id];
-        return q.kind === "wheel" ? a != null : Array.isArray(a) ? a.length > 0 : a != null && a !== "";
-      };
-      const n = QUESTIONS.filter(done).length;
-      return `
-      <div class="scrim bottom" data-act="close">
-        <div class="sheet" onclick="event.stopPropagation()">
-          <div class="grab"></div>
-          <div class="s19 fb t ta-c">题号</div>
-          <div class="s13 t-sec ta-c mt6 mb12">已答 ${n} / ${QUESTIONS.length} 题</div>
-          <div class="scroll" style="max-height:52vh">
-            <div class="q-grid">
-              ${QUESTIONS.map((q, i) => `<button class="q-cell ${i === S.qIndex ? "on" : ""} ${done(q) ? "done" : ""}" data-act="qJump" data-i="${i}" type="button">${i + 1}</button>`).join("")}
-            </div>
           </div>
         </div>
       </div>`;
