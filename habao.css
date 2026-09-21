@@ -381,6 +381,13 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .cta.green { background: var(--green-deep); box-shadow: 0 4px 10px rgba(26,166,74,.26); }
 .cta.amber { background: var(--amber); box-shadow: 0 4px 10px rgba(242,153,74,.26); }
 .cta.red { background: var(--appt); }
+/* V10.49 复诊打卡：复查报告页底栏「返回首页」次钮（真机白底蓝字 + 蓝影） */
+.cta.white {
+  background: #fff; color: var(--blue);
+  border: 1px solid rgba(16,84,224,.12);
+  box-shadow: 0 4px 8px rgba(16,84,224,.12);
+  font-weight: 700;
+}
 .cta.h64 { height: 64px; border-radius: 18px; font-size: calc(20px * var(--fs)); }
 .cta.h52 { min-height: 52px; }
 .cta-ghost {
@@ -761,6 +768,8 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .filter button.on { background: #fff; color: var(--blue); box-shadow: 0 2px 8px rgba(16,84,224,.10); }
 .filter.green button.on { color: var(--green-deep); }
+/* V10.50：报告页分页字号加大到适老档（真机 17pt / 竖向 12pt，热区 ≥44pt） */
+.filter.lg button { font-size: calc(17px * var(--fs)); padding: 12px 8px; }
 .hist-bar {
   display: flex; align-items: center; gap: 8px;
   background: rgba(16,84,224,.08); border-radius: 999px; padding: 8px 12px;
@@ -960,6 +969,19 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   font-size: calc(16px * var(--fs)); font-weight: 600; font-variant-numeric: tabular-nums;
   font-family: inherit; text-align: left; cursor: pointer;
 }
+.ed-group + .ed-group { margin-top: 18px; }
+.ed-group-head {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  min-height: 44px; background: transparent; border: 0; padding: 0; cursor: pointer;
+  font-family: inherit; font-size: calc(18px * var(--fs)); font-weight: 700;
+}
+.ed-group-chev {
+  display: grid; margin-left: auto; opacity: .55;
+  transition: transform .3s cubic-bezier(.34,1.2,.64,1);
+}
+.ed-group-chev svg { width: 13px; height: 13px; }
+.ed-group-chev.open { transform: rotate(180deg); }
+.ed-group-body { margin-top: 4px; }
 .date-row.grow { width: auto; min-width: 0; }
 .date-row:not(.grow) { width: 100%; }
 .date-row:not([data-act]) { cursor: default; }
@@ -1026,6 +1048,9 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   box-shadow: 0 3px 6px rgba(16,84,224,.3);
 }
 .date-pick .dp-num.past { color: rgba(130,142,165,.45); box-shadow: none; }
+/* 底栏两枚胶囊同排：回到今天（浅底）+ 完成（蓝底），对齐 App 的 HStack(spacing: 12)。
+   少了这条 flex 容器，下面 button 的 flex: 1 无处生效，两枚会挤成一团。 */
+.date-pick .dp-foot { display: flex; gap: 12px; margin-top: 14px; }
 .date-pick .dp-foot button:disabled {
   cursor: default; opacity: .4;
 }
@@ -1097,7 +1122,9 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .type-row .b48.dash svg { width: 20px; height: 20px; }
 .type-row h4 { font-size: calc(18px * var(--fs)); font-weight: 700; color: var(--blue); }
-.type-island.red .type-row h4 { color: var(--appt); }
+.type-row.special { color: var(--appt); }
+.type-row.special h4 { color: var(--appt); }
+.type-row.special + .type-row::before { background: rgba(220,72,72,.10); }
 .type-row p { font-size: calc(13px * var(--fs)); font-weight: 500; color: var(--secondary); margin-top: 4px; }
 .type-row .type-chev { display: grid; color: inherit; opacity: .45; }
 /* 类别管理行尾的编辑 / 删除圆钮（真机 CategoryManageView） */
@@ -1547,10 +1574,19 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   border: 0; background: var(--blue); color: #fff;
   box-shadow: 0 4px 8px rgba(16,84,224,.22);
 }
+.ex-choice.appt {
+  border: 0; background: var(--appt); color: #fff;
+  box-shadow: 0 4px 8px rgba(220,72,72,.22);
+}
 .ex-choice.secondary {
   background: #fff; color: var(--blue);
   border: 1.5px solid rgba(16,84,224,.22);
   box-shadow: 0 3px 6px rgba(16,84,224,.10);
+}
+.ex-choice.secondary.appt-sec {
+  color: var(--appt);
+  border-color: rgba(220,72,72,.22);
+  box-shadow: 0 3px 6px rgba(220,72,72,.10);
 }
 
 .menu-pop {
@@ -2063,3 +2099,87 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   color: rgba(130,142,165,.5);
 }
 .preview-page svg { width: 40px; height: 40px; }
+
+/* ===== 确认计划页：解析依据 Tab 正文 + 卡内脚注 ===== */
+
+.basis-copy {
+  font-size: calc(15px * var(--fs)); font-weight: 500; color: rgba(16,84,224,.88);
+  line-height: 1.55; padding: 14px; border-radius: 14px;
+  background: rgba(16,84,224,.05);
+}
+.basis-sec { display: flex; flex-direction: column; gap: 10px; }
+.basis-sec + .basis-sec { margin-top: 16px; }
+.basis-sec-title {
+  font-size: calc(15px * var(--fs)); font-weight: 700; color: var(--blue);
+}
+.basis-copy p { margin: 0; }
+.basis-origin {
+  margin-top: 4px;
+  font-size: calc(13px * var(--fs)); font-weight: 600;
+  color: rgba(16,84,224,.72);
+}
+.basis-photos {
+  display: flex; gap: 8px; overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.basis-photos::-webkit-scrollbar { display: none; }
+.basis-thumb {
+  flex: 0 0 78px; width: 78px; aspect-ratio: 3 / 4;
+  border-radius: 12px; background: #fff;
+  box-shadow: 0 2px 8px rgba(16,84,224,.08);
+  font-size: 10px; font-weight: 700; color: rgba(26,43,74,.55);
+  display: flex; align-items: flex-end; justify-content: flex-start;
+  padding: 6px;
+}
+
+/* 卡内脚注（补充备注）：排在主信息与操作条之间，靠留白分层 */
+.act-notes {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 0 14px 12px;
+}
+.act-note {
+  display: flex; align-items: flex-start; gap: 7px; width: 100%; text-align: left;
+  padding: 0; border: 0; background: transparent;
+  font-size: calc(13px * var(--fs)); font-weight: 500; color: var(--secondary);
+  line-height: 1.45;
+}
+.act-note.tappable { cursor: pointer; }
+.act-note svg { width: 12px; height: 12px; flex: 0 0 12px; margin-top: 3px; color: rgba(16,84,224,.55); }
+
+/* 感受问卷顶部体测摘要（真机 BorgQuestionnaireView：数值在上、标题在下） */
+.borg-sum {
+  display: flex;
+  align-items: center;
+  padding: 14px 0;
+  background: rgba(16, 84, 224, .12);
+  border-radius: 16px;
+}
+.borg-sum-cell {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  padding: 0 4px;
+}
+.borg-sum-cell b {
+  display: block;
+  font-size: calc(19px * var(--fs));
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--blue);
+  line-height: 1.15;
+}
+.borg-sum-cell span {
+  display: block;
+  margin-top: 4px;
+  font-size: calc(11px * var(--fs));
+  font-weight: 500;
+  color: var(--secondary);
+}
+.borg-sum-div {
+  flex: 0 0 1px;
+  width: 1px;
+  height: 28px;
+  border-radius: 1px;
+  background: rgba(16, 84, 224, .12);
+}
