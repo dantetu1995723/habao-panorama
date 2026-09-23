@@ -542,7 +542,7 @@
     "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），进与首次上传 / 基础报告同一份资料详情，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
     "task-add": { code: "AddEditTaskView", note: "两大类折叠（不分页）：一条滚动里「事项」「时间与提醒」两组，标题行点一下收起、再点一下展开，进页两组都展开。「事项」：名称、备注、今日血压、分类。「时间与提醒」：计划类型 → 日期 / 开始日期（同一字段；单日读「日期」、循环读「开始日期」，过去日不可选；首页虚框锁定当天；切成循环计划不跳页，循环规则与持续时长就在下方就地出现）→ 循环规则（每日 / 每周 / 每月 + 自定义间隔，每月 1–31 与「月末」同格）→ 持续时长（预设不含 1天 / 1周 / 1个月、最长一年，末尾通栏「自定义」）→ 时间段 → 当日时刻 → 「到点提醒」（总开关在上、仅本次缩进在下；单日一档）→ 查看态删除 / 取消打卡。折叠只影响看不看得见，右上「添加」随时可保存。" },
-    "task-edit": { code: "AddEditTaskView", note: "同两大类折叠。只改字段，底部无删除。循环「开始日期」在「时间与提醒」组可改（不可选过去日）；改动随「确认」落库，左「取消」放弃改动时提醒一并回退。" },
+    "task-edit": { code: "AddEditTaskView", note: "同两大类折叠。只改字段，底部无删除。已保存计划的「日期 / 开始日期」禁用不可改（新建仍可改，首页虚框仍锁定当天）。改动随「确认」落库，左「取消」放弃改动时提醒一并回退。该日已打卡时「本次及后续提醒」与「仅本次提醒」都显示为关并置灰，取消打卡后按原值恢复。" },
     "task-view": { code: "AddEditTaskView", note: "同两大类折叠、只读（标题行仍可点折叠）。「时间与提醒」组底部按已保存类型删除：循环「删除本次计划 / 删除本次和后续计划」，单日「删除计划」。到点提醒两档即时生效。" },
     "exercise-risk": { code: "BodyTestRunView", note: "Demo Toggle 模拟禁忌症。体测不参与入组。「稍后 / 退出评估 / 暂不创建」关整段评估流，不退回选择类型。" },
     "body-test": { code: "BodyTestRunView", note: "户外原地踏步三分钟。停止或倒计时归零后直进感受问卷，无完成中转页。" },
@@ -5753,14 +5753,19 @@
     // 开关方向与个人中心总闸一致：开 = 会提醒
     const seriesOn = !S.remindOff[id];
     const gate = gateOpen(taskCatKey(d));
+    // 已打卡：两档都显示为关并禁用（总开关不再保持打开）
+    const seriesShown = done ? false : (gate && seriesOn);
+    const seriesCaption = !d.cycle ? ""
+      : done ? "本次已打卡，提醒已锁定"
+      : (seriesOn ? "关闭后整条计划都不再响铃" : "整条计划已关闭提醒");
     // 总闸关着时开关显示关、也拨不开——点它弹窗引导去个人中心（不留小字）
     rows.push(reminderRow(
       d.cycle ? "本次及后续提醒" : "本次提醒",
-      d.cycle ? (seriesOn ? "关闭后整条计划都不再响铃" : "整条计划已关闭提醒") : "",
-      gate && seriesOn, "remindOff", done, accent.fg, false));
+      seriesCaption,
+      seriesShown, "remindOff", done, accent.fg, false));
     if (d.cycle) {
       rows.push(reminderRow("仅本次提醒", "",
-        gate && seriesOn && !S.mutedToday[id], "muteToday",
+        done ? false : (gate && seriesOn && !S.mutedToday[id]), "muteToday",
         done || (!seriesOn && gate), accent.fg, true));
     }
 
@@ -5802,11 +5807,12 @@
         <div class="${isSub ? "s15" : "s17"} fb t">${title}</div>
         ${cap}
       </div>
-      <button class="toggle ${on ? "on" : ""}" ${disabled ? "" : `data-act="${actName}"`} type="button"><i></i></button>
+      <button class="toggle ${on ? "on" : ""}" ${disabled ? 'disabled style="pointer-events:none;cursor:default"' : `data-act="${actName}"`} type="button"><i></i></button>
     </div>`;
-    // 子开关：先缩进一级、再套一层功能岛；岛与内容一起压暗（上游关了它跟着失效）
-    if (!isSub) return row;
-    return `<div style="margin:2px 12px 12px;border-radius:12px;background:${fg}14${disabled ? ";opacity:.4" : ""}">${row}</div>`;
+    const dim = disabled ? "opacity:.4;" : "";
+    // 总开关禁用时整行压暗（已打卡锁定）；子开关再缩进一级套功能岛
+    if (!isSub) return `<div style="${dim}">${row}</div>`;
+    return `<div style="margin:2px 12px 12px;border-radius:12px;background:${fg}14;${dim}">${row}</div>`;
   }
 
   /// 已打卡时页尾的出口：取消本次打卡会一并解禁编辑 / 删除 / 提醒（真机 store.toggleCompletion 的反向）
@@ -5872,11 +5878,15 @@
             chip({ selected: d.cat === "custom" && d.customId === c.id, label: c.name, icon: I[UNIFIED_CUSTOM_ICON], act: "pickCustomCat", extra: `data-id="${c.id}"`, locked: S.lockCategory && mode === "add" })).join("")}
           ${!(S.lockCategory && mode === "add") && mode !== "view" ? chip({ selected: false, label: "自定义", icon: I.plus, dash: true, act: "openCustomCat" }) : ""}
         </div>`;
+    // 已保存计划（编辑态）与首页虚框：日期 / 开始日期禁用不可改。查看态整页只读，仍保持语义色。
+    const lockStart = lockRec || mode === "edit";
+    const dateInteractive = editable && !lockStart;
+    const dateMuted = lockStart && editable;
     const dateRow = (label, first) => `
         <div class="sec-label"${first ? ' style="margin-top:0"' : ""}>${label}</div>
-        <button class="date-row" style="background:${accent.muted};color:${accent.fg}" ${editable && !lockRec ? 'data-act="openOnceDate"' : ""} type="button">
+        <button class="date-row" style="background:${dateMuted ? "rgba(130,142,165,.10)" : accent.muted};color:${dateMuted ? "rgba(130,142,165,.72)" : accent.fg}" ${dateInteractive ? 'data-act="openOnceDate"' : ""} type="button"${dateMuted ? " disabled" : ""}>
           <span>${planDateLabel(d.onceDate, d.cycle)}</span>
-          ${editable && !lockRec ? `<span class="dim">${I.chevUD}</span>` : ""}
+          ${dateInteractive ? `<span class="dim">${I.chevUD}</span>` : ""}
         </button>`;
     const dateBlock = `
         <div class="sec-label" style="margin-top:0">计划类型</div>
