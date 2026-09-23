@@ -541,9 +541,9 @@
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），进与首次上传 / 基础报告同一份资料详情，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
-    "task-add": { code: "AddEditTaskView", note: "两大类折叠（不分页）：一条滚动里「事项」「时间与提醒」两组，标题行点一下收起、再点一下展开，进页两组都展开。「事项」：名称、备注、今日血压、分类。「时间与提醒」：计划类型 → 日期 / 开始日期（同一字段；单日读「日期」、循环读「开始日期」，过去日不可选；首页虚框锁定当天；切成循环计划不跳页，循环规则与持续时长就在下方就地出现）→ 循环规则（每日 / 每周 / 每月 + 自定义间隔，每月 1–31 与「月末」同格）→ 持续时长（预设不含 1天 / 1周 / 1个月、最长一年，末尾通栏「自定义」）→ 时间段 → 当日时刻 → 「到点提醒」（总开关在上、仅本次缩进在下；单日一档）→ 查看态删除 / 取消打卡。折叠只影响看不看得见，右上「添加」随时可保存。" },
-    "task-edit": { code: "AddEditTaskView", note: "同两大类折叠。只改字段，底部无删除。已保存计划的「日期 / 开始日期」禁用不可改（新建仍可改，首页虚框仍锁定当天）。改动随「确认」落库，左「取消」放弃改动时提醒一并回退。该日已打卡时「本次及后续提醒」与「仅本次提醒」都显示为关并置灰，取消打卡后按原值恢复。" },
-    "task-view": { code: "AddEditTaskView", note: "同两大类折叠、只读（标题行仍可点折叠）。「时间与提醒」组底部按已保存类型删除：循环「删除本次计划 / 删除本次和后续计划」，单日「删除计划」。到点提醒两档即时生效。" },
+    "task-add": { code: "AddEditTaskView", note: "两大类折叠（不分页）：一条滚动里「事项」「时间与提醒」两组，标题行点一下收起、再点一下展开，进页两组都展开。「事项」：名称、备注、今日血压、分类。「时间与提醒」：计划类型 → 日期 / 开始日期（同一字段；单日读「日期」、循环读「开始日期」，过去日不可选；首页虚框锁定当天；切成循环计划不跳页，循环规则与持续时长就在下方就地出现）→ 循环规则（每日 / 每周 / 每月 + 自定义间隔，每月 1–31 与「月末」同格）→ 持续时长（预设不含 1天 / 1周 / 1个月、最长一年，末尾通栏「自定义」）→ 时间段 → 当日时刻 → 「到点提醒」（总开关在上、仅本次缩进在下；单日一档）＋「家属通知」（V10.52：家属通道串联，未绑定先去填写、填完自动进打卡通知页；总闸关着弹「去设置」）→ 查看态删除 / 取消打卡。折叠只影响看不看得见，右上「添加」随时可保存。" },
+    "task-edit": { code: "AddEditTaskView", note: "同两大类折叠。只改字段，底部无删除。已保存计划的「日期 / 开始日期」禁用不可改（新建仍可改，首页虚框仍锁定当天）。改动随「确认」落库，左「取消」放弃改动时提醒一并回退。该日已打卡时「本次及后续提醒」与「仅本次提醒」都显示为关并置灰，取消打卡后按原值恢复。「家属通知」与到点提醒同构，随「确认」落库、取消回退。" },
+    "task-view": { code: "AddEditTaskView", note: "同两大类折叠、只读（标题行仍可点折叠）。「时间与提醒」组底部按已保存类型删除：循环「删除本次计划 / 删除本次和后续计划」，单日「删除计划」。到点提醒两档与「家属通知」即时生效（家属通道 = 通知家属 × 已绑定 × 类别开关）。" },
     "exercise-risk": { code: "BodyTestRunView", note: "Demo Toggle 模拟禁忌症。体测不参与入组。「稍后 / 退出评估 / 暂不创建」关整段评估流，不退回选择类型。" },
     "body-test": { code: "BodyTestRunView", note: "户外原地踏步三分钟。停止或倒计时归零后直进感受问卷，无完成中转页。" },
     "body-test-sit": { code: "BodyTestRunView", note: "室内 1 分钟坐立。次数大号读数 + 倒计时 + 同龄参考。停止后问卷顶部两栏「测试时长 / 完成次数」。" },
@@ -613,10 +613,14 @@
     famRel: "配偶",
     notifySelf: true,
     notifyFamily: false,
+    // 计划页「去填写 → 填完自动进打卡通知页」的链路标记（V10.52）
+    famFillJump: false,
     notifyAll: true,
     cats: { medication: true, exercise: true, monitoring: true, diet: true, rest: true, appointment: true },
     // 计划「到点提醒」：remindOff = 本次及后续提醒关；mutedToday = 本次提醒关（按任务 id 记）
     remindOff: {},
+    // 家属通知关（按任务 id 记；V10.52 计划页家属通知）
+    famOff: {},
     mutedToday: {},
     walking: false,
     paused: false,
@@ -1252,6 +1256,8 @@
     });
     // 「到点提醒」也随「确认」落库（真机 notificationEnabled → TaskNotificationService 重排）
     S.remindOff[id] = d.remind === false;
+    // 「家属通知」同样随「确认」落库（真机 familyNotificationEnabled）
+    S.famOff[id] = d.famNotify === false;
     // 「本次提醒」同样随「确认」落库（真机 mutedDays）
     S.mutedToday[id] = !!d.muteFirst;
     sortSeed();
@@ -1343,6 +1349,8 @@
       min: t.m,
       title: t.title,
       remind: !S.remindOff[t.id],
+      // 家属通知（V10.52）
+      famNotify: !S.famOff[t.id],
       // 「本次提醒」的静音日（查看 / 编辑共用同一张 S.mutedToday）
       muteFirst: !!S.mutedToday[t.id],
       note: t.note || "",
@@ -1377,6 +1385,8 @@
       min: 0,
       title: "",
       remind: true,
+      // 家属通知默认开（真机 familyNotificationEnabled 缺省 true）
+      famNotify: true,
       // 新建：系列从起始日（当天）开始，那一次就是它的「本次」，默认不静音
       muteFirst: false,
       note: "",
@@ -1768,6 +1778,13 @@
     S.overlay = null;
     render();
   }
+  /// 家属管理返回：从计划页「去填写」进来且已绑定 → 返回后接着进打卡通知页开总闸（V10.52）
+  function backFamily() {
+    const toNotify = S.famFillJump && S.family.length > 0;
+    S.famFillJump = false;
+    back();
+    if (toNotify) go("notify", "cover");
+  }
   function replace(id) {
     present(id, "replace");
   }
@@ -1780,6 +1797,8 @@
     S.confirmPane = "plan";
     S.pendingManualEnroll = false;
     S.draftReturn = null;
+    // V10.52：计划页家属「去填写」链路标记，离开即清
+    S.famFillJump = false;
     // 会话归属跟着会话走：离开运动链就清掉，免得下次自由运动占用上一次的计划
     S.walkTaskId = null;
     S.walkStartedAt = null;
@@ -2491,7 +2510,7 @@
   function act(name, el) {
     simLogAct(name, el); // 真机模拟埋点：act 是全部 data-act 的唯一漏斗
     const map = {
-      back, later: closeFlow, goHome, closeFlow, laterCapture,
+      back, backFamily, later: closeFlow, goHome, closeFlow, laterCapture,
       close() {
         if (S.overlay === "datePick" && S.overlayData.kind === "customDur") {
           openOverlay("customDur");
@@ -3122,6 +3141,24 @@
         S.draft.muteFirst = shown;
         render();
       },
+      // 查看计划 · 家属通知：系列级一档（V10.52）。闸＝通知家属 × 已绑定 × 类别；
+      // 未绑定先去填写（填完自动进打卡通知页），总闸关着引导去个人中心
+      famNotify() {
+        const t = SEED.find((x) => x.id === S.taskId);
+        const shown = familyGateOpen(taskCatKey(t)) && !S.famOff[S.taskId];
+        if (!shown && blockedByFamilyGate(taskCatKey(t))) return;
+        S.famOff[S.taskId] = !S.famOff[S.taskId];
+        render();
+      },
+      // 添加 / 编辑计划 · 家属通知：写进草稿，随「添加 / 确认」一起落库
+      draftFamNotify() {
+        if (!S.draft) return;
+        const cat = taskCatKey(S.draft);
+        const shown = familyGateOpen(cat) && S.draft.famNotify !== false;
+        if (!shown && blockedByFamilyGate(cat)) return;
+        S.draft.famNotify = !shown;
+        render();
+      },
       goNotify() { closeOverlay(); go("notify", "cover"); },
       // 查看计划 · 取消本次打卡：解禁提醒与删除（真机 store.toggleCompletion 的反向）
       undoCheckIn() { delete S.completed[S.taskId]; render(); },
@@ -3332,8 +3369,9 @@
           customId: d.customId || undefined,
           onceDate: d.onceDate || toYMD(demoDate()),
         });
-        // 添加页定的「到点提醒」随计划一起落库，查看计划里再改
+        // 添加页定的「到点提醒」「家属通知」随计划一起落库，查看计划里再改
         S.remindOff[id] = d.remind === false;
+        S.famOff[id] = d.famNotify === false;
         S.mutedToday[id] = !!d.muteFirst;
         S.completed[id] = false;
         S.centerStage = id;
@@ -3444,6 +3482,8 @@
         S.notifyFamily = !S.notifyFamily; render();
       },
       goFamily() { closeOverlay(); go("family", "cover"); },
+      // 计划页「去填写」：先记链路标记，家属页填完返回时自动进打卡通知页（真机 AddEditTaskView onDismiss）
+      goFamilyFromTask() { S.famFillJump = true; closeOverlay(); go("family", "cover"); },
       // 解除绑定按人删除（真机 FamilyMemberStore.remove(id)）
       unbind() {
         const id = el.dataset.id;
@@ -5015,7 +5055,7 @@
 
     family: () => `
       <div class="page">
-        ${navBar(cap(I.chevL, "返回"), "家属管理")}
+        ${navBar(cap(I.chevL, "返回", "", "backFamily"), "家属管理")}
         <div class="scroll px24" style="padding-top:20px">
           <div class="field-label">姓名</div>
           <input class="field" name="fname" placeholder="姓名" />
@@ -5397,6 +5437,34 @@
     });
     return true;
   }
+  /// 家属通道总闸：通知家属 × 已绑定家属 × 该类别开关
+  /// （同 CheckInNotificationPreference.allowsFamilyReminder；计划「家属通知」串联在这道闸之后）
+  function familyGateOpen(cat) {
+    if (!S.notifyFamily || !S.family.length) return false;
+    if (!cat) return true;
+    return !!S.cats[cat];
+  }
+  /// 家属通道关着时弹窗拦下：未绑定去填写；已绑定未开总闸去个人中心。返回 true 表示已拦下。
+  function blockedByFamilyGate(catOverride) {
+    const cat = catOverride || currentTaskCat();
+    if (familyGateOpen(cat)) return false;
+    if (!S.family.length) {
+      openOverlay("confirm", {
+        title: "请先填写家属信息",
+        body: "通知家属前请先绑定联系人",
+        ok: "去填写",
+        action: "goFamilyFromTask",
+      });
+      return true;
+    }
+    openOverlay("confirm", {
+      title: "请先打开通知家属",
+      body: "个人中心已关闭「通知家属」，在这里开启也不会发。要通知家属，请先到个人中心打开总开关。",
+      ok: "去设置",
+      action: "goNotify",
+    });
+    return true;
+  }
   /// 类别展示名：自定义类别按 id 反查
   function catName(id) {
     const c = (S.customCats || []).find((x) => String(x.id) === String(id));
@@ -5768,6 +5836,11 @@
         done ? false : (gate && seriesOn && !S.mutedToday[id]), "muteToday",
         done || (!seriesOn && gate), accent.fg, true));
     }
+    // 家属通知（V10.52 · 真机同款）：系列级一档；家属通道 = 通知家属 × 已绑定 × 类别，已打卡同锁
+    rows.push(reminderRow("家属通知",
+      done ? "本次已打卡，提醒已锁定" : "同步通知已绑定的家属",
+      done ? false : (familyGateOpen(taskCatKey(d)) && !S.famOff[id]),
+      "famNotify", done, accent.fg, false));
 
     return `<div class="sec-label">到点提醒</div>
       <div class="list-island">${rows.join("")}</div>`;
@@ -5789,6 +5862,10 @@
         gate && seriesOn && !d.muteFirst, "draftMuteToday",
         !seriesOn && gate, accent.fg, true));
     }
+    // 家属通知（V10.52）：写进草稿随「添加 / 确认」落库；闸关着时拨不开、弹层引导
+    rows.push(reminderRow("家属通知", "同步通知已绑定的家属",
+      familyGateOpen(taskCatKey(d)) && d.famNotify !== false,
+      "draftFamNotify", false, accent.fg, false));
 
     return `<div class="sec-label">到点提醒</div>
       <div class="list-island">${rows.join("")}</div>`;
