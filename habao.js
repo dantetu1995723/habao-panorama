@@ -519,20 +519,20 @@
   ];
 
   const SPEC = {
-    "onboard-login": { code: "OnboardingFlowView", note: "短信登录 Demo 不校验。11 位手机 + 6 位验证码后「登录」可点。聚焦后口号改「欢迎使用哈宝」。" },
-    "onboard-role": { code: "OnboardingFlowView", note: "家属也是管理患者的成员，填写的都是患者信息。大卡单选。" },
-    "onboard-profile": { code: "PatientProfileFormFields", note: "姓名必填；「进入哈宝」始终可点，空姓名顶部 toast「请填写姓名」。" },
-    home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 182–192，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。" },
+    "onboard-login": { code: "OnboardingFlowView", note: "短信登录 Demo 不校验。11 位手机 + 6 位验证码后「登录」可点。聚焦后口号改「欢迎使用哈宝」。V0.0 只两步（登录 → 完善信息），身份固定患者本人；V0.1 才多一步身份。" },
+    "onboard-role": { code: "OnboardingFlowView", note: "V0.1 专属（V0.0 不出现）。家属也是管理患者的成员，填写的都是患者信息。大卡单选。" },
+    "onboard-profile": { code: "PatientProfileFormFields", note: "姓名必填；「进入哈宝」始终可点，空姓名顶部 toast「请填写姓名」。步骤点 V0.0 是 2/2，V0.1 是 3/3。" },
+    home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 182–192，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页（横向时段泳道已不再作为首页）；底坞中圆哈宝问诊 V0.0 压暗点不开。" },
     schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行在时刻前标选中日完整年月日（2026年9月16日 13:00），元信息标单日/循环；循环两钮「仅删本次 / 长期删除」，单日一钮删除。点查看先进查看计划，右上编辑才进编辑。历史日只读「查看」。切「已完成」整页绿白。" },
-    vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。底栏进入哈宝医生带本周评估。" },
-    report: { code: "FollowUpModuleView", note: "综合结论 + 三等分入口 + 底栏哈宝医生。" },
+    vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。底栏进入哈宝医生带本周评估，该钮 V0.0 压暗点不开、V0.1 可进。" },
+    report: { code: "FollowUpModuleView", note: "综合结论 + 三等分入口 + 底栏哈宝医生（V0.0 压暗点不开，V0.1 可进）。" },
     "report-sub": { code: "BodyReportSubReportView", note: "V10.50：顶栏两枚 Tab「AI 解读 / 资料合集」（同构确认计划「计划 / 解析依据」，字号适老档），默认落 AI 解读；资料合集只读——基础报告列入组存量、复查报告按次归档，点缩略图开全屏预览，空态只留文案（拍 / 删仍走底栏「新增报告资料」→ 资料详情）。底栏两页共用；复诊打卡形态在「新增报告资料」下多一颗「返回首页」。" },
     walk: { code: "WalkView", note: "大标题 + 44 回首页（dismiss cover，不压栈）。地图主卡底浮层：60 圆钮记录/分享 + 60 主胶囊。三态：开始运动 / 返回运动 / 保存并打卡。首页运动打卡先进本页再自动开会话。保存归属：计划入口完成原任务，自由入口按开始时刻新建「自主散步」，不猜测也不占用存量计划。" },
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。" },
-    consult: { code: "SmartConsultChatView", note: "按住说话；上滑超 70pt 立即发送。可切文字输入。底坞三功能：解读指标 / 解读报告带上下文，拍照问诊挂待发图。" },
-    profile: { code: "ServiceView", note: "Hero 健康档案 + 家属/通知/协议。无 VIP。" },
+    consult: { code: "SmartConsultChatView", note: "按住说话；上滑超 70pt 立即发送。可切文字输入。底坞三功能：解读指标 / 解读报告带上下文，拍照问诊挂待发图。V10.56：空态只有 Logo 问候，不再放示例问句、也不再灌样例对话。V0.0 三个入口（底坞中圆 / 血压监测 / 身体报告）压暗点不开，切 V0.1 才进得来。" },
+    profile: { code: "ServiceView", note: "Hero 健康档案 + 家属/通知/协议。无 VIP。V0.0 不出现家属管理与右上身份胶囊、档案标「本人」（切 V0.1 恢复）。" },
     "ocr-capture": { code: "IntakeCaptureView", note: "组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "按组分区预览。与首次上传、身体报告·基础报告共用同一份存量。入组可改类别 / 删组（必传出院记录至少留一组）；复查不改类别。右上入组「解析」、存档「提交」。无存量时空态只留文案，拍资料走左上「拍摄」，页内不再放「拍摄资料」钮。" },
@@ -541,9 +541,9 @@
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），进与首次上传 / 基础报告同一份资料详情，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
-    "task-add": { code: "AddEditTaskView", note: "两大类折叠（不分页）：一条滚动里「事项」「时间与提醒」两组，标题行点一下收起、再点一下展开，进页两组都展开。「事项」：名称、备注、今日血压、分类。「时间与提醒」：计划类型 → 日期 / 开始日期（同一字段；单日读「日期」、循环读「开始日期」，过去日不可选；首页虚框锁定当天；切成循环计划不跳页，循环规则与持续时长就在下方就地出现）→ 循环规则（每日 / 每周 / 每月 + 自定义间隔，每月 1–31 与「月末」同格）→ 持续时长（预设不含 1天 / 1周 / 1个月、最长一年，末尾通栏「自定义」）→ 时间段 → 当日时刻 → 「到点提醒」（总开关在上、仅本次缩进在下；单日一档）＋「家属通知」（V10.52：家属通道串联，未绑定先去填写、填完自动进打卡通知页；总闸关着弹「去设置」）→ 查看态删除 / 取消打卡。折叠只影响看不看得见，右上「添加」随时可保存。" },
-    "task-edit": { code: "AddEditTaskView", note: "同两大类折叠。只改字段，底部无删除。已保存计划的「日期 / 开始日期」禁用不可改（新建仍可改，首页虚框仍锁定当天）。改动随「确认」落库，左「取消」放弃改动时提醒一并回退。该日已打卡时「本次及后续提醒」与「仅本次提醒」都显示为关并置灰，取消打卡后按原值恢复。「家属通知」与到点提醒同构，随「确认」落库、取消回退。" },
-    "task-view": { code: "AddEditTaskView", note: "同两大类折叠、只读（标题行仍可点折叠）。「时间与提醒」组底部按已保存类型删除：循环「删除本次计划 / 删除本次和后续计划」，单日「删除计划」。到点提醒两档与「家属通知」即时生效（家属通道 = 通知家属 × 已绑定 × 类别开关）。" },
+    "task-add": { code: "AddEditTaskView", note: "两大类折叠（不分页）：一条滚动里「事项」「时间与提醒」两组，标题行点一下收起、再点一下展开，进页两组都展开。「事项」：名称、备注、今日血压、分类。「时间与提醒」：计划类型 → 日期 / 开始日期（同一字段；单日读「日期」、循环读「开始日期」，过去日不可选；首页虚框锁定当天；切成循环计划不跳页，循环规则与持续时长就在下方就地出现）→ 循环规则（每日 / 每周 / 每月 + 自定义间隔，每月 1–31 与「月末」同格）→ 持续时长（预设不含 1天 / 1周 / 1个月、最长一年，末尾通栏「自定义」）→ 时间段 → 当日时刻 → 「到点提醒」（总开关在上、仅本次缩进在下；单日一档）＋「家属通知」（V10.52：家属通道串联，未绑定先去填写、填完自动进打卡通知页；总闸关着弹「去设置」）→ 查看态删除 / 取消打卡。折叠只影响看不看得见，右上「添加」随时可保存。「家属通知」只在 V0.1 出现。" },
+    "task-edit": { code: "AddEditTaskView", note: "同两大类折叠。只改字段，底部无删除。已保存计划的「日期 / 开始日期」禁用不可改（新建仍可改，首页虚框仍锁定当天）。改动随「确认」落库，左「取消」放弃改动时提醒一并回退。该日已打卡时「本次及后续提醒」与「仅本次提醒」都显示为关并置灰，取消打卡后按原值恢复。「家属通知」与到点提醒同构，随「确认」落库、取消回退（V0.0 不出现）。" },
+    "task-view": { code: "AddEditTaskView", note: "同两大类折叠、只读（标题行仍可点折叠）。「时间与提醒」组底部按已保存类型删除：循环「删除本次计划 / 删除本次和后续计划」，单日「删除计划」。到点提醒两档即时生效；「家属通知」只在 V0.1 出现（家属通道 = 通知家属 × 已绑定 × 类别开关）。" },
     "exercise-risk": { code: "BodyTestRunView", note: "Demo Toggle 模拟禁忌症。体测不参与入组。「稍后 / 退出评估 / 暂不创建」关整段评估流，不退回选择类型。" },
     "body-test": { code: "BodyTestRunView", note: "户外原地踏步三分钟。停止或倒计时归零后直进感受问卷，无完成中转页。" },
     "body-test-sit": { code: "BodyTestRunView", note: "室内 1 分钟坐立。次数大号读数 + 倒计时 + 同龄参考。停止后问卷顶部两栏「测试时长 / 完成次数」。" },
@@ -683,6 +683,9 @@
     sim: null,
     // 开发菜单：首页方案序号（真机 TodayScheme，0-3；本原型只渲染方案一）
     scheme: 0,
+    // 设计代际（真机 DesignGeneration）：V0.0 默认——家属管理与哈宝问诊都不开放，V0.1 才开。
+    // 真机落盘记住选择、正式包固定 V0.0；原型随冷启动回 V0.0（与正式包一致）。
+    gen: "0.0",
   };
 
   // 冷启动快照：真机模拟靠它整体复位（S 只含 JSON 安全值，可安全深拷贝）
@@ -706,13 +709,13 @@
   /// 链路表：steps 按顺序前进扫描，命中的即点亮。act = 动作事件，screen = 落到该屏
   /// optional 步不达标不阻塞；state 谓词兜终态（如「已入组」）
   const FLOWS = [
-    { id: "login", label: "未登录 · 登录 → 完善信息", cold: "login", steps: [
+    { id: "login", label: "未登录 · 登录 → 完善信息（V0.1 多一步身份）", cold: "login", steps: [
       { screen: "onboard-login", label: "欢迎使用哈宝" },
       { act: "sendCode", label: "获取验证码", hint: "登录页点「获取验证码」" },
       { act: "login", label: "填 11 位手机号 + 6 位验证码后登录" },
-      { screen: "onboard-role", label: "请选择你的身份" },
-      { act: "pickRole", label: "选本人 / 家属" },
-      { act: "nextRole", label: "下一步" },
+      { screen: "onboard-role", optional: true, label: "（V0.1）请选择你的身份；V0.0 直接进填资料" },
+      { act: "pickRole", optional: true, label: "（V0.1）选本人 / 家属" },
+      { act: "nextRole", optional: true, label: "（V0.1）下一步" },
       { screen: "onboard-profile", label: "完善你的信息" },
       { act: "pickGender", label: "选性别" },
       { act: "enter", label: "填姓名后完成", hint: "点右上「进入哈宝」" },
@@ -841,10 +844,10 @@
       { state: (s) => s.qDone, label: "最后一题提交 → 结果页" },
       { act: "qFinish", label: "返回身体报告", optional: true },
     ]},
-    { id: "consult", label: "已入组 · 哈宝医生", cold: "demo", steps: [
+    { id: "consult", label: "已入组 · 哈宝医生（需 V0.1）", cold: "demo", steps: [
+      { act: "debugGen", label: "先在开发菜单切到 V0.1（V0.0 三个入口压暗点不开）" },
       { screen: "consult", label: "底坞中钮 / 血压监测 / 身体报告三入口" },
-      { act: "sendQuick", label: "点快捷问句" },
-      { act: "sendChat", label: "发送文字", optional: true },
+      { act: "sendChat", label: "发送文字（V10.56 空态不再放示例问句）" },
       { act: "newChat", label: "新对话", optional: true },
       { screen: "consult-history", label: "「对话」→ 历史记录", optional: true },
     ]},
@@ -864,18 +867,18 @@
       { act: "demoShare", label: "海报选渠道", optional: true },
     ]},
     // 开发菜单（真机 #if DEBUG）：三项语义差得远，最容易搞混「重新生成」与「测试登录步骤」
-    { id: "debug-menu", label: "开发菜单 · 生成 / 重置 / 测试登录", cold: "demo", steps: [
+    { id: "debug-menu", label: "开发菜单 · 生成 / 重置 / 登录步骤 / 设计版本", cold: "demo", steps: [
       { act: "openDebug", label: "首页右上「…」打开开发菜单" },
       { act: "debugSeed", optional: true, label: "生成 Demo（铺满档案 + 计划 + 体征）" },
       { act: "debugRegenerate", optional: true, label: "重新生成（清计划与记录，留档案姓名）" },
-      { act: "debugScheme", optional: true, label: "切换方案 1/2/3/4（仅状态，布局只复刻方案一）" },
+      { act: "debugGen", optional: true, label: "设计版本 V0.0 / V0.1（家属与哈宝问诊跟着开合）" },
       { act: "debugTestLogin", label: "测试登录步骤（只退登录态）" },
       { screen: "onboard-login", label: "回登录向导，计划与记录仍在" },
     ]},
     { id: "profile", label: "已入组 · 个人中心三件套", cold: "demo", steps: [
       { screen: "profile", label: "个人中心" },
       { act: "savePatient", label: "患者信息保存写回", optional: true },
-      { act: "bindFam", label: "家属绑定（最多 5 位）", optional: true },
+      { act: "bindFam", label: "（V0.1）家属绑定（最多 5 位）", optional: true },
       { act: "toggleCat", label: "打卡通知分类开关", optional: true },
     ]},
   ];
@@ -1967,7 +1970,7 @@
       + (S.overlay ? ` → ${S.overlay} 贴底` : "");
     $("#spec").innerHTML = `
       <div class="tag">${S.enrolled ? "已入组" : "未入组"}</div>
-      <div class="tag">${S.role === "patient" ? "本人" : "家属"}</div>
+      <div class="tag">${shownRole() === "patient" ? "本人" : "家属"}</div>
       <div class="tag">${HOW_LAB[how] || how}</div>
       <div class="tag">${S.screen}</div>
       <h2>${found?.t || S.screen}</h2>
@@ -2524,6 +2527,8 @@
         // 真机 loginReady = 手机号 11 位 && 验证码 6 位；这里点按给具体原因，别静默
         if (phone.length !== 11) { toast(phone ? "请输入 11 位手机号" : "请填写手机号"); return; }
         if (code.length !== 6) { toast(code ? "请输入 6 位验证码" : "请填写验证码"); return; }
+        // V0.0 没有身份选择：身份固定患者本人，登录后直接填资料（V0.1 才进「我是家属」）
+        if (!genHasFamily()) { S.role = "patient"; go("onboard-profile", "push"); return; }
         go("onboard-role", "push");
       },
       sendCode() { toast("验证码已发送（Demo）"); },
@@ -3409,7 +3414,15 @@
       doUnregister() { resetAll(); setMode("login"); },
       roleSwitch() { S.role = S.role === "patient" ? "family" : "patient"; render(); },
       openDebug() { openOverlay("debugMenu"); },
-      // 真机 scheme = scheme.next：循环 1→2→3→4→1
+      // 设计版本（真机 DesignGenerationStore.select）：V0.0 家属与哈宝问诊不开放，切 V0.1 才开。
+      // 真机落盘记住选择、正式包固定 V0.0；原型随冷启动回 V0.0。
+      debugGen() {
+        S.gen = el.dataset.gen;
+        closeOverlay();
+        toast(`设计版本 V${S.gen}｜${genHasFamily() ? "家属管理与哈宝问诊已开放" : "家属管理与哈宝问诊未开放"}`);
+      },
+      // 真机 V10.52 起调试菜单不再切方案（TodaySchemeFourView 只留文件、不再是首页），
+      // 本原型的入口已撤，渲染与状态留档——要临时预览方案四，把开发菜单那两行加回来即可。
       debugScheme() {
         S.scheme = ((S.scheme ?? 0) + 1) % SCHEMES.length;
         closeOverlay();
@@ -3529,7 +3542,6 @@
         S.pendingImage = true;
         askConsult("（照片）检查单", "已收到照片，我先看一下上面的关键指标。");
       },
-      sendQuick() { askConsult(el.dataset.q, "收到。结合你最近的血压和用药，我先帮你看一下可能原因与居家注意点。"); },
       shareStamp() { openOverlay("share"); },
       openCal() { openOverlay("stampCal"); },
       demoShare() { toast("Demo 演示，未接入 SDK"); },
@@ -4072,7 +4084,7 @@
   const screens = {
     "onboard-login": () => `
       <div class="page px24" style="padding-top:78px">
-        <div class="dots"><i class="dot on"></i><i class="dot"></i><i class="dot"></i></div>
+        ${dotsHTML(1)}
         <h2 class="s28 fb t page-title">欢迎使用哈宝</h2>
         <p class="s14 fm t-sec mt8 page-sub">手机号登录，未注册将自动创建账号</p>
         <div class="col center" style="margin:28px 0 18px">
@@ -4092,7 +4104,7 @@
 
     "onboard-role": () => `
       <div class="page px24" style="padding-top:78px">
-        <div class="dots"><i class="dot"></i><i class="dot on"></i><i class="dot"></i></div>
+        ${dotsHTML(2)}
         <h2 class="s28 fb t">请选择你的身份</h2>
         <p class="s14 fm t-sec mt8">家属也是管理患者的成员，填写的都是患者信息</p>
         <div class="col gap16" style="margin-top:24px">
@@ -4115,8 +4127,8 @@
 
     "onboard-profile": () => `
       <div class="page px24" style="padding-top:78px">
-        <div class="dots"><i class="dot"></i><i class="dot"></i><i class="dot on"></i></div>
-        <h2 class="s28 fb t">${S.role === "family" ? "填写患者信息" : "完善你的信息"}</h2>
+        ${dotsHTML(genHasFamily() ? 3 : 2)}
+        <h2 class="s28 fb t">${shownRole() === "family" ? "填写患者信息" : "完善你的信息"}</h2>
         <p class="s14 fm t-sec mt8">用于生成康复建议，可随时在个人中心修改</p>
         <div class="scroll" style="margin-top:20px">
           <div class="field-label">姓名</div>
@@ -4183,7 +4195,9 @@
           </div>
           <div class="dock">
             <div class="orb" data-go="walk">${I.walk}<span>运动</span></div>
-            <div class="orb ai" data-go="consult"><img src="${A.logo}" alt="哈宝医生" /></div>
+            ${genHasFamily()
+              ? `<div class="orb ai" data-go="consult"><img src="${A.logo}" alt="哈宝医生" /></div>`
+              : `<div class="orb ai off" aria-disabled="true"><img src="${A.logo}" alt="哈宝医生" /></div>`}
             <div class="orb" data-go="stamps">${I.share}<span>分享</span></div>
           </div>
         </div>`;
@@ -4620,7 +4634,9 @@
           </div>
         </div>
         <div class="px20" style="padding-bottom:20px">
-          <button class="cta" data-go="consult" type="button"><img src="${A.logo}" width="30" height="30" alt="" />进入哈宝医生</button>
+          ${genHasFamily()
+            ? `<button class="cta" data-go="consult" type="button"><img src="${A.logo}" width="30" height="30" alt="" />进入哈宝医生</button>`
+            : `<button class="cta" aria-disabled="true" type="button" style="opacity:.4"><img src="${A.logo}" width="30" height="30" alt="" />进入哈宝医生</button>`}
         </div>
       </div>`;
     },
@@ -4655,7 +4671,9 @@
                 <div class="s15 fsb t">${t}</div>
               </button>`).join("")}
           </div>
-          <button class="cta" style="margin-bottom:20px" data-go="consult" type="button"><img src="${A.logo}" width="30" height="30" alt="" />进入哈宝医生</button>
+          ${genHasFamily()
+            ? `<button class="cta" style="margin-bottom:20px" data-go="consult" type="button"><img src="${A.logo}" width="30" height="30" alt="" />进入哈宝医生</button>`
+            : `<button class="cta" aria-disabled="true" type="button" style="margin-bottom:20px;opacity:.4"><img src="${A.logo}" width="30" height="30" alt="" />进入哈宝医生</button>`}
         </div>
       </div>`,
 
@@ -4825,6 +4843,7 @@
       </div>`;
     },
 
+    // 空态只有 Logo 问候 + 一句引导（V10.56 去掉全部示例问句，也不再灌样例对话）
     consult: () => `
       <div class="page rel">
         ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="26" height="26" alt="" />哈宝医生</span>`,
@@ -4837,10 +4856,7 @@
               <h2 class="s21 fb t mt8">你好，这里是哈宝医生</h2>
               <p class="s16 t-sec">有不适或用药疑问，都可以问我</p>
             </div>
-            <div class="mt16">
-              ${["最近走路有点喘，正常吗？", "吃药后头晕怎么办？", "今天血压偏高要注意什么？", "可以开始轻度运动吗？"].map((q) =>
-                `<button class="quick" data-act="sendQuick" data-q="${q}" type="button">${q}</button>`).join("")}
-            </div>`}
+            `}
         </div>
         <div class="dock3">
           <button type="button" data-act="consultVitals">解读指标</button>
@@ -4856,17 +4872,21 @@
         </div>
       </div>`,
 
+    // 历史记录：按日期归档、只读、不可删（真机 ConsultHistoryView）。V10.56 起不预置样例对话——
+    // 只有本人问过的才出现在「今天」，没问过给空态。
     "consult-history": () => `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "历史记录")}
+        ${S.messages.length ? `
         <div class="scroll px20" style="padding-top:8px">
           <div class="s18 fb t mb8">今天</div>
-          <div class="bubble user">今天血压偏高要注意什么？</div>
-          <div class="bubble ai">先静坐复测。若连续高于 140/90 并伴头晕，建议联系医生。</div>
-          <div class="s18 fb t mt16 mb8">昨天</div>
-          <div class="bubble user">吃药后头晕怎么办？</div>
-          <div class="bubble ai">先坐下休息，记录血压心率。若持续或伴胸痛，请立即就医。</div>
-        </div>
+          ${S.messages.map((m) => `<div class="bubble ${m.who}">${m.t}</div>`).join("")}
+        </div>` : `
+        <div class="grow col center" style="padding:0 28px">
+          <div class="hist-empty-ico">${I.clock}</div>
+          <div class="s21 fb t mt16">还没有历史记录</div>
+          <p class="s16 t-sec ta-c mt8">问过的话会按日期自动出现在这里，一直保留</p>
+        </div>`}
       </div>`,
 
     stamps: () => {
@@ -4936,14 +4956,14 @@
     profile: () => `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "个人中心",
-          `<button class="cap" data-act="roleSwitch" type="button">${I.two}${S.role === "patient" ? "本人" : "家属"}</button>`)}
+          genHasFamily() ? `<button class="cap" data-act="roleSwitch" type="button">${I.two}${S.role === "patient" ? "本人" : "家属"}</button>` : "")}
         <div class="scroll px20" style="padding-top:8px">
           <div class="hero pointer" data-go="health-record">
             <div class="hero-top">
               <div class="avatar">${S.name.slice(0, 1)}</div>
               <div>
                 <div class="s18 fb">${S.name}</div>
-                <div class="s13" style="opacity:.85">${S.role === "patient" ? "本人" : "守护中"}　${S.gender}</div>
+                <div class="s13" style="opacity:.85">${shownRole() === "patient" ? "本人" : "守护中"}　${S.gender}</div>
               </div>
               <button class="view-cap" type="button">点击查看</button>
             </div>
@@ -4957,7 +4977,7 @@
           </div>
           <div class="list-island mt16">
             ${[
-              ["family", I.two, "家属管理", S.family.length ? `已绑定 ${S.family.length} 人` : "尚未绑定家属"],
+              ...(genHasFamily() ? [["family", I.two, "家属管理", S.family.length ? `已绑定 ${S.family.length} 人` : "尚未绑定家属"]] : []),
               ["notify", I.bell, "打卡通知", notifyCaption()],
             ].map(([id, ico, t, s]) => `
               <button class="list-row" data-go="${id}" type="button">
@@ -5011,7 +5031,7 @@
           <div class="hero">
             <div class="hero-top">
               <div class="avatar lg">${S.name.slice(0, 1)}</div>
-              <div><div class="s24 fb">${S.name}</div><div class="s13" style="opacity:.85">${S.role === "patient" ? "本人" : "守护中"}　${S.gender}</div></div>
+              <div><div class="s24 fb">${S.name}</div><div class="s13" style="opacity:.85">${shownRole() === "patient" ? "本人" : "守护中"}　${S.gender}</div></div>
             </div>
             <div class="frost"></div>
             <div class="metrics">
@@ -5080,7 +5100,7 @@
         <div class="scroll px20" style="padding-top:12px;padding-bottom:24px">
           <div class="list-island">
             ${rowToggle("通知自己", S.notifySelf, "toggleSelf", notifySys(I.bell))}
-            ${rowToggle("通知家属", S.notifyFamily, "toggleFam", notifySys(I.two))}
+            ${genHasFamily() ? rowToggle("通知家属", S.notifyFamily, "toggleFam", notifySys(I.two)) : ""}
           </div>
           <div class="list-island mt16">
             ${rowToggle("全部打卡", allCatsOn(), "toggleAll", notifySys(I.check, true))}
@@ -5409,8 +5429,17 @@
     return S.notifySelf && !!S.cats[cat];
   }
   /// 个人中心副说明：同 CheckInNotificationStore.caption 口径（未绑定家属不算家属通道）
+  /// 设计代际（真机 DesignGeneration）：V0.1 才有家属管理与哈宝问诊
+  function genHasFamily() { return S.gen === "0.1"; }
+  /// 身份展示：V0.0 一律按患者本人（真机 ServiceView.displayedRole / HealthRecordView.role）
+  function shownRole() { return genHasFamily() ? S.role : "patient"; }
+  /// 首次进入步骤点：V0.1 三步（登录 / 身份 / 资料），V0.0 两步（登录 / 资料）
+  function dotsHTML(active) {
+    const total = genHasFamily() ? 3 : 2;
+    return `<div class="dots">${Array.from({ length: total }, (_, i) => `<i class="dot ${i + 1 === active ? "on" : ""}"></i>`).join("")}</div>`;
+  }
   function notifyCaption() {
-    const famOn = S.family.length > 0 && S.notifyFamily;
+    const famOn = genHasFamily() && S.family.length > 0 && S.notifyFamily;
     if (!anyCatOn() || (!S.notifySelf && !famOn)) return "已关闭";
     if (S.notifySelf && famOn) return "到点提醒家属";
     if (S.notifySelf) return "到点提醒";
@@ -5440,6 +5469,7 @@
   /// 家属通道总闸：通知家属 × 已绑定家属 × 该类别开关
   /// （同 CheckInNotificationPreference.allowsFamilyReminder；计划「家属通知」串联在这道闸之后）
   function familyGateOpen(cat) {
+    if (!genHasFamily()) return false; // V0.0 没有家属通道，计划页的「家属通知」整行不出现
     if (!S.notifyFamily || !S.family.length) return false;
     if (!cat) return true;
     return !!S.cats[cat];
@@ -5836,11 +5866,14 @@
         done ? false : (gate && seriesOn && !S.mutedToday[id]), "muteToday",
         done || (!seriesOn && gate), accent.fg, true));
     }
-    // 家属通知（V10.52 · 真机同款）：系列级一档；家属通道 = 通知家属 × 已绑定 × 类别，已打卡同锁
-    rows.push(reminderRow("家属通知",
-      done ? "本次已打卡，提醒已锁定" : "同步通知已绑定的家属",
-      done ? false : (familyGateOpen(taskCatKey(d)) && !S.famOff[id]),
-      "famNotify", done, accent.fg, false));
+    // 家属通知（V10.52 · 真机同款）：系列级一档；家属通道 = 通知家属 × 已绑定 × 类别，已打卡同锁。
+    // V0.0 没有家属通道，整行不出现（真机 AddEditTaskView 按 includesFamily 决定排不排这颗开关）
+    if (genHasFamily()) {
+      rows.push(reminderRow("家属通知",
+        done ? "本次已打卡，提醒已锁定" : "同步通知已绑定的家属",
+        done ? false : (familyGateOpen(taskCatKey(d)) && !S.famOff[id]),
+        "famNotify", done, accent.fg, false));
+    }
 
     return `<div class="sec-label">到点提醒</div>
       <div class="list-island">${rows.join("")}</div>`;
@@ -5862,10 +5895,12 @@
         gate && seriesOn && !d.muteFirst, "draftMuteToday",
         !seriesOn && gate, accent.fg, true));
     }
-    // 家属通知（V10.52）：写进草稿随「添加 / 确认」落库；闸关着时拨不开、弹层引导
-    rows.push(reminderRow("家属通知", "同步通知已绑定的家属",
-      familyGateOpen(taskCatKey(d)) && d.famNotify !== false,
-      "draftFamNotify", false, accent.fg, false));
+    // 家属通知（V10.52）：写进草稿随「添加 / 确认」落库；闸关着时拨不开、弹层引导。V0.0 不出现
+    if (genHasFamily()) {
+      rows.push(reminderRow("家属通知", "同步通知已绑定的家属",
+        familyGateOpen(taskCatKey(d)) && d.famNotify !== false,
+        "draftFamNotify", false, accent.fg, false));
+    }
 
     return `<div class="sec-label">到点提醒</div>
       <div class="list-island">${rows.join("")}</div>`;
@@ -6122,7 +6157,11 @@
           <button class="dbg-row danger" data-act="debugRegenerate" type="button">${I.undo}<span>重新生成</span></button>
           <button class="dbg-row" data-act="debugTestLogin" type="button">${I.person}<span>测试登录步骤</span></button>
           <div class="dbg-sep"></div>
-          <button class="dbg-row" data-act="debugScheme" type="button">${I.grid}<span>切换方案 ${S.scheme + 1}<em>${SCHEMES[S.scheme].name}</em></span></button>
+          ${["0.0", "0.1"].map((v) => `
+            <button class="dbg-row" data-act="debugGen" data-gen="${v}" type="button">
+              ${S.gen === v ? I.check : `<span style="width:19px;height:19px;flex:0 0 19px"></span>`}
+              <span>设计版本 V${v}<em>${S.gen === v ? "当前" : ""}</em></span>
+            </button>`).join("")}
         </div>
       </div>`,
     // 指标 / 分析分享海报（真机 RecordsView 与 FollowUpAnalysisView 的分享出口）

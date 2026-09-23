@@ -671,6 +671,9 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .orb.ai::after { border-width: 1.2px; }
 .orb.ai img { width: 68px; height: 68px; object-fit: contain; position: relative; z-index: 1; }
 
+/* 设计版本 V0.0：底坞中圆「哈宝医生」未开放（真机 UnifiedNavOrbs：0.4 压暗 + 不响应点按） */
+.orb.ai.off { opacity: .4; cursor: default; pointer-events: none; }
+
 /* 弹层 */
 .scrim {
   position: absolute; inset: 0; background: rgba(0,0,0,.28);
@@ -1215,6 +1218,14 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   background: linear-gradient(135deg, rgba(16,84,224,.14), rgba(30,190,214,.12));
   display: grid; place-items: center; color: var(--blue); flex: 0 0 46px;
 }
+
+/* 哈宝医生「历史记录」空态图标（真机 ConsultHistoryView.emptyState：64 圆 + 8% 主色底） */
+.hist-empty-ico {
+  width: 64px; height: 64px; border-radius: 50%; flex: 0 0 64px;
+  background: rgba(16,84,224,.08); color: var(--blue);
+  display: grid; place-items: center;
+}
+.hist-empty-ico svg { width: 28px; height: 28px; }
 .notify-ico {
   width: 40px; height: 40px; border-radius: 10px; flex: 0 0 40px;
   background: rgba(16,84,224,.10);
@@ -1245,12 +1256,6 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .bubble.user { background: var(--blue); color: #fff; margin-left: auto; }
 .bubble.ai { background: rgba(255,255,255,.9); color: var(--blue); border: 1px solid rgba(16,84,224,.08); }
-.quick {
-  display: block; width: 100%; text-align: left;
-  background: rgba(16,84,224,.08); color: var(--blue); border: 0;
-  border-radius: 999px; padding: 10px 14px; margin-bottom: 8px;
-  font-size: calc(15px * var(--fs)); font-weight: 500; cursor: pointer;
-}
 .dock3 {
   display: flex; gap: 8px; padding: 0 16px 8px;
 }
