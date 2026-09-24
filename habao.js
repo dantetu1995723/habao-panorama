@@ -274,8 +274,8 @@
     </div>`;
   }
 
-  // V10.50：资料合集页只读——与健康档案同源（基础报告列入组存量，复查报告按次归档），
-  // 点缩略图开全屏预览；拍 / 删仍走底栏「新增报告资料」
+  // V10.61：资料合集页只读——与健康档案同源（基础报告列入组存量，复查报告按次归档），
+  // 点缩略图开全屏预览；补拍走底栏，直接进拍摄页
   function reportArchivePane() {
     const src = ARCHIVE_DEMO[S.reportKind === "visit" ? "review" : "baseline"];
     const total = src.groups.reduce((s, g) => s + g.pages, 0);
@@ -496,13 +496,14 @@
       { id: "patient-edit", t: "患者信息", code: "PatientProfileEditView", how: "cover" },
       { id: "family", t: "家属管理", code: "FamilyManageView", how: "cover" },
       { id: "notify", t: "打卡通知", code: "CheckInNotificationView", how: "cover" },
+      { id: "activity", t: "操作记录", code: "ActivityLogView", how: "cover" },
     ]},
     { g: "同 Cover 替换", items: [
       { id: "ocr-capture", t: "上传资料", code: "IntakeCaptureView", how: "replace" },
       { id: "exercise-risk", t: "运动前风险提示", code: "BodyTestRunView", how: "replace" },
       { id: "body-test", t: "散步体测", code: "BodyTestRunView", how: "replace" },
       { id: "body-test-sit", t: "坐立体测", code: "BodyTestRunView", how: "replace" },
-      { id: "task-edit", t: "编辑计划", code: "AddEditTaskView", how: "replace" },
+      { id: "task-edit", t: "更新计划", code: "AddEditTaskView", how: "replace" },
     ]},
     { g: "栈内 Push · 创建与报告", items: [
       { id: "ocr-group", t: "当前组资料", code: "IntakeCaptureView", how: "push" },
@@ -522,17 +523,18 @@
     "onboard-login": { code: "OnboardingFlowView", note: "短信登录 Demo 不校验。11 位手机 + 6 位验证码后「登录」可点。聚焦后口号改「欢迎使用哈宝」。V0.0 只两步（登录 → 完善信息），身份固定患者本人；V0.1 才多一步身份。" },
     "onboard-role": { code: "OnboardingFlowView", note: "V0.1 专属（V0.0 不出现）。家属也是管理患者的成员，填写的都是患者信息。大卡单选。" },
     "onboard-profile": { code: "PatientProfileFormFields", note: "姓名必填；「进入哈宝」始终可点，空姓名顶部 toast「请填写姓名」。步骤点 V0.0 是 2/2，V0.1 是 3/3。" },
-    home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 182–192，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页（横向时段泳道已不再作为首页）；底坞中圆哈宝问诊 V0.0 压暗点不开。" },
-    schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行在时刻前标选中日完整年月日（2026年9月16日 13:00），元信息标单日/循环；循环两钮「仅删本次 / 长期删除」，单日一钮删除。点查看先进查看计划，右上编辑才进编辑。历史日只读「查看」。切「已完成」整页绿白。" },
+    home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 182–192，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页（横向时段泳道已不再作为首页）；底坞中圆哈宝问诊 V0.0 压暗点不开。打卡不再在卡片上盖家属章，记入个人中心「操作记录」。" },
+    schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行在时刻前标选中日完整年月日（2026年9月16日 13:00），元信息标单日/循环；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上编辑才进编辑。切「已完成」整页绿白。" },
     vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。底栏进入哈宝医生带本周评估，该钮 V0.0 压暗点不开、V0.1 可进。" },
     report: { code: "FollowUpModuleView", note: "综合结论 + 三等分入口 + 底栏哈宝医生（V0.0 压暗点不开，V0.1 可进）。" },
-    "report-sub": { code: "BodyReportSubReportView", note: "V10.50：顶栏两枚 Tab「AI 解读 / 资料合集」（同构确认计划「计划 / 解析依据」，字号适老档），默认落 AI 解读；资料合集只读——基础报告列入组存量、复查报告按次归档，点缩略图开全屏预览，空态只留文案（拍 / 删仍走底栏「新增报告资料」→ 资料详情）。底栏两页共用；复诊打卡形态在「新增报告资料」下多一颗「返回首页」。" },
+    "report-sub": { code: "BodyReportSubReportView", note: "V10.61：顶栏两枚 Tab「AI 解读 / 资料合集」，默认落 AI 解读；资料合集只读。底栏「新增报告资料」不论有无存量都直接进拍摄页（不再先落资料详情）。拍完提交：基础按类别追加、复查新开一次。复诊打卡形态在主钮下多一颗「返回首页」。" },
     walk: { code: "WalkView", note: "大标题 + 44 回首页（dismiss cover，不压栈）。地图主卡底浮层：60 圆钮记录/分享 + 60 主胶囊。三态：开始运动 / 返回运动 / 保存并打卡。首页运动打卡先进本页再自动开会话。保存归属：计划入口完成原任务，自由入口按开始时刻新建「自主散步」，不猜测也不占用存量计划。" },
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。" },
     consult: { code: "SmartConsultChatView", note: "按住说话；上滑超 70pt 立即发送。可切文字输入。底坞三功能：解读指标 / 解读报告带上下文，拍照问诊挂待发图。V10.56：空态只有 Logo 问候，不再放示例问句、也不再灌样例对话。V0.0 三个入口（底坞中圆 / 血压监测 / 身体报告）压暗点不开，切 V0.1 才进得来。" },
-    profile: { code: "ServiceView", note: "Hero 健康档案 + 家属/通知/协议。无 VIP。V0.0 不出现家属管理与右上身份胶囊、档案标「本人」（切 V0.1 恢复）。" },
+    profile: { code: "ServiceView", note: "Hero 健康档案 + 操作记录/通知/协议。无 VIP。V0.0 不出现家属管理与右上身份胶囊、档案标「本人」（切 V0.1 恢复）。身份胶囊仍决定写入归属，但不再在卡片上盖章；本人和家属的操作都进「操作记录」。" },
+    activity: { code: "ActivityLogView", note: "V10.65 个人中心「操作记录」：一件事记一条。一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；下面结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：未改动」。空态「还没有操作记录」。" },
     "ocr-capture": { code: "IntakeCaptureView", note: "组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "按组分区预览。与首次上传、身体报告·基础报告共用同一份存量。入组可改类别 / 删组（必传出院记录至少留一组）；复查不改类别。右上入组「解析」、存档「提交」。无存量时空态只留文案，拍资料走左上「拍摄」，页内不再放「拍摄资料」钮。" },
@@ -542,8 +544,8 @@
     "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），进与首次上传 / 基础报告同一份资料详情，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
     "task-add": { code: "AddEditTaskView", note: "两大类折叠（不分页）：一条滚动里「事项」「时间与提醒」两组，标题行点一下收起、再点一下展开，进页两组都展开。「事项」：名称、备注、今日血压、分类。「时间与提醒」：计划类型 → 日期 / 开始日期（同一字段；单日读「日期」、循环读「开始日期」，过去日不可选；首页虚框锁定当天；切成循环计划不跳页，循环规则与持续时长就在下方就地出现）→ 循环规则（每日 / 每周 / 每月 + 自定义间隔，每月 1–31 与「月末」同格）→ 持续时长（预设不含 1天 / 1周 / 1个月、最长一年，末尾通栏「自定义」）→ 时间段 → 当日时刻 → 「到点提醒」（总开关在上、仅本次缩进在下；单日一档）＋「家属通知」（V10.52：家属通道串联，未绑定先去填写、填完自动进打卡通知页；总闸关着弹「去设置」）→ 查看态删除 / 取消打卡。折叠只影响看不看得见，右上「添加」随时可保存。「家属通知」只在 V0.1 出现。" },
-    "task-edit": { code: "AddEditTaskView", note: "同两大类折叠。只改字段，底部无删除。已保存计划的「日期 / 开始日期」禁用不可改（新建仍可改，首页虚框仍锁定当天）。改动随「确认」落库，左「取消」放弃改动时提醒一并回退。该日已打卡时「本次及后续提醒」与「仅本次提醒」都显示为关并置灰，取消打卡后按原值恢复。「家属通知」与到点提醒同构，随「确认」落库、取消回退（V0.0 不出现）。" },
-    "task-view": { code: "AddEditTaskView", note: "同两大类折叠、只读（标题行仍可点折叠）。「时间与提醒」组底部按已保存类型删除：循环「删除本次计划 / 删除本次和后续计划」，单日「删除计划」。到点提醒两档即时生效；「家属通知」只在 V0.1 出现（家属通道 = 通知家属 × 已绑定 × 类别开关）。" },
+    "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。开始日期锁定为原来的起始日；本次日期是打开的这一天，不能选更早。结束时间默认是本次日期的后一天。持续时长只留 3 档，放在结束时间上面，没有「自定义」。本次日期晚于开始日期时，点「确认」先弹出「新计划从本次日期开始执行，原计划前一日截止」。" },
+    "task-view": { code: "AddEditTaskView", note: "同两大类折叠、只读（标题行仍可点折叠）。右上是「更新」。循环计划同时显示开始日期和本次日期（健康计划取日历选中日，首页取今天）。今日未打卡时，「时间与提醒」组底部按已保存类型删除：循环「删除本次计划 / 删除本次和后续计划」，单日「删除计划」；到点提醒两档即时生效。今日之前、以及该日已打卡，到点提醒和删除都不出现。今日已打卡可「取消本次打卡」，取消后这两处回来。右上「更新」在今日之前和已打卡时都置灰禁用。「家属通知」只在 V0.1 出现（家属通道 = 通知家属 × 已绑定 × 类别开关）。" },
     "exercise-risk": { code: "BodyTestRunView", note: "Demo Toggle 模拟禁忌症。体测不参与入组。「稍后 / 退出评估 / 暂不创建」关整段评估流，不退回选择类型。" },
     "body-test": { code: "BodyTestRunView", note: "户外原地踏步三分钟。停止或倒计时归零后直进感受问卷，无完成中转页。" },
     "body-test-sit": { code: "BodyTestRunView", note: "室内 1 分钟坐立。次数大号读数 + 倒计时 + 同龄参考。停止后问卷顶部两栏「测试时长 / 完成次数」。" },
@@ -600,6 +602,10 @@
     inputMode: "voice",
     chatDraft: "",
     completed: { t1: true, t2: true },
+    // 家属代操作（V0.1）：任务 id → "family"；本人打卡不放键（与存量 / 种子数据字节一致）
+    completedBy: {},
+    // 操作记录：本人与家属的照护动作，新的在前。卡片上不再盖章。
+    ops: [],
     overlay: null,
     overlayData: {},
     scheduleFilter: "todo",
@@ -881,6 +887,18 @@
       { act: "bindFam", label: "（V0.1）家属绑定（最多 5 位）", optional: true },
       { act: "toggleCat", label: "打卡通知分类开关", optional: true },
     ]},
+    // V10.57：身份胶囊升级为操作归属——家属代做的打卡在卡上留标记，切回本人仍可见
+    { id: "family-proxy", label: "V0.1 · 家属代操作（代打卡留标记）", cold: "demo", steps: [
+      { act: "openDebug", label: "首页右上「…」打开开发菜单" },
+      { act: "debugGen", label: "设计版本切 V0.1（家属身份才开放）", state: (s) => s.gen === "0.1" },
+      { screen: "profile", label: "首页右上「我的」进个人中心" },
+      { act: "roleSwitch", label: "右上身份胶囊切「家属」", state: (s) => s.role === "family" },
+      { screen: "home", label: "返回首页" },
+      { act: "checkin", label: "以家属身份替患者打卡一条", state: (s) => Object.keys(s.completedBy || {}).length > 0 },
+      { screen: "profile", label: "再进个人中心" },
+      { act: "roleSwitch", label: "身份胶囊切回「本人」", state: (s) => s.role === "patient" },
+      { screen: "activity", label: "个人中心「操作记录」出现这条打卡；卡片上不再盖章" },
+    ]},
   ];
 
   function simLogAct(name, el) {
@@ -1050,9 +1068,10 @@
     const selected = parseYMD(selectedYmd);
     const kind = S.overlayData?.kind;
     const rule = S.draft?.rule || "daily";
-    const minStart = kind === "customDur"
+    let minStart = kind === "customDur"
       ? Math.max(startDay(today), startDay(customDurEarliestEnd(rule)))
       : startDay(today);
+    if (S.overlayData?.minYmd) minStart = Math.max(minStart, startDay(parseYMD(S.overlayData.minYmd)));
     return daysInGrid(parseYMD(monthYmd)).map((d) => {
       if (!d) return `<div class="dp-cell"></div>`;
       const ymd = toYMD(d);
@@ -1090,9 +1109,9 @@
   function navBar(left, title, right = "") {
     return `<div class="nav-row rel">${left}<div class="nav-title">${title}</div>${right || `<span style="width:36px"></span>`}</div>`;
   }
-  function badge(cat, done) {
+  function badge(cat, done, seal) {
     const cls = done ? "done" : cat === "appointment" ? "appt" : "";
-    return `<div class="badge ${cls}"><img src="${A.task[cat]}" alt="" /></div>`;
+    return `<div class="badge ${cls}">${seal || ""}<img src="${A.task[cat]}" alt="" /></div>`;
   }
   function toast(msg) {
     S.toast = msg;
@@ -1233,6 +1252,7 @@
     const i = SEED.findIndex((x) => x.id === id);
     if (i >= 0) SEED.splice(i, 1);
     delete S.completed[id];
+    delete S.completedBy[id];
     if (S.taskId === id) S.taskId = SEED[0]?.id || "t4";
     if (S.centerStage === id) S.centerStage = null;
   }
@@ -1283,12 +1303,19 @@
     SEED.push(task);
     return { id: task.id, created: true };
   }
-  // 确认页提交：整批草稿落成计划（真机 confirmMedications + syncMedications / syncAppointments）
-  function commitConfirmDrafts() {
+  // 确认页提交：整批草稿落成计划（真机 confirmMedications + syncMedications / syncAppointments）；
+  // kind = "exercise" 时只整批替换运动（真机 syncExerciseTasks），不碰用药与复查
+  function commitConfirmDrafts(kind) {
     const drafts = S.confirmDrafts || [];
     if (!drafts.length) return 0;
+    const isExercise = kind === "exercise";
+    if (isExercise) {
+      for (let i = SEED.length - 1; i >= 0; i--) {
+        if (SEED[i].cat === "exercise") SEED.splice(i, 1);
+      }
+    }
     // 已入组重走：用药 / 复查按本次确认整表覆盖，其它日常与运动不动
-    if (S.enrolled) {
+    if (S.enrolled && !isExercise) {
       for (let i = SEED.length - 1; i >= 0; i--) {
         if (SEED[i].cat === "medication" || SEED[i].cat === "appointment") SEED.splice(i, 1);
       }
@@ -1308,7 +1335,7 @@
       S.remindOff[id] = x.remind === false;
       S.mutedToday[id] = x.muteFirst === true;
     });
-    if (S.enrolled) {
+    if (S.enrolled && !isExercise) {
       confirmApptItems().forEach((a) => {
         const hm = String(a.time || "").match(/(\d{1,2}):(\d{2})/);
         SEED.push({
@@ -1358,6 +1385,8 @@
       muteFirst: !!S.mutedToday[t.id],
       note: t.note || "",
       onceDate: t.onceDate || toYMD(demoDate()),
+      // 正在看的这一次。健康计划用日历选中日，首页用今天。
+      occurrence: S.taskOccurrence || toYMD(demoDate()),
     };
   }
   function initDraft(seed) {
@@ -1503,10 +1532,21 @@
     return hints;
   }
   function durationOpts(rule) {
-    // 不提供 1天 / 1周 / 1个月；短于预设走末尾通栏「自定义」
-    if (rule === "weekly") return [["weeks4", "4周"], ["weeks8", "8周"], ["weeks12", "12周"], ["halfYear", "半年"], ["oneYear", "一年"]];
+    // 结束时间上面一排 3 档。不提供 1天 / 1周 / 1个月，也不再有「自定义」。
+    if (rule === "weekly") return [["weeks4", "4周"], ["weeks12", "12周"], ["oneYear", "一年"]];
     if (rule === "monthly") return [["months3", "3个月"], ["months6", "6个月"], ["oneYear", "一年"]];
-    return [["days25", "25天"], ["days30", "30天"], ["days90", "90天"], ["halfYear", "半年"], ["oneYear", "一年"]];
+    return [["days30", "30天"], ["days90", "90天"], ["oneYear", "一年"]];
+  }
+  function durationDayCount(id) {
+    return ({
+      days30: 30, days90: 90, oneYear: 365,
+      weeks4: 28, weeks12: 84, months3: 90, months6: 182,
+    })[id] || 365;
+  }
+  function addDaysYMD(ymd, days) {
+    const d = parseYMD(ymd);
+    d.setDate(d.getDate() + days);
+    return toYMD(d);
   }
   function onceDateLabel(ymd) {
     return monthDayLabel(parseYMD(ymd || S.draft?.onceDate));
@@ -1811,6 +1851,8 @@
     // V10.49：复诊打卡形态只活在「打卡 → 提交 → 报告页」这一程，离开即清
     S.reportReturnHome = false;
     S.apptCapture = false;
+    S.archivePlace = null;
+    S.docStock = null;
     seedDocGroups(0);
   }
   function closeFlow() {
@@ -1862,27 +1904,71 @@
   function startArchive(open) {
     S.captureMode = "archive";
     seedDocGroups(open === "browse" ? 3 : 0);
-    // V10.02：单钮一律进资料汇总页；无存量落空态（拍资料走左上「拍摄」）
+    // 报告子页 / 明细 / 健康档案 / 复诊打卡传 "capture" 直进拍摄；"browse" / "empty" 仍落资料详情
     present(open === "capture" ? "ocr-capture" : "ocr-detail", "cover");
   }
-  /// 复查资料提交后完成当天未打卡的复查计划（真机 ReviewVisitCaptureHost）
+  /// 复查资料提交后完成当天未打卡的复查计划（真机 ReviewVisitCaptureHost）；
+  /// 打卡并进上传那条记录，返回完成的计划名
   function completeTodayAppointments() {
+    const done = [];
     liveTasks().forEach((t) => {
-      if (t.cat === "appointment") S.completed[t.id] = true;
+      if (t.cat === "appointment" && !S.completed[t.id]) {
+        S.completed[t.id] = true;
+        markProxy(t.id, null, true);
+        done.push(t.title);
+      }
     });
+    return done;
+  }
+  /// 资料：「出院记录 3 页、化验单 1 页」
+  function opMaterialValue(groups) {
+    const byCat = {};
+    groups.filter((g) => g.pages > 0).forEach((g) => {
+      const t = docCat(g.cat).t;
+      byCat[t] = (byCat[t] || 0) + g.pages;
+    });
+    return Object.entries(byCat).map(([t, n]) => `${t} ${n} 页`).join("、");
+  }
+  /// 资料前后对比：已入组「用药与复查」对比载入的存量 S.docStock；首次创建直接列类别页数
+  function opMaterialChange() {
+    const now = (S.docGroups || []).filter((g) => g.pages > 0);
+    if (!S.docStock) return opMaterialValue(now) || "未改动";
+    const byCat = (groups) => groups.reduce((m, g) => {
+      const t = docCat(g.cat).t;
+      m[t] = (m[t] || 0) + g.pages;
+      return m;
+    }, {});
+    const before = byCat(S.docStock);
+    const after = byCat(now);
+    const parts = [];
+    new Set([...Object.keys(before), ...Object.keys(after)]).forEach((t) => {
+      const d = (after[t] || 0) - (before[t] || 0);
+      if (d > 0) parts.push(`${t}新增 ${d} 页`);
+      if (d < 0) parts.push(`${t}删掉 ${-d} 页`);
+    });
+    return parts.join("、") || "未改动";
   }
   function finishArchive() {
     const visit = isVisitCapture();
     const fromCheckIn = visit && S.apptCapture;
+    const filled = S.docGroups.filter((g) => g.pages > 0);
     // 复查提交后把本批并入「资料合集」的复查报告 —— 否则上传完仍是写死的空态
     if (visit) {
-      S.docGroups.filter((g) => g.pages > 0).forEach((g) => {
+      filled.forEach((g) => {
         ARCHIVE_DEMO.review.groups.push({ title: groupDisplayName(g), pages: g.pages });
       });
     }
+    const material = visit
+      ? `${cnOrdinal(ARCHIVE_DEMO.review.groups.length)}次复查 ${filled.reduce((s, g) => s + g.pages, 0)} 页`
+      : opMaterialValue(filled);
     S.captureMode = "intake";
     seedDocGroups(0);
-    if (fromCheckIn) completeTodayAppointments();
+    const doneAppts = fromCheckIn ? completeTodayAppointments() : [];
+    logOp(visit ? "上传了复查资料" : "上传了资料", S.archivePlace || (visit ? "复查报告" : "基础报告"), [
+      ["资料", material],
+      doneAppts.length ? ["打卡", `${opNames(doneAppts)} 已完成`] : ["计划", "未改动"],
+    ]);
+    S.archivePlace = null;
     // V10.49：复诊打卡提交不直接回首页，落复查报告页（该页底栏多一颗「返回首页」）
     if (fromCheckIn) {
       S.apptCapture = false;
@@ -2550,6 +2636,7 @@
         if (!t) return;
         if (S.completed[id]) {
           delete S.completed[id];
+          unmarkProxy(id);
           if (S.screen === "home") refreshHomeSoft(); else render();
           return;
         }
@@ -2562,6 +2649,7 @@
           return;
         }
         S.completed[id] = true;
+        markProxy(id);
         if (S.screen === "home") refreshHomeSoft(); else render();
       },
       // 方案四：先记下打卡时刻（已完成卡的祝语要读它），分流仍照旧走 checkin
@@ -2578,7 +2666,15 @@
       },
       // 方案四空栏「添加xx计划」：先落到该时段，再复用方案一的 addToday（它认 S.block）
       s4AddToday() { S.block = +el.dataset.b; act("addToday", el); },
-      detail() { S.taskId = el.dataset.id; S.taskMode = "view"; S.draft = null; S.editorCollapsed = []; go("task-view", "cover"); },
+      detail() {
+        S.taskId = el.dataset.id;
+        S.taskMode = "view";
+        S.draft = null;
+        S.editorCollapsed = [];
+        const fromSchedule = S.screen === "schedule";
+        S.taskOccurrence = el.dataset.ymd || (fromSchedule ? S.calSelYMD : toYMD(demoDate()));
+        go("task-view", "cover");
+      },
       addToday() {
         S.addTitle = `添加${BLOCKS[S.block].title}计划`;
         S.lockedBlock = S.block;
@@ -2633,6 +2729,7 @@
         const { km, time } = S.overlayData;
         S.walkDeleted = S.walkDeleted || {};
         S.walkDeleted[`${km}|${time}`] = true;
+        logOp("删除了散步", "散步记录", [["散步", `${km} 公里`]]);
         closeOverlay();
       },
       openWalkFilter() { openOverlay("walkFilter"); },
@@ -2669,6 +2766,9 @@
       walkSave() {
         const { id, created } = resolveWalkCheckInTask();
         S.completed[id] = true;
+        // 散步 + 打卡（自由散步还新建「自主散步」）合成一条
+        markProxy(id, null, true);
+        logOp("完成了散步", "运动", [["散步", "0.42 公里"], ["打卡", `${taskTitle(id)} 已完成`]]);
         S.walkSaved = false;
         S.walkTaskId = null;
         S.centerStage = id;
@@ -2692,6 +2792,7 @@
       },
       exerciseDone() {
         S.completed[S.overlayData.id] = true;
+        markProxy(S.overlayData.id);
         closeOverlay();
       },
       appointmentGo() {
@@ -2699,10 +2800,12 @@
         S.reportKind = "visit";
         // V10.49：这条拍摄来自首页复查打卡，提交后接复查报告页而不是直接回首页
         S.apptCapture = true;
+        S.archivePlace = "首页";
         startArchive("capture");
       },
       appointmentDone() {
         S.completed[S.overlayData.id] = true;
+        markProxy(S.overlayData.id);
         closeOverlay();
       },
       vitalsSave() {
@@ -2711,7 +2814,11 @@
           toast("请填写收缩压、舒张压与心率");
           return;
         }
-        S.completed[S.overlayData.id] = true;
+        const vid = S.overlayData.id;
+        S.completed[vid] = true;
+        // 填读数 + 打卡合成一条
+        markProxy(vid, null, true);
+        logOp("打卡了", "首页", [["计划", taskTitle(vid)], ["读数", `血压 ${S.sys}/${S.dia}，心率 ${S.hr} bpm`]]);
         closeOverlay();
       },
       // 确认页：计划 / 解析依据分页 / 改备注
@@ -2727,8 +2834,20 @@
       },
       confirmPlan() {
         const wasEnrolled = S.enrolled;
+        // 操作记录：资料 + 各类计划合成一条（真机 recordPlanConfirmed）
+        const written = [
+          ...(S.confirmDrafts || []).map((d) => ({ title: d.title, cat: d.cat })),
+          ...(wasEnrolled ? confirmApptItems().map((a) => ({ title: a.title, cat: "appointment" })) : []),
+        ];
+        const replacing = wasEnrolled ? opPlanCounts(["用药", "复查"]) : {};
+        const material = opMaterialChange();
         // 确认即提交：整批草稿落成计划（真机确认页 confirm → syncMedications / syncAppointments）
         commitConfirmDrafts();
+        logOp(wasEnrolled ? "更新了用药与复查" : "完成了首次创建", wasEnrolled ? "健康计划" : entryPlace(), [
+          ["资料", material],
+          ...opPlanLines(written, replacing),
+        ]);
+        S.docStock = null;
         S.enrolled = true;
         if (!wasEnrolled) {
           // 首次入组：回首页点亮康复时钟
@@ -2769,7 +2888,13 @@
         S.captureMode = "intake";
         if (!popTo("ocr-capture")) replace("ocr-capture");
       },
-      confirmExercise() { commitConfirmDrafts(); finishGeneratedPlan("已写入运动计划"); },
+      confirmExercise() {
+        const written = (S.confirmDrafts || []).map((d) => ({ title: d.title, cat: "exercise" }));
+        const replacing = opPlanCounts(["运动"]);
+        commitConfirmDrafts("exercise");
+        logOp("生成了运动计划", "健康计划", opPlanLines(written, replacing));
+        finishGeneratedPlan("已写入运动计划");
+      },
       newExerciseDraft() {
         S.draftReturn = S.screen;
         S.addTitle = "添加计划";
@@ -2900,7 +3025,7 @@
         S.draft.weekdays = [...set];
         render();
       },
-      draftDur() { if (S.draft) { S.draft.duration = el.dataset.d; S.draft.customDays = null; render(); } },
+      draftDur() { if (S.draft) { S.draft.duration = el.dataset.d; S.draft.endDate = null; S.draft.customDays = null; render(); } },
       openCustomCat() {
         if (S.taskMode === "view" && S.screen === "task-view") return;
         S.customFromType = false;
@@ -3067,6 +3192,18 @@
         const ymd = S.draft.onceDate || toYMD(demoDate());
         openOverlay("datePick", { selected: ymd, month: ymd });
       },
+      openOccurrenceDate() {
+        if (!S.draft) return;
+        const ymd = S.draft.occurrence || S.taskOccurrence || toYMD(demoDate());
+        const floor = S.taskOccurrence || toYMD(demoDate());
+        openOverlay("datePick", { selected: ymd, month: ymd, kind: "occurrence", minYmd: floor });
+      },
+      openSeriesEnd() {
+        if (!S.draft) return;
+        const anchor = (S.screen === "task-edit" && S.draft.cycle) ? (S.draft.occurrence || S.draft.onceDate) : S.draft.onceDate;
+        const ymd = S.draft.endDate || addDaysYMD(anchor, 1);
+        openOverlay("datePick", { selected: ymd, month: ymd, kind: "seriesEnd", minYmd: anchor });
+      },
       pickCalDay() {
         if (!S.overlayData) return;
         S.overlayData.selected = el.dataset.ymd;
@@ -3075,6 +3212,13 @@
           const diff = Math.round((parseYMD(el.dataset.ymd) - seriesStartDate()) / 86400000) + 1;
           const minDays = customDurMinDays(S.draft?.rule || "daily");
           S.customDurDays = Math.min(365, Math.max(minDays, diff));
+        } else if (S.overlayData.kind === "occurrence" && S.draft) {
+          S.draft.occurrence = el.dataset.ymd;
+          // 还停在「更新」给的默认（后一天）时，本次日期一改，结束时间跟着后移一天
+          if (!S.draft.duration) S.draft.endDate = addDaysYMD(el.dataset.ymd, 1);
+        } else if (S.overlayData.kind === "seriesEnd" && S.draft) {
+          S.draft.endDate = el.dataset.ymd;
+          S.draft.duration = null;
         } else if (S.draft) S.draft.onceDate = el.dataset.ymd;
         render();
       },
@@ -3166,7 +3310,7 @@
       },
       goNotify() { closeOverlay(); go("notify", "cover"); },
       // 查看计划 · 取消本次打卡：解禁提醒与删除（真机 store.toggleCompletion 的反向）
-      undoCheckIn() { delete S.completed[S.taskId]; render(); },
+      undoCheckIn() { delete S.completed[S.taskId]; unmarkProxy(S.taskId); render(); },
       sendChat() {
         const v = (S.chatDraft || "").trim();
         if (!v) return;
@@ -3291,7 +3435,13 @@
       },
       today() { S.calSelYMD = toYMD(demoDate()); S.calOffset = 0; render(); },
       addPlan() { go("select-type", "cover"); },
-      typeMed() { S.captureMode = "intake"; seedDocGroups(3); replace("ocr-detail"); },
+      typeMed() {
+        S.captureMode = "intake";
+        seedDocGroups(3);
+        // 载入的存量：确认时对比出这一趟资料改了什么
+        S.docStock = S.docGroups.map((g) => ({ ...g }));
+        replace("ocr-detail");
+      },
       // 运动链独立草稿：先清空，进确认页时再种（避免沿用用药链的草稿）
       typeEx() { S.contra = false; S.confirmDrafts = null; replace("exercise-risk"); },
       typeDaily() {
@@ -3310,13 +3460,42 @@
         S.draft.cycle = false;
         replace("task-add");
       },
-      editTask() { initDraft(SEED.find((x) => x.id === S.taskId)); go("task-edit", "replace"); },
+      editTask() {
+        initDraft(SEED.find((x) => x.id === S.taskId));
+        if (S.draft?.cycle) {
+          const opened = S.taskOccurrence || toYMD(demoDate());
+          const today = toYMD(demoDate());
+          S.draft.occurrence = opened > today ? opened : today;
+          S.draft.endDate = addDaysYMD(S.draft.occurrence, 1);
+          S.draft.duration = null;
+        }
+        go("task-edit", "replace");
+      },
       // 保存前回读输入框名称 / 备注；空名称拦下（真机 AddEditTaskView 空名校验）
       saveTask() {
         syncDraftInputs();
         if (!S.draft?.title) { toast("请填写事项名称"); return; }
-        // 真机 AddEditTaskView 保存：回写该条计划（标题 / 类别 / 时刻 / 循环 / 备注）
+        const d = S.draft;
+        if (d.cycle && d.occurrence && d.onceDate && d.occurrence > d.onceDate) {
+          const prev = parseYMD(d.occurrence);
+          prev.setDate(prev.getDate() - 1);
+          openOverlay("confirm", {
+            title: "确认原计划结束",
+            body: `新计划从${yearMonthDayLabel(parseYMD(d.occurrence))}开始执行，原计划${yearMonthDayLabel(prev)}截止。`,
+            ok: "确认",
+            action: "commitSaveTask",
+          });
+          return;
+        }
+        map.commitSaveTask();
+      },
+      commitSaveTask() {
+        closeOverlay();
+        if (S.draft?.cycle && S.draft.occurrence && S.draft.onceDate && S.draft.occurrence > S.draft.onceDate) {
+          S.draft.onceDate = S.draft.occurrence;
+        }
         applyDraftToTask(S.taskId, S.draft);
+        logOp("修改了计划", entryPlace(), [["计划", taskTitle(S.taskId)]]);
         go("task-view", "replace");
       },
       cancelEdit() { go("task-view", "replace"); },
@@ -3379,19 +3558,23 @@
         S.famOff[id] = d.famNotify === false;
         S.mutedToday[id] = !!d.muteFirst;
         S.completed[id] = false;
+        delete S.completedBy[id];
         S.centerStage = id;
+        logOp("新建了计划", entryPlace(), [["计划", d.title]]);
         closeFlow();
         toast("已添加");
       },
       // 单日计划：直接删；循环计划：仅删本次（skippedDays）或今起删除（splice）
-      delTask() { dropTask(S.taskId); dismissCover(); toast("已删除"); },
-      delToday() { addSkipped(toYMD(demoDate()), S.taskId); dismissCover(); toast("已删除本次计划"); },
-      delAll() { dropTask(S.taskId); dismissCover(); toast("已删除本次和后续计划"); },
-      delCardToday() { addSkipped(toYMD(demoDate()), el.dataset.id); toast("已仅删本次"); },
-      delCardAll() { dropTask(el.dataset.id); toast("已长期删除"); },
-      delCardOnce() { dropTask(el.dataset.id); toast("已删除"); },
+      delTask() { logDrop(S.taskId); dropTask(S.taskId); dismissCover(); toast("已删除"); },
+      delToday() { logDrop(S.taskId, true); addSkipped(toYMD(demoDate()), S.taskId); dismissCover(); toast("已删除本次计划"); },
+      delAll() { logDrop(S.taskId); dropTask(S.taskId); dismissCover(); toast("已删除本次和后续计划"); },
+      delCardToday() { logDrop(el.dataset.id, true); addSkipped(toYMD(demoDate()), el.dataset.id); toast("已仅删本次"); },
+      delCardAll() { logDrop(el.dataset.id); dropTask(el.dataset.id); toast("已长期删除"); },
+      delCardOnce() { logDrop(el.dataset.id); dropTask(el.dataset.id); toast("已删除"); },
       doDelTask() {
-        dropTask(el.dataset.id || S.taskId);
+        const id = el.dataset.id || S.taskId;
+        logDrop(id);
+        dropTask(id);
         closeOverlay();
         toast("已删除");
         dismissCover();
@@ -3449,6 +3632,7 @@
         S.enrolled = false;
         SEED.length = 0; // store.clearAll()
         S.completed = {};
+        S.completedBy = {};
         S.sys = null; S.dia = null; S.hr = null;
         WALK_RECORDS.forEach((d) => d.items.forEach((it) => { S.walkDeleted[it.key] = true; }));
         S.messages = [];
@@ -3591,10 +3775,11 @@
         S.reportPane = el.dataset.p === "archive" ? "archive" : "insight";
         render();
       },
-      // V10.02：底栏单钮不论有无存量都进资料汇总页（复查尚无批次 → 空态，拍资料走左上「拍摄」）
+      // V10.61：资料合集已在本页 Tab，底栏不论有无存量都直接进拍摄
       addArchive() {
         S.apptCapture = false;
-        startArchive(S.reportKind === "visit" ? "empty" : "browse");
+        S.archivePlace = S.reportKind === "visit" ? "复查报告" : "基础报告";
+        startArchive("capture");
       },
       // V10.49：复诊打卡形态的次钮，收起报告页回首页
       reportHome() { dismissCover(); },
@@ -3613,11 +3798,13 @@
         S.reportKind = el.dataset.kind || "baseline";
         S.overlay = null;
         S.apptCapture = false;
+        S.archivePlace = "健康档案";
         startArchive("capture");
       },
       archiveFromAnalysis() {
         S.reportKind = el.dataset.kind || "baseline";
         S.apptCapture = false;
+        S.archivePlace = "身体报告";
         startArchive("capture");
       },
       contra() { S.contra = !S.contra; render(); },
@@ -4953,10 +5140,25 @@
       </div>`;
     },
 
+    activity: () => {
+      const ops = S.ops || [];
+      const body = ops.length
+        ? `<div class="list-island">${ops.map((op) => {
+            const d = new Date(op.at);
+            const hm = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+            return `<div class="list-row op-row" style="cursor:default"><span class="op-time">${hm}</span><div class="grow"><h4>${opHeadlineHTML(op)}</h4>${opLinesHTML(op)}</div></div>`;
+          }).join("")}</div>`
+        : `<div class="ta-c t-sec" style="padding:64px 16px;font-size:16px">还没有操作记录</div>`;
+      return `<div class="page">
+        ${navBar(cap(I.chevL, "返回"), "操作记录")}
+        <div class="scroll px20" style="padding-top:12px">${body}</div>
+      </div>`;
+    },
+
     profile: () => `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "个人中心",
-          genHasFamily() ? `<button class="cap" data-act="roleSwitch" type="button">${I.two}${S.role === "patient" ? "本人" : "家属"}</button>` : "")}
+          genHasFamily() ? `<button class="cap" data-act="roleSwitch" type="button">${I.two}${S.role === "patient" ? "本人" : (((S.family || [])[0] && (S.family || [])[0].name) || "家属")}</button>` : "")}
         <div class="scroll px20" style="padding-top:8px">
           <div class="hero pointer" data-go="health-record">
             <div class="hero-top">
@@ -4978,6 +5180,7 @@
           <div class="list-island mt16">
             ${[
               ...(genHasFamily() ? [["family", I.two, "家属管理", S.family.length ? `已绑定 ${S.family.length} 人` : "尚未绑定家属"]] : []),
+              ["activity", I.clock, "操作记录", (S.ops && S.ops[0]) ? opHeadlineHTML(S.ops[0]) + ((S.ops[0].lines || []).length === 1 ? `<span class="op-plain">「${esc(S.ops[0].lines[0][1])}」</span>` : "") : "还没有记录"],
               ["notify", I.bell, "打卡通知", notifyCaption()],
             ].map(([id, ico, t, s]) => `
               <button class="list-row" data-go="${id}" type="button">
@@ -5431,6 +5634,91 @@
   /// 个人中心副说明：同 CheckInNotificationStore.caption 口径（未绑定家属不算家属通道）
   /// 设计代际（真机 DesignGeneration）：V0.1 才有家属管理与哈宝问诊
   function genHasFamily() { return S.gen === "0.1"; }
+  /* ── 家属代操作归属（V10.57）─────────────────────────────
+     写入那一刻的身份 = 这条记录的操作人；只有 V0.1 有家属身份，故标记只在这一代际成立。
+     本人写入不落键（与存量 / 种子数据字节一致），标记是「读记录」而不是「读界面」。 */
+  /* V10.65 操作记录：一件事记一条（真机 ActivityLog.record(_:at:lines:)）。
+     action = 动作；place = 用户在哪发起；lines = [标签, 内容] 结果行，只写有变化的。 */
+  function logOp(action, place, lines) {
+    if (!S.ops) S.ops = [];
+    let actor = S.name || "本人";
+    if (genHasFamily() && S.role === "family") {
+      const member = (S.family || []).find((m) => m.id === S.actorId) || (S.family || [])[0];
+      actor = member ? member.name : "家属";
+      if (member) S.actorId = member.id;
+    }
+    S.ops.unshift({ at: Date.now(), actor, action, place: place || "", lines: (lines || []).filter((l) => l && l[1]) });
+    if (S.ops.length > 300) S.ops.length = 300;
+  }
+  /// 用户从哪发起：栈里有健康计划就记「健康计划」，否则「首页」
+  function entryPlace() {
+    return S.screen === "schedule" || S.frames.some((f) => f.id === "schedule") ? "健康计划" : "首页";
+  }
+  function taskTitle(id) {
+    const t = SEED.find((x) => x.id === id);
+    return t ? t.title : "计划";
+  }
+  /// 最多写 3 个名字，多了写「等 N 项」；同名只写一次，写「共 N 项」
+  function opNames(titles) {
+    const list = titles.filter(Boolean);
+    const unique = [...new Set(list)];
+    if (unique.length > 3) return `${unique.slice(0, 3).join("、")} 等 ${list.length} 项`;
+    return list.length > unique.length ? `${unique.join("、")} 共 ${list.length} 项` : unique.join("、");
+  }
+  /// 成批计划按类分行；replacing = 每类被整批换掉的旧条数
+  function opPlanLines(tasks, replacing) {
+    const group = (cat) => (cat === "medication" ? "用药" : cat === "appointment" ? "复查" : cat === "exercise" ? "运动" : "日常");
+    return ["用药", "复查", "日常", "运动"].map((g) => {
+      const titles = tasks.filter((t) => group(t.cat) === g).map((t) => t.title);
+      const old = (replacing || {})[g] || 0;
+      if (!titles.length) return old ? [g, `已清空原来 ${old} 项`] : null;
+      return [g, old ? `${opNames(titles)}，替换原来 ${old} 项` : opNames(titles)];
+    }).filter(Boolean);
+  }
+  function opPlanCounts(groups) {
+    const out = {};
+    SEED.forEach((t) => {
+      const g = t.cat === "medication" ? "用药" : t.cat === "appointment" ? "复查" : t.cat === "exercise" ? "运动" : "日常";
+      if (groups.includes(g)) out[g] = (out[g] || 0) + 1;
+    });
+    return out;
+  }
+  function opSentence(op) {
+    const headline = op.place ? `${op.actor}在${op.place}${op.action}` : `${op.actor}${op.action}`;
+    const lines = op.lines || [];
+    return { headline, lines, summary: lines.length === 1 ? `${headline}「${lines[0][1]}」` : headline };
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  }
+  /// 人名浅蓝底胶囊，界面白底蓝边胶囊
+  function opHeadlineHTML(op) {
+    const name = `<span class="op-name">${I.person}${esc(op.actor)}</span>`;
+    const action = `<span class="op-plain">${esc(op.action)}</span>`;
+    if (!op.place) return name + action;
+    return `${name}<span class="op-plain">在</span><span class="op-place">${esc(op.place)}</span>${action}`;
+  }
+  function opLinesHTML(op) {
+    return (op.lines || []).map(([label, value]) =>
+      `<div class="op-line"><span class="op-tag">${esc(label)}</span><span class="op-detail">${esc(value)}</span></div>`).join("");
+  }
+  /// silent：顺带完成的打卡，由发起那件事写一条汇总
+  function markProxy(id, place, silent) {
+    if (!id) return;
+    if (genHasFamily() && S.role === "family") S.completedBy[id] = "family";
+    else delete S.completedBy[id];
+    if (silent) return;
+    logOp("打卡了", place || entryPlace(), [["计划", taskTitle(id)]]);
+  }
+  function unmarkProxy(id) {
+    if (!id) return;
+    delete S.completedBy[id];
+    logOp("取消了打卡", entryPlace(), [["计划", taskTitle(id)]]);
+  }
+  function logDrop(id, onlyToday) {
+    if (!id) return;
+    logOp(onlyToday ? "删除了这一次" : "删除了计划", entryPlace(), [["计划", taskTitle(id)]]);
+  }
   /// 身份展示：V0.0 一律按患者本人（真机 ServiceView.displayedRole / HealthRecordView.role）
   function shownRole() { return genHasFamily() ? S.role : "patient"; }
   /// 首次进入步骤点：V0.1 三步（登录 / 身份 / 资料），V0.0 两步（登录 / 资料）
@@ -5777,8 +6065,10 @@
     const editBtn = draft
       ? `<button type="button" data-act="editConfirmDraft" data-title="${titleAttr}" data-cat="${kind}" data-time="${timeAttr}"${idxAttr}>${I.pencil}编辑</button>`
       : `<button type="button"${id ? ` data-act="detail" data-id="${id}"` : ""}>${editIco}${editLab}</button>`;
+    // 今日之前、以及该日已打卡：删除不出现。确认页草稿仍可删。
+    const showDelete = !hist && (!done || draft);
     let delBtn = "";
-    if (!hist) {
+    if (showDelete) {
       if (draft) {
         delBtn = `<button class="del" type="button" data-act="delConfirmDraft"${idxAttr}>${I.trash}删除</button>`;
       } else if (isCycle) {
@@ -5788,7 +6078,7 @@
         delBtn = `<button class="del" type="button" data-act="delCardOnce"${idAttr}>${I.trash}删除</button>`;
       }
     }
-    const barCls = !hist && !draft && isCycle ? " triple" : "";
+    const barCls = showDelete && !draft && isCycle ? " triple" : "";
     const notes = note
       ? cardNote(I.alignLeft, note, idx == null ? null : "editNote", idx)
       : "";
@@ -5927,23 +6217,21 @@
     return `<div style="margin:2px 12px 12px;border-radius:12px;background:${fg}14;${dim}">${row}</div>`;
   }
 
-  /// 已打卡时页尾的出口：取消本次打卡会一并解禁编辑 / 删除 / 提醒（真机 store.toggleCompletion 的反向）
+  /// 今日已打卡时页尾的出口：取消后提醒开关和删除重新出现（真机 store.toggleCompletion 的反向）
   function cancelCheckInBlock(accent) {
-    return `<div class="s12 t-sec" style="margin-top:14px">本次已打卡，编辑、删除与提醒开关已锁定</div>
+    return `<div class="s12 t-sec" style="margin-top:14px">本次已打卡，先取消打卡才能更新</div>
       <button class="cta-ghost" style="margin-top:8px;color:${accent.fg};background:${accent.muted}" data-act="undoCheckIn" type="button">${I.undo}取消本次打卡</button>`;
   }
 
-  /// 该日已打卡时整块锁住——删除会抹掉当天打卡记录（同 RehabPlanStore.endSeries / skipOccurrence）
-  function deletePlanButtons(d, done) {
-    const lock = done ? ';opacity:.4' : "";
-    const act = (a) => (done ? "" : ` data-act="${a}"`);
+  /// 今日之前和已打卡不进这里（同真机 showsDeleteButton）
+  function deletePlanButtons(d) {
     if (d.cycle) {
       return `<div class="col gap10 mt16">
-        <button class="cta-ghost" style="color:#F05A6E;background:rgba(240,90,110,.08)${lock}"${act("delToday")} type="button">${I.trash}删除本次计划</button>
-        <button class="cta-ghost" style="color:#F05A6E;background:rgba(240,90,110,.08)${lock}"${act("delAll")} type="button">${I.trash}删除本次和后续计划</button>
+        <button class="cta-ghost" style="color:#F05A6E;background:rgba(240,90,110,.08)" data-act="delToday" type="button">${I.trash}删除本次计划</button>
+        <button class="cta-ghost" style="color:#F05A6E;background:rgba(240,90,110,.08)" data-act="delAll" type="button">${I.trash}删除本次和后续计划</button>
       </div>`;
     }
-    return `<button class="cta-ghost mt16" style="color:#F05A6E;background:rgba(240,90,110,.08)${lock}"${act("delTask")} type="button">${I.trash}删除计划</button>`;
+    return `<button class="cta-ghost mt16" style="color:#F05A6E;background:rgba(240,90,110,.08)" data-act="delTask" type="button">${I.trash}删除计划</button>`;
   }
 
   function taskEditor(mode) {
@@ -5952,14 +6240,18 @@
     const d = mode === "view" ? taskDraftFromSeed(t) : S.draft;
     const editable = mode !== "view";
     const viewing = !editable;
-    const title = mode === "view" ? "查看计划" : mode === "edit" ? "编辑计划" : S.addTitle;
+    const title = mode === "view" ? "查看计划" : mode === "edit" ? "更新计划" : S.addTitle;
     const left = mode === "edit" ? cap(I.x, "取消") : cap(I.chevL, "返回");
     const done = !!S.completed[t.id] && mode !== "add";
-    // 该日已打卡：这一天算落定，编辑与删除、提醒开关一并锁住（真机 SecondaryNavToolbarItem.isEnabled）
+    const past = mode !== "add" && (S.taskOccurrence || toYMD(demoDate())) < toYMD(demoDate());
+    // 今日之前、以及该日已打卡：到点提醒和删除都不出现
+    const hideRemindDelete = viewing && (past || done);
+    // 今日之前、以及该日已打卡：更新置灰禁用
+    const updateLocked = past || done;
     const right = mode === "view"
-      ? (done
-          ? `<button class="cap" type="button" style="opacity:.35" disabled aria-label="本次已打卡，编辑已锁定">${I.pencil}编辑</button>`
-          : `<button class="cap" data-act="editTask" type="button">${I.pencil}编辑</button>`)
+      ? (updateLocked
+          ? `<button class="cap" type="button" style="opacity:.35" disabled aria-label="${past ? "历史计划，更新已锁定" : "本次已打卡，更新已锁定"}">${I.pencil}更新</button>`
+          : `<button class="cap" data-act="editTask" type="button">${I.pencil}更新</button>`)
       : `<button class="cap" data-act="${mode === "add" ? "addTask" : "saveTask"}" type="button">${I.check}${mode === "add" ? "添加" : "确认"}</button>`;
     const accent = editorAccent(d, done);
     const lockTime = S.lockBlock && mode === "add";
@@ -5990,23 +6282,36 @@
             chip({ selected: d.cat === "custom" && d.customId === c.id, label: c.name, icon: I[UNIFIED_CUSTOM_ICON], act: "pickCustomCat", extra: `data-id="${c.id}"`, locked: S.lockCategory && mode === "add" })).join("")}
           ${!(S.lockCategory && mode === "add") && mode !== "view" ? chip({ selected: false, label: "自定义", icon: I.plus, dash: true, act: "openCustomCat" }) : ""}
         </div>`;
-    // 已保存计划（编辑态）与首页虚框：日期 / 开始日期禁用不可改。查看态整页只读，仍保持语义色。
-    const lockStart = lockRec || mode === "edit";
-    const dateInteractive = editable && !lockStart;
-    const dateMuted = lockStart && editable;
-    const dateRow = (label, first) => `
-        <div class="sec-label"${first ? ' style="margin-top:0"' : ""}>${label}</div>
-        <button class="date-row" style="background:${dateMuted ? "rgba(130,142,165,.10)" : accent.muted};color:${dateMuted ? "rgba(130,142,165,.72)" : accent.fg}" ${dateInteractive ? 'data-act="openOnceDate"' : ""} type="button"${dateMuted ? " disabled" : ""}>
-          <span>${planDateLabel(d.onceDate, d.cycle)}</span>
-          ${dateInteractive ? `<span class="dim">${I.chevUD}</span>` : ""}
+    // 已保存循环计划点「更新」：开始日期锁定。首页虚框仍锁定当天。查看态整页只读，仍保持语义色。
+    const lockStart = lockRec || (mode === "edit" && d.cycle);
+    const dateRow = (label, ymd, act, locked) => {
+      const on = editable && !locked;
+      // 查看态三个日期都不可改，整条置灰；更新态只把锁定的开始日期压灰
+      const muted = !editable || locked;
+      return `
+        <div class="sec-label">${label}</div>
+        <button class="date-row" style="background:${muted ? "rgba(130,142,165,.10)" : accent.muted};color:${muted ? "rgba(130,142,165,.72)" : accent.fg}" ${on ? `data-act="${act}"` : ""} type="button"${muted ? " disabled" : ""}>
+          <span>${planDateLabel(ymd, d.cycle || label !== "日期")}</span>
+          ${on ? `<span class="dim">${I.chevUD}</span>` : ""}
         </button>`;
+    };
+    const anchor = mode === "edit" && d.cycle ? (d.occurrence || d.onceDate) : d.onceDate;
+    const endYmd = d.endDate || addDaysYMD(anchor, (d.duration ? durationDayCount(d.duration) : 365) - 1);
+    const occurrenceRow = (mode !== "add" && d.cycle)
+      ? dateRow("本次日期", d.occurrence || S.taskOccurrence || toYMD(demoDate()), "openOccurrenceDate", false)
+      : "";
+    const splitNote = (mode === "edit" && d.cycle && d.occurrence && d.onceDate && d.occurrence > d.onceDate)
+      ? `<div class="month-day-hint">新计划从${yearMonthDayLabel(parseYMD(d.occurrence))}开始执行，原计划${yearMonthDayLabel(parseYMD(addDaysYMD(d.occurrence, -1)))}截止。</div>`
+      : "";
     const dateBlock = `
         <div class="sec-label" style="margin-top:0">计划类型</div>
         <div class="flex gap8">
           ${chip({ selected: !d.cycle, label: "单日计划", icon: I.cal, act: "draftCycle", extra: 'data-v="0"', locked: lockRec })}
           ${chip({ selected: d.cycle, label: "循环计划", icon: I.cycle, act: "draftCycle", extra: 'data-v="1"', locked: lockRec })}
         </div>
-        ${dateRow(d.cycle ? "开始日期" : "日期")}`;
+        ${dateRow(d.cycle ? "开始日期" : "日期", d.onceDate, "openOnceDate", lockStart)}
+        ${occurrenceRow}
+        ${splitNote}`;
     const cycleBlock = `
         <div class="sec-label">循环规则</div>
         <div class="grid3 tight">${[["daily", "每日"], ["weekly", "每周"], ["monthly", "每月"]].map(([r, lab]) =>
@@ -6020,7 +6325,7 @@
         <div class="sec-label">持续时长</div>
         <div class="grid3 tight">${durationOpts(d.rule).map(([id, lab]) =>
           chip({ selected: d.duration === id, label: lab, act: "draftDur", extra: `data-d="${id}"`, compact: true })).join("")}</div>
-        <div class="duration-custom-block">${chip({ selected: d.duration === "custom", label: d.duration === "custom" ? customDurDeadlineLabel(d.customDays, d.rule) : "自定义", icon: (d.duration !== "custom" && editable) ? I.plus : "", dash: d.duration !== "custom" && editable, compact: true, act: "openCustomDur" })}</div>`;
+        ${dateRow("结束时间", endYmd, "openSeriesEnd", false)}`;
     const momentBlock = `
         <div class="sec-label">时间段</div>
         <div class="grid3 tight">${BLOCKS.map((b) =>
@@ -6038,9 +6343,9 @@
               : `<span class="time-pill idle">未打卡</span>`}
           </div>
         </div>
-        ${viewing ? reminderSwitches(d, done, accent) : draftReminderSwitch(d, accent)}
-        ${mode === "view" ? deletePlanButtons(d, done) : ""}
-        ${viewing && done ? cancelCheckInBlock(accent) : ""}`;
+        ${hideRemindDelete ? "" : (viewing ? reminderSwitches(d, done, accent) : draftReminderSwitch(d, accent))}
+        ${mode === "view" && !hideRemindDelete ? deletePlanButtons(d) : ""}
+        ${viewing && done && !past ? cancelCheckInBlock(accent) : ""}`;
     // 两组各包一层：标题行常显可点，字段随折叠隐现（字段与保存逻辑不受折叠影响）
     const body = `
       <div class="ed-group">
