@@ -545,7 +545,7 @@
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
     "task-add": { code: "AddEditTaskView", note: "两大类折叠（不分页）：一条滚动里「事项」「时间与提醒」两组，标题行点一下收起、再点一下展开，进页两组都展开。「事项」：名称、备注、今日血压、分类。「时间与提醒」：计划类型 → 日期 / 开始日期（同一字段；单日读「日期」、循环读「开始日期」，过去日不可选；首页虚框锁定当天；切成循环计划不跳页，循环规则与持续时长就在下方就地出现）→ 循环规则（每日 / 每周 / 每月 + 自定义间隔，每月 1–31 与「月末」同格）→ 持续时长（预设不含 1天 / 1周 / 1个月、最长一年，末尾通栏「自定义」）→ 时间段 → 当日时刻 → 「到点提醒」（总开关在上、仅本次缩进在下；单日一档）＋「家属通知」（V10.52：家属通道串联，未绑定先去填写、填完自动进打卡通知页；总闸关着弹「去设置」）→ 查看态删除 / 取消打卡。折叠只影响看不看得见，右上「添加」随时可保存。「家属通知」只在 V0.1 出现。" },
     "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。开始日期锁定为原来的起始日；本次日期是打开的这一天，不能选更早。结束时间默认是本次日期的后一天。持续时长只留 3 档，放在结束时间上面，没有「自定义」。本次日期晚于开始日期时，点「确认」先弹出「新计划从本次日期开始执行，原计划前一日截止」。" },
-    "task-view": { code: "AddEditTaskView", note: "同两大类折叠、只读（标题行仍可点折叠）。右上是「更新」。循环计划同时显示开始日期和本次日期（健康计划取日历选中日，首页取今天）。今日未打卡时，「时间与提醒」组底部按已保存类型删除：循环「删除本次计划 / 删除本次和后续计划」，单日「删除计划」；到点提醒两档即时生效。今日之前、以及该日已打卡，到点提醒和删除都不出现。今日已打卡可「取消本次打卡」，取消后这两处回来。右上「更新」在今日之前和已打卡时都置灰禁用。「家属通知」只在 V0.1 出现（家属通道 = 通知家属 × 已绑定 × 类别开关）。" },
+    "task-view": { code: "AddEditTaskView", note: "同两大类折叠、只读（标题行仍可点折叠）。右上是「更新」。循环计划同时显示开始日期和本次日期（健康计划取日历选中日，首页取今天）。今日未打卡时，「时间与提醒」组底部按已保存类型删除：循环「删除本次计划 / 删除本次和后续计划」，单日「删除计划」；到点提醒两档：循环总开关「本次及后续提醒」在查看态拨动先弹「提醒范围」——开始 / 结束日期 + 「响铃 / 不响铃」两枚芯片，默认本次日期 → 系列结束日（即原来的「及以后」）；确认后只有这一段按所选状态走，一段范围一条记录，不拆系列、不新建计划（相邻同色并段、中间重开一天切两段）。命中范围时说明行写「M月d日–M月d日 已按范围关闭，点按可改」，开关状态与说明行都按范围走（范围内取范围值、范围外回落系列开关）；「仅本次提醒」照旧压那一天，家属通知不吃范围。编辑 / 新建态不给范围，仍只拨系列开关。今日之前、以及该日已打卡，到点提醒和删除都不出现。今日已打卡可「取消本次打卡」，取消后这两处回来。右上「更新」在今日之前和已打卡时都置灰禁用。「家属通知」只在 V0.1 出现（家属通道 = 通知家属 × 已绑定 × 类别开关）。" },
     "exercise-risk": { code: "BodyTestRunView", note: "Demo Toggle 模拟禁忌症。体测不参与入组。「稍后 / 退出评估 / 暂不创建」关整段评估流，不退回选择类型。" },
     "body-test": { code: "BodyTestRunView", note: "户外原地踏步三分钟。停止或倒计时归零后直进感受问卷，无完成中转页。" },
     "body-test-sit": { code: "BodyTestRunView", note: "室内 1 分钟坐立。次数大号读数 + 倒计时 + 同龄参考。停止后问卷顶部两栏「测试时长 / 完成次数」。" },
@@ -625,6 +625,11 @@
     cats: { medication: true, exercise: true, monitoring: true, diet: true, rest: true, appointment: true },
     // 计划「到点提醒」：remindOff = 本次及后续提醒关；mutedToday = 本次提醒关（按任务 id 记）
     remindOff: {},
+    // 到点提醒的范围覆盖（V10.74 · 真机 RehabTask.reminderWindows）：任务 id → [{ start, end, on }]，
+    // ymd 闭区间、互不重叠；命中取段落值、没命中回落系列开关
+    remindRanges: {},
+    // 「提醒范围」弹层的草稿（弹层打开中才有）
+    rangeDraft: null,
     // 家属通知关（按任务 id 记；V10.52 计划页家属通知）
     famOff: {},
     mutedToday: {},
@@ -1253,6 +1258,7 @@
     if (i >= 0) SEED.splice(i, 1);
     delete S.completed[id];
     delete S.completedBy[id];
+    delete S.remindRanges[id];
     if (S.taskId === id) S.taskId = SEED[0]?.id || "t4";
     if (S.centerStage === id) S.centerStage = null;
   }
@@ -2605,6 +2611,10 @@
           openOverlay("customDur");
           return;
         }
+        if (S.overlay === "datePick" && (S.overlayData.kind === "rangeStart" || S.overlayData.kind === "rangeEnd")) {
+          openOverlay("remindRange");
+          return;
+        }
         closeOverlay();
       },
       login() {
@@ -3219,6 +3229,11 @@
         } else if (S.overlayData.kind === "seriesEnd" && S.draft) {
           S.draft.endDate = el.dataset.ymd;
           S.draft.duration = null;
+        } else if (S.overlayData.kind === "rangeStart" && S.rangeDraft) {
+          S.rangeDraft.start = el.dataset.ymd;
+          if (S.rangeDraft.end < S.rangeDraft.start) S.rangeDraft.end = S.rangeDraft.start;
+        } else if (S.overlayData.kind === "rangeEnd" && S.rangeDraft) {
+          S.rangeDraft.end = el.dataset.ymd < S.rangeDraft.start ? S.rangeDraft.start : el.dataset.ymd;
         } else if (S.draft) S.draft.onceDate = el.dataset.ymd;
         render();
       },
@@ -3235,6 +3250,16 @@
           S.overlayData.selected = ymd;
           S.overlayData.month = ymd;
           S.customDurDays = 1;
+        } else if (S.overlayData.kind === "rangeStart" || S.overlayData.kind === "rangeEnd") {
+          if (!S.rangeDraft) return;
+          S.overlayData.selected = ymd;
+          S.overlayData.month = ymd;
+          if (S.overlayData.kind === "rangeStart") {
+            S.rangeDraft.start = ymd;
+            if (S.rangeDraft.end < ymd) S.rangeDraft.end = ymd;
+          } else {
+            S.rangeDraft.end = ymd < S.rangeDraft.start ? S.rangeDraft.start : ymd;
+          }
         } else {
           S.overlayData.selected = ymd;
           S.overlayData.month = ymd;
@@ -3244,12 +3269,64 @@
       },
       calDone() {
         if (S.overlayData.kind === "customDur") { openOverlay("customDur"); return; }
+        if (S.overlayData.kind === "rangeStart" || S.overlayData.kind === "rangeEnd") {
+          openOverlay("remindRange");
+          return;
+        }
         closeOverlay();
       },
       draftBlock() { if (S.draft && !S.lockBlock) { S.draft.block = +el.dataset.b; render(); } },
       editDraftTime() {
         if (!S.draft) return;
         openOverlay("time", { title: "提醒时间", h: S.draft.hour, m: S.draft.min, kind: "draft", block: S.draft.block });
+      },
+      // 查看计划 · 到点提醒：循环计划拨总开关先开「提醒范围」定起止（对齐真机查看态），
+      // 单日计划仍即时拨系列开关；总闸关着时同样先拦（blockedByGate）
+      remindRangeToggle() {
+        const t = SEED.find((x) => x.id === S.taskId);
+        if (!t) return;
+        const viewed = S.taskOccurrence || toYMD(demoDate());
+        const covered = rangeCovering(t.id, viewed);
+        const shown = gateOpen(taskCatKey(t)) && (covered ? covered.on : !S.remindOff[t.id]);
+        if (!shown && blockedByGate(taskCatKey(t))) return;
+        startRemindRange(!shown);
+      },
+      // 说明行点按：回到命中的那一段上改（不翻转状态；没命中就按系列开关的值）
+      openRemindRange() {
+        const t = SEED.find((x) => x.id === S.taskId);
+        if (!t) return;
+        const covered = rangeCovering(t.id, S.taskOccurrence || toYMD(demoDate()));
+        startRemindRange(covered ? covered.on : !S.remindOff[t.id]);
+      },
+      rangeState() {
+        if (!S.rangeDraft) return;
+        S.rangeDraft.on = el.dataset.v === "1";
+        render();
+      },
+      openRangeStart() {
+        if (!S.rangeDraft) return;
+        openOverlay("datePick", {
+          selected: S.rangeDraft.start, month: S.rangeDraft.start,
+          kind: "rangeStart", minYmd: S.rangeDraft.minYmd,
+        });
+      },
+      openRangeEnd() {
+        if (!S.rangeDraft) return;
+        openOverlay("datePick", {
+          selected: S.rangeDraft.end, month: S.rangeDraft.end,
+          kind: "rangeEnd", minYmd: S.rangeDraft.start,
+        });
+      },
+      // 只拨这一段：相交的旧段切开或截短，其余日子照原样（不新建计划、不动打卡）
+      rangeConfirm() {
+        const r = S.rangeDraft;
+        if (!r) return;
+        const t = SEED.find((x) => x.id === S.taskId);
+        if (r.on && blockedByGate(taskCatKey(t))) return;
+        S.remindRanges[t.id] = applyRangeCover(remindRanges(t.id), r.start, r.end, r.on);
+        S.rangeDraft = null;
+        closeOverlay();
+        toast(r.on ? "这一段会响铃" : "这一段不响铃");
       },
       // 查看计划 · 提醒：只压提醒，不动任务与打卡（对齐 RehabPlanStore.setMuted / setTaskNotificationEnabled）
       // 总闸关着时拨不开：弹窗引导去个人中心，而不是留一行小字（真机 blockIfGateClosed）
@@ -6133,24 +6210,91 @@
     </div>`;
   }
 
+  /* ── 到点提醒的范围覆盖（V10.74）────────────────────────────────────
+     一段范围就是一条记录：命中取段落值、没命中回落系列开关；相邻同色并段、中间重开一天切两段。
+     查看态拨总开关先定起止再落库，不拆系列、不新建计划（对齐真机 applyingReminderWindow）。 */
+  function mergeRemindRanges(list) {
+    const out = [];
+    [...list].sort((a, b) => (a.start < b.start ? -1 : a.start > b.start ? 1 : 0)).forEach((r) => {
+      const last = out[out.length - 1];
+      if (last && last.on === r.on && r.start <= addDaysYMD(last.end, 1)) {
+        if (r.end > last.end) last.end = r.end;
+      } else {
+        out.push({ start: r.start, end: r.end, on: r.on });
+      }
+    });
+    return out;
+  }
+  /// 把 [start, end] 这一段拨成 on：相交的旧段切开或截短，其余原样
+  function applyRangeCover(list, start, end, on) {
+    const out = [];
+    (list || []).forEach((r) => {
+      if (r.end < start || r.start > end) { out.push({ ...r }); return; }
+      if (r.start < start) out.push({ start: r.start, end: addDaysYMD(start, -1), on: r.on });
+      if (r.end > end) out.push({ start: addDaysYMD(end, 1), end: r.end, on: r.on });
+    });
+    out.push({ start, end, on });
+    return mergeRemindRanges(out);
+  }
+  function remindRanges(id) { return mergeRemindRanges(S.remindRanges[id] || []); }
+  /// 该日命中的那一段；没命中返回 null（由调用方回落到系列开关）
+  function rangeCovering(id, ymd) {
+    return remindRanges(id).filter((r) => r.start <= ymd && ymd <= r.end).pop() || null;
+  }
+  /// 系列期：种子任务没存系列期，按「本次日期 + 一年」封顶（真机最长一年）
+  function seriesStartOf(t) { return (t && t.onceDate) || toYMD(demoDate()); }
+  function seriesEndOf(t) { return addDaysYMD(seriesStartOf(t), 364); }
+  /// 范围文案：同年「M月d日–M月d日」，跨年带年份；单日只写一天
+  function rangeLabel(r) {
+    const a = parseYMD(r.start);
+    const b = parseYMD(r.end);
+    const withYear = a.getFullYear() !== b.getFullYear();
+    const day = (d, y) => (y ? yearMonthDayLabel(d) : `${d.getMonth() + 1}月${d.getDate()}日`);
+    if (r.start === r.end) return day(a, a.getFullYear() !== demoDate().getFullYear());
+    return `${day(a, withYear)}–${day(b, withYear)}`;
+  }
+  /// 打开「提醒范围」：默认本次日期 → 系列结束日（即原来的「及以后」）；命中范围时默认那一段本身
+  function startRemindRange(on) {
+    const t = SEED.find((x) => x.id === S.taskId);
+    if (!t) return;
+    const today = toYMD(demoDate());
+    const viewed = S.taskOccurrence || today;
+    const acc = editorAccent(taskDraftFromSeed(t), !!S.completed[t.id]);
+    const covered = rangeCovering(t.id, viewed);
+    const minYmd = viewed > today ? viewed : today;
+    const start = covered ? (covered.start > today ? covered.start : today) : minYmd;
+    const end = covered ? covered.end : seriesEndOf(t);
+    S.rangeDraft = { start, end: end < start ? start : end, on, minYmd, fg: acc.fg, muted: acc.muted };
+    openOverlay("remindRange");
+  }
+
   /// 查看计划 · 提醒：**总开关在上、子开关缩进在下**——循环两档「本次及后续提醒（总）/ 仅本次提醒（子）」，
   /// 单日只有一档（那一档即总开关）。开关方向与个人中心总闸一致：**开 = 会提醒**。只压提醒，不动任务与打卡。
   function reminderSwitches(d, done, accent) {
     const id = S.taskId;
     const rows = [];
     // 开关方向与个人中心总闸一致：开 = 会提醒
-    const seriesOn = !S.remindOff[id];
+    // 这一档的落点：命中提醒范围取范围值，没命中回落系列开关（开 = 会提醒，与个人中心总闸同向）
+    const viewed = S.taskOccurrence || toYMD(demoDate());
+    const covered = rangeCovering(id, viewed);
+    const seriesOn = covered ? covered.on : !S.remindOff[id];
     const gate = gateOpen(taskCatKey(d));
     // 已打卡：两档都显示为关并禁用（总开关不再保持打开）
     const seriesShown = done ? false : (gate && seriesOn);
     const seriesCaption = !d.cycle ? ""
       : done ? "本次已打卡，提醒已锁定"
-      : (seriesOn ? "关闭后整条计划都不再响铃" : "整条计划已关闭提醒");
+      : covered
+        ? `${rangeLabel(covered)} ${covered.on ? "已按范围打开" : "已按范围关闭"}，点按可改`
+        : (seriesOn ? "关闭后整条计划都不再响铃" : "整条计划已关闭提醒");
     // 总闸关着时开关显示关、也拨不开——点它弹窗引导去个人中心（不留小字）
+    // 循环计划：拨开关先弹「提醒范围」定起止再落库；单日仍即时拨系列开关
     rows.push(reminderRow(
       d.cycle ? "本次及后续提醒" : "本次提醒",
       seriesCaption,
-      seriesShown, "remindOff", done, accent.fg, false));
+      seriesShown,
+      d.cycle && !done ? "remindRangeToggle" : "remindOff",
+      done, accent.fg, false,
+      covered && !done ? "openRemindRange" : ""));
     if (d.cycle) {
       rows.push(reminderRow("仅本次提醒", "",
         done ? false : (gate && seriesOn && !S.mutedToday[id]), "muteToday",
@@ -6199,10 +6343,14 @@
   /// `on` = 会提醒（与个人中心总闸同向）。铃铛跟随页面主色：会提醒 = 主色，已静音 = 次级灰。
   /// `isSub` = 子开关：整行缩进一级 + 套一层浅语义底功能岛（无描边），图标与字号小总开关一档——
   /// 从属关系靠缩进 + 色块 + 字号读出来，不靠小字解释（对齐真机 §8.1）。
-  function reminderRow(title, caption, on, actName, disabled, fg, isSub) {
+  function reminderRow(title, caption, on, actName, disabled, fg, isSub, capAct) {
     const icoSize = isSub ? 16 : 18;
     const ico = `<span style="display:grid;place-items:center;width:${icoSize}px;height:${icoSize}px;flex:0 0 ${icoSize}px;color:${on ? fg : "var(--secondary)"}">${on ? I.bell : I.bellSlash}</span>`;
-    const cap = caption ? `<div class="s12 t-sec" style="margin-top:2px">${caption}</div>` : "";
+    // 说明行可点（命中提醒范围时）：换成按钮 + 右尖角，点它回到那一段上改
+    const cap = !caption ? ""
+      : capAct
+        ? `<button class="s12" style="margin-top:2px;display:inline-flex;align-items:center;gap:2px;padding:0;border:0;background:none;font-family:inherit;font-weight:600;color:${fg}" data-act="${capAct}" type="button">${caption}<span style="display:grid;place-items:center;width:10px;height:10px">${I.chevR}</span></button>`
+        : `<div class="s12 t-sec" style="margin-top:2px">${caption}</div>`;
     const row = `<div class="list-row" style="min-height:${isSub ? 52 : 56}px;gap:${isSub ? 10 : 12}px${isSub ? ";padding:12px 0" : ""}">
       ${ico}
       <div class="grow">
@@ -6641,6 +6789,36 @@
           </div>
         </div>
       </div>`,
+    remindRange: () => {
+      const r = S.rangeDraft;
+      if (!r) return "";
+      const days = Math.round((parseYMD(r.end) - parseYMD(r.start)) / 86400000) + 1;
+      const acc = { fg: r.fg, muted: r.muted };
+      const dateRow = (label, ymd, act) => `
+        <div class="sec-label">${label}</div>
+        <button class="date-row" style="background:${r.muted};color:${r.fg}" data-act="${act}" type="button">
+          <span>${yearMonthDayLabel(parseYMD(ymd))}</span>
+          <span class="dim">${I.chevUD}</span>
+        </button>`;
+      return `
+      <div class="scrim center" data-act="close">
+        <div class="popup" style="border-radius:28px;padding:22px 22px 20px;max-width:380px" onclick="event.stopPropagation()">
+          <h3 class="s26 fb ta-c" style="color:${r.fg}">提醒范围</h3>
+          <p>${r.on ? "开始到结束这一段响铃，其它日子按原设置走。" : "开始到结束这一段不响铃，其它日子按原设置走。"}</p>
+          <div class="flex gap8">
+            ${optChip({ selected: !r.on, label: "不响铃", act: "rangeState", extra: 'data-v="0"', accent: acc })}
+            ${optChip({ selected: r.on, label: "响铃", act: "rangeState", extra: 'data-v="1"', accent: acc })}
+          </div>
+          ${dateRow("开始日期", r.start, "openRangeStart")}
+          ${dateRow("结束日期", r.end, "openRangeEnd")}
+          <div class="s12 t-sec ta-c" style="margin-top:10px">共 ${days} 天 · ${rangeLabel(r)}</div>
+          <div class="duo">
+            <button class="cancel" data-act="close" type="button">取消</button>
+            <button class="ok" data-act="rangeConfirm" type="button" style="background:${r.fg}">确定</button>
+          </div>
+        </div>
+      </div>`;
+    },
     datePick: () => {
       const selected = S.overlayData.selected || toYMD(demoDate());
       const month = S.overlayData.month || selected;
@@ -7057,6 +7235,7 @@
       render();
     }
   });
+
   window.addEventListener("resize", scalePhone);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if (S.overlay) closeOverlay(); else back(); } });
 
