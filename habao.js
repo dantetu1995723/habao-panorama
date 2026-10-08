@@ -826,7 +826,7 @@
   function basisSec(sec, title, count, paraHTML, photosHTML) {
     const open = !!(S.basisMaterial && S.basisMaterial[sec]);
     const btn = photosHTML
-      ? `<button class="basis-material-btn${open ? " on" : ""}" data-act="basisMaterial" data-sec="${sec}" type="button">${I.doc}<span>依据资料</span><span class="basis-material-sp"></span>${I.chevD}</button>`
+      ? `<button class="basis-material-btn${open ? " on" : ""}" data-act="basisMaterial" data-sec="${sec}" type="button">${I.doc}<span>${open ? "收起依据资料" : "依据资料"}</span>${I.chevD}</button>`
       : "";
     return `<div class="basis-sec">
       <div class="basis-sec-row">${basisSectionHead(sec, title, count)}</div>

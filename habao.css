@@ -2179,17 +2179,16 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   padding: 6px;
 }
 
-/* 「依据资料」：收在模块卡顶，点开才铺来源缩略图（真机 PlanBasisSection.materialToggle） */
+/* 「依据资料」：模块卡顶醒目胶囊按钮，点开才铺来源缩略图（真机 PlanBasisSection.materialToggle） */
 .basis-sec-row { display: flex; align-items: center; gap: 8px; }
 .basis-sec-row .type-h { flex: 1 1 auto; min-width: 0; }
 .basis-material-btn {
-  display: flex; align-items: center; gap: 6px; width: 100%;
-  min-height: 44px; padding: 0; border: 0; border-radius: 0; cursor: pointer;
-  background: transparent; color: var(--blue); font-family: inherit;
-  font-size: calc(15px * var(--fs)); font-weight: 600;
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 40px; padding: 0 14px; border: 0; border-radius: 999px; cursor: pointer;
+  background: rgba(16,84,224,.12); color: var(--blue); font-family: inherit;
+  font-size: calc(15px * var(--fs)); font-weight: 700;
 }
-.basis-material-sp { flex: 1 1 auto; }
-.basis-material-btn svg { width: 13px; height: 13px; flex: 0 0 13px; }
+.basis-material-btn svg { width: 14px; height: 14px; flex: 0 0 14px; }
 .basis-material-btn svg:last-child { width: 11px; height: 11px; transition: transform .25s; }
 .basis-material-btn.on svg:last-child { transform: rotate(180deg); }
 
