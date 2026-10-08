@@ -2179,17 +2179,18 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   padding: 6px;
 }
 
-/* 「依据资料」：分区标题旁的按钮 + 展开后的来源缩略图（真机 PlanBasisSection.materialToggle） */
+/* 「依据资料」：收在模块卡顶，点开才铺来源缩略图（真机 PlanBasisSection.materialToggle） */
 .basis-sec-row { display: flex; align-items: center; gap: 8px; }
 .basis-sec-row .type-h { flex: 1 1 auto; min-width: 0; }
 .basis-material-btn {
-  display: inline-flex; align-items: center; gap: 5px;
-  min-height: 44px; padding: 0 11px; border: 0; border-radius: 999px; cursor: pointer;
-  background: rgba(16,84,224,.12); color: var(--blue); font-family: inherit;
-  font-size: calc(13px * var(--fs)); font-weight: 600;
+  display: flex; align-items: center; gap: 6px; width: 100%;
+  min-height: 44px; padding: 0; border: 0; border-radius: 0; cursor: pointer;
+  background: transparent; color: var(--blue); font-family: inherit;
+  font-size: calc(15px * var(--fs)); font-weight: 600;
 }
-.basis-material-btn svg { width: 12px; height: 12px; flex: 0 0 12px; }
-.basis-material-btn svg:last-child { width: 10px; height: 10px; transition: transform .25s; }
+.basis-material-sp { flex: 1 1 auto; }
+.basis-material-btn svg { width: 13px; height: 13px; flex: 0 0 13px; }
+.basis-material-btn svg:last-child { width: 11px; height: 11px; transition: transform .25s; }
 .basis-material-btn.on svg:last-child { transform: rotate(180deg); }
 
 /* 一块改完：已改 N 处 + 取消 / 确认（收在模块卡底，真机 PlanBasisSection.confirmRow） */
@@ -2217,17 +2218,9 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   font-size: calc(13px * var(--fs)); font-weight: 600; color: rgba(16,84,224,.7);
 }
 .basis-hint svg { width: 13px; height: 13px; flex: 0 0 13px; }
-/* 结论那句：由上面的原文推出来，只读 */
-.basis-conclusion {
-  display: flex; align-items: flex-start; gap: 6px;
-  padding-left: 4px;
-  font-size: calc(13px * var(--fs)); font-weight: 500; color: var(--secondary);
-  line-height: 1.5;
-}
 .basis-panel { display: flex; flex-direction: column; gap: 12px; }
 .basis-group-title { font-size: calc(15px * var(--fs)); font-weight: 700; color: var(--blue); }
 .basis-field { display: flex; flex-direction: column; gap: 8px; }
-.basis-field-label { font-size: calc(12px * var(--fs)); font-weight: 700; color: var(--secondary); }
 /* 块尾「重新生成计划」：确认过才出现，带这一块的修正处数（真机 PlanBasisSection.regenerateRow） */
 .basis-regen-chip {
   display: inline-flex; align-items: center; gap: 6px;

@@ -420,12 +420,9 @@
 
   // ----- 字段芯片与就地选项（真机 PlanBasisFieldRow / BasisFieldEditor）-----
 
-  /// 一条依据 = 字段 + 结论脚注；阴影在大块上（真机 PlanBasisLine）
+  /// 一条依据只摆原文控件（真机 PlanBasisLine：字段名和「因此安排」不在卡上）
   function basisPara(groups, conclusion, kind) {
-    return `<div class="basis-line">
-      ${basisPanel(groups)}
-      ${conclusion ? `<div class="basis-conclusion">${conclusion}</div>` : ""}
-    </div>`;
+    return `<div class="basis-line">${basisPanel(groups)}</div>`;
   }
   /// 分区头与计划列表同一枚（图标 + 标题 + 数量角标）
   function basisSectionHead(kind, title, count) {
@@ -441,7 +438,7 @@
   function basisPanel(groups) {
     return `<div class="basis-panel">${groups.map((g) => `
       ${g.title ? `<div class="basis-group-title">${g.title}</div>` : ""}
-      ${g.fields.map((f) => `<div class="basis-field"><div class="basis-field-label">${f.label}</div>${basisControl(f)}</div>`).join("")}
+      ${g.fields.map((f) => `<div class="basis-field">${basisControl(f)}</div>`).join("")}
     `).join("")}</div>`;
   }
   const escAttr = (v) => String(v == null ? "" : v).replace(/"/g, "&quot;");
@@ -470,7 +467,7 @@
     // 显示未确认的草稿优先（真机 BasisFieldInput：draft ?? 原文）
     return `<div class="basis-text">
       <input class="basis-input" id="basis-input-${f.id}" data-pool="${f.pool}"
-        value="${escAttr(basisDraftFor(f.id) ?? f.current)}" placeholder="${escAttr(f.placeholder)}" />
+        value="${escAttr(basisDraftFor(f.id) ?? f.current)}" placeholder="${escAttr(f.placeholder)}" aria-label="${escAttr(f.label || f.placeholder)}" />
       <div class="basis-sugg" data-for="${f.id}"></div>
     </div>`;
   }
@@ -487,7 +484,7 @@
       // 日期一律走万年历（复用 AddEditTaskView 那套 datePick 弹层），不再摆步进器；
       // 显示未确认的草稿优先（真机 BasisFieldInput）
       const ymd = basisDraftFor(f.id) ?? f.ymd;
-      return `<button class="basis-date" data-act="basisDate" data-id="${f.id}" type="button">
+      return `<button class="basis-date" data-act="basisDate" data-id="${f.id}" type="button" aria-label="${escAttr(f.label || "日期")} ${ymdCn(ymd)}">
         ${I.cal}<span>${ymdCn(ymd)}</span>${I.chevD}
       </button>`;
     }
@@ -825,19 +822,20 @@
     basisPendingFields(sec).forEach((id) => { delete S.basisDrafts[id]; });
     render();
   }
-  /// 一块：标题行 + 一张模块卡（条目叠放，取消 / 确认收在卡底）+ 展开的来源照片
+  /// 一块：标题在卡外；卡顶「依据资料」+ 原文 + 卡底确认
   function basisSec(sec, title, count, paraHTML, photosHTML) {
     const open = !!(S.basisMaterial && S.basisMaterial[sec]);
     const btn = photosHTML
-      ? `<button class="basis-material-btn${open ? " on" : ""}" data-act="basisMaterial" data-sec="${sec}" type="button">${I.doc}<span>依据资料</span>${I.chevD}</button>`
+      ? `<button class="basis-material-btn${open ? " on" : ""}" data-act="basisMaterial" data-sec="${sec}" type="button">${I.doc}<span>依据资料</span><span class="basis-material-sp"></span>${I.chevD}</button>`
       : "";
     return `<div class="basis-sec">
-      <div class="basis-sec-row">${basisSectionHead(sec, title, count)}${btn}</div>
+      <div class="basis-sec-row">${basisSectionHead(sec, title, count)}</div>
       <div class="basis-module">
+        ${btn}
+        ${open ? photosHTML : ""}
         ${paraHTML}
         <div class="basis-confirm" data-sec="${sec}">${basisFooter(sec)}</div>
       </div>
-      ${open ? photosHTML : ""}
     </div>`;
   }
 
@@ -1087,7 +1085,7 @@
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "按组分区预览。与首次上传、身体报告·基础报告共用同一份存量。入组可改类别 / 删组（必传出院记录至少留一组）；复查不改类别。右上入组「解析」、存档「提交」。无存量时空态只留文案，拍资料走左上「拍摄」，页内不再放「拍摄资料」钮。" },
     "first-rest": { code: "CreateScheduleFlowView", note: "点名称换预设；点时刻出居中「时刻调整」弹层（标题为事项名，双列时/分步进，分步长 5，取消 / 完成，点遮罩取消）。默认六项（起床 / 三餐 / 午休 / 睡觉，不含测血压）。「稍后」关整段创建流回首页；底栏「拍照上传病历」替换本页，不压栈。" },
-    "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。顶栏「计划 / 解析依据」两枚 Tab（同构健康计划未完成/已完成），默认落计划。解析依据段首一行提示「识别不准？直接改下面的原文，改完点「确认」」。**每个大块一张模块卡**（疾病信息 / 用药 / 测血压 / 复查）：卡内多条依据用留白叠放，不再一条一张漂浮白卡；一条依据仍是可改原文 + 只读结论。原文直接打字（用药整行原文、测血压的高血压诊断、复查项目、出院诊断），打字时下方按已打的字给补全候选（本地词表占位，**接 AI 只换 PlanBasisPredictor 一处**；已等于原文的候选不出现），打字只落草稿、点该块「确认」才回写重算（卡底出现「已改 N 处」+「取消 / 确认」两枚），本页无语音入口；时刻走步进器、**来源日期点开万年历**（`CalendarDatePickerView`）；结论那句（「因此安排在 08:00 早餐后服用。」）随改随变。**时刻与循环不在这一页改**（走计划页卡片的「编辑」）。「重新生成计划」收在每个大块的卡底：**确认过才出现**（带这一块的修正处数），按下时把这一块还压着的草稿一并落库、清掉这一块标记、切回计划页并 toast「已按修正重新生成计划」；**两页底栏同一条、只有一枚「重新拍照解析」**。同源重算条目与结论、计划页跟着变，备注只在没被用户改过时重算；来源照片收进分区标题旁的「依据资料」按钮（**每块各挂自己的来源**：疾病信息 / 用药 / 测血压挂出院记录、复查挂出院记录与手术记录；默认收起、点开才铺、再点收起）。作息区首次入组才带；复查置底标红；右上「确认」写入用药+复查，左上「稍后」关整段流。" },
+    "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。顶栏「计划 / 解析依据」两枚 Tab（同构健康计划未完成/已完成），默认落计划。解析依据段首一行提示「识别不准？直接改下面的原文，改完点「确认」」。**每个大块一张模块卡**（疾病信息 / 用药 / 测血压 / 复查）：卡顶「依据资料」（点开看这一块的来源照片），下面叠可改原文，不再写灰色字段名和「因此安排」那句。原文直接打字（用药整行原文、测血压的高血压诊断、复查项目、出院诊断），打字时下方按已打的字给补全候选（本地词表占位，**接 AI 只换 PlanBasisPredictor 一处**；已等于原文的候选不出现），打字只落草稿、点该块「确认」才回写重算（卡底出现「已改 N 处」+「取消 / 确认」两枚），本页无语音入口；**来源日期点开万年历**（`CalendarDatePickerView`）。**时刻与循环不在这一页改**（走计划页卡片的「编辑」）。「重新生成计划」收在每个大块的卡底：**确认过才出现**（带这一块的修正处数），按下时把这一块还压着的草稿一并落库、清掉这一块标记、切回计划页并 toast「已按修正重新生成计划」；**两页底栏同一条、只有一枚「重新拍照解析」**。同源重算条目与计划页跟着变，备注只在没被用户改过时重算；来源照片每块各挂自己的来源（疾病信息 / 用药 / 测血压挂出院记录、复查挂出院记录与手术记录；默认收起）。作息区首次入组才带；复查置底标红；右上「确认」写入用药+复查，左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），进与首次上传 / 基础报告同一份资料详情，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
