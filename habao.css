@@ -2183,7 +2183,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .basis-sec-row { display: flex; align-items: center; gap: 8px; }
 .basis-sec-row .type-h { flex: 1 1 auto; min-width: 0; }
 .basis-material-btn {
-  display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
+  display: flex; align-items: center; justify-content: flex-start; gap: 8px; width: 100%;
   min-height: 44px; padding: 0; border: 0; border-radius: 0; cursor: pointer;
   background: transparent; color: var(--blue); font-family: inherit;
   font-size: calc(15px * var(--fs)); font-weight: 600;
@@ -2198,9 +2198,9 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 
 /* 一块改完：已改 N 处 + 取消 / 确认（收在模块卡底，真机 PlanBasisSection.confirmRow） */
 .basis-confirm:empty { display: none; }
-.basis-confirm-row { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.basis-confirm-row { display: flex; align-items: stretch; gap: 10px; }
 .basis-confirm-btn {
-  min-height: 42px; padding: 0 18px; border: 0; border-radius: 13px; cursor: pointer;
+  flex: 1 1 0; min-height: 42px; padding: 0 18px; border: 0; border-radius: 13px; cursor: pointer;
   background: var(--blue); color: #fff; font-family: inherit;
   font-size: calc(15px * var(--fs)); font-weight: 700;
   box-shadow: 0 3px 6px rgba(16,84,224,.22);
@@ -2224,7 +2224,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .basis-field { display: flex; flex-direction: column; gap: 8px; }
 /* 块尾「重新生成计划」：确认过才出现，带这一块的修正处数（真机 PlanBasisSection.regenerateRow） */
 .basis-regen-chip {
-  display: inline-flex; align-items: center; gap: 6px;
+  display: flex; flex: 1 1 0; align-items: center; justify-content: center; gap: 6px;
   min-height: 42px; padding: 0 16px; border: 0; border-radius: 13px; cursor: pointer;
   background: var(--blue); color: #fff; font-family: inherit;
   font-size: calc(15px * var(--fs)); font-weight: 700;
