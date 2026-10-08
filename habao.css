@@ -2174,6 +2174,81 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   padding: 6px;
 }
 
+/* 解析依据：字段芯片 + 就地选项面板（真机 PlanBasisFieldRow / BasisFieldEditor）
+   芯片胶囊高 ≥44pt（§1.8 点选优先 + 触控基线），展开面板白底圆角 14 内嵌在浅蓝依据块里 */
+.basis-para { display: flex; flex-direction: column; gap: 8px; }
+.basis-hint {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 12px;
+  font-size: calc(13px * var(--fs)); font-weight: 600; color: rgba(16,84,224,.7);
+}
+.basis-hint svg { width: 13px; height: 13px; flex: 0 0 13px; }
+/* 结论那句：由上面的原文推出来，只读 */
+.basis-conclusion {
+  display: flex; align-items: flex-start; gap: 6px;
+  padding-left: 4px;
+  font-size: calc(13px * var(--fs)); font-weight: 500; color: var(--secondary);
+  line-height: 1.5;
+}
+.basis-conclusion::before { content: "└"; color: rgba(16,84,224,.45); font-weight: 700; }
+.basis-panel {
+  display: flex; flex-direction: column; gap: 16px;
+  background: #fff; border-radius: 14px; padding: 14px;
+  box-shadow: 0 3px 6px rgba(16,84,224,.05);
+}
+.basis-group-title { font-size: calc(15px * var(--fs)); font-weight: 700; color: var(--blue); }
+.basis-field { display: flex; flex-direction: column; gap: 8px; }
+.basis-field-label { font-size: calc(12px * var(--fs)); font-weight: 700; color: var(--secondary); }
+/* 依据页底部：改过才亮的「重新生成计划」（真机 regenerateBar） */
+.basis-regen { padding: 4px 20px 10px; }
+.basis-regen-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; height: 52px; border: 0; border-radius: 16px; cursor: pointer;
+  background: rgba(130,142,165,.3); color: #fff; font-family: inherit;
+  font-size: calc(18px * var(--fs)); font-weight: 700;
+}
+.basis-regen-btn.on { background: var(--blue); box-shadow: 0 3px 8px rgba(16,84,224,.26); }
+.basis-regen-btn em {
+  font-style: normal; display: inline-flex; align-items: center; justify-content: center;
+  min-width: 24px; height: 24px; border-radius: 999px; background: #fff; color: var(--blue);
+  font-size: calc(13px * var(--fs)); font-weight: 700;
+}
+/* 原文直接打字改（真机 BasisTextInput）：输入框 + 语音兜底 + 打字补全候选 */
+.basis-text { display: flex; flex-direction: column; gap: 8px; }
+.basis-text-row { display: flex; align-items: flex-start; gap: 8px; }
+.basis-input {
+  flex: 1 1 auto; min-width: 0; min-height: 44px;
+  border: 0; border-radius: 12px; background: var(--input); padding: 12px;
+  font-family: inherit; font-size: calc(16px * var(--fs)); font-weight: 600; color: var(--blue);
+}
+.basis-input::placeholder { color: rgba(130,142,165,.8); font-weight: 500; }
+.basis-voice {
+  flex: 0 0 auto; width: 44px; height: 44px;
+  border: 0; border-radius: 999px; cursor: pointer;
+  background: rgba(16,84,224,.12); color: var(--blue);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.basis-voice svg { width: 18px; height: 18px; }
+.basis-sugg { display: flex; flex-wrap: wrap; gap: 8px; }
+.basis-sugg:empty { display: none; }
+.basis-sugg-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  min-height: 40px; padding: 0 12px; border: 0; border-radius: 999px; cursor: pointer;
+  background: rgba(16,84,224,.12); color: var(--blue); font-family: inherit;
+  font-size: calc(14px * var(--fs)); font-weight: 600;
+}
+.basis-sugg-chip svg { width: 12px; height: 12px; flex: 0 0 12px; }
+.basis-step-row { display: flex; align-items: flex-start; gap: 8px; }
+.basis-step-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.basis-step-col .bu { font-size: calc(12px * var(--fs)); font-weight: 700; color: var(--secondary); }
+.basis-step-col .bv2 { font-size: calc(24px * var(--fs)); font-weight: 700; color: var(--blue); }
+.basis-colon { align-self: center; font-size: calc(26px * var(--fs)); font-weight: 700; color: rgba(16,84,224,.35); }
+.bstep {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border: 0; border-radius: 999px; cursor: pointer;
+  background: rgba(16,84,224,.12); color: var(--blue);
+}
+.bstep svg { width: 16px; height: 16px; }
+
 /* 卡内脚注（补充备注）：排在主信息与操作条之间，靠留白分层 */
 .act-notes {
   display: flex; flex-direction: column; gap: 8px;

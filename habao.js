@@ -216,25 +216,22 @@
 
   /// 用药卡剂量标签（与真机 `infoChip` 同口径）
   function medDose(title) {
-    return (MEDS.find((x) => x.name === title) || {}).dose || "";
+    return (liveMeds().find((x) => x.name === title) || {}).dose || "";
   }
 
   /// 补充备注 = 来源依据（与真机 PlanBasisNarrative.supplementaryNote 同句，不含日程）
   function confirmMedNote(title) {
-    const m = MEDS.find((x) => x.name === title);
+    const m = liveMeds().find((x) => x.name === title);
     if (!m) return `${title}，来源出院记录的用药。`;
     const parsed = [m.dose, m.freq, m.usage].filter(Boolean).join(" ");
     return parsed ? `${title} ${parsed}，来源出院记录的用药。` : `${title}，来源出院记录的用药。`;
   }
 
   /// 顶部依据段：活卡片日程 + 来源（与真机 PlanBasisNarrative.scheduleBoundNote 同句）
-  function confirmMedBasis(d) {
-    const m = MEDS.find((x) => x.name === d.title);
-    const time = d.time || (m && m.time) || "";
-    const scene = m && m.scene ? ` ${m.scene}` : "";
-    const stamp = `${time}${scene}`.trim();
-    const parsed = m ? [m.dose, m.freq, m.usage].filter(Boolean).join(" ") : "";
-    const named = stamp ? `${d.title} ${stamp}` : d.title;
+  function confirmMedBasis(m) {
+    const stamp = `${m.time}${m.scene ? " " + m.scene : ""}`.trim();
+    const parsed = [m.dose, m.freq, m.usage].filter(Boolean).join(" ");
+    const named = stamp ? `${m.name} ${stamp}` : m.name;
     if (parsed) return `${named}，${parsed}，来源出院记录的用药。`;
     return `${named}，来源出院记录的用药。`;
   }
@@ -245,11 +242,16 @@
     return `${a.title} ${a.time}，${source}`;
   }
 
+  /// 复查条目由来源日期现算（改日期 → 每月日号跟着变，与真机 makeInferred 同规则）
   function confirmApptItems() {
-    return [
-      { title: "心内科复查", time: "每月24日 09:00", note: "心内科复查，来源出院记录的出院日期 2026年9月17日。" },
-      { title: "心内科复查", time: "每月8日 09:00", note: "心内科复查，来源手术记录的手术日期 2026年9月8日。" },
-    ];
+    return liveAppts().map((a) => {
+      const fire = apptFireDate(a);
+      return {
+        title: a.title,
+        time: `每月${fire.getDate()}日 ${a.time}`,
+        note: `${a.title}，来源${a.category}的${a.source} ${ymdCn(a.sourceYMD)}。`,
+      };
+    });
   }
 
   /// 「解析依据」Tab 正文：疾病信息 + 用药 / 测血压 / 复查分段
@@ -303,30 +305,458 @@
   }
 
   function confirmMonitorNote(title) {
-    return `${title}，来源出院记录的出院诊断 高血压3级。`;
+    return `${title}，来源出院记录的出院诊断 ${htnLabel()}。`;
   }
 
   function confirmMonitorBasis(d) {
     const time = d.time || "";
     const named = time ? `${d.title} ${time}` : d.title;
-    return `${named}，来源出院记录的出院诊断 高血压3级。`;
+    return `${named}，来源出院记录的出院诊断 ${htnLabel()}。`;
   }
 
   const DISEASE_INFO = ["冠心病", "不稳定型心绞痛", "PCI术后", "高血压3级", "2型糖尿病"];
 
+  // ===== 解析依据可点选修正（真机 PlanBasisCorrection / PlanBasisFieldEditors）=====
+  // 依据页看到的就是「解析到的字段」：改字段 → 条目与依据句按新字段重算。
+  // 全程点选：芯片选值，时刻与日期走步进器（分针步长 5）。
+
+  /// 常见出院诊断（多选修正；不在表里的按原文补进芯片）
+  const BASIS_DIAGNOSES = [
+    "冠心病", "不稳定型心绞痛", "稳定型心绞痛", "急性心肌梗死", "陈旧性心肌梗死",
+    "PCI术后", "冠脉搭桥术后", "高血压1级", "高血压2级", "高血压3级",
+    "2型糖尿病", "心力衰竭", "心房颤动", "高脂血症", "心脏瓣膜病",
+  ];
+  /// 常见心内科用药
+  const BASIS_DRUGS = [
+    "阿司匹林肠溶片", "硫酸氢氯吡格雷片", "替格瑞洛片",
+    "阿托伐他汀钙片", "瑞舒伐他汀钙片", "美托洛尔缓释片",
+    "比索洛尔片", "缬沙坦胶囊", "培哚普利叔丁胺片",
+    "沙库巴曲缬沙坦钠片", "螺内酯片", "呋塞米片",
+    "单硝酸异山梨酯缓释片", "地高辛片", "二甲双胍片",
+    "达格列净片", "利伐沙班片", "华法林钠片",
+  ];
+  /// 服用场景 → 频次 + 时刻（与真机 PlanBasisPresets.scenes、MedItem.inferTiming 同表）
+  const BASIS_SCENES = [
+    { name: "空腹", freq: "每日 1 次", time: "07:30" },
+    { name: "餐前", freq: "每日 1 次", time: "07:30" },
+    { name: "早餐后", freq: "每日 1 次", time: "08:00" },
+    { name: "午餐后", freq: "每日 1 次", time: "12:00" },
+    { name: "晚餐后", freq: "每日 1 次", time: "18:30" },
+    { name: "睡前", freq: "每晚 1 次", time: "21:00" },
+  ];
+  /// 测血压时段与默认时刻
+  const BASIS_SLOTS = [
+    { name: "起床", time: "06:30" },
+    { name: "上午", time: "09:30" },
+    { name: "午间", time: "12:30" },
+    { name: "傍晚", time: "18:00" },
+    { name: "晚上", time: "20:00" },
+    { name: "睡前", time: "21:30" },
+  ];
+  const BASIS_REVIEWS = ["心内科复查", "心外科复查", "心脏康复门诊", "抽血化验", "心脏彩超复查", "心电图复查", "冠脉CTA复查"];
+  const BASIS_AMOUNTS = [0.25, 0.5, 1, 2.5, 5, 10, 12.5, 20, 25, 40, 47.5, 50, 75, 80, 100, 150, 200, 300, 500];
+  const BASIS_UNITS = ["mg", "g", "μg", "ml", "IU", "片", "粒", "滴"];
+
+  /// 依据页可改的解析结果（活数据）：用药 / 复查 / 测血压 / 诊断标签。
+  /// 真机两页共用同一份数组，这里同样——依据页改了，计划页那张卡跟着变。
+  function liveMeds() {
+    if (!S.meds) S.meds = MEDS.map((m) => ({ ...m, src: m.name }));
+    return S.meds;
+  }
+  function liveAppts() {
+    if (!S.appts) {
+      S.appts = [
+        { title: "心内科复查", source: "出院日期", category: "出院记录", sourceYMD: "2026-09-17", addDays: 7, time: "09:00" },
+        { title: "心内科复查", source: "手术日期", category: "手术记录", sourceYMD: "2026-09-08", addMonths: 1, time: "09:00" },
+      ];
+    }
+    return S.appts;
+  }
+  function liveBPs() {
+    if (!S.bps) S.bps = parsedBloodPressureRows().map((r) => ({ title: r.name, time: r.t, src: r.name }));
+    return S.bps;
+  }
+  function diseaseLabels() {
+    if (!S.diseaseInfo) S.diseaseInfo = DISEASE_INFO.slice();
+    return S.diseaseInfo;
+  }
+  /// 依据里的诊断原文：取第一枚含「高血压」的标签
+  function htnLabel() {
+    return (diseaseLabels() || []).find((l) => l.indexOf("高血压") >= 0) || "高血压";
+  }
+  function resetBasisEdits() {
+    S.basisOpen = null;
+    S.basisEdits = {};
+    S.meds = null;
+    S.appts = null;
+    S.bps = null;
+    S.diseaseInfo = null;
+  }
+  const ymdCn = (ymd) => {
+    const d = parseYMD(ymd);
+    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+  };
+  /// 复查的应期：来源日期 + 7 天（出院）或 + N 月（术后），月推进按当月天数夹紧
+  function apptFireDate(a) {
+    const d = parseYMD(a.sourceYMD);
+    if (a.addMonths) {
+      const day = d.getDate();
+      d.setDate(1);
+      d.setMonth(d.getMonth() + a.addMonths);
+      const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+      d.setDate(Math.min(day, last));
+    }
+    if (a.addDays) d.setDate(d.getDate() + a.addDays);
+    return d;
+  }
+  /// 依据页改了字段：计划页那条草稿一起改（真机两页共用同一份数组）
+  function syncDraft(srcTitle, patch) {
+    (S.confirmDrafts || []).forEach((d) => {
+      if (d.srcTitle === srcTitle) Object.assign(d, patch);
+    });
+  }
+
+  // ----- 字段芯片与就地选项（真机 PlanBasisFieldRow / BasisFieldEditor）-----
+
+  /// 一条依据 = 可改的原文（字段名 + 输入框）+ 一句只读结论（真机 PlanBasisSection 同构）
+  function basisPara(groups, conclusion) {
+    return `<div class="basis-para">
+      ${basisPanel(groups)}
+      ${conclusion ? `<div class="basis-conclusion">${conclusion}</div>` : ""}
+    </div>`;
+  }
+  function basisOpt(label, on, act, attrs) {
+    return `<button class="basis-opt${on ? " on" : ""}" data-act="${act}" ${attrs} type="button">${label}</button>`;
+  }
+  /// 一行依据的字段面板：可选组标题 + 每个字段「字段名 + 控件」
+  function basisPanel(groups) {
+    return `<div class="basis-panel">${groups.map((g) => `
+      ${g.title ? `<div class="basis-group-title">${g.title}</div>` : ""}
+      ${g.fields.map((f) => `<div class="basis-field"><div class="basis-field-label">${f.label}</div>${basisControl(f)}</div>`).join("")}
+    `).join("")}</div>`;
+  }
+  const escAttr = (v) => String(v == null ? "" : v).replace(/"/g, "&quot;");
+
+  /// 补全词表（真机 PlanBasisPredictor 的本地词表）
+  const BASIS_POOLS = {
+    medication: BASIS_DRUGS,
+    review: BASIS_REVIEWS,
+    hypertension: BASIS_DIAGNOSES.filter((d) => d.indexOf("高血压") >= 0),
+    diagnoses: BASIS_DIAGNOSES,
+  };
+
+  /// 打字补全：现在按本地词表即时给（**接 AI 就换这里**，签名与调用方都不用动）
+  function basisSuggestions(pool, input) {
+    const list = BASIS_POOLS[pool] || [];
+    const text = String(input || "").trim();
+    const prefix = pool === "diagnoses" ? (text.split(/[、，,]/).pop() || "").trim() : text;
+    if (!prefix) return list.slice(0, 6);
+    const head = list.filter((o) => o.indexOf(prefix) === 0);
+    const body = list.filter((o) => o.indexOf(prefix) !== 0 && o.indexOf(prefix) >= 0);
+    return head.concat(body).slice(0, 6);
+  }
+
+  /// 原文输入：直接打字改，右侧麦克风进「按住说话」（真机 BasisTextInput）
+  function basisTextField(f) {
+    return `<div class="basis-text">
+      <div class="basis-text-row">
+        <input class="basis-input" id="basis-input-${f.id}" data-pool="${f.pool}"
+          value="${escAttr(f.current)}" placeholder="${escAttr(f.placeholder)}" />
+        <button class="basis-voice" data-act="basisVoice" type="button" aria-label="按住说话">${I.wave}</button>
+      </div>
+      <div class="basis-sugg" data-for="${f.id}"></div>
+    </div>`;
+  }
+
+  /// 按字段类型出控件：原文打字 / 时刻步进 / 日期步进
+  function basisControl(f) {
+    if (f.kind === "text") return basisTextField(f);
+    if (f.kind === "clock") {
+      return `<div class="basis-step-row">
+        ${basisStepCol("时", pad(f.h), f.id, "h")}<div class="basis-colon">:</div>${basisStepCol("分", pad(f.m), f.id, "m")}
+      </div>`;
+    }
+    if (f.kind === "date") {
+      return `<div class="basis-step-row">
+        ${basisStepCol("年", f.y, f.id, "y")}${basisStepCol("月", f.mo, f.id, "mo")}${basisStepCol("日", f.d, f.id, "d")}
+      </div>`;
+    }
+    return "";
+  }
+
+  // 输入走 **document 上的事件委托**（同本文件既有的 [data-go] / [data-act] 手法）：
+  // 原型每次交互都整屏重绘 innerHTML，逐个 input 绑 oninput 会随重绘丢；委托一次挂上就够。
+  // 打字只更新候选行、**不整体重绘**（否则输入框当场丢焦点）。
+  document.addEventListener("input", (event) => {
+    const target = event.target instanceof Element ? event.target.closest(".basis-input") : null;
+    if (!target) return;
+    if (target._basisTimer) clearTimeout(target._basisTimer);
+    target._basisTimer = setTimeout(() => {
+      const box = document.querySelector(`.basis-sugg[data-for="${target.id.replace("basis-input-", "")}"]`);
+      if (!box) return;
+      box.innerHTML = basisSuggestions(target.dataset.pool, target.value).map((s) =>
+        `<button class="basis-sugg-chip" data-act="basisFill" data-input="${target.id}" data-v="${escAttr(s)}" type="button">${I.spark}${s}</button>`
+      ).join("");
+      bindClicks(box);
+    }, 220);
+  });
+  // 收起键盘（change）/ 回车算改完，按新原文重新解析（真机同款「收起键盘才重排」）
+  document.addEventListener("change", (event) => {
+    const target = event.target instanceof Element ? event.target.closest(".basis-input") : null;
+    if (!target) return;
+    applyBasisText(target.id.replace("basis-input-", ""), target.value);
+  });
+  document.addEventListener("keydown", (event) => {
+    const target = event.target instanceof Element ? event.target.closest(".basis-input") : null;
+    if (target && event.key === "Enter") {
+      event.preventDefault();
+      target.blur();
+    }
+  });
+  function basisStepCol(unitLabel, value, fieldId, unit) {
+    return `<div class="basis-step-col">
+      <div class="bu">${unitLabel}</div>
+      <button class="bstep" data-act="basisStep" data-id="${fieldId}" data-unit="${unit}" data-dir="1" type="button">${I.chevU}</button>
+      <div class="bv2">${value}</div>
+      <button class="bstep" data-act="basisStep" data-id="${fieldId}" data-unit="${unit}" data-dir="-1" type="button">${I.chevD}</button>
+    </div>`;
+  }
+
+  // ----- 三种段落各自的字段 -----
+
+  function medBasisGroups(m, i) {
+    const origin = [m.name, m.dose, m.freq, m.usage].filter(Boolean).join(" ");
+    return [{ id: `med-${i}`, title: null, fields: [
+      { id: `med-text-${i}`, kind: "text", label: "出院记录的用药", current: origin, placeholder: "药名 剂量 频次 用法", pool: "medication" },
+    ] }];
+  }
+  function bpBasisGroups() {
+    return [{ id: "bp", title: null, fields: [
+      { id: "bp-diagnosis", kind: "text", label: "出院记录的出院诊断", current: htnLabel(), placeholder: "如：高血压3级", pool: "hypertension" },
+    ] }];
+  }
+  function apptBasisGroups(a, i) {
+    const d = parseYMD(a.sourceYMD);
+    return [{ id: `appt-${i}`, title: null, fields: [
+      { id: `appt-date-${i}`, kind: "date", label: a.source, y: d.getFullYear(), mo: d.getMonth() + 1, d: d.getDate() },
+      { id: `appt-title-${i}`, kind: "text", label: "复查项目", current: a.title, placeholder: "如：心内科复查", pool: "review" },
+    ] }];
+  }
+  function diseaseBasisGroups() {
+    const labels = diseaseLabels();
+    return [{ id: "disease", title: null, fields: [
+      { id: "disease", kind: "text", label: "出院诊断", current: labels.join("、"), placeholder: "诊断名称，用「、」分隔", pool: "diagnoses" },
+    ] }];
+  }
+
+  // ----- 修正落点（真机 PlanBasisCorrection.apply）：改字段 → 条目与依据重算 -----
+
+  /// 改一笔就记到这条依据行（入口打勾、底部「重新生成计划」据此点亮）；
+  /// 面板**不收起**：一条依据里有几个字段，方便连着改
+  function afterBasisEdit(lineId) {
+    if (lineId) {
+      if (!S.basisEdits) S.basisEdits = {};
+      S.basisEdits[lineId] = true;
+    }
+    render();
+  }
+  /// 「med-scene-0」→「med-0」：把字段名折掉，落到那一条依据上
+  function basisLineID(fieldId) {
+    return String(fieldId).replace(/^(med|bp|appt)-[a-z]+-(\d+)$/, "$1-$2");
+  }
+  /// 依据页底部的重新生成入口（真机 regenerateBar）：改过才亮，亮起时带修正处数
+  function confirmRegenBar() {
+    const n = Object.keys(S.basisEdits || {}).length;
+    return `<div class="basis-regen">
+      <button class="basis-regen-btn${n ? " on" : ""}" data-act="basisRegen" type="button"${n ? "" : " disabled"}>
+        <span>重新生成计划</span>${n ? `<em>${n}</em>` : ""}
+      </button>
+    </div>`;
+  }
+  const BASIS_DOSE_UNITS = ["mg", "g", "μg", "ml", "mL", "IU", "片", "粒", "滴"];
+  const BASIS_FREQ_PHRASES = ["每日 1 次", "每日 2 次", "每日 3 次", "每晚 1 次", "隔日 1 次", "每周 1 次", "每 12 小时 1 次", "每日一次", "每晚一次", "每日1次", "每晚1次"];
+  const BASIS_USAGE_PHRASES = ["口服", "舌下含服", "舌下", "含服", "嚼服", "外用", "皮下注射", "皮下", "静脉注射", "静脉", "吸入", "喷雾", "滴眼"];
+  const BASIS_SCENE_PHRASES = ["早餐后", "早餐", "午餐后", "午餐", "午间", "晚餐后", "晚餐", "睡前", "空腹", "餐前"];
+
+  /// 与真机 MedicationTextParser 同口径：摘剂量（数字 + 单位）、频次、用法与场景。
+  /// 场景词必须摘干净——它同时是推时刻的关键词，留着会被读进药名
+  function parseMedicationText(raw) {
+    let rest = String(raw || "").trim();
+    let dose = "";
+    const hit = rest.match(/(\d+(?:\.\d+)?)\s*(mg|g|μg|ml|mL|IU|片|粒|滴)/);
+    if (hit) {
+      dose = `${hit[1]} ${hit[2]}`;
+      rest = rest.replace(hit[0], " ");
+    }
+    const takeOne = (list) => {
+      for (const phrase of list.slice().sort((a, b) => b.length - a.length)) {
+        const at = rest.indexOf(phrase);
+        if (at >= 0) {
+          rest = rest.slice(0, at) + " " + rest.slice(at + phrase.length);
+          return phrase;
+        }
+      }
+      return "";
+    };
+    const frequency = takeOne(BASIS_FREQ_PHRASES);
+    const found = [];
+    [BASIS_USAGE_PHRASES, BASIS_SCENE_PHRASES].forEach((group) => {
+      group.slice().sort((a, b) => b.length - a.length).forEach((phrase) => {
+        while (rest.indexOf(phrase) >= 0) {
+          if (found.indexOf(phrase) < 0) found.push(phrase);
+          rest = rest.replace(phrase, " ");
+        }
+      });
+    });
+    const name = rest.replace(/[，,。;；、]/g, " ").trim().replace(/\s+/g, " ");
+    return { name, dose, frequency, usage: found.join(" ") };
+  }
+  /// 与真机 MedItem.inferTiming 同规则：频次 / 用法里的关键词决定时刻与场景
+  function basisSceneFromKeywords(text) {
+    const t = String(text || "").toLowerCase();
+    if (["睡前", "qn", "每晚"].some((k) => t.indexOf(k) >= 0)) return { meal: "睡前", time: "21:00" };
+    if (["午餐", "午间"].some((k) => t.indexOf(k) >= 0)) return { meal: "午餐后", time: "12:00" };
+    if (t.indexOf("晚餐") >= 0) return { meal: "晚餐后", time: "18:30" };
+    if (["空腹", "餐前"].some((k) => t.indexOf(k) >= 0)) return { meal: "空腹", time: "07:30" };
+    return { meal: "早餐后", time: "08:00" };
+  }
+  /// 测血压那一行改的是高血压这条诊断，其余诊断不动
+  function applyHypertensionLabel(text) {
+    const labels = diseaseLabels().filter((l) => l.indexOf("高血压") < 0);
+    const trimmed = String(text || "").trim();
+    if (trimmed) labels.push(trimmed);
+    applyBasisDiagnoses(labels);
+  }
+  function applyBasisText(fieldId, value) {
+    const text = String(value || "").trim();
+    if (!text) return;
+    if (fieldId === "bp-diagnosis") { applyHypertensionLabel(text); return; }
+    if (fieldId === "disease") {
+      applyBasisDiagnoses(text.split(/[、，,／/;；\s]+/).map((s) => s.trim()).filter(Boolean));
+      return;
+    }
+    const med = fieldId.match(/^med-text-(\d+)$/);
+    if (med) {
+      const item = liveMeds()[+med[1]];
+      if (!item) return;
+      const parsed = parseMedicationText(text);
+      const scene = basisSceneFromKeywords(`${parsed.frequency} ${parsed.usage}`);
+      if (parsed.name) item.name = parsed.name;
+      item.dose = parsed.dose || "—";
+      item.freq = parsed.frequency || "每日 1 次";
+      item.usage = parsed.usage || item.usage;
+      item.scene = scene.meal;
+      item.time = scene.time;
+      syncDraft(item.src, { title: item.name, time: item.time, note: confirmMedNote(item.name) });
+      afterBasisEdit(`med-${med[1]}`);
+      return;
+    }
+    const bp = fieldId.match(/^bp-slot-(\d+)$/);
+    if (bp) {
+      const item = liveBPs()[+bp[1]];
+      if (!item) return;
+      const hit = BASIS_SLOTS.find((s) => text.indexOf(s.name) === 0);
+      item.title = hit ? `${hit.name}测血压` : (text.indexOf("测血压") >= 0 ? text : `${text}测血压`);
+      if (hit) item.time = hit.time;
+      syncDraft(item.src, { title: item.title, time: item.time, note: confirmMonitorNote(item.title) });
+      afterBasisEdit(`bp-${bp[1]}`);
+      return;
+    }
+    const ap = fieldId.match(/^appt-title-(\d+)$/);
+    if (ap) {
+      const item = liveAppts()[+ap[1]];
+      if (!item) return;
+      item.title = text;
+      afterBasisEdit(`appt-${ap[1]}`);
+    }
+  }
+  function applyBasisStep(id, unit, dir) {
+    const date = id.match(/^appt-date-(\d+)$/);
+    if (!date) return;
+    const item = liveAppts()[+date[1]];
+    if (!item) return;
+    const d = parseYMD(item.sourceYMD);
+    if (unit === "y") {
+      d.setFullYear(d.getFullYear() + dir);
+    } else if (unit === "mo") {
+      const day = d.getDate();
+      d.setDate(1);
+      d.setMonth(d.getMonth() + dir);
+      const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+      d.setDate(Math.min(day, last));
+    } else {
+      const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+      d.setDate(Math.min(last, Math.max(1, d.getDate() + dir)));
+    }
+    item.sourceYMD = toYMD(d);
+    afterBasisEdit(basisLineID(id));
+  }
+  function applyBasisDiagnoses(labels) {
+    S.diseaseInfo = labels.slice();
+    if (labels.some((l) => l.indexOf("高血压") >= 0)) {
+      if (!liveBPs().length) {
+        // 补上高血压：按首次创建同一条规则补早晚两槽
+        BP_FROM_PARSE.forEach((r) => {
+          liveBPs().push({ title: r.name, time: r.t, src: r.name });
+          if (S.confirmDrafts) {
+            S.confirmDrafts.push({ title: r.name, time: r.t, cat: "monitoring", srcTitle: r.name, note: confirmMonitorNote(r.name), cycle: true, muteFirst: false });
+          }
+        });
+      } else {
+        liveBPs().forEach((b) => syncDraft(b.src, { note: confirmMonitorNote(b.title) }));
+      }
+    } else {
+      // 去掉高血压：解析补的测血压一并撤
+      const srcs = liveBPs().map((b) => b.src);
+      S.bps = [];
+      if (S.confirmDrafts) {
+        S.confirmDrafts = S.confirmDrafts.filter((d) => !(d.cat === "monitoring" && srcs.indexOf(d.srcTitle) >= 0));
+      }
+    }
+    afterBasisEdit("disease");
+  }
+
   function confirmBasisParagraph() {
-    const diseaseHTML = `<div class="basis-sec"><div class="basis-sec-title">疾病信息</div><p>${DISEASE_INFO.join("、")}。</p>${basisOriginPhotos(["dischargeRecord"])}</div>`;
-    const meds = (S.confirmDrafts || []).filter((d) => d.cat === "medication");
+    // 每类来源资料只在第一处铺缩略图（同一份出院记录连挂三遍就是重复）
+    const shown = new Set();
+    const cats = (list) => list.filter((c) => {
+      if (shown.has(c)) return false;
+      shown.add(c);
+      return true;
+    });
+    const hint = `<div class="basis-hint">${I.pencil}<span>识别不准？直接改下面的原文</span></div>`;
+    const labels = diseaseLabels();
+    const diseaseHTML = `<div class="basis-sec">
+      <div class="basis-sec-title">疾病信息</div>
+      ${basisPara(diseaseBasisGroups(), "")}
+      ${basisOriginPhotos(cats(["dischargeRecord"]))}
+    </div>`;
+    const meds = liveMeds();
     const medHTML = meds.length
-      ? `<div class="basis-sec"><div class="basis-sec-title">用药计划</div>${meds.map((d) => `<p>${confirmMedBasis(d)}</p>`).join("")}${basisOriginPhotos(["dischargeRecord"])}</div>`
+      ? `<div class="basis-sec">
+          <div class="basis-sec-title">用药计划</div>
+          ${meds.map((m, i) => basisPara(medBasisGroups(m, i), `因此安排在 ${m.time} ${m.scene}服用。`)).join("")}
+          ${basisOriginPhotos(cats(["dischargeRecord"]))}
+        </div>`
       : "";
-    const monitors = (S.confirmDrafts || []).filter((d) => d.cat === "monitoring");
-    const monHTML = monitors.length
-      ? `<div class="basis-sec"><div class="basis-sec-title">测血压计划</div>${monitors.map((d) => `<p>${confirmMonitorBasis(d)}</p>`).join("")}${basisOriginPhotos(["dischargeRecord"])}</div>`
+    const bps = liveBPs();
+    const monHTML = bps.length
+      ? `<div class="basis-sec">
+          <div class="basis-sec-title">测血压计划</div>
+          ${basisPara(bpBasisGroups(), `因此安排每天 ${bps.map((b) => b.time).sort().join(" 和 ")} 各测一次血压。`)}
+          ${basisOriginPhotos(cats(["dischargeRecord"]))}
+        </div>`
       : "";
-    const appts = confirmApptItems();
-    const apptHTML = `<div class="basis-sec"><div class="basis-sec-title">复查计划</div>${appts.map((a) => `<p>${confirmApptBasis(a)}</p>`).join("")}${basisOriginPhotos(["dischargeRecord", "surgeryRecord"])}</div>`;
-    return diseaseHTML + medHTML + monHTML + apptHTML;
+    const appts = liveAppts();
+    const apptItems = confirmApptItems();
+    const apptHTML = appts.length
+      ? `<div class="basis-sec">
+          <div class="basis-sec-title">复查计划</div>
+          ${apptItems.map((it, i) => basisPara(apptBasisGroups(appts[i], i), it.time ? `因此安排${it.time} ${it.title}。` : "")).join("")}
+          ${basisOriginPhotos(cats(["dischargeRecord", "surgeryRecord"]))}
+        </div>`
+      : "";
+    return hint + diseaseHTML + medHTML + monHTML + apptHTML;
   }
 
   /// 依据各段后附着对应来源资料缩略图；没拍过该类型就不占位
@@ -426,7 +856,6 @@
     "schedule>select-type": "cover",
     "schedule>task-view": "cover",
     "select-type>ocr-capture": "replace",
-    "select-type>ocr-detail": "replace",
     "select-type>exercise-risk": "replace",
     "select-type>task-add": "replace",
     "select-type>category-manage": "push",
@@ -535,11 +964,11 @@
     consult: { code: "SmartConsultChatView", note: "按住说话；上滑超 70pt 立即发送。可切文字输入。底坞三功能：解读指标 / 解读报告带上下文，拍照问诊挂待发图。V10.56：空态只有 Logo 问候，不再放示例问句、也不再灌样例对话。V0.0 三个入口（底坞中圆 / 血压监测 / 身体报告）压暗点不开，切 V0.1 才进得来。" },
     profile: { code: "ServiceView", note: "Hero 健康档案 + 操作记录/通知/协议。无 VIP。V0.0 不出现家属管理与右上身份胶囊、档案标「本人」（切 V0.1 恢复）。身份胶囊仍决定写入归属，但不再在卡片上盖章；本人和家属的操作都进「操作记录」。" },
     activity: { code: "ActivityLogView", note: "V10.65 个人中心「操作记录」：一件事记一条。一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；下面结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：未改动」。空态「还没有操作记录」。" },
-    "ocr-capture": { code: "IntakeCaptureView", note: "组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
+    "ocr-capture": { code: "IntakeCaptureView", note: "V10.98：用药与复查有存量也直接落本页，存量组列在底部组轨道。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "按组分区预览。与首次上传、身体报告·基础报告共用同一份存量。入组可改类别 / 删组（必传出院记录至少留一组）；复查不改类别。右上入组「解析」、存档「提交」。无存量时空态只留文案，拍资料走左上「拍摄」，页内不再放「拍摄资料」钮。" },
     "first-rest": { code: "CreateScheduleFlowView", note: "点名称换预设；点时刻出居中「时刻调整」弹层（标题为事项名，双列时/分步进，分步长 5，取消 / 完成，点遮罩取消）。默认六项（起床 / 三餐 / 午休 / 睡觉，不含测血压）。「稍后」关整段创建流回首页；底栏「拍照上传病历」替换本页，不压栈。" },
-    "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。顶栏「计划 / 解析依据」两枚 Tab（同构健康计划未完成/已完成），默认落计划；解析依据页先写疾病信息字段，再按用药 / 测血压 / 复查分段，结合卡片日程说明来源；各段正文后附着对应来源资料缩略图（疾病信息 / 用药 / 测血压 → 出院记录，复查 → 出院记录与手术记录），没拍过该类型就不占位。作息区按入口条件展示：首次入组才带作息 / 饮食 / 测血压，已入组重走用药与复查只有用药 + 复查；复查置底标红。操作卡底栏编辑/删除，改动回写本次草稿。改时刻走编辑页，确认页不拖卡片改时段。「确认」首次入组回首页点亮时钟、已入组落回健康计划页；「稍后」关整段流回进入处；重新解析回到拍摄；自主新建未入组时添加即入组回首页、已入组时追加进本次草稿并回本页。" },
+    "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。顶栏「计划 / 解析依据」两枚 Tab（同构健康计划未完成/已完成），默认落计划；解析依据页先写疾病信息字段，再按用药 / 测血压 / 复查分段，结合卡片日程说明来源；各段正文后附着对应来源资料缩略图（疾病信息 / 用药 / 测血压 → 出院记录，复查 → 出院记录与手术记录），没拍过该类型就不占位。作息区按入口条件展示：首次入组才带作息 / 饮食 / 测血压，已入组重走用药与复查只有用药 + 复查；复查置底标红。操作卡底栏编辑/删除，改动回写本次草稿。改时刻走编辑页，确认页不拖卡片改时段。「确认」首次入组回首页点亮时钟、已入组落回健康计划页；「稍后」关整段流回进入处；重新解析回到拍摄；自主新建未入组时添加即入组回首页、已入组时追加进本次草稿并回本页。解析依据改成一句一行 + 一行一枚「改依据」：折叠时页面上只有依据句（值不再抄第二遍），点开在该行下就地改**原文**——直接打字（用药整行原文、测血压时段、复查项目、出院诊断；时刻与来源日期走步进器），输入框右侧麦克风进「按住说话」兜底；打字时下方按已打的字给补全候选（本地词表占位，**接 AI 只换 PlanBasisPredictor 一处**）。收起键盘才重新解析（免得半截字被当药名），同源重算条目与依据句、计划页跟着变，备注只在没被用户改过时重算；依据页底部「重新生成计划」改过才亮（带修正处数角标），按下切回计划页并 toast「已按修正重新生成计划」。来源照片按类别去重，每类只铺一处。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），进与首次上传 / 基础报告同一份资料详情，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
@@ -586,6 +1015,13 @@
     // 确认页草稿：首次入组带作息区，已入组重走用药复查只有用药 + 复查
     confirmDrafts: null,
     confirmEditIndex: null,
+    // 解析依据：当前展开的那一行 + 改过的行 + 可改的解析结果（真机 PlanBasisSection + 活条目）
+    basisOpen: null,
+    basisEdits: {},
+    meds: null,
+    appts: null,
+    bps: null,
+    diseaseInfo: null,
     // 体测：模式 walking（户外原地踏步 3 分钟）/ sit（室内坐立 1 分钟）
     testMode: "walking",
     testElapsed: 0,
@@ -761,7 +1197,7 @@
       { act: "addPlan", label: "底栏「添加健康计划」" },
       { screen: "select-type", label: "选择类型" },
       { act: "typeMed", label: "用药与复查" },
-      { screen: "ocr-detail", label: "资料详情（载入存量）" },
+      { screen: "ocr-capture", label: "拍摄取景（存量组列在组轨道）" },
       { act: "ocrParse", label: "解析" },
       { screen: "confirm-plan", label: "确认计划（只有用药 + 复查，无作息区）" },
       { act: "confirmPlan", label: "确认 → 落回健康计划" },
@@ -1348,6 +1784,7 @@
     sortSeed();
     const n = drafts.length;
     S.confirmDrafts = null;
+    resetBasisEdits();
     return n;
   }
 
@@ -1832,6 +2269,7 @@
     S.confirmDrafts = null;
     S.confirmEditIndex = null;
     S.confirmPane = "plan";
+    resetBasisEdits();
     S.pendingManualEnroll = false;
     S.draftReturn = null;
     // V10.52：计划页家属「去填写」链路标记，离开即清
@@ -2815,8 +3253,33 @@
         logOp("打卡了", "首页", [["计划", taskTitle(vid)], ["读数", `血压 ${S.sys}/${S.dia}，心率 ${S.hr} bpm`]]);
         closeOverlay();
       },
-      // 确认页：计划 / 解析依据分页 / 改备注
+      // 确认页：计划 / 解析依据分页 / 改备注 / 字段点选修正
       setConfirmPane() { S.confirmPane = el.dataset.p === "basis" ? "basis" : "plan"; render(); },
+      basisStep() { applyBasisStep(el.dataset.id, el.dataset.unit, +el.dataset.dir); },
+      // 点补全候选：诊断接在末尾，其余整体替换，随即按新原文重新解析
+      basisFill() {
+        const input = document.getElementById(el.dataset.input);
+        if (!input) return;
+        const value = el.dataset.v;
+        if (input.dataset.pool === "diagnoses") {
+          const labels = input.value.split(/[、，,]+/).map((s) => s.trim()).filter(Boolean);
+          if (labels.indexOf(value) < 0) labels.push(value);
+          input.value = labels.join("、");
+        } else {
+          input.value = value;
+        }
+        applyBasisText(input.id.replace("basis-input-", ""), input.value);
+      },
+      basisVoice() { toast("按住说话（Demo 占位）"); },
+      // 「改 → 亮 → 重新生成 → 灭」：按下切回计划页看结果（真机同款闭环）
+      basisRegen() {
+        if (!Object.keys(S.basisEdits || {}).length) return;
+        S.basisEdits = {};
+        S.basisOpen = null;
+        S.confirmPane = "plan";
+        toast("已按修正重新生成计划");
+        render();
+      },
       editNote() {
         const i = +el.dataset.i;
         const d = S.confirmDrafts[i];
@@ -3416,7 +3879,8 @@
         seedDocGroups(3);
         // 载入的存量：确认时对比出这一趟资料改了什么
         S.docStock = S.docGroups.map((g) => ({ ...g }));
-        replace("ocr-detail");
+        // V10.98：有存量也直接进拍摄取景——存量组列在底部组轨道，不再先落资料详情
+        replace("ocr-capture");
       },
       // 运动链独立草稿：先清空，进确认页时再种（避免沿用用药链的草稿）
       typeEx() { S.contra = false; S.confirmDrafts = null; replace("exercise-risk"); },
@@ -4578,7 +5042,7 @@
         ${navBar(`<button class="nav-text nav-hit" data-act="later" type="button">稍后</button>`, "确认计划",
           `<button class="nav-text blue nav-hit" data-act="confirmPlan" type="button">确认</button>`)}
         <div class="px20" style="padding-top:12px">${confirmPaneTabs()}</div>
-        <div class="scroll px20" style="padding-top:12px;padding-bottom:20px">
+        <div class="scroll px20" style="padding-top:12px;${S.confirmPane === "basis" ? "padding-bottom:176px" : "padding-bottom:20px"}">
           ${S.confirmPane === "basis" ? basisCopy() : `
           ${groups.map((g) => `
             <div class="confirm-period">
@@ -4599,6 +5063,7 @@
             })).join("")}</div>
           </div>`}
         </div>
+        ${S.confirmPane === "basis" ? confirmRegenBar() : ""}
         <div class="px20 col gap10" style="padding-bottom:28px">
           <button class="cta h52" data-act="reparseCase" type="button">${I.cam}重新解析病例</button>
           <button class="cta h52" data-act="manualCreate" type="button">${I.plus}自主新建计划</button>
@@ -5380,20 +5845,23 @@
         title: r.name,
         time: r.t,
         cat: r.cat || "rest",
+        srcTitle: r.name,
         note: r.cat === "monitoring" ? confirmMonitorNote(r.name) : (r.note || ""),
         cycle: true, muteFirst: false,
       })),
-      ...parsedBloodPressureRows().map((r) => ({
-        title: r.name,
-        time: r.t,
+      ...liveBPs().map((b) => ({
+        title: b.title,
+        time: b.time,
         cat: "monitoring",
-        note: confirmMonitorNote(r.name),
+        srcTitle: b.src,
+        note: confirmMonitorNote(b.title),
         cycle: true, muteFirst: false,
       })),
     ];
     S.confirmDrafts = [
-      ...MEDS.map((m) => ({
+      ...liveMeds().map((m) => ({
         title: m.name, time: m.time, cat: "medication",
+        srcTitle: m.src,
         note: confirmMedNote(m.name),
         cycle: true, muteFirst: false,
       })),
