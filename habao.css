@@ -2183,12 +2183,11 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .basis-sec-row { display: flex; align-items: center; gap: 8px; }
 .basis-sec-row .type-h { flex: 1 1 auto; min-width: 0; }
 .basis-material-btn {
-  display: flex; align-items: center; gap: 8px; width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
   min-height: 44px; padding: 0; border: 0; border-radius: 0; cursor: pointer;
   background: transparent; color: var(--blue); font-family: inherit;
   font-size: calc(15px * var(--fs)); font-weight: 600;
 }
-.basis-material-sp { flex: 1 1 auto; }
 .basis-material-btn svg { width: 13px; height: 13px; flex: 0 0 13px; }
 .basis-material-btn em {
   font-style: normal; font-weight: 700; font-size: calc(14px * var(--fs));
@@ -2199,9 +2198,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 
 /* 一块改完：已改 N 处 + 取消 / 确认（收在模块卡底，真机 PlanBasisSection.confirmRow） */
 .basis-confirm:empty { display: none; }
-.basis-confirm-row { display: flex; align-items: center; gap: 10px; }
-.basis-confirm-note { font-size: calc(13px * var(--fs)); font-weight: 500; color: var(--secondary); }
-.basis-confirm-sp { flex: 1 1 auto; }
+.basis-confirm-row { display: flex; align-items: center; justify-content: center; gap: 10px; }
 .basis-confirm-btn {
   min-height: 42px; padding: 0 18px; border: 0; border-radius: 13px; cursor: pointer;
   background: var(--blue); color: #fff; font-family: inherit;
