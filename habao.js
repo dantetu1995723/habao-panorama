@@ -387,6 +387,8 @@
   function resetBasisEdits() {
     S.basisOpen = null;
     S.basisEdits = {};
+    S.basisMaterial = {};
+    S.basisDrafts = {};
     S.meds = null;
     S.appts = null;
     S.bps = null;
@@ -418,12 +420,19 @@
 
   // ----- 字段芯片与就地选项（真机 PlanBasisFieldRow / BasisFieldEditor）-----
 
-  /// 一条依据 = 可改的原文（字段名 + 输入框）+ 一句只读结论（真机 PlanBasisSection 同构）
-  function basisPara(groups, conclusion) {
-    return `<div class="basis-para">
+  /// 一条依据 = 字段 + 结论脚注；阴影在大块上（真机 PlanBasisLine）
+  function basisPara(groups, conclusion, kind) {
+    return `<div class="basis-line">
       ${basisPanel(groups)}
       ${conclusion ? `<div class="basis-conclusion">${conclusion}</div>` : ""}
     </div>`;
+  }
+  /// 分区头与计划列表同一枚（图标 + 标题 + 数量角标）
+  function basisSectionHead(kind, title, count) {
+    const icon = kind === "disease"
+      ? `<span class="sec-ico">${I.doc}</span>`
+      : `<img class="sec-ico" src="${A.task[kind]}" alt="" />`;
+    return sectionHead(icon, title, count);
   }
   function basisOpt(label, on, act, attrs) {
     return `<button class="basis-opt${on ? " on" : ""}" data-act="${act}" ${attrs} type="button">${label}</button>`;
@@ -451,19 +460,17 @@
     const text = String(input || "").trim();
     const prefix = pool === "diagnoses" ? (text.split(/[、，,]/).pop() || "").trim() : text;
     if (!prefix) return list.slice(0, 6);
-    const head = list.filter((o) => o.indexOf(prefix) === 0);
+    const head = list.filter((o) => o.indexOf(prefix) === 0 && o !== prefix);
     const body = list.filter((o) => o.indexOf(prefix) !== 0 && o.indexOf(prefix) >= 0);
-    return head.concat(body).slice(0, 6);
+    return head.concat(body).filter((o) => o !== text).slice(0, 6);
   }
 
-  /// 原文输入：直接打字改，右侧麦克风进「按住说话」（真机 BasisTextInput）
+  /// 原文输入：直接打字改，打字时下方给补全候选（真机 BasisTextInput，无语音入口）
   function basisTextField(f) {
+    // 显示未确认的草稿优先（真机 BasisFieldInput：draft ?? 原文）
     return `<div class="basis-text">
-      <div class="basis-text-row">
-        <input class="basis-input" id="basis-input-${f.id}" data-pool="${f.pool}"
-          value="${escAttr(f.current)}" placeholder="${escAttr(f.placeholder)}" />
-        <button class="basis-voice" data-act="basisVoice" type="button" aria-label="按住说话">${I.wave}</button>
-      </div>
+      <input class="basis-input" id="basis-input-${f.id}" data-pool="${f.pool}"
+        value="${escAttr(basisDraftFor(f.id) ?? f.current)}" placeholder="${escAttr(f.placeholder)}" />
       <div class="basis-sugg" data-for="${f.id}"></div>
     </div>`;
   }
@@ -477,19 +484,24 @@
       </div>`;
     }
     if (f.kind === "date") {
-      return `<div class="basis-step-row">
-        ${basisStepCol("年", f.y, f.id, "y")}${basisStepCol("月", f.mo, f.id, "mo")}${basisStepCol("日", f.d, f.id, "d")}
-      </div>`;
+      // 日期一律走万年历（复用 AddEditTaskView 那套 datePick 弹层），不再摆步进器；
+      // 显示未确认的草稿优先（真机 BasisFieldInput）
+      const ymd = basisDraftFor(f.id) ?? f.ymd;
+      return `<button class="basis-date" data-act="basisDate" data-id="${f.id}" type="button">
+        ${I.cal}<span>${ymdCn(ymd)}</span>${I.chevD}
+      </button>`;
     }
     return "";
   }
 
   // 输入走 **document 上的事件委托**（同本文件既有的 [data-go] / [data-act] 手法）：
   // 原型每次交互都整屏重绘 innerHTML，逐个 input 绑 oninput 会随重绘丢；委托一次挂上就够。
-  // 打字只更新候选行、**不整体重绘**（否则输入框当场丢焦点）。
+  // 打字只落草稿 + 更新候选行、**不整体重绘**（否则输入框当场丢焦点）；
+  // 点这一块的「确认」才回写（真机：改动先落草稿，不再收起键盘即生效）。
   document.addEventListener("input", (event) => {
     const target = event.target instanceof Element ? event.target.closest(".basis-input") : null;
     if (!target) return;
+    stashBasisDraft(target.id.replace("basis-input-", ""), target.value);
     if (target._basisTimer) clearTimeout(target._basisTimer);
     target._basisTimer = setTimeout(() => {
       const box = document.querySelector(`.basis-sugg[data-for="${target.id.replace("basis-input-", "")}"]`);
@@ -500,12 +512,8 @@
       bindClicks(box);
     }, 220);
   });
-  // 收起键盘（change）/ 回车算改完，按新原文重新解析（真机同款「收起键盘才重排」）
-  document.addEventListener("change", (event) => {
-    const target = event.target instanceof Element ? event.target.closest(".basis-input") : null;
-    if (!target) return;
-    applyBasisText(target.id.replace("basis-input-", ""), target.value);
-  });
+  // 收起键盘不再自动生效：改动都在草稿箱里，点这一块的「确认」才回写（真机同款）。
+  // 回车只收键盘（真机 submitLabel(.done)）
   document.addEventListener("keydown", (event) => {
     const target = event.target instanceof Element ? event.target.closest(".basis-input") : null;
     if (target && event.key === "Enter") {
@@ -538,7 +546,7 @@
   function apptBasisGroups(a, i) {
     const d = parseYMD(a.sourceYMD);
     return [{ id: `appt-${i}`, title: null, fields: [
-      { id: `appt-date-${i}`, kind: "date", label: a.source, y: d.getFullYear(), mo: d.getMonth() + 1, d: d.getDate() },
+      { id: `appt-date-${i}`, kind: "date", label: a.source, ymd: a.sourceYMD, y: d.getFullYear(), mo: d.getMonth() + 1, d: d.getDate() },
       { id: `appt-title-${i}`, kind: "text", label: "复查项目", current: a.title, placeholder: "如：心内科复查", pool: "review" },
     ] }];
   }
@@ -563,15 +571,6 @@
   /// 「med-scene-0」→「med-0」：把字段名折掉，落到那一条依据上
   function basisLineID(fieldId) {
     return String(fieldId).replace(/^(med|bp|appt)-[a-z]+-(\d+)$/, "$1-$2");
-  }
-  /// 依据页底部的重新生成入口（真机 regenerateBar）：改过才亮，亮起时带修正处数
-  function confirmRegenBar() {
-    const n = Object.keys(S.basisEdits || {}).length;
-    return `<div class="basis-regen">
-      <button class="basis-regen-btn${n ? " on" : ""}" data-act="basisRegen" type="button"${n ? "" : " disabled"}>
-        <span>重新生成计划</span>${n ? `<em>${n}</em>` : ""}
-      </button>
-    </div>`;
   }
   const BASIS_DOSE_UNITS = ["mg", "g", "μg", "ml", "mL", "IU", "片", "粒", "滴"];
   const BASIS_FREQ_PHRASES = ["每日 1 次", "每日 2 次", "每日 3 次", "每晚 1 次", "隔日 1 次", "每周 1 次", "每 12 小时 1 次", "每日一次", "每晚一次", "每日1次", "每晚1次"];
@@ -716,50 +715,170 @@
     afterBasisEdit("disease");
   }
 
-  function confirmBasisParagraph() {
-    // 每类来源资料只在第一处铺缩略图（同一份出院记录连挂三遍就是重复）
-    const shown = new Set();
-    const cats = (list) => list.filter((c) => {
-      if (shown.has(c)) return false;
-      shown.add(c);
-      return true;
-    });
-    const hint = `<div class="basis-hint">${I.pencil}<span>识别不准？直接改下面的原文</span></div>`;
-    const labels = diseaseLabels();
-    const diseaseHTML = `<div class="basis-sec">
-      <div class="basis-sec-title">疾病信息</div>
-      ${basisPara(diseaseBasisGroups(), "")}
-      ${basisOriginPhotos(cats(["dischargeRecord"]))}
+  // ----- 草稿箱 + 「依据资料」按钮（真机 PlanBasisSection / PlanBasisDrafts）-----
+
+  /// 依据页的草稿值（未确认的改动；真机 drafts[fieldId]）
+  function basisDraftFor(fieldId) {
+    return S.basisDrafts ? S.basisDrafts[fieldId] : undefined;
+  }
+  /// fieldId → 所在的那一块
+  function basisSecOf(fieldId) {
+    if (fieldId === "disease") return "disease";
+    if (/^med-/.test(fieldId)) return "medication";
+    if (/^bp-/.test(fieldId)) return "monitoring";
+    if (/^appt-/.test(fieldId)) return "appointment";
+    return "";
+  }
+  /// 这一块的字段（与渲染同一批取值函数；真机从 narrative 里扫）
+  function basisSectionFields(sec) {
+    if (sec === "disease") return diseaseBasisGroups().flatMap((g) => g.fields);
+    if (sec === "medication") return liveMeds().flatMap((m, i) => medBasisGroups(m, i).flatMap((g) => g.fields));
+    if (sec === "monitoring") return bpBasisGroups().flatMap((g) => g.fields);
+    if (sec === "appointment") return liveAppts().flatMap((a, i) => apptBasisGroups(a, i).flatMap((g) => g.fields));
+    return [];
+  }
+  /// 一块里真正改过的字段（真机 PlanBasisDrafts.pending：文本去空白比、日期按天比）
+  function basisPendingFields(sec) {
+    return basisSectionFields(sec).filter((f) => {
+      const v = basisDraftFor(f.id);
+      if (v === undefined) return false;
+      if (f.kind === "date") return String(v) !== String(f.ymd || "");
+      return String(v).trim() !== String(f.current || "").trim();
+    }).map((f) => f.id);
+  }
+  /// 一块改完的两枚：确认回写这一块、取消整块丢掉（真机 PlanBasisSection.confirmRow）
+  function basisConfirmRow(sec, n) {
+    return `<div class="basis-confirm-row">
+      <span class="basis-confirm-note">已改 ${n} 处</span>
+      <span class="basis-confirm-sp"></span>
+      <button class="basis-confirm-btn ghost" data-act="basisCancel" data-sec="${sec}" type="button">取消</button>
+      <button class="basis-confirm-btn" data-act="basisConfirm" data-sec="${sec}" type="button">确认</button>
     </div>`;
+  }
+  /// 块尾一行：有没确认的改动先给「取消 / 确认」；确认过、还没回去看的换成「重新生成计划」
+  function basisFooter(sec) {
+    const n = basisPendingFields(sec).length;
+    if (n) return basisConfirmRow(sec, n);
+    const done = basisConfirmedCount(sec);
+    return done ? basisRegenRow(sec, done) : "";
+  }
+  /// 依据行 id → 所在的那一块（disease / med-0 / bp-… / appt-1）
+  function basisSecOfLine(lineId) {
+    if (lineId === "disease") return "disease";
+    if (/^med-/.test(lineId)) return "medication";
+    if (/^bp-/.test(lineId)) return "monitoring";
+    if (/^appt-/.test(lineId)) return "appointment";
+    return "";
+  }
+  /// 这一块已确认过的依据条数（块尾「重新生成计划」据此出现）
+  function basisConfirmedCount(sec) {
+    const edits = S.basisEdits || {};
+    return Object.keys(edits).filter((id) => basisSecOfLine(id) === sec).length;
+  }
+  /// 块尾「重新生成计划」：确认过才出现，带这一块的修正处数（真机 PlanBasisSection.regenerateRow）
+  function basisRegenRow(sec, n) {
+    return `<div class="basis-confirm-row">
+      <span class="basis-confirm-note">已改 ${n} 处</span>
+      <span class="basis-confirm-sp"></span>
+      <button class="basis-regen-chip" data-act="basisRegenSec" data-sec="${sec}" type="button">${I.undo}<span>重新生成计划</span><em>${n}</em></button>
+    </div>`;
+  }
+  /// 把这一块还压着的草稿逐条回写（不重绘；重绘交给调用方）
+  function basisApplyDrafts(sec) {
+    const drafts = S.basisDrafts || {};
+    basisPendingFields(sec).forEach((id) => {
+      applyBasisDraft(id, drafts[id]);
+      delete S.basisDrafts[id];
+    });
+  }
+  /// 一条草稿落库：日期写来源日期、其余按原文重新解析（真机 PlanBasisCorrection.apply）
+  function applyBasisDraft(fieldId, value) {
+    const hit = String(fieldId).match(/^appt-date-(\d+)$/);
+    if (hit) {
+      const a = liveAppts()[+hit[1]];
+      if (a && value) {
+        a.sourceYMD = value;
+        afterBasisEdit(`appt-${hit[1]}`);
+      }
+      return;
+    }
+    applyBasisText(fieldId, value);
+  }
+  /// 打字只落草稿、不整体重绘（否则输入框当场丢焦点）：只补这一块的确认行
+  function stashBasisDraft(fieldId, value) {
+    if (!S.basisDrafts) S.basisDrafts = {};
+    S.basisDrafts[fieldId] = value;
+    paintBasisConfirm(basisSecOf(fieldId));
+  }
+  function paintBasisConfirm(sec) {
+    const box = document.querySelector(`.basis-confirm[data-sec="${sec}"]`);
+    if (!box) return;
+    box.innerHTML = basisFooter(sec);
+    bindClicks(box);
+  }
+  function basisConfirmSec(sec) {
+    if (!basisPendingFields(sec).length) return;
+    basisApplyDrafts(sec);
+    render();
+  }
+  function basisCancelSec(sec) {
+    basisPendingFields(sec).forEach((id) => { delete S.basisDrafts[id]; });
+    render();
+  }
+  /// 一块：标题行 + 一张模块卡（条目叠放，取消 / 确认收在卡底）+ 展开的来源照片
+  function basisSec(sec, title, count, paraHTML, photosHTML) {
+    const open = !!(S.basisMaterial && S.basisMaterial[sec]);
+    const btn = photosHTML
+      ? `<button class="basis-material-btn${open ? " on" : ""}" data-act="basisMaterial" data-sec="${sec}" type="button">${I.doc}<span>依据资料</span>${I.chevD}</button>`
+      : "";
+    return `<div class="basis-sec">
+      <div class="basis-sec-row">${basisSectionHead(sec, title, count)}${btn}</div>
+      <div class="basis-module">
+        ${paraHTML}
+        <div class="basis-confirm" data-sec="${sec}">${basisFooter(sec)}</div>
+      </div>
+      ${open ? photosHTML : ""}
+    </div>`;
+  }
+
+  function confirmBasisParagraph() {
+    // 每块各挂自己的来源照片（真机 PlanBasisSection.displayedSections）：疾病信息 / 用药 / 测血压挂
+    // 出院记录、复查挂出院记录与手术记录；同一份出院记录在几块里就各有几枚「依据资料」按钮（默认收起，不重复）
+    const hint = `<div class="basis-hint">识别不准？直接改下面的原文，改完点「确认」</div>`;
+    const diseaseHTML = basisSec(
+      "disease", "疾病信息", 1,
+      basisPara(diseaseBasisGroups(), "", "disease"),
+      basisOriginPhotos(["dischargeRecord"])
+    );
     const meds = liveMeds();
     const medHTML = meds.length
-      ? `<div class="basis-sec">
-          <div class="basis-sec-title">用药计划</div>
-          ${meds.map((m, i) => basisPara(medBasisGroups(m, i), `因此安排在 ${m.time} ${m.scene}服用。`)).join("")}
-          ${basisOriginPhotos(cats(["dischargeRecord"]))}
-        </div>`
+      ? basisSec(
+          "medication", "用药计划", meds.length,
+          meds.map((m, i) => basisPara(medBasisGroups(m, i), `因此安排在 ${m.time} ${m.scene}服用。`, "medication")).join(""),
+          basisOriginPhotos(["dischargeRecord"])
+        )
       : "";
     const bps = liveBPs();
     const monHTML = bps.length
-      ? `<div class="basis-sec">
-          <div class="basis-sec-title">测血压计划</div>
-          ${basisPara(bpBasisGroups(), `因此安排每天 ${bps.map((b) => b.time).sort().join(" 和 ")} 各测一次血压。`)}
-          ${basisOriginPhotos(cats(["dischargeRecord"]))}
-        </div>`
+      ? basisSec(
+          "monitoring", "测血压计划", 1,
+          basisPara(bpBasisGroups(), `因此安排每天 ${bps.map((b) => b.time).sort().join(" 和 ")} 各测一次血压。`, "monitoring"),
+          basisOriginPhotos(["dischargeRecord"])
+        )
       : "";
     const appts = liveAppts();
     const apptItems = confirmApptItems();
     const apptHTML = appts.length
-      ? `<div class="basis-sec">
-          <div class="basis-sec-title">复查计划</div>
-          ${apptItems.map((it, i) => basisPara(apptBasisGroups(appts[i], i), it.time ? `因此安排${it.time} ${it.title}。` : "")).join("")}
-          ${basisOriginPhotos(cats(["dischargeRecord", "surgeryRecord"]))}
-        </div>`
+      ? basisSec(
+          "appointment", "复查计划", appts.length,
+          apptItems.map((it, i) => basisPara(apptBasisGroups(appts[i], i), it.time ? `因此安排${it.time} ${it.title}。` : "", "appointment")).join(""),
+          basisOriginPhotos(["dischargeRecord", "surgeryRecord"])
+        )
       : "";
     return hint + diseaseHTML + medHTML + monHTML + apptHTML;
   }
 
-  /// 依据各段后附着对应来源资料缩略图；没拍过该类型就不占位
+  /// 一块的来源资料缩略图（铺在「依据资料」按钮展开后，每块各挂自己的来源）；没拍过该类型就不占位
   function basisOriginPhotos(cats) {
     const groups = (S.docGroups || []).filter((g) => cats.includes(g.cat) && g.pages > 0);
     if (!groups.length) return "";
@@ -968,7 +1087,7 @@
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "按组分区预览。与首次上传、身体报告·基础报告共用同一份存量。入组可改类别 / 删组（必传出院记录至少留一组）；复查不改类别。右上入组「解析」、存档「提交」。无存量时空态只留文案，拍资料走左上「拍摄」，页内不再放「拍摄资料」钮。" },
     "first-rest": { code: "CreateScheduleFlowView", note: "点名称换预设；点时刻出居中「时刻调整」弹层（标题为事项名，双列时/分步进，分步长 5，取消 / 完成，点遮罩取消）。默认六项（起床 / 三餐 / 午休 / 睡觉，不含测血压）。「稍后」关整段创建流回首页；底栏「拍照上传病历」替换本页，不压栈。" },
-    "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。顶栏「计划 / 解析依据」两枚 Tab（同构健康计划未完成/已完成），默认落计划；解析依据页先写疾病信息字段，再按用药 / 测血压 / 复查分段，结合卡片日程说明来源；各段正文后附着对应来源资料缩略图（疾病信息 / 用药 / 测血压 → 出院记录，复查 → 出院记录与手术记录），没拍过该类型就不占位。作息区按入口条件展示：首次入组才带作息 / 饮食 / 测血压，已入组重走用药与复查只有用药 + 复查；复查置底标红。操作卡底栏编辑/删除，改动回写本次草稿。改时刻走编辑页，确认页不拖卡片改时段。「确认」首次入组回首页点亮时钟、已入组落回健康计划页；「稍后」关整段流回进入处；重新解析回到拍摄；自主新建未入组时添加即入组回首页、已入组时追加进本次草稿并回本页。解析依据改成一句一行 + 一行一枚「改依据」：折叠时页面上只有依据句（值不再抄第二遍），点开在该行下就地改**原文**——直接打字（用药整行原文、测血压时段、复查项目、出院诊断；时刻与来源日期走步进器），输入框右侧麦克风进「按住说话」兜底；打字时下方按已打的字给补全候选（本地词表占位，**接 AI 只换 PlanBasisPredictor 一处**）。收起键盘才重新解析（免得半截字被当药名），同源重算条目与依据句、计划页跟着变，备注只在没被用户改过时重算；依据页底部「重新生成计划」改过才亮（带修正处数角标），按下切回计划页并 toast「已按修正重新生成计划」。来源照片按类别去重，每类只铺一处。" },
+    "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。顶栏「计划 / 解析依据」两枚 Tab（同构健康计划未完成/已完成），默认落计划。解析依据段首一行提示「识别不准？直接改下面的原文，改完点「确认」」。**每个大块一张模块卡**（疾病信息 / 用药 / 测血压 / 复查）：卡内多条依据用留白叠放，不再一条一张漂浮白卡；一条依据仍是可改原文 + 只读结论。原文直接打字（用药整行原文、测血压的高血压诊断、复查项目、出院诊断），打字时下方按已打的字给补全候选（本地词表占位，**接 AI 只换 PlanBasisPredictor 一处**；已等于原文的候选不出现），打字只落草稿、点该块「确认」才回写重算（卡底出现「已改 N 处」+「取消 / 确认」两枚），本页无语音入口；时刻走步进器、**来源日期点开万年历**（`CalendarDatePickerView`）；结论那句（「因此安排在 08:00 早餐后服用。」）随改随变。**时刻与循环不在这一页改**（走计划页卡片的「编辑」）。「重新生成计划」收在每个大块的卡底：**确认过才出现**（带这一块的修正处数），按下时把这一块还压着的草稿一并落库、清掉这一块标记、切回计划页并 toast「已按修正重新生成计划」；**两页底栏同一条、只有一枚「重新拍照解析」**。同源重算条目与结论、计划页跟着变，备注只在没被用户改过时重算；来源照片收进分区标题旁的「依据资料」按钮（**每块各挂自己的来源**：疾病信息 / 用药 / 测血压挂出院记录、复查挂出院记录与手术记录；默认收起、点开才铺、再点收起）。作息区首次入组才带；复查置底标红；右上「确认」写入用药+复查，左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），进与首次上传 / 基础报告同一份资料详情，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
@@ -1018,6 +1137,9 @@
     // 解析依据：当前展开的那一行 + 改过的行 + 可改的解析结果（真机 PlanBasisSection + 活条目）
     basisOpen: null,
     basisEdits: {},
+    // 依据页：各块「依据资料」是否铺开 + 未确认的草稿（fieldId → 新值；真机 PlanBasisSection.drafts）
+    basisMaterial: {},
+    basisDrafts: {},
     meds: null,
     appts: null,
     bps: null,
@@ -3256,7 +3378,28 @@
       // 确认页：计划 / 解析依据分页 / 改备注 / 字段点选修正
       setConfirmPane() { S.confirmPane = el.dataset.p === "basis" ? "basis" : "plan"; render(); },
       basisStep() { applyBasisStep(el.dataset.id, el.dataset.unit, +el.dataset.dir); },
-      // 点补全候选：诊断接在末尾，其余整体替换，随即按新原文重新解析
+      // 「依据资料」：默认不铺，点开才出现来源照片、再点收起（真机 PlanBasisSection.materialToggle）
+      basisMaterial() {
+        const sec = el.dataset.sec;
+        if (!S.basisMaterial) S.basisMaterial = {};
+        S.basisMaterial[sec] = !S.basisMaterial[sec];
+        render();
+      },
+      // 一块改完：确认把这一块的草稿回写重算、取消整块丢掉（真机 confirmRow 两枚）
+      basisConfirm() { basisConfirmSec(el.dataset.sec); },
+      basisCancel() { basisCancelSec(el.dataset.sec); },
+      // 块尾「重新生成计划」：落库这一块残余草稿、清这一块的标记、切回计划页看结果（真机同款闭环）
+      basisRegenSec() {
+        const sec = el.dataset.sec;
+        basisApplyDrafts(sec);
+        Object.keys(S.basisEdits || {}).forEach((id) => {
+          if (basisSecOfLine(id) === sec) delete S.basisEdits[id];
+        });
+        S.confirmPane = "plan";
+        toast("已按修正重新生成计划");
+        render();
+      },
+      // 点补全候选：诊断接在末尾，其余整体替换；只落草稿，点「确认」才回写
       basisFill() {
         const input = document.getElementById(el.dataset.input);
         if (!input) return;
@@ -3268,17 +3411,7 @@
         } else {
           input.value = value;
         }
-        applyBasisText(input.id.replace("basis-input-", ""), input.value);
-      },
-      basisVoice() { toast("按住说话（Demo 占位）"); },
-      // 「改 → 亮 → 重新生成 → 灭」：按下切回计划页看结果（真机同款闭环）
-      basisRegen() {
-        if (!Object.keys(S.basisEdits || {}).length) return;
-        S.basisEdits = {};
-        S.basisOpen = null;
-        S.confirmPane = "plan";
-        toast("已按修正重新生成计划");
-        render();
+        stashBasisDraft(input.id.replace("basis-input-", ""), input.value);
       },
       editNote() {
         const i = +el.dataset.i;
@@ -3701,7 +3834,24 @@
       },
       calDone() {
         if (S.overlayData.kind === "customDur") { openOverlay("customDur"); return; }
+        if (S.overlayData.kind === "basisDate") {
+          // 选完先落草稿（真机：选日期只进草稿箱，点这一块的「确认」才写回）
+          if (S.overlayData.selected) {
+            stashBasisDraft(`appt-date-${S.overlayData.i}`, S.overlayData.selected);
+          }
+          closeOverlay();
+          return;
+        }
         closeOverlay();
+      },
+      // 依据页来源日期：点开万年历（真机 BasisDateField + CalendarDatePickerView）
+      basisDate() {
+        const hit = el.dataset.id.match(/^appt-date-(\d+)$/);
+        if (!hit) return;
+        const a = liveAppts()[+hit[1]];
+        if (!a) return;
+        const picked = basisDraftFor(el.dataset.id) ?? a.sourceYMD;
+        openOverlay("datePick", { kind: "basisDate", i: +hit[1], selected: picked, month: picked });
       },
       draftBlock() { if (S.draft && !S.lockBlock) { S.draft.block = +el.dataset.b; render(); } },
       editDraftTime() {
@@ -5042,7 +5192,7 @@
         ${navBar(`<button class="nav-text nav-hit" data-act="later" type="button">稍后</button>`, "确认计划",
           `<button class="nav-text blue nav-hit" data-act="confirmPlan" type="button">确认</button>`)}
         <div class="px20" style="padding-top:12px">${confirmPaneTabs()}</div>
-        <div class="scroll px20" style="padding-top:12px;${S.confirmPane === "basis" ? "padding-bottom:176px" : "padding-bottom:20px"}">
+        <div class="scroll px20" style="padding-top:12px;padding-bottom:120px">
           ${S.confirmPane === "basis" ? basisCopy() : `
           ${groups.map((g) => `
             <div class="confirm-period">
@@ -5063,10 +5213,8 @@
             })).join("")}</div>
           </div>`}
         </div>
-        ${S.confirmPane === "basis" ? confirmRegenBar() : ""}
         <div class="px20 col gap10" style="padding-bottom:28px">
-          <button class="cta h52" data-act="reparseCase" type="button">${I.cam}重新解析病例</button>
-          <button class="cta h52" data-act="manualCreate" type="button">${I.plus}自主新建计划</button>
+          <button class="cta h52" data-act="reparseCase" type="button">${I.cam}重新拍照解析</button>
         </div>
       </div>`;
     },

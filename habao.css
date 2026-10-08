@@ -2143,11 +2143,16 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 
 /* ===== 确认计划页：解析依据 Tab 正文 + 卡内脚注 ===== */
 
-.basis-copy {
-  font-size: calc(15px * var(--fs)); font-weight: 500; color: rgba(16,84,224,.88);
-  line-height: 1.55; padding: 14px; border-radius: 14px;
-  background: rgba(16,84,224,.05);
+/* 解析依据：直落背景 + 分区头 + 每个大块一张模块卡，不再一条一张漂浮白卡 */
+.basis-copy { font-size: calc(15px * var(--fs)); font-weight: 500; color: rgba(16,84,224,.88); line-height: 1.55; }
+.basis-module {
+  display: flex; flex-direction: column; gap: 16px;
+  padding: 14px; border-radius: 18px; background: #fff;
+  box-shadow: 0 5px 10px rgba(16,84,224,.06);
 }
+.basis-line { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.sec-ico { width: 16px; height: 16px; flex: 0 0 16px; }
+.sec-ico svg { width: 16px; height: 16px; }
 .basis-sec { display: flex; flex-direction: column; gap: 10px; }
 .basis-sec + .basis-sec { margin-top: 16px; }
 .basis-sec-title {
@@ -2174,6 +2179,36 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   padding: 6px;
 }
 
+/* 「依据资料」：分区标题旁的按钮 + 展开后的来源缩略图（真机 PlanBasisSection.materialToggle） */
+.basis-sec-row { display: flex; align-items: center; gap: 8px; }
+.basis-sec-row .type-h { flex: 1 1 auto; min-width: 0; }
+.basis-material-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  min-height: 44px; padding: 0 11px; border: 0; border-radius: 999px; cursor: pointer;
+  background: rgba(16,84,224,.12); color: var(--blue); font-family: inherit;
+  font-size: calc(13px * var(--fs)); font-weight: 600;
+}
+.basis-material-btn svg { width: 12px; height: 12px; flex: 0 0 12px; }
+.basis-material-btn svg:last-child { width: 10px; height: 10px; transition: transform .25s; }
+.basis-material-btn.on svg:last-child { transform: rotate(180deg); }
+
+/* 一块改完：已改 N 处 + 取消 / 确认（收在模块卡底，真机 PlanBasisSection.confirmRow） */
+.basis-confirm:empty { display: none; }
+.basis-confirm-row { display: flex; align-items: center; gap: 10px; }
+.basis-confirm-note { font-size: calc(13px * var(--fs)); font-weight: 500; color: var(--secondary); }
+.basis-confirm-sp { flex: 1 1 auto; }
+.basis-confirm-btn {
+  min-height: 42px; padding: 0 18px; border: 0; border-radius: 13px; cursor: pointer;
+  background: var(--blue); color: #fff; font-family: inherit;
+  font-size: calc(15px * var(--fs)); font-weight: 700;
+  box-shadow: 0 3px 6px rgba(16,84,224,.22);
+}
+.basis-confirm-btn.ghost {
+  background: #f5f6f8; color: var(--blue);
+  border: 1px solid rgba(16,84,224,.16);
+  box-shadow: 0 2px 5px rgba(16,84,224,.08);
+}
+
 /* 解析依据：字段芯片 + 就地选项面板（真机 PlanBasisFieldRow / BasisFieldEditor）
    芯片胶囊高 ≥44pt（§1.8 点选优先 + 触控基线），展开面板白底圆角 14 内嵌在浅蓝依据块里 */
 .basis-para { display: flex; flex-direction: column; gap: 8px; }
@@ -2189,45 +2224,44 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   font-size: calc(13px * var(--fs)); font-weight: 500; color: var(--secondary);
   line-height: 1.5;
 }
-.basis-conclusion::before { content: "└"; color: rgba(16,84,224,.45); font-weight: 700; }
-.basis-panel {
-  display: flex; flex-direction: column; gap: 16px;
-  background: #fff; border-radius: 14px; padding: 14px;
-  box-shadow: 0 3px 6px rgba(16,84,224,.05);
-}
+.basis-panel { display: flex; flex-direction: column; gap: 12px; }
 .basis-group-title { font-size: calc(15px * var(--fs)); font-weight: 700; color: var(--blue); }
 .basis-field { display: flex; flex-direction: column; gap: 8px; }
 .basis-field-label { font-size: calc(12px * var(--fs)); font-weight: 700; color: var(--secondary); }
-/* 依据页底部：改过才亮的「重新生成计划」（真机 regenerateBar） */
-.basis-regen { padding: 4px 20px 10px; }
-.basis-regen-btn {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%; height: 52px; border: 0; border-radius: 16px; cursor: pointer;
-  background: rgba(130,142,165,.3); color: #fff; font-family: inherit;
-  font-size: calc(18px * var(--fs)); font-weight: 700;
+/* 块尾「重新生成计划」：确认过才出现，带这一块的修正处数（真机 PlanBasisSection.regenerateRow） */
+.basis-regen-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 42px; padding: 0 16px; border: 0; border-radius: 13px; cursor: pointer;
+  background: var(--blue); color: #fff; font-family: inherit;
+  font-size: calc(15px * var(--fs)); font-weight: 700;
+  box-shadow: 0 3px 6px rgba(16,84,224,.22);
 }
-.basis-regen-btn.on { background: var(--blue); box-shadow: 0 3px 8px rgba(16,84,224,.26); }
-.basis-regen-btn em {
+.basis-regen-chip svg { width: 13px; height: 13px; flex: 0 0 13px; }
+.basis-regen-chip em {
   font-style: normal; display: inline-flex; align-items: center; justify-content: center;
-  min-width: 24px; height: 24px; border-radius: 999px; background: #fff; color: var(--blue);
-  font-size: calc(13px * var(--fs)); font-weight: 700;
+  min-width: 18px; height: 18px; border-radius: 999px; background: #fff; color: var(--blue);
+  font-size: calc(11px * var(--fs)); font-weight: 700;
 }
-/* 原文直接打字改（真机 BasisTextInput）：输入框 + 语音兜底 + 打字补全候选 */
+/* 原文直接打字改（真机 BasisTextInput）：输入框 + 打字补全候选（无语音入口） */
 .basis-text { display: flex; flex-direction: column; gap: 8px; }
-.basis-text-row { display: flex; align-items: flex-start; gap: 8px; }
 .basis-input {
-  flex: 1 1 auto; min-width: 0; min-height: 44px;
+  width: 100%; min-height: 44px;
   border: 0; border-radius: 12px; background: var(--input); padding: 12px;
   font-family: inherit; font-size: calc(16px * var(--fs)); font-weight: 600; color: var(--blue);
 }
 .basis-input::placeholder { color: rgba(130,142,165,.8); font-weight: 500; }
-.basis-voice {
-  flex: 0 0 auto; width: 44px; height: 44px;
-  border: 0; border-radius: 999px; cursor: pointer;
-  background: rgba(16,84,224,.12); color: var(--blue);
-  display: inline-flex; align-items: center; justify-content: center;
+.basis-date {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  min-height: 44px; padding: 0 12px;
+  border: 0; border-radius: 12px; cursor: pointer;
+  background: var(--input); color: var(--blue);
+  font-family: inherit; font-size: calc(16px * var(--fs)); font-weight: 600;
+  text-align: left;
 }
-.basis-voice svg { width: 18px; height: 18px; }
+.basis-date > span { flex: 1 1 auto; }
+.basis-date svg { width: 16px; height: 16px; flex: 0 0 16px; opacity: .85; }
+.basis-date svg:last-child { width: 13px; height: 13px; opacity: .5; }
+
 .basis-sugg { display: flex; flex-wrap: wrap; gap: 8px; }
 .basis-sugg:empty { display: none; }
 .basis-sugg-chip {
