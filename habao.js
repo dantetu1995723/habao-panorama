@@ -1084,7 +1084,7 @@
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。" },
     consult: { code: "SmartConsultChatView", note: "按住说话；上滑超 70pt 立即发送。可切文字输入。底坞三功能：解读指标 / 解读报告带上下文，拍照问诊挂待发图。V10.56：空态只有 Logo 问候，不再放示例问句、也不再灌样例对话。V0.0 三个入口（底坞中圆 / 血压监测 / 身体报告）压暗点不开，切 V0.1 才进得来。" },
     profile: { code: "ServiceView", note: "Hero 健康档案 + 操作记录/通知/协议。无 VIP。V0.0 不出现家属管理与右上身份胶囊、档案标「本人」（切 V0.1 恢复）。身份胶囊仍决定写入归属，但不再在卡片上盖章；本人和家属的操作都进「操作记录」。" },
-    activity: { code: "ActivityLogView", note: "V10.107 个人中心「操作记录」：一天一页、左右滑动换日，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内以时刻做块头（时刻 + 细分隔线）切成几块，块内白卡装内容。一件事记一条：一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）左 46px 定宽浅蓝标签 + 右侧实色蓝事项。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：未改动」。空态「还没有操作记录」；某一天没有记录写「这一天没有操作记录」。" },
+    activity: { code: "ActivityLogView", note: "V10.109 个人中心「操作记录」：一天一页、左右滑动换日，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内以时刻做块头（时刻 + 细分隔线）切成几块，块内白卡装内容。一件事记一条：一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）左 46px 定宽浅蓝标签 + 右侧实色蓝事项。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：未改动」。空态「还没有操作记录」；某一天没有记录写「这一天没有操作记录」。" },
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.98：用药与复查有存量也直接落本页，存量组列在底部组轨道。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "按组分区预览。与首次上传、身体报告·基础报告共用同一份存量。入组可改类别 / 删组（必传出院记录至少留一组）；复查不改类别。右上入组「解析」、存档「提交」。无存量时空态只留文案，拍资料走左上「拍摄」，页内不再放「拍摄资料」钮。" },
@@ -1448,7 +1448,7 @@
       { act: "bindFam", label: "（V0.1）家属绑定（最多 5 位）", optional: true },
       { act: "toggleCat", label: "打卡通知分类开关", optional: true },
     ]},
-    // V10.107：操作记录改成一天一页，右上角换日
+    // V10.109：操作记录改成一天一页，右上角换日
     { id: "activity-day", label: "已入组 · 操作记录按天看", cold: "demo", steps: [
       { screen: "profile", label: "首页右上「我的」进个人中心" },
       { screen: "activity", label: "「操作记录」进全屏页：一天一页，右上角日期按钮写「今天」" },
@@ -1633,7 +1633,7 @@
   }
   function datePickGrid(monthYmd, selectedYmd) {
     const kind = S.overlayData?.kind;
-    // 操作记录换日（V10.107）：记录按真实时间写入，日历也按真实「今天」算，只到今天为止
+    // 操作记录换日（V10.109）：记录按真实时间写入，日历也按真实「今天」算，只到今天为止
     const today = kind === "opDay" ? new Date() : demoDate();
     const selected = parseYMD(selectedYmd);
     const rule = S.draft?.rule || "daily";
@@ -4340,7 +4340,7 @@
       },
       shareStamp() { openOverlay("share"); },
       openCal() { openOverlay("stampCal"); },
-      // 操作记录换日（V10.107）：日历里只到今天、最早到第一条记录那天
+      // 操作记录换日（V10.109）：日历里只到今天、最早到第一条记录那天
       openOpCal() {
         const ymd = S.opDay || toYMD(new Date());
         openOverlay("datePick", { kind: "opDay", selected: ymd, month: ymd });
@@ -6285,7 +6285,7 @@
     S.ops.unshift({ at: Date.now(), actor, action, place: place || "", lines: (lines || []).filter((l) => l && l[1]) });
     if (S.ops.length > 300) S.ops.length = 300;
   }
-  /// 操作记录换日（V10.107）：在「今天 → 最早一条记录那天」之间移动，真机同日翻页手势
+  /// 操作记录换日（V10.109）：在「今天 → 最早一条记录那天」之间移动，真机同日翻页手势
   function opStepDay(delta) {
     const ops = S.ops || [];
     const todayYMD = toYMD(new Date());
