@@ -1083,9 +1083,9 @@
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。" },
-    consult: { code: "SmartConsultChatView", note: "按住说话；上滑超 70pt 立即发送。可切文字输入。底坞三功能：解读指标 / 解读报告带上下文，拍照问诊挂待发图。V10.56：空态只有 Logo 问候，不再放示例问句、也不再灌样例对话。V0.0 三个入口（底坞中圆 / 血压监测 / 身体报告）压暗点不开，切 V0.1 才进得来。" },
+    consult: { code: "SmartConsultChatView", note: "V10.120：聊天框上方三模块「存量健康计划 / 指标检测 / 身体报告」，点按把对应存量挂进当前问诊（选中整格变蓝）。聊天框右侧并排「AI电话」「图片发送」；语音 / 文字切换在聊天框左侧。AI电话接通后直接说，挂断把这句话发出。图片发送可选拍照或相册。按住说话，上滑超 70pt 立即发送。V0.0 三个入口压暗点不开，切 V0.1 才进得来。" },
     profile: { code: "ServiceView", note: "Hero 健康档案 + 操作记录/通知/协议。无 VIP。V0.0 不出现家属管理与右上身份胶囊、档案标「本人」（切 V0.1 恢复）。身份胶囊仍决定写入归属，但不再在卡片上盖章；本人和家属的操作都进「操作记录」。" },
-    activity: { code: "ActivityLogView", note: "V10.110 个人中心「操作记录」：一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内以时刻做块头（时刻 + 细分隔线）切成几块，块内白卡装内容。一件事记一条：一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）左 46px 定宽浅蓝标签 + 右侧实色蓝事项。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：本次未动」。结果行右侧带箭头的可点，跳到对应模块看当前存量；页顶搜索框搜记录内容，「⋯」菜单可跳到最早一天 / 管理记录（删除、改归属）/ 清空记录；超 300 条丢过更早记录时最早那页页脚提示。空态「还没有操作记录」；某一天没有记录写「这一天没有操作记录」。" },
+    activity: { code: "ActivityLogView", note: "V10.113 个人中心「操作记录」：一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内以时刻做块头（时刻 + 细分隔线）切成几块，块内白卡装内容。一件事记一条：一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）左 46px 定宽浅蓝标签 + 右侧实色蓝事项。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：本次未动」。结果行右侧带箭头的可点，跳到对应模块看当前存量；页顶搜索框搜记录内容；长按一条出「改归属 / 删除这条记录」，超 300 条丢过更早记录时最早那页页脚提示。空态「还没有操作记录」；某一天没有记录写「这一天没有操作记录」。" },
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.98：用药与复查有存量也直接落本页，存量组列在底部组轨道。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "按组分区预览。与首次上传、身体报告·基础报告共用同一份存量。入组可改类别 / 删组（必传出院记录至少留一组）；复查不改类别。右上入组「解析」、存档「提交」。无存量时空态只留文案，拍资料走左上「拍摄」，页内不再放「拍摄资料」钮。" },
@@ -1161,6 +1161,8 @@
     /// 查看 / 添加 / 编辑计划的两大类折叠：事项 / 时间与提醒（存被收起的分组，默认两组都展开）
     editorCollapsed: [],
     inputMode: "voice",
+    consultModule: null,
+    pendingImage: false,
     chatDraft: "",
     completed: { t1: true, t2: true },
     // 家属代操作（V0.1）：任务 id → "family"；本人打卡不放键（与存量 / 种子数据字节一致）
@@ -1170,8 +1172,6 @@
     // 操作记录当前页（YYYY-MM-DD）；空 = 最近一条那天
     opDay: "",
     opQuery: "",
-    opEdit: false,
-    opMenu: false,
     opDropped: false,
     overlay: null,
     overlayData: {},
@@ -1194,6 +1194,10 @@
     // 家属通知关（按任务 id 记；V10.52 计划页家属通知）
     famOff: {},
     mutedToday: {},
+    // 计划开关（V10.111）：类别之下的逐条计划（按任务 id 记，缺省开；只有 V0.1 有这些行）
+    planOff: {},
+    // 展开的类别（V10.115 回到一页折叠）：同时只展开一个，进页全收起
+    notifyFoldKey: null,
     walking: false,
     paused: false,
     walkSaved: false,
@@ -1453,14 +1457,13 @@
       { act: "bindFam", label: "（V0.1）家属绑定（最多 5 位）", optional: true },
       { act: "toggleCat", label: "打卡通知分类开关", optional: true },
     ]},
-    // V10.110：操作记录按天看、可搜可管，结果行能跳模块
+    // V10.113：操作记录按天看、可搜，结果行能跳模块
     { id: "activity-day", label: "已入组 · 操作记录按天看", cold: "demo", steps: [
       { screen: "profile", label: "首页右上「我的」进个人中心" },
       { screen: "activity", label: "「操作记录」进全屏页：落在最近一条那天，右上角日期按钮同天" },
       { act: "openOpCal", label: "点右上角日期开日历（未来日不可选）" },
       { act: "pickCalDay", label: "选另一天，整页换成那一天；没有记录的写「这一天没有操作记录」", optional: true },
-      { act: "opMenu", label: "右上「⋯」：跳到最早一天 / 管理记录 / 清空记录" },
-      { act: "opEdit", label: "「管理记录」后每条出「删除 / 改归属」", optional: true },
+      { act: "opHold", label: "长按一条：改归属 / 删除这条记录（无「跳到最早 / 清空」入口）" },
     ]},
     // V10.57：身份胶囊升级为操作归属——家属代做的打卡在卡上留标记，切回本人仍可见
     { id: "family-proxy", label: "V0.1 · 家属代操作（代打卡留标记）", cold: "demo", steps: [
@@ -2728,6 +2731,7 @@
     bindSwipes();
     bindHoldTalk();
     bindOpSearch();
+    bindOpHold();
     bindLoginFocus();
     bindEdgeBack();
     bindWheelCols();
@@ -3915,7 +3919,7 @@
       // 未绑定先去填写（填完自动进打卡通知页），总闸关着引导去个人中心
       famNotify() {
         const t = SEED.find((x) => x.id === S.taskId);
-        const shown = familyGateOpen(taskCatKey(t)) && !S.famOff[S.taskId];
+        const shown = familyGateOpen(taskCatKey(t), S.taskId) && !S.famOff[S.taskId];
         if (!shown && blockedByFamilyGate(taskCatKey(t))) return;
         S.famOff[S.taskId] = !S.famOff[S.taskId];
         render();
@@ -3924,7 +3928,7 @@
       draftFamNotify() {
         if (!S.draft) return;
         const cat = taskCatKey(S.draft);
-        const shown = familyGateOpen(cat) && S.draft.famNotify !== false;
+        const shown = familyGateOpen(cat, S.screen === "task-edit" ? S.taskId : null) && S.draft.famNotify !== false;
         if (!shown && blockedByFamilyGate(cat)) return;
         S.draft.famNotify = !shown;
         render();
@@ -3934,11 +3938,13 @@
       undoCheckIn() { delete S.completed[S.taskId]; unmarkProxy(S.taskId); render(); },
       sendChat() {
         const v = (S.chatDraft || "").trim();
-        if (!v) return;
+        if (!v && !S.pendingImage) return;
         S.consultOpen = true;
-        S.messages.push({ who: "user", t: v });
+        const photo = S.pendingImage ? "（图片）" : "";
+        S.messages.push({ who: "user", t: `${photo}${v || "请帮我看看这张图片"}` });
         S.messages.push({ who: "ai", t: "收到。结合你最近的血压和用药，我先帮你看一下可能原因与居家注意点。" });
         S.chatDraft = "";
+        S.pendingImage = false;
         render();
       },
       toggleInput() { S.inputMode = S.inputMode === "voice" ? "text" : "voice"; render(); },
@@ -4297,6 +4303,22 @@
         logOp("改了到点提醒", "打卡通知", [["提醒", `${nm} 已${S.cats[c] ? "打开" : "关闭"}`]]);
         render();
       },
+      // 折叠（V10.115 回到一页折叠）：点类别标题行展开 / 收起，同时只展开一个
+      toggleFold() {
+        const c = el.dataset.cat;
+        if (!c || !genHasPlanSwitches()) return;
+        S.notifyFoldKey = S.notifyFoldKey === c ? null : c;
+        render();
+      },
+      // 计划开关（V10.111）：类别之下的逐条计划；类别关着时按钮 disabled，点不到
+      togglePlan() {
+        const id = el.dataset.id;
+        const t = SEED.find((x) => x.id === id);
+        if (!t) return;
+        S.planOff[id] = !S.planOff[id];
+        logOp("改了到点提醒", "打卡通知", [["提醒", `${t.title} 已${S.planOff[id] ? "关闭" : "打开"}`]]);
+        render();
+      },
       toggleFam() {
         if (!S.family.length) { openOverlay("confirm", { title: "请先填写家属信息", body: "通知家属前请先绑定联系人", ok: "去填写", action: "goFamily" }); return; }
         S.notifyFamily = !S.notifyFamily;
@@ -4342,33 +4364,40 @@
       },
       call120() { openOverlay("e120"); },
       dial120() { toast("Demo 演示，将拨打 120"); closeOverlay(); },
-      newChat() { S.messages = []; S.consultOpen = false; S.chatMenu = false; render(); },
+      newChat() {
+        S.messages = [];
+        S.consultOpen = false;
+        S.chatMenu = false;
+        S.consultModule = null;
+        S.pendingImage = false;
+        S.inputMode = "voice";
+        S.chatDraft = "";
+        render();
+      },
       toggleMenu() { S.chatMenu = !S.chatMenu; render(); },
-      // 底坞三功能：解读指标 / 解读报告带上下文，拍照问诊挂待发图（真机 SmartConsultChatView）
-      consultVitals() { askConsult("本周血压与心率记录", "【当前解读上下文】本周血压评估"); },
-      consultReport() { askConsult("身体报告综合结论", "【当前解读上下文】身体报告"); },
-      consultPhoto() {
+      // 聊天框上方三模块：把对应存量挂进当前问诊（真机 SmartConsultChatView）
+      consultPlan() { S.consultModule = "plan"; render(); },
+      consultVitals() { S.consultModule = "vitals"; render(); },
+      consultReport() { S.consultModule = "report"; render(); },
+      consultImage() { openOverlay("consultImage"); },
+      pickConsultPhoto() {
         S.pendingImage = true;
-        askConsult("（照片）检查单", "已收到照片，我先看一下上面的关键指标。");
+        S.inputMode = "text";
+        closeOverlay();
+        toast("已添加图片，补充一句再发送");
+      },
+      consultCall() { openOverlay("aiCall"); },
+      hangUpCall() {
+        closeOverlay();
+        S.messages.push({ who: "user", t: "（AI电话）走路有点喘" });
+        S.messages.push({ who: "ai", t: "已记下这次通话。你可以继续打字补充，我再一起看。" });
+        render();
       },
       shareStamp() { openOverlay("share"); },
       openCal() { openOverlay("stampCal"); },
-      opMenu() { S.opMenu = !S.opMenu; S.opEdit = false; render(); },
-      opGoEarliest() {
-        const all = opVisibleOps();
-        if (!all.length) return;
-        S.opDay = toYMD(new Date(all[all.length - 1].at));
-        S.opMenu = false;
-        render();
-      },
-      opEdit() { S.opEdit = !S.opEdit; S.opMenu = false; render(); },
-      opClearAsk() {
-        S.opMenu = false;
-        openOverlay("confirm", { title: "清空操作记录", body: "本机这份记录会全部删掉，档案、计划与资料不受影响。", ok: "清空", danger: true, action: "opClear" });
-      },
-      opClear() { S.ops = []; S.opDropped = false; S.opDay = ""; S.opQuery = ""; S.opEdit = false; closeOverlay(); render(); },
       opDel() {
         S.ops = (S.ops || []).filter((op) => op.id !== el.dataset.id);
+        closeOverlay();
         render();
       },
       opReassign() { openOverlay("opActor", { id: el.dataset.id }); },
@@ -4384,11 +4413,10 @@
             op.actorId = null;
           }
         }
-        S.opEdit = false;
         closeOverlay();
         render();
       },
-      // 操作记录换日（V10.110）：日历里只到今天、最早到第一条记录那天
+      // 操作记录换日（V10.113）：日历里只到今天、最早到第一条记录那天
       openOpCal() {
         const ymd = S.opDay || toYMD(new Date());
         openOverlay("datePick", { kind: "opDay", selected: ymd, month: ymd });
@@ -5694,8 +5722,12 @@
       </div>`;
     },
 
-    // 空态只有 Logo 问候 + 一句引导（V10.56 去掉全部示例问句，也不再灌样例对话）
-    consult: () => `
+    // 空态只有 Logo 问候。底坞：三模块带入存量，聊天框旁并排 AI电话 / 图片发送。
+    consult: () => {
+      const note = consultModuleNote();
+      const mod = (id, act, icon, label) =>
+        `<button class="consult-mod${S.consultModule === id ? " on" : ""}" type="button" data-act="${act}"><span class="well">${icon}</span><span>${label}</span></button>`;
+      return `
       <div class="page rel">
         ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="26" height="26" alt="" />哈宝医生</span>`,
           `<button class="cap" data-act="toggleMenu" type="button">${I.chat}对话</button>`)}
@@ -5708,20 +5740,27 @@
               <p class="s16 t-sec">有不适或用药疑问，都可以问我</p>
             </div>
             `}
+          ${note ? `<div class="consult-ctx"><b>${note.title}</b><p>${note.body}</p></div>` : ""}
         </div>
-        <div class="dock3">
-          <button type="button" data-act="consultVitals">解读指标</button>
-          <button type="button" data-act="consultReport">解读报告</button>
-          <button type="button" data-act="consultPhoto">拍照问诊</button>
+        ${S.pendingImage ? `<div class="consult-pending">已选 1 张图片，补充一句再发送</div>` : ""}
+        <div class="consult-mods">
+          ${mod("plan", "consultPlan", I.cal, "存量健康计划")}
+          ${mod("vitals", "consultVitals", I.ecg, "指标检测")}
+          ${mod("report", "consultReport", I.doc, "身体报告")}
         </div>
-        <div class="chat-input">
-          ${S.inputMode === "text" ? `
-            <input class="chat-text" id="chat-draft" placeholder="输入问题…" value="${S.chatDraft.replace(/"/g, "&quot;")}" />
-            <button class="send-orb" data-act="sendChat" type="button">${I.chevU}</button>
-          ` : `<button class="hold" id="hold" type="button">按住 说话</button>`}
-          <button class="circle-btn" data-act="toggleInput" type="button">${S.inputMode === "text" ? I.phone : I.chat}</button>
+        <div class="chat-row">
+          <div class="chat-well">
+            <button class="chat-mode" data-act="toggleInput" type="button">${S.inputMode === "text" ? I.wave : I.chat}</button>
+            ${S.inputMode === "text" ? `
+              <input class="chat-text" id="chat-draft" placeholder="输入问题…" value="${S.chatDraft.replace(/"/g, "&quot;")}" />
+              <button class="send-orb" data-act="sendChat" type="button">${I.chevU}</button>
+            ` : `<button class="hold" id="hold" type="button">按住 说话</button>`}
+          </div>
+          <button class="chat-side" data-act="consultCall" type="button">${I.phone}<span>AI电话</span></button>
+          <button class="chat-side photo" data-act="consultImage" type="button">${I.cam}<span>图片发送</span></button>
         </div>
-      </div>`,
+      </div>`;
+    },
 
     // 历史记录：按日期归档、只读、不可删（真机 ConsultHistoryView）。V10.56 起不预置样例对话——
     // 只有本人问过的才出现在「今天」，没问过给空态。
@@ -5824,8 +5863,6 @@
       const searchRow = all.length ? `
         <div class="op-search-row px20" style="margin-top:6px">
           <div class="op-search">${I.search}<input id="op-search" placeholder="搜记录内容" value="${escAttr(S.opQuery || "")}" /></div>
-          <button class="op-more" data-act="opMenu" type="button">⋯</button>
-          ${S.opMenu ? `<div class="menu-pop op-menu"><button data-act="opGoEarliest" type="button">跳到最早一天</button><button data-act="opEdit" type="button">${S.opEdit ? "完成管理" : "管理记录"}</button><button data-act="opClearAsk" type="button">清空记录</button></div>` : ""}
         </div>` : "";
       return `<div class="page">
         ${navBar(cap(I.chevL, "返回"), "操作记录", calBtn)}
@@ -5986,17 +6023,17 @@
           </div>
           <div class="list-island mt16">
             ${rowToggle("全部打卡", allCatsOn(), "toggleAll", notifySys(I.check, true))}
-            ${[
-              ["服药", "medication"],
-              ["运动", "exercise"],
-              ["测血压", "monitoring"],
-              ["作息", "rest"],
-              ["饮食", "diet"],
-              ["复查", "appointment"],
-            ].map(([t, cat]) => rowToggle(t, !!S.cats[cat], "toggleCat", notifyCat(cat), cat)).join("")}
-            ${(S.customCats || []).map((c) =>
-              rowToggle(c.name, !!S.cats[c.id], "toggleCat", notifySys(I[UNIFIED_CUSTOM_ICON], true), c.id)).join("")}
           </div>
+          ${[
+            ["服药", "medication"],
+            ["运动", "exercise"],
+            ["测血压", "monitoring"],
+            ["作息", "rest"],
+            ["饮食", "diet"],
+            ["复查", "appointment"],
+          ].map(([t, cat]) => catSection(t, cat, notifyCat(cat))).join("")}
+          ${(S.customCats || []).map((c) =>
+            catSection(c.name, c.id, notifySys(I[UNIFIED_CUSTOM_ICON], true))).join("")}
         </div>
       </div>`,
   };
@@ -6276,6 +6313,23 @@
     };
   }
 
+  /// 问诊三模块带入的存量摘要（真机 ConsultLaunchContext）
+  function consultModuleNote() {
+    if (S.consultModule === "plan") {
+      const all = liveTasks();
+      const head = all.slice(0, 4).map((t) => `${String(t.h).padStart(2, "0")}:${String(t.m).padStart(2, "0")} ${t.title}`).join("、");
+      const more = all.length > 4 ? `等 ${all.length} 项` : "";
+      return { title: "已带入今日健康计划", body: all.length ? `${head}${more}` : "今天还没有健康计划" };
+    }
+    if (S.consultModule === "vitals") {
+      return { title: "已带入当前指标评估", body: "结合本周血压与心率继续问" };
+    }
+    if (S.consultModule === "report") {
+      return { title: "已带入身体报告结论", body: "结合综合结论继续问" };
+    }
+    return null;
+  }
+
   /// 向哈宝医生发一条并挂 AI 回复（快捷问 / 底坞三功能共用）
   function askConsult(userText, aiText) {
     S.consultOpen = true;
@@ -6297,6 +6351,45 @@
       <button class="toggle ${on ? "on" : ""}" data-act="${actName}"${dataAttr ? ` data-cat="${dataAttr}"` : ""} type="button"><i></i></button>
     </div>`;
   }
+  /// 类别分区（V10.119）：一行分区头（图标井 + 名称 + 计划摘要 + 折叠箭头，不带开关）
+  /// + 展开时头下另起一张白卡：卡内不用图标、所有行缩进到母类标题线，左侧导引线正对图标中线。
+  function catSection(title, catKey, iconHTML) {
+    const plans = genHasPlanSwitches() ? SEED.filter((t) => taskCatKey(t) === catKey) : [];
+    const catOn = !!S.cats[catKey];
+    const off = plans.filter((t) => S.planOff[t.id]).length;
+    const caption = plans.length
+      ? (catOn ? `${plans.length} 条计划${off ? ` · 已关 ${off} 条` : ""}` : `已关闭 · ${plans.length} 条计划`)
+      : "暂无计划";
+    const open = S.notifyFoldKey === catKey;
+    const head = `<div class="cat-head${catOn ? "" : " dim"}" data-act="toggleFold" data-cat="${catKey}">
+      ${iconHTML || notifySys(I.bell)}
+      <div class="grow">
+        <div class="s20 fb t">${title}</div>
+        <div class="s14 t-sec" style="margin-top:2px">${caption}</div>
+      </div>
+      <span class="fold-chev${open ? " open" : ""}">${I.chevR}</span>
+    </div>`;
+    if (!open) return `<div class="cat-sec">${head}</div>`;
+    const master = `<div class="list-row child-row" style="min-height:58px">
+      <div class="grow s20 fb t">全部提醒</div>
+      <button class="toggle ${catOn ? "on" : ""}" data-act="toggleCat" data-cat="${catKey}" type="button"><i></i></button>
+    </div>`;
+    const rows = plans.map((t) => {
+      const on = catOn && !S.planOff[t.id];
+      const btn = catOn
+        ? `<button class="toggle ${on ? "on" : ""}" data-act="togglePlan" data-id="${t.id}" type="button"><i></i></button>`
+        : `<button class="toggle" disabled style="pointer-events:none;cursor:default" type="button"><i></i></button>`;
+      const hm = `${String(t.h).padStart(2, "0")}:${String(t.m).padStart(2, "0")}`;
+      return `<div class="list-row child-row" style="min-height:58px;${catOn ? "" : "opacity:.45"}">
+        <div class="grow">
+          <div class="s18 fb t">${t.title}</div>
+          <div class="s14 t-sec" style="margin-top:2px">${hm}</div>
+        </div>
+        ${btn}
+      </div>`;
+    }).join("");
+    return `<div class="cat-sec">${head}</div><div class="list-island child-card" style="margin-top:10px">${master}${rows}</div>`;
+  }
   /// 全部打卡 = 六类（含自定义）全开；关一类即显示为关
   function allCatsOn() {
     const ids = Object.keys(CAT).concat((S.customCats || []).map((c) => c.id));
@@ -6307,15 +6400,18 @@
     const ids = Object.keys(CAT).concat((S.customCats || []).map((c) => c.id));
     return ids.some((id) => !!S.cats[id]);
   }
-  /// 到点提醒总闸：通知自己 × 该类别开关。到点提醒串联在这道闸之后
-  /// （同 TaskNotificationService 的 gate 判据；未取到类别时不拦，避免误报）
-  function gateOpen(cat) {
+  /// 到点提醒总闸：通知自己 × 该类别开关 × 计划开关（V10.111，只有 V0.1 认这一层）。
+  /// 到点提醒串联在这道闸之后（同 TaskNotificationService 的 gate 判据；未取到类别时不拦，避免误报）
+  function gateOpen(cat, taskId) {
     if (!cat) return true;
-    return S.notifySelf && !!S.cats[cat];
+    if (!S.notifySelf || !S.cats[cat]) return false;
+    return !(genHasPlanSwitches() && taskId && S.planOff[taskId]);
   }
   /// 个人中心副说明：同 CheckInNotificationStore.caption 口径（未绑定家属不算家属通道）
   /// 设计代际（真机 DesignGeneration）：V0.1 才有家属管理与哈宝问诊
   function genHasFamily() { return S.gen === "0.1"; }
+  /// 打卡通知页的计划开关（V10.111）：同样只在 V0.1 出现，排程也只在 V0.1 认这一层
+  function genHasPlanSwitches() { return S.gen === "0.1"; }
   /* ── 家属代操作归属（V10.57）─────────────────────────────
      写入那一刻的身份 = 这条记录的操作人；只有 V0.1 有家属身份，故标记只在这一代际成立。
      本人写入不落键（与存量 / 种子数据字节一致），标记是「读记录」而不是「读界面」。 */
@@ -6331,7 +6427,7 @@
       if (member) { S.actorId = member.id; actorId = member.id; }
     }
     const clean = (lines || []).filter((l) => l && l[1]);
-    // 取消打卡覆盖当天那条同计划的「打卡了」，不新增一条（V10.110）
+    // 取消打卡覆盖当天那条同计划的「打卡了」，不新增一条（V10.113）
     if (action === "取消了打卡") {
       const title = (clean.find((l) => l[0] === "计划") || [])[1];
       const hit = S.ops.find((op) => op.action === "打卡了"
@@ -6436,12 +6532,9 @@
   }
   function opBlockHTML(op, withDay) {
     const head = withDay ? `${opDayTitle(toYMD(new Date(op.at)), toYMD(new Date()))} ${opHM(op.at)}` : opHM(op.at);
-    const tools = S.opEdit
-      ? `<div class="op-tools"><button class="op-tool" data-act="opReassign" data-id="${op.id}" type="button">改归属</button><button class="op-tool danger" data-act="opDel" data-id="${op.id}" type="button">删除</button></div>`
-      : "";
     return `<div class="op-block">
       <div class="op-block-head"><span class="op-block-time">${head}</span><i></i></div>
-      <div class="op-card"><h4>${opHeadlineHTML(op)}</h4>${opLinesHTML(op)}${tools}</div>
+      <div class="op-card" data-op-id="${op.id}"><h4>${opHeadlineHTML(op)}</h4>${opLinesHTML(op)}</div>
     </div>`;
   }
   function opVisibleOps() {
@@ -6452,6 +6545,28 @@
     const hits = opVisibleOps().filter((op) => opText(op).indexOf(q) >= 0);
     return `<div class="s13 t-sec" style="padding:2px 4px 12px">${hits.length ? `找到 ${hits.length} 条` : "没有找到相关的记录"}</div>`
       + hits.map((op) => opBlockHTML(op, true)).join("");
+  }
+  /// 长按一条 → 删除 / 改归属（真机 contextMenu 同款）
+  function bindOpHold() {
+    document.querySelectorAll(".op-card").forEach((card) => {
+      let timer = null;
+      let fired = false;
+      const open = () => { fired = true; openOverlay("opCard", { id: card.dataset.opId }); };
+      const start = () => { fired = false; timer = setTimeout(open, 550); };
+      const end = () => { if (timer) { clearTimeout(timer); timer = null; } };
+      card.onpointerdown = start;
+      card.onpointerup = end;
+      card.onpointerleave = end;
+      card.onpointercancel = end;
+      card.oncontextmenu = (e) => { e.preventDefault(); open(); };
+      // 长按弹层之后，这一次松手别再顺带触发结果行的跳转
+      card.addEventListener("click", (e) => {
+        if (!fired) return;
+        fired = false;
+        e.stopPropagation();
+        e.preventDefault();
+      }, true);
+    });
   }
   /// 搜索只换结果区，不整屏重绘（重绘会把输入框焦点弄丢）
   function bindOpSearch() {
@@ -6508,7 +6623,18 @@
   /// `catOverride` 给添加 / 编辑态用——那时还没有落库的任务，按草稿的类别判
   function blockedByGate(catOverride) {
     const cat = catOverride || currentTaskCat();
-    if (gateOpen(cat)) return false;
+    // 计划开关只对已保存的计划判（V10.111）：查看态带 S.taskId，编辑态用被改的那条，添加态还没有这一层
+    const pid = catOverride ? (S.screen === "task-edit" ? S.taskId : null) : S.taskId;
+    if (gateOpen(cat, pid)) return false;
+    if (genHasPlanSwitches() && pid && S.planOff[pid] && S.notifySelf && !!S.cats[cat]) {
+      openOverlay("confirm", {
+        title: "请先打开这条计划的提醒",
+        body: "个人中心已关闭这条计划的提醒，在这里开启也不会响。要收到提醒，请先到个人中心「打卡通知」打开这条计划。",
+        ok: "去设置",
+        action: "goNotify",
+      });
+      return true;
+    }
     openOverlay("confirm", {
       title: `请先打开${catName(cat)}通知`,
       body: `个人中心已关闭「${catName(cat)}」通知，在这里开启也不会响。要收到提醒，请先到个人中心打开总开关。`,
@@ -6517,24 +6643,35 @@
     });
     return true;
   }
-  /// 家属通道总闸：通知家属 × 已绑定家属 × 该类别开关
+  /// 家属通道总闸：通知家属 × 已绑定家属 × 该类别开关 × 计划开关（V10.111）
   /// （同 CheckInNotificationPreference.allowsFamilyReminder；计划「家属通知」串联在这道闸之后）
-  function familyGateOpen(cat) {
+  function familyGateOpen(cat, taskId) {
     if (!genHasFamily()) return false; // V0.0 没有家属通道，计划页的「家属通知」整行不出现
     if (!S.notifyFamily || !S.family.length) return false;
+    if (genHasPlanSwitches() && taskId && S.planOff[taskId]) return false;
     if (!cat) return true;
     return !!S.cats[cat];
   }
   /// 家属通道关着时弹窗拦下：未绑定去填写；已绑定未开总闸去个人中心。返回 true 表示已拦下。
   function blockedByFamilyGate(catOverride) {
     const cat = catOverride || currentTaskCat();
-    if (familyGateOpen(cat)) return false;
+    const pid = catOverride ? (S.screen === "task-edit" ? S.taskId : null) : S.taskId;
+    if (familyGateOpen(cat, pid)) return false;
     if (!S.family.length) {
       openOverlay("confirm", {
         title: "请先填写家属信息",
         body: "通知家属前请先绑定联系人",
         ok: "去填写",
         action: "goFamilyFromTask",
+      });
+      return true;
+    }
+    if (genHasPlanSwitches() && pid && S.planOff[pid] && S.notifyFamily && !!S.cats[cat]) {
+      openOverlay("confirm", {
+        title: "请先打开这条计划的提醒",
+        body: "个人中心已关闭这条计划的提醒，在这里开启也不会发。要通知家属，请先到个人中心「打卡通知」打开这条计划。",
+        ok: "去设置",
+        action: "goNotify",
       });
       return true;
     }
@@ -6901,7 +7038,7 @@
   function reminderSwitches(d, done, accent) {
     const id = S.taskId;
     const rows = [];
-    const gate = gateOpen(taskCatKey(d));
+    const gate = gateOpen(taskCatKey(d), id);
     const muted = !!S.mutedToday[id];
     // 总闸关着时开关显示关、也拨不开——点它弹窗引导去个人中心（不留小字）
     rows.push(reminderRow(
@@ -6916,7 +7053,7 @@
     if (genHasFamily()) {
       rows.push(reminderRow("家属通知",
         done ? "本次已打卡，提醒已锁定" : "同步通知已绑定的家属",
-        done ? false : (familyGateOpen(taskCatKey(d)) && !S.famOff[id]),
+        done ? false : (familyGateOpen(taskCatKey(d), id) && !S.famOff[id]),
         "famNotify", done, accent.fg, false));
     }
 
@@ -6928,7 +7065,8 @@
   /// 「本次」= 系列里的第一次（新建的循环计划从起始日开始，那一次就是它的「本次」）。
   /// 切换写进草稿，随「添加 / 确认」一起落库。
   function draftReminderSwitch(d, accent) {
-    const gate = gateOpen(taskCatKey(d));
+    // 计划开关只对已保存的计划判：编辑态用被改的那条，添加态还没有这一层（V10.111）
+    const gate = gateOpen(taskCatKey(d), S.screen === "task-edit" ? S.taskId : null);
     const rows = [];
     rows.push(reminderRow(
       "本次提醒",
@@ -6937,7 +7075,7 @@
     // 家属通知（V10.52）：写进草稿随「添加 / 确认」落库；闸关着时拨不开、弹层引导。V0.0 不出现
     if (genHasFamily()) {
       rows.push(reminderRow("家属通知", "同步通知已绑定的家属",
-        familyGateOpen(taskCatKey(d)) && d.famNotify !== false,
+        familyGateOpen(taskCatKey(d), S.screen === "task-edit" ? S.taskId : null) && d.famNotify !== false,
         "draftFamNotify", false, accent.fg, false));
     }
 
@@ -7312,6 +7450,25 @@
           </div>
         </div>
       </div>`,
+    consultImage: () => `
+      <div class="scrim bottom" data-act="close">
+        <div class="sheet" onclick="event.stopPropagation()">
+          <div class="grab"></div>
+          <div class="s20 fb t">发送图片</div>
+          <p class="s15 t-sec" style="margin:6px 0 14px">拍一张，或从相册选一张，挂到这条消息上。</p>
+          <button class="cta" data-act="pickConsultPhoto" type="button">${I.cam}拍照</button>
+          <button class="cta-line mt8" data-act="pickConsultPhoto" type="button">${I.folder}从相册选择</button>
+        </div>
+      </div>`,
+    aiCall: () => `
+      <div class="ai-call">
+        <img src="${A.logo}" width="84" height="84" alt="" />
+        <h2>哈宝医生</h2>
+        <div class="status">通话中</div>
+        <div class="timer">0:12</div>
+        <div class="said">走路有点喘</div>
+        <button class="ai-hang" data-act="hangUpCall" type="button"><i>${I.phone}</i>挂断</button>
+      </div>`,
     e120: () => `
       <div class="scrim center" style="background:rgba(0,0,0,.4)" data-act="close">
         <div class="popup e120-card" onclick="event.stopPropagation()">
@@ -7326,6 +7483,18 @@
           </div>
         </div>
       </div>`,
+    opCard: () => {
+      const op = (S.ops || []).find((x) => x.id === S.overlayData.id) || {};
+      return `
+      <div class="scrim center" data-act="close">
+        <div class="popup" style="padding:8px 0 12px" onclick="event.stopPropagation()">
+          <div class="s13 t-sec ta-c" style="padding:6px 16px 10px">${esc(op.actor || "")}${esc(op.action || "")}</div>
+          <button class="op-actor-row" data-act="opReassign" data-id="${op.id}" type="button"><span>改归属</span></button>
+          <button class="op-actor-row" data-act="opDel" data-id="${op.id}" type="button"><span style="color:var(--appt)">删除这条记录</span></button>
+          <button class="op-actor-row" data-act="close" type="button"><span style="color:var(--secondary)">取消</span></button>
+        </div>
+      </div>`;
+    },
     opActor: () => {
       const op = (S.ops || []).find((x) => x.id === S.overlayData.id) || {};
       const rows = [{ id: "", name: S.name || "本人", rel: "本人" }]
