@@ -1089,7 +1089,7 @@
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。" },
-    consult: { code: "SmartConsultChatView", note: "V10.122：底坞上排三枚轻胶囊「今日计划 / 本周指标 / 身体报告」（选中变蓝带 ✓，再点取消）。下排只有一条白胶囊：按住说话，或打字后右端出现「发送」。文字、图片、电话是胶囊外面的图标加两个字，没有底、没有圆钮，电话不会变成发送。AI电话接通后直接说，挂断把这句话发出。按住说话，上滑超 70pt 立即发送。V0.0 三个入口压暗点不开，切 V0.1 才进得来。" },
+    consult: { code: "SmartConsultChatView", note: "V10.123：底坞上排三枚轻胶囊「今日计划 / 本周指标 / 身体报告」（选中变蓝带 ✓，再点取消）。下排一条输入框：点按打字，长按把语音流式写进框里，松手留下文字，上滑取消。右侧一枚加号，点开功能面板：拍照 / 相册 / AI电话。有字或有图时，输入框右端出现「发送」。AI电话接通后直接说，挂断把这句话发出。V0.0 三个入口压暗点不开，切 V0.1 才进得来。" },
     profile: { code: "ServiceView", note: "Hero 健康档案 + 操作记录/通知/协议。无 VIP。V0.0 不出现家属管理与右上身份胶囊、档案标「本人」（切 V0.1 恢复）。身份胶囊仍决定写入归属，但不再在卡片上盖章；本人和家属的操作都进「操作记录」。" },
     activity: { code: "ActivityLogView", note: "V10.113 个人中心「操作记录」：一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内以时刻做块头（时刻 + 细分隔线）切成几块，块内白卡装内容。一件事记一条：一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）左 46px 定宽浅蓝标签 + 右侧实色蓝事项。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：本次未动」。结果行右侧带箭头的可点，跳到对应模块看当前存量；页顶搜索框搜记录内容；长按一条出「改归属 / 删除这条记录」，超 300 条丢过更早记录时最早那页页脚提示。空态「还没有操作记录」；某一天没有记录写「这一天没有操作记录」。" },
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.98：用药与复查有存量也直接落本页，存量组列在底部组轨道。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
@@ -1167,6 +1167,7 @@
     /// 查看 / 添加 / 编辑计划的两大类折叠：事项 / 时间与提醒（存被收起的分组，默认两组都展开）
     editorCollapsed: [],
     inputMode: "voice",
+    plusPanel: false,
     consultModule: null,
     pendingImage: false,
     chatDraft: "",
@@ -2745,6 +2746,16 @@
     if (draft) {
       draft.oninput = () => { S.chatDraft = draft.value; syncConsultSend(); };
       draft.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); act("sendChat"); } };
+      draft.onfocus = () => {
+        if (!S.plusPanel) return;
+        S.plusPanel = false;
+        document.querySelector(".plus-panel")?.remove();
+        const plus = document.querySelector(".chat-plus");
+        if (plus) {
+          plus.innerHTML = I.plus;
+          plus.setAttribute("aria-label", "更多功能");
+        }
+      };
     }
     const cname = document.getElementById("custom-cat-name");
     if (cname) {
@@ -3118,39 +3129,85 @@
     });
   }
 
+
   function bindHoldTalk() {
-    const btn = document.getElementById("hold");
-    if (!btn) return;
-    const label = btn.querySelector("span") || btn;
+    const input = document.getElementById("chat-draft");
+    const well = document.querySelector(".chat-well");
+    const hint = document.getElementById("listen-hint");
+    if (!input || !well) return;
+    const phrase = "今天血压有点高";
+    let timer = null;
+    let typer = null;
     let y0 = 0;
-    let sent = false;
-    const send = () => {
-      if (sent) return;
-      sent = true;
-      S.consultOpen = true;
-      S.messages.push({ who: "user", t: "（语音）今天血压有点高" });
-      S.messages.push({ who: "ai", t: "先静坐复测。若连续高于 140/90 并伴头晕，建议联系医生。" });
-      render();
+    let x0 = 0;
+    let base = "";
+    let armed = false;
+    let cancelled = false;
+    let step = 0;
+    const stopTyper = () => { if (typer) { clearInterval(typer); typer = null; } };
+    const showHint = (text, cancel) => {
+      if (!hint) return;
+      hint.hidden = !text;
+      hint.textContent = text || "";
+      hint.classList.toggle("cancel", !!cancel);
     };
-    btn.onpointerdown = (e) => {
-      sent = false;
+    input.onpointerdown = (e) => {
+      if (e.button !== 0) return;
       y0 = e.clientY;
-      btn.classList.add("pressing");
-      label.textContent = "正在聆听…";
-      try { btn.setPointerCapture(e.pointerId); } catch (_) {}
+      x0 = e.clientX;
+      base = input.value;
+      armed = false;
+      cancelled = false;
+      step = 0;
+      stopTyper();
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        armed = true;
+        input.blur();
+        well.classList.add("listening");
+        showHint("正在聆听，上滑取消", false);
+        try { input.setPointerCapture(e.pointerId); } catch (_) {}
+        typer = setInterval(() => {
+          if (cancelled) return;
+          step = Math.min(phrase.length, step + 1);
+          input.value = base + phrase.slice(0, step);
+          S.chatDraft = input.value;
+          syncConsultSend();
+        }, 140);
+      }, 400);
     };
-    btn.onpointermove = (e) => {
-      if (!sent && y0 - e.clientY > 70) send();
+    input.onpointermove = (e) => {
+      if (!armed && (Math.abs(e.clientX - x0) > 10 || Math.abs(e.clientY - y0) > 10)) {
+        if (timer) { clearTimeout(timer); timer = null; }
+      }
+      if (!armed) return;
+      cancelled = y0 - e.clientY > 70;
+      well.classList.toggle("cancelling", cancelled);
+      showHint(cancelled ? "松开取消" : "正在聆听，上滑取消", cancelled);
+      if (cancelled) {
+        stopTyper();
+        input.value = base;
+        S.chatDraft = base;
+        syncConsultSend();
+      }
     };
-    btn.onpointerup = () => {
-      btn.classList.remove("pressing");
-      if (!sent) send();
-      else label.textContent = "按住 说话";
+    const finish = () => {
+      if (timer) { clearTimeout(timer); timer = null; }
+      stopTyper();
+      if (!armed) return;
+      if (cancelled) {
+        input.value = base;
+        S.chatDraft = base;
+      } else {
+        S.chatDraft = input.value;
+      }
+      syncConsultSend();
+      well.classList.remove("listening", "cancelling");
+      showHint("", false);
+      armed = false;
     };
-    btn.onpointercancel = () => {
-      btn.classList.remove("pressing");
-      label.textContent = "按住 说话";
-    };
+    input.onpointerup = finish;
+    input.onpointercancel = finish;
   }
 
   function bindLoginFocus() {
@@ -4377,11 +4434,25 @@
         S.chatMenu = false;
         S.consultModule = null;
         S.pendingImage = false;
+        S.plusPanel = false;
         S.inputMode = "voice";
         S.chatDraft = "";
         render();
       },
       toggleMenu() { S.chatMenu = !S.chatMenu; render(); },
+      togglePlus() { S.plusPanel = !S.plusPanel; render(); },
+      consultCamera() {
+        S.plusPanel = false;
+        S.pendingImage = true;
+        toast("已拍照，补充一句再发送");
+        render();
+      },
+      consultAlbum() {
+        S.plusPanel = false;
+        S.pendingImage = true;
+        toast("已从相册选了一张，补充一句再发送");
+        render();
+      },
       // 聊天框上方三枚胶囊：把对应存量挂进当前问诊，再点同一枚取消（真机 SmartConsultChatView）
       consultPlan() { S.consultModule = S.consultModule === "plan" ? null : "plan"; render(); },
       consultVitals() { S.consultModule = S.consultModule === "vitals" ? null : "vitals"; render(); },
@@ -5729,17 +5800,16 @@
       </div>`;
     },
 
-    // 空态只有 Logo 问候。资料胶囊在上；下面只有一条白胶囊负责说话或打字，
-    // 文字 / 图片 / 电话是胶囊外的字。
+    // 空态只有 Logo 问候。资料胶囊在上；下面一条输入框（点按打字，长按把语音流进框里）和一枚加号。
     consult: () => {
       const note = consultModuleNote();
       const mod = (id, act, icon, label) => {
         const on = S.consultModule === id;
         return `<button class="consult-mod${on ? " on" : ""}" type="button" data-act="${act}">${on ? I.tick : icon}<span>${label}</span></button>`;
       };
-      const tool = (act, icon, label) =>
-        `<button class="chat-tool" type="button" data-act="${act}">${icon}<span>${label}</span></button>`;
       const canSend = consultCanSend();
+      const plusItem = (act, icon, label) =>
+        `<button class="plus-item" type="button" data-act="${act}"><span>${icon}</span>${label}</button>`;
       return `
       <div class="page rel">
         ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="26" height="26" alt="" />哈宝医生</span>`,
@@ -5761,17 +5831,19 @@
           ${mod("report", "consultReport", I.doc, "身体报告")}
         </div>
         ${S.pendingImage ? `<div class="consult-pending">已选 1 张图片，补充一句再发送</div>` : ""}
+        <div class="listen-hint" id="listen-hint" hidden></div>
         <div class="chat-row">
-          ${tool("toggleInput", S.inputMode === "text" ? I.micLine : I.kbd, S.inputMode === "text" ? "语音" : "文字")}
           <div class="chat-well">
-            ${S.inputMode === "text"
-              ? `<input class="chat-text" id="chat-draft" placeholder="输入问题…" value="${S.chatDraft.replace(/"/g, "&quot;")}" />
-                 <button class="chat-send" id="consult-send" type="button" data-act="sendChat"${canSend ? "" : " hidden"}>发送</button>`
-              : `<button class="hold" id="hold" type="button">${I.mic}<span>按住 说话</span></button>`}
+            <input class="chat-text" id="chat-draft" placeholder="输入问题，长按说话" value="${S.chatDraft.replace(/"/g, "&quot;")}" />
+            <button class="chat-send" id="consult-send" type="button" data-act="sendChat"${canSend ? "" : " hidden"}>发送</button>
           </div>
-          ${tool("consultImage", I.camLine, "图片")}
-          ${tool("consultCall", I.phone, "电话")}
+          <button class="chat-plus" data-act="togglePlus" type="button" aria-label="${S.plusPanel ? "关闭功能" : "更多功能"}">${S.plusPanel ? I.x : I.plus}</button>
         </div>
+        ${S.plusPanel ? `<div class="plus-panel">
+          ${plusItem("consultCamera", I.camLine, "拍照")}
+          ${plusItem("consultAlbum", I.folder, "相册")}
+          ${plusItem("consultCall", I.phone, "AI电话")}
+        </div>` : ""}
       </div>`;
     },
 
@@ -6326,9 +6398,9 @@
     };
   }
 
-  /// 文字模式有字或有待发图时，输入框右端才出现「发送」
+  /// 输入框里有字，或已经选了图，右端才出现「发送」
   function consultCanSend() {
-    return S.inputMode === "text" && (!!(S.chatDraft || "").trim() || !!S.pendingImage);
+    return !!(S.chatDraft || "").trim() || !!S.pendingImage;
   }
 
   function syncConsultSend() {
