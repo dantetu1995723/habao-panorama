@@ -88,6 +88,12 @@
     note: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 5.2v9.1a3.2 3.2 0 1 1-1.8-2.9V8.2L19 5.6v7.2a3.2 3.2 0 1 1-1.8-2.9V4.2L9 5.2Z"/></svg>`,
     radio: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.2 4.2 18 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.6L7.2 4.2ZM8 13.5A2.5 2.5 0 1 0 10.5 16 2.5 2.5 0 0 0 8 13.5Zm5.2-.7h5.6v1.6h-5.6Zm0 3.2h5.6v1.6h-5.6Z"/></svg>`,
     wave: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 10h2v4H4v-4Zm3.5-3h2v10h-2V7ZM11 4h2v16h-2V4Zm3.5 3h2v10h-2V7ZM18 10h2v4h-2v-4Z"/></svg>`,
+    mic: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5a3.5 3.5 0 0 1 3.5 3.5v5.5a3.5 3.5 0 0 1-7 0V6A3.5 3.5 0 0 1 12 2.5Zm-6.6 8.6h1.8a4.8 4.8 0 0 0 9.6 0h1.8a6.6 6.6 0 0 1-5.7 6.5V21h-1.8v-3.4a6.6 6.6 0 0 1-5.7-6.5Z"/></svg>`,
+    micLine: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0M12 17v3.5"/></svg>`,
+    kbd: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M6.5 9.5h1M10.5 9.5h1M14.5 9.5h1M17 9.5h.5M6.5 12.5h1M10.5 12.5h1M14.5 12.5h1M17 12.5h.5M8 15.5h8"/></svg>`,
+    camLine: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M9 4.5 7.6 6.5H4.5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h15a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-3.1L15 4.5H9Z"/><circle cx="12" cy="13" r="3.6"/></svg>`,
+    arrowU: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>`,
+    tick: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`,
     hist: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4a8 8 0 1 1-7.4 4.9l1.8.7A6.2 6.2 0 1 0 12 5.8V8l3.4-3.2L12 1.6V4Zm-.8 4.4h1.6v4.1l3 1.8-.8 1.4-3.8-2.3V8.4Z"/></svg>`,
   };
   Object.keys(I).forEach((k) => { I[k] = I[k].replace("<svg ", '<svg width="20" height="20" '); });
@@ -1083,7 +1089,7 @@
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。" },
-    consult: { code: "SmartConsultChatView", note: "V10.120：聊天框上方三模块「存量健康计划 / 指标检测 / 身体报告」，点按把对应存量挂进当前问诊（选中整格变蓝）。聊天框右侧并排「AI电话」「图片发送」；语音 / 文字切换在聊天框左侧。AI电话接通后直接说，挂断把这句话发出。图片发送可选拍照或相册。按住说话，上滑超 70pt 立即发送。V0.0 三个入口压暗点不开，切 V0.1 才进得来。" },
+    consult: { code: "SmartConsultChatView", note: "V10.121：底坞两层。上排三枚轻胶囊「今日计划 / 本周指标 / 身体报告」，点按把对应存量挂进当前问诊（选中变蓝带 ✓，再点取消）。下排一条主输入胶囊：左语音 / 文字切换，中按住说话或打字，右内嵌相机发图（拍照或相册）；胶囊外一枚实心蓝圆钮平时是 AI电话，打了字原位变发送。AI电话接通后直接说，挂断把这句话发出。按住说话，上滑超 70pt 立即发送。V0.0 三个入口压暗点不开，切 V0.1 才进得来。" },
     profile: { code: "ServiceView", note: "Hero 健康档案 + 操作记录/通知/协议。无 VIP。V0.0 不出现家属管理与右上身份胶囊、档案标「本人」（切 V0.1 恢复）。身份胶囊仍决定写入归属，但不再在卡片上盖章；本人和家属的操作都进「操作记录」。" },
     activity: { code: "ActivityLogView", note: "V10.113 个人中心「操作记录」：一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内以时刻做块头（时刻 + 细分隔线）切成几块，块内白卡装内容。一件事记一条：一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）左 46px 定宽浅蓝标签 + 右侧实色蓝事项。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：本次未动」。结果行右侧带箭头的可点，跳到对应模块看当前存量；页顶搜索框搜记录内容；长按一条出「改归属 / 删除这条记录」，超 300 条丢过更早记录时最早那页页脚提示。空态「还没有操作记录」；某一天没有记录写「这一天没有操作记录」。" },
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.98：用药与复查有存量也直接落本页，存量组列在底部组轨道。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
@@ -2737,7 +2743,7 @@
     bindWheelCols();
     const draft = document.getElementById("chat-draft");
     if (draft) {
-      draft.oninput = () => { S.chatDraft = draft.value; };
+      draft.oninput = () => { S.chatDraft = draft.value; syncConsultOrb(); };
       draft.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); act("sendChat"); } };
     }
     const cname = document.getElementById("custom-cat-name");
@@ -3115,6 +3121,7 @@
   function bindHoldTalk() {
     const btn = document.getElementById("hold");
     if (!btn) return;
+    const label = btn.querySelector("span") || btn;
     let y0 = 0;
     let sent = false;
     const send = () => {
@@ -3129,7 +3136,7 @@
       sent = false;
       y0 = e.clientY;
       btn.classList.add("pressing");
-      btn.textContent = "正在聆听…";
+      label.textContent = "正在聆听…";
       try { btn.setPointerCapture(e.pointerId); } catch (_) {}
     };
     btn.onpointermove = (e) => {
@@ -3138,11 +3145,11 @@
     btn.onpointerup = () => {
       btn.classList.remove("pressing");
       if (!sent) send();
-      else btn.textContent = "按住 说话";
+      else label.textContent = "按住 说话";
     };
     btn.onpointercancel = () => {
       btn.classList.remove("pressing");
-      btn.textContent = "按住 说话";
+      label.textContent = "按住 说话";
     };
   }
 
@@ -4375,10 +4382,10 @@
         render();
       },
       toggleMenu() { S.chatMenu = !S.chatMenu; render(); },
-      // 聊天框上方三模块：把对应存量挂进当前问诊（真机 SmartConsultChatView）
-      consultPlan() { S.consultModule = "plan"; render(); },
-      consultVitals() { S.consultModule = "vitals"; render(); },
-      consultReport() { S.consultModule = "report"; render(); },
+      // 聊天框上方三枚胶囊：把对应存量挂进当前问诊，再点同一枚取消（真机 SmartConsultChatView）
+      consultPlan() { S.consultModule = S.consultModule === "plan" ? null : "plan"; render(); },
+      consultVitals() { S.consultModule = S.consultModule === "vitals" ? null : "vitals"; render(); },
+      consultReport() { S.consultModule = S.consultModule === "report" ? null : "report"; render(); },
       consultImage() { openOverlay("consultImage"); },
       pickConsultPhoto() {
         S.pendingImage = true;
@@ -5722,11 +5729,15 @@
       </div>`;
     },
 
-    // 空态只有 Logo 问候。底坞：三模块带入存量，聊天框旁并排 AI电话 / 图片发送。
+    // 空态只有 Logo 问候。底坞两层：三枚轻胶囊带入存量（再点取消）；
+    // 主输入胶囊（左切换、中按住说话 / 打字、右内嵌图片）＋右侧圆钮（AI电话，有字时变发送）。
     consult: () => {
       const note = consultModuleNote();
-      const mod = (id, act, icon, label) =>
-        `<button class="consult-mod${S.consultModule === id ? " on" : ""}" type="button" data-act="${act}"><span class="well">${icon}</span><span>${label}</span></button>`;
+      const mod = (id, act, icon, label) => {
+        const on = S.consultModule === id;
+        return `<button class="consult-mod${on ? " on" : ""}" type="button" data-act="${act}">${on ? I.tick : icon}<span>${label}</span></button>`;
+      };
+      const orbSends = consultOrbSends();
       return `
       <div class="page rel">
         ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="26" height="26" alt="" />哈宝医生</span>`,
@@ -5742,22 +5753,21 @@
             `}
           ${note ? `<div class="consult-ctx"><b>${note.title}</b><p>${note.body}</p></div>` : ""}
         </div>
-        ${S.pendingImage ? `<div class="consult-pending">已选 1 张图片，补充一句再发送</div>` : ""}
         <div class="consult-mods">
-          ${mod("plan", "consultPlan", I.cal, "存量健康计划")}
-          ${mod("vitals", "consultVitals", I.ecg, "指标检测")}
+          ${mod("plan", "consultPlan", I.cal, "今日计划")}
+          ${mod("vitals", "consultVitals", I.ecg, "本周指标")}
           ${mod("report", "consultReport", I.doc, "身体报告")}
         </div>
+        ${S.pendingImage ? `<div class="consult-pending">已选 1 张图片，补充一句再发送</div>` : ""}
         <div class="chat-row">
           <div class="chat-well">
-            <button class="chat-mode" data-act="toggleInput" type="button">${S.inputMode === "text" ? I.wave : I.chat}</button>
-            ${S.inputMode === "text" ? `
-              <input class="chat-text" id="chat-draft" placeholder="输入问题…" value="${S.chatDraft.replace(/"/g, "&quot;")}" />
-              <button class="send-orb" data-act="sendChat" type="button">${I.chevU}</button>
-            ` : `<button class="hold" id="hold" type="button">按住 说话</button>`}
+            <button class="chat-mode" data-act="toggleInput" type="button" aria-label="${S.inputMode === "text" ? "切换到语音输入" : "切换到文字输入"}">${S.inputMode === "text" ? I.micLine : I.kbd}</button>
+            ${S.inputMode === "text"
+              ? `<input class="chat-text" id="chat-draft" placeholder="输入问题…" value="${S.chatDraft.replace(/"/g, "&quot;")}" />`
+              : `<button class="hold" id="hold" type="button">${I.mic}<span>按住 说话</span></button>`}
+            <button class="chat-img" data-act="consultImage" type="button" aria-label="发送图片">${I.camLine}</button>
           </div>
-          <button class="chat-side" data-act="consultCall" type="button">${I.phone}<span>AI电话</span></button>
-          <button class="chat-side photo" data-act="consultImage" type="button">${I.cam}<span>图片发送</span></button>
+          <button class="chat-orb" id="consult-orb" data-act="${orbSends ? "sendChat" : "consultCall"}" type="button" aria-label="${orbSends ? "发送" : "AI电话"}">${orbSends ? I.arrowU : I.phone}</button>
         </div>
       </div>`;
     },
@@ -6311,6 +6321,20 @@
       level,
       text: `血压 ${sys}/${dia} ${VITAL_LAB[bp]}（目标 ${VITAL.bpTargetText(age)}）；心率 ${hr} ${VITAL_LAB[st]}（目标 55–60）`,
     };
+  }
+
+  /// 文字模式有字或有待发图时，右侧圆钮从 AI电话 变成发送（真机 orbSends）
+  function consultOrbSends() {
+    return S.inputMode === "text" && (!!(S.chatDraft || "").trim() || !!S.pendingImage);
+  }
+
+  function syncConsultOrb() {
+    const orb = document.getElementById("consult-orb");
+    if (!orb) return;
+    const sends = consultOrbSends();
+    orb.dataset.act = sends ? "sendChat" : "consultCall";
+    orb.setAttribute("aria-label", sends ? "发送" : "AI电话");
+    orb.innerHTML = sends ? I.arrowU : I.phone;
   }
 
   /// 问诊三模块带入的存量摘要（真机 ConsultLaunchContext）
