@@ -1089,7 +1089,7 @@
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。" },
-    consult: { code: "SmartConsultChatView", note: "V10.123：底坞上排三枚轻胶囊「今日计划 / 本周指标 / 身体报告」（选中变蓝带 ✓，再点取消）。下排一条输入框：点按打字，长按把语音流式写进框里，松手留下文字，上滑取消。右侧一枚加号，点开功能面板：拍照 / 相册 / AI电话。有字或有图时，输入框右端出现「发送」。AI电话接通后直接说，挂断把这句话发出。V0.0 三个入口压暗点不开，切 V0.1 才进得来。" },
+    consult: { code: "SmartConsultChatView", note: "V10.124：点输入框出光标；键盘和功能板共用底部同一截高度，来回切时输入框不跳。点加号：键盘落下、功能板（拍照 / 相册 / AI电话）从这一截里出来；再点输入框，功能板让回键盘。长按输入框把语音流式写进框里，松手留下，上滑取消。V0.0 三个入口压暗点不开，切 V0.1 才进得来。" },
     profile: { code: "ServiceView", note: "Hero 健康档案 + 操作记录/通知/协议。无 VIP。V0.0 不出现家属管理与右上身份胶囊、档案标「本人」（切 V0.1 恢复）。身份胶囊仍决定写入归属，但不再在卡片上盖章；本人和家属的操作都进「操作记录」。" },
     activity: { code: "ActivityLogView", note: "V10.113 个人中心「操作记录」：一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内以时刻做块头（时刻 + 细分隔线）切成几块，块内白卡装内容。一件事记一条：一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）左 46px 定宽浅蓝标签 + 右侧实色蓝事项。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：本次未动」。结果行右侧带箭头的可点，跳到对应模块看当前存量；页顶搜索框搜记录内容；长按一条出「改归属 / 删除这条记录」，超 300 条丢过更早记录时最早那页页脚提示。空态「还没有操作记录」；某一天没有记录写「这一天没有操作记录」。" },
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.98：用药与复查有存量也直接落本页，存量组列在底部组轨道。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
@@ -1168,6 +1168,7 @@
     editorCollapsed: [],
     inputMode: "voice",
     plusPanel: false,
+    consultKeyboard: false,
     consultModule: null,
     pendingImage: false,
     chatDraft: "",
@@ -2747,14 +2748,25 @@
       draft.oninput = () => { S.chatDraft = draft.value; syncConsultSend(); };
       draft.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); act("sendChat"); } };
       draft.onfocus = () => {
-        if (!S.plusPanel) return;
         S.plusPanel = false;
-        document.querySelector(".plus-panel")?.remove();
-        const plus = document.querySelector(".chat-plus");
+        S.consultKeyboard = true;
+        const page = draft.closest(".page");
+        if (!page) return;
+        page.classList.add("consult-kb");
+        page.classList.remove("consult-panel");
+        const plus = page.querySelector(".chat-plus");
         if (plus) {
           plus.innerHTML = I.plus;
           plus.setAttribute("aria-label", "更多功能");
         }
+      };
+      draft.onblur = () => {
+        setTimeout(() => {
+          if (S.plusPanel) return;
+          if (document.activeElement && document.activeElement.id === "chat-draft") return;
+          S.consultKeyboard = false;
+          draft.closest(".page")?.classList.remove("consult-kb");
+        }, 80);
       };
     }
     const cname = document.getElementById("custom-cat-name");
@@ -4435,12 +4447,18 @@
         S.consultModule = null;
         S.pendingImage = false;
         S.plusPanel = false;
+        S.consultKeyboard = false;
         S.inputMode = "voice";
         S.chatDraft = "";
         render();
       },
       toggleMenu() { S.chatMenu = !S.chatMenu; render(); },
-      togglePlus() { S.plusPanel = !S.plusPanel; render(); },
+      togglePlus() {
+        const opening = !S.plusPanel;
+        S.plusPanel = opening;
+        S.consultKeyboard = false;
+        render();
+      },
       consultCamera() {
         S.plusPanel = false;
         S.pendingImage = true;
@@ -5811,7 +5829,7 @@
       const plusItem = (act, icon, label) =>
         `<button class="plus-item" type="button" data-act="${act}"><span>${icon}</span>${label}</button>`;
       return `
-      <div class="page rel">
+      <div class="page rel${S.consultKeyboard ? " consult-kb" : ""}${S.plusPanel ? " consult-panel" : ""}">
         ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="26" height="26" alt="" />哈宝医生</span>`,
           `<button class="cap" data-act="toggleMenu" type="button">${I.chat}对话</button>`)}
         ${S.chatMenu ? `<div class="menu-pop"><button data-go="consult-history" type="button">历史</button><button data-act="newChat" type="button">新对话</button></div>` : ""}
@@ -5839,11 +5857,17 @@
           </div>
           <button class="chat-plus" data-act="togglePlus" type="button" aria-label="${S.plusPanel ? "关闭功能" : "更多功能"}">${S.plusPanel ? I.x : I.plus}</button>
         </div>
-        ${S.plusPanel ? `<div class="plus-panel">
-          ${plusItem("consultCamera", I.camLine, "拍照")}
-          ${plusItem("consultAlbum", I.folder, "相册")}
-          ${plusItem("consultCall", I.phone, "AI电话")}
-        </div>` : ""}
+        <div class="dock-slot">
+          <div class="fake-kb dock-face" aria-hidden="true">
+            ${[10, 9, 7].map((n) => `<div class="kb-row">${"<i></i>".repeat(n)}</div>`).join("")}
+            <div class="kb-row"><i class="wide"></i></div>
+          </div>
+          <div class="plus-panel dock-face">
+            ${plusItem("consultCamera", I.camLine, "拍照")}
+            ${plusItem("consultAlbum", I.folder, "相册")}
+            ${plusItem("consultCall", I.phone, "AI电话")}
+          </div>
+        </div>
       </div>`;
     },
 
