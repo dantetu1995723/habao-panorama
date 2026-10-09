@@ -424,12 +424,22 @@
   function basisPara(groups, conclusion, kind) {
     return `<div class="basis-line">${basisPanel(groups)}</div>`;
   }
-  /// 分区头与计划列表同一枚（图标 + 标题 + 数量角标）
-  function basisSectionHead(kind, title, count) {
-    const icon = kind === "disease"
-      ? `<span class="sec-ico">${I.doc}</span>`
-      : `<img class="sec-ico" src="${A.task[kind]}" alt="" />`;
-    return sectionHead(icon, title, count);
+  /// 卡头（真机 PlanBasisSection.cardHeader）：图标井 + 标题 + 右侧「依据资料」胶囊；
+  /// 条数不出角标（太繁杂），卡头收在白卡内，不再浮在卡外
+  function basisSectionHead(kind, title, chipHTML) {
+    const red = kind === "appointment";
+    const icon = kind === "disease" ? I.doc : `<img src="${A.task[kind]}" alt="" />`;
+    return `<div class="basis-head">
+      <span class="basis-head-ico${red ? " red" : ""}">${icon}</span>
+      <span class="basis-head-title${red ? " red" : ""}">${title}</span>
+      ${chipHTML || ""}
+    </div>`;
+  }
+  /// 卡头右侧「依据资料」胶囊：视觉高 30、热区 44，箭头跟着收起 / 铺开转（真机 materialChip）
+  function basisMaterialChip(sec, open) {
+    return `<button class="basis-material-chip${open ? " on" : ""}" data-act="basisMaterial" data-sec="${sec}" type="button" aria-label="${open ? "折叠" : "展开"}依据资料">
+      <span class="basis-material-chip-in">${I.doc}<span>依据资料</span>${I.chevD}</span>
+    </button>`;
   }
   function basisOpt(label, on, act, attrs) {
     return `<button class="basis-opt${on ? " on" : ""}" data-act="${act}" ${attrs} type="button">${label}</button>`;
@@ -818,17 +828,15 @@
     basisPendingFields(sec).forEach((id) => { delete S.basisDrafts[id]; });
     render();
   }
-  /// 一块：标题在卡外；卡顶「依据资料」+ 原文 + 卡底确认
-  function basisSec(sec, title, count, paraHTML, photosHTML) {
+  /// 一块：卡头收在白卡内（图标井 + 标题 + 数量 + 右侧「依据资料」）+ 原文 + 卡底确认
+  function basisSec(sec, title, paraHTML, photosHTML) {
     const open = !!(S.basisMaterial && S.basisMaterial[sec]);
-    const btn = photosHTML
-      ? `<button class="basis-material-btn${open ? " on" : ""}" data-act="basisMaterial" data-sec="${sec}" type="button">${I.doc}<span>依据资料</span><em>${open ? "折叠" : "展开"}</em></button>`
-      : "";
+    const chip = photosHTML ? basisMaterialChip(sec, open) : "";
+    const materials = open && photosHTML ? `<div class="basis-materials">${photosHTML}</div>` : "";
     return `<div class="basis-sec">
-      <div class="basis-sec-row">${basisSectionHead(sec, title, count)}</div>
       <div class="basis-module">
-        ${btn}
-        ${open ? photosHTML : ""}
+        ${basisSectionHead(sec, title, chip)}
+        ${materials}
         ${paraHTML}
         <div class="basis-confirm" data-sec="${sec}">${basisFooter(sec)}</div>
       </div>
@@ -840,14 +848,14 @@
     // 出院记录、复查挂出院记录与手术记录；同一份出院记录在几块里就各有几枚「依据资料」按钮（默认收起，不重复）
     const hint = "";
     const diseaseHTML = basisSec(
-      "disease", "疾病信息", 1,
+      "disease", "疾病信息",
       basisPara(diseaseBasisGroups(), "", "disease"),
       basisOriginPhotos(["dischargeRecord"])
     );
     const meds = liveMeds();
     const medHTML = meds.length
       ? basisSec(
-          "medication", "用药计划", meds.length,
+          "medication", "用药计划",
           meds.map((m, i) => basisPara(medBasisGroups(m, i), `因此安排在 ${m.time} ${m.scene}服用。`, "medication")).join(""),
           basisOriginPhotos(["dischargeRecord"])
         )
@@ -855,7 +863,7 @@
     const bps = liveBPs();
     const monHTML = bps.length
       ? basisSec(
-          "monitoring", "测血压计划", 1,
+          "monitoring", "测血压计划",
           basisPara(bpBasisGroups(), `因此安排每天 ${bps.map((b) => b.time).sort().join(" 和 ")} 各测一次血压。`, "monitoring"),
           basisOriginPhotos(["dischargeRecord"])
         )
@@ -864,7 +872,7 @@
     const apptItems = confirmApptItems();
     const apptHTML = appts.length
       ? basisSec(
-          "appointment", "复查计划", appts.length,
+          "appointment", "复查计划",
           apptItems.map((it, i) => basisPara(apptBasisGroups(appts[i], i), it.time ? `因此安排${it.time} ${it.title}。` : "", "appointment")).join(""),
           basisOriginPhotos(["dischargeRecord", "surgeryRecord"])
         )
@@ -1076,12 +1084,12 @@
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。" },
     consult: { code: "SmartConsultChatView", note: "按住说话；上滑超 70pt 立即发送。可切文字输入。底坞三功能：解读指标 / 解读报告带上下文，拍照问诊挂待发图。V10.56：空态只有 Logo 问候，不再放示例问句、也不再灌样例对话。V0.0 三个入口（底坞中圆 / 血压监测 / 身体报告）压暗点不开，切 V0.1 才进得来。" },
     profile: { code: "ServiceView", note: "Hero 健康档案 + 操作记录/通知/协议。无 VIP。V0.0 不出现家属管理与右上身份胶囊、档案标「本人」（切 V0.1 恢复）。身份胶囊仍决定写入归属，但不再在卡片上盖章；本人和家属的操作都进「操作记录」。" },
-    activity: { code: "ActivityLogView", note: "V10.65 个人中心「操作记录」：一件事记一条。一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；下面结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：未改动」。空态「还没有操作记录」。" },
+    activity: { code: "ActivityLogView", note: "V10.107 个人中心「操作记录」：一天一页、左右滑动换日，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内以时刻做块头（时刻 + 细分隔线）切成几块，块内白卡装内容。一件事记一条：一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）左 46px 定宽浅蓝标签 + 右侧实色蓝事项。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：未改动」。空态「还没有操作记录」；某一天没有记录写「这一天没有操作记录」。" },
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.98：用药与复查有存量也直接落本页，存量组列在底部组轨道。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "按组分区预览。与首次上传、身体报告·基础报告共用同一份存量。入组可改类别 / 删组（必传出院记录至少留一组）；复查不改类别。右上入组「解析」、存档「提交」。无存量时空态只留文案，拍资料走左上「拍摄」，页内不再放「拍摄资料」钮。" },
     "first-rest": { code: "CreateScheduleFlowView", note: "点名称换预设；点时刻出居中「时刻调整」弹层（标题为事项名，双列时/分步进，分步长 5，取消 / 完成，点遮罩取消）。默认六项（起床 / 三餐 / 午休 / 睡觉，不含测血压）。「稍后」关整段创建流回首页；底栏「拍照上传病历」替换本页，不压栈。" },
-    "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。顶栏「计划 / 解析依据」两枚 Tab（同构健康计划未完成/已完成），默认落计划。**每个大块一张模块卡**（疾病信息 / 用药 / 测血压 / 复查）：卡顶「依据资料」与「展开 / 折叠」居中成一行（点开看这一块的来源照片），下面叠可改原文，不再写灰色字段名和「因此安排」那句，页顶也不再放说明文字。原文直接打字（用药整行原文、测血压的高血压诊断、复查项目、出院诊断），打字时下方按已打的字给补全候选（本地词表占位，**接 AI 只换 PlanBasisPredictor 一处**；已等于原文的候选不出现），打字只落草稿、点该块「确认」才回写重算（卡底居中「取消 / 确认」两枚，不再写「已改 N 处」），本页无语音入口；**来源日期点开万年历**（`CalendarDatePickerView`）。**时刻与循环不在这一页改**（走计划页卡片的「编辑」）。「重新生成计划」收在每个大块的卡底：**确认过才出现**（带这一块的修正处数），按下时把这一块还压着的草稿一并落库、清掉这一块标记、切回计划页并 toast「已按修正重新生成计划」；**两页底栏同一条、只有一枚「重新拍照解析」**。同源重算条目与计划页跟着变，备注只在没被用户改过时重算；来源照片每块各挂自己的来源（疾病信息 / 用药 / 测血压挂出院记录、复查挂出院记录与手术记录；默认收起）。作息区首次入组才带；复查置底标红；右上「确认」写入用药+复查，左上「稍后」关整段流。" },
+    "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。顶栏「计划 / 解析依据」两枚 Tab（同构健康计划未完成/已完成），默认落计划。**每个大块一张模块卡**（疾病信息 / 用药 / 测血压 / 复查）：卡头收在白卡内一行——图标井 + 标题（16pt）+ 右侧「依据资料」胶囊（点开铺开这一块的来源照片，浅蓝柔底托住），下面叠可改原文，不再写灰色字段名和「因此安排」那句，页顶也不再放说明文字。原文直接打字（用药整行原文、测血压的高血压诊断、复查项目、出院诊断），打字时下方按已打的字给补全候选（本地词表占位，**接 AI 只换 PlanBasisPredictor 一处**；已等于原文的候选不出现），打字只落草稿、点该块「确认」才回写重算（卡底「取消 / 确认」两枚等宽铺满，不再写「已改 N 处」），本页无语音入口；**来源日期点开万年历**（`CalendarDatePickerView`）。**时刻与循环不在这一页改**（走计划页卡片的「编辑」）。「重新生成计划」收在每个大块的卡底：**确认过才出现**（带这一块的修正处数），按下时把这一块还压着的草稿一并落库、清掉这一块标记、切回计划页并 toast「已按修正重新生成计划」；**两页底栏同一条、只有一枚「重新拍照解析」**。同源重算条目与计划页跟着变，备注只在没被用户改过时重算；来源照片每块各挂自己的来源（疾病信息 / 用药 / 测血压挂出院记录、复查挂出院记录与手术记录；默认收起）。作息区首次入组才带；复查置底标红；右上「确认」写入用药+复查，左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），进与首次上传 / 基础报告同一份资料详情，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
@@ -1158,6 +1166,8 @@
     completedBy: {},
     // 操作记录：本人与家属的照护动作，新的在前。卡片上不再盖章。
     ops: [],
+    // 操作记录当前页（YYYY-MM-DD）；空 = 今天
+    opDay: "",
     overlay: null,
     overlayData: {},
     scheduleFilter: "todo",
@@ -1438,6 +1448,13 @@
       { act: "bindFam", label: "（V0.1）家属绑定（最多 5 位）", optional: true },
       { act: "toggleCat", label: "打卡通知分类开关", optional: true },
     ]},
+    // V10.107：操作记录改成一天一页，右上角换日
+    { id: "activity-day", label: "已入组 · 操作记录按天看", cold: "demo", steps: [
+      { screen: "profile", label: "首页右上「我的」进个人中心" },
+      { screen: "activity", label: "「操作记录」进全屏页：一天一页，右上角日期按钮写「今天」" },
+      { act: "openOpCal", label: "点右上角日期开日历（未来日不可选）" },
+      { act: "pickCalDay", label: "选另一天，整页换成那一天；没有记录的写「这一天没有操作记录」", optional: true },
+    ]},
     // V10.57：身份胶囊升级为操作归属——家属代做的打卡在卡上留标记，切回本人仍可见
     { id: "family-proxy", label: "V0.1 · 家属代操作（代打卡留标记）", cold: "demo", steps: [
       { act: "openDebug", label: "首页右上「…」打开开发菜单" },
@@ -1615,18 +1632,23 @@
     return cells;
   }
   function datePickGrid(monthYmd, selectedYmd) {
-    const today = demoDate();
-    const selected = parseYMD(selectedYmd);
     const kind = S.overlayData?.kind;
+    // 操作记录换日（V10.107）：记录按真实时间写入，日历也按真实「今天」算，只到今天为止
+    const today = kind === "opDay" ? new Date() : demoDate();
+    const selected = parseYMD(selectedYmd);
     const rule = S.draft?.rule || "daily";
-    let minStart = kind === "customDur"
-      ? Math.max(startDay(today), startDay(customDurEarliestEnd(rule)))
-      : startDay(today);
+    const ops = S.ops || [];
+    let minStart = kind === "opDay"
+      ? startDay(ops.length ? new Date(ops[ops.length - 1].at) : today)
+      : kind === "customDur"
+        ? Math.max(startDay(today), startDay(customDurEarliestEnd(rule)))
+        : startDay(today);
+    const maxStart = kind === "opDay" ? startDay(today) : null;
     if (S.overlayData?.minYmd) minStart = Math.max(minStart, startDay(parseYMD(S.overlayData.minYmd)));
     return daysInGrid(parseYMD(monthYmd)).map((d) => {
       if (!d) return `<div class="dp-cell"></div>`;
       const ymd = toYMD(d);
-      const blocked = startDay(d) < minStart;
+      const blocked = startDay(d) < minStart || (maxStart != null && startDay(d) > maxStart);
       const isToday = toYMD(d) === toYMD(today);
       const on = startDay(d) === startDay(selected);
       const cls = ["dp-num", on && "on", !on && isToday && "today", !on && blocked && "past"].filter(Boolean).join(" ");
@@ -3058,6 +3080,8 @@
       ["#q-swipe", () => act("qPrev"), () => act("qNext")],
       ["#stamp-cal-swipe", () => { S.stampCalOffset -= 1; render(); }, () => { S.stampCalOffset += 1; render(); }],
       ["#date-pick-swipe", () => act("calMonth", { dataset: { dir: "-1" } }), () => act("calMonth", { dataset: { dir: "1" } })],
+      // 操作记录：左右拖动换一天（右拖往新的一天，左拖往更早）
+      ["#op-body", () => opStepDay(1), () => opStepDay(-1)],
     ];
     pairs.forEach(([sel, right, left]) => {
       const el = document.querySelector(sel);
@@ -3803,6 +3827,8 @@
         } else if (S.overlayData.kind === "seriesEnd" && S.draft) {
           S.draft.endDate = el.dataset.ymd;
           S.draft.duration = null;
+        } else if (S.overlayData.kind === "opDay") {
+          S.opDay = el.dataset.ymd;
         } else if (S.draft) S.draft.onceDate = el.dataset.ymd;
         render();
       },
@@ -3812,8 +3838,12 @@
         render();
       },
       calToday() {
-        const ymd = toYMD(demoDate());
-        if (S.overlayData.kind === "customDur") {
+        // 操作记录按真实「今天」算（记录按真实时间写入）
+        const ymd = S.overlayData.kind === "opDay" ? toYMD(new Date()) : toYMD(demoDate());
+        if (S.overlayData.kind === "opDay") {
+          S.overlayData.selected = ymd;
+          S.overlayData.month = ymd;
+        } else if (S.overlayData.kind === "customDur") {
           const minDays = customDurMinDays(S.draft?.rule || "daily");
           if (minDays > 1) return;
           S.overlayData.selected = ymd;
@@ -4310,6 +4340,11 @@
       },
       shareStamp() { openOverlay("share"); },
       openCal() { openOverlay("stampCal"); },
+      // 操作记录换日（V10.107）：日历里只到今天、最早到第一条记录那天
+      openOpCal() {
+        const ymd = S.opDay || toYMD(new Date());
+        openOverlay("datePick", { kind: "opDay", selected: ymd, month: ymd });
+      },
       demoShare() { toast("Demo 演示，未接入 SDK"); },
       savedAlbum() { toast("已保存到相册"); },
       qPick() {
@@ -5723,16 +5758,32 @@
 
     activity: () => {
       const ops = S.ops || [];
-      const body = ops.length
-        ? `<div class="list-island">${ops.map((op) => {
-            const d = new Date(op.at);
-            const hm = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-            return `<div class="list-row op-row" style="cursor:default"><span class="op-time">${hm}</span><div class="grow"><h4>${opHeadlineHTML(op)}</h4>${opLinesHTML(op)}</div></div>`;
-          }).join("")}</div>`
-        : `<div class="ta-c t-sec" style="padding:64px 16px;font-size:16px">还没有操作记录</div>`;
+      // 记录按真实时间写入，这一页也按真实「今天」算
+      const todayYMD = toYMD(new Date());
+      const sel = S.opDay || todayYMD;
+      const selDate = parseYMD(sel);
+      const dayTitle = sel === todayYMD
+        ? "今天"
+        : sel === toYMD(addDaysYMD(todayYMD, -1))
+          ? "昨天"
+          : `${selDate.getMonth() + 1}月${selDate.getDate()}日`;
+      const dayOps = ops.filter((op) => toYMD(new Date(op.at)) === sel).sort((a, b) => b.at - a.at);
+      const inner = !ops.length
+        ? `<div class="ta-c t-sec" style="padding:64px 16px;font-size:16px">还没有操作记录</div>`
+        : dayOps.length
+          ? dayOps.map((op) => {
+              const d = new Date(op.at);
+              const hm = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+              return `<div class="op-block">
+                <div class="op-block-head"><span class="op-block-time">${hm}</span><i></i></div>
+                <div class="op-card"><h4>${opHeadlineHTML(op)}</h4>${opLinesHTML(op)}</div>
+              </div>`;
+            }).join("")
+          : `<div class="ta-c t-sec" style="padding:64px 16px;font-size:15px">这一天没有操作记录</div>`;
+      const calBtn = ops.length ? cap(I.cal, dayTitle, "", "openOpCal") : "";
       return `<div class="page">
-        ${navBar(cap(I.chevL, "返回"), "操作记录")}
-        <div class="scroll px20" style="padding-top:12px">${body}</div>
+        ${navBar(cap(I.chevL, "返回"), "操作记录", calBtn)}
+        <div class="scroll px20" style="padding-top:6px"><div id="op-body">${inner}</div></div>
       </div>`;
     },
 
@@ -6233,6 +6284,16 @@
     }
     S.ops.unshift({ at: Date.now(), actor, action, place: place || "", lines: (lines || []).filter((l) => l && l[1]) });
     if (S.ops.length > 300) S.ops.length = 300;
+  }
+  /// 操作记录换日（V10.107）：在「今天 → 最早一条记录那天」之间移动，真机同日翻页手势
+  function opStepDay(delta) {
+    const ops = S.ops || [];
+    const todayYMD = toYMD(new Date());
+    const earliestYMD = toYMD(new Date(ops.length ? ops[ops.length - 1].at : new Date()));
+    const next = addDaysYMD(S.opDay || todayYMD, delta);
+    if (next < earliestYMD || next > todayYMD) return;
+    S.opDay = next;
+    render();
   }
   /// 用户从哪发起：栈里有健康计划就记「健康计划」，否则「首页」
   function entryPlace() {

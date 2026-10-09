@@ -1245,18 +1245,19 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .op-name svg { width: 12px; height: 12px; flex: 0 0 12px; }
 .op-place { color: var(--blue); background: #fff; box-shadow: inset 0 0 0 1px rgba(16,84,224,.40); }
 .op-plain { font-weight: 600; color: var(--blue); }
-.op-detail { color: var(--blue); font-weight: 700; font-size: calc(17px * var(--fs)); line-height: 1.4; }
-.op-row { align-items: flex-start; gap: 12px; }
-.op-time {
-  flex: 0 0 48px; padding-top: 4px;
-  font-size: calc(15px * var(--fs)); font-weight: 600; color: var(--secondary);
-  font-variant-numeric: tabular-nums;
-}
-.op-line { display: flex; align-items: baseline; gap: 8px; margin-top: 6px; }
-.op-line:first-of-type { margin-top: 8px; }
+.op-detail { flex: 1 1 auto; min-width: 0; color: var(--blue); font-weight: 600; font-size: calc(16px * var(--fs)); line-height: 1.5; }
+/* 操作记录（V10.107）：一天一页；时刻做块头（时刻 + 细分隔线），下面白卡装内容 */
+.op-block { margin-bottom: 16px; }
+.op-block-head { display: flex; align-items: center; gap: 10px; margin: 0 2px 8px; }
+.op-block-time { font-size: calc(15px * var(--fs)); font-weight: 600; color: var(--secondary); font-variant-numeric: tabular-nums; }
+.op-block-head i { flex: 1; height: 1px; background: rgba(16,84,224,.12); }
+.op-card { background: #fff; border-radius: 22px; padding: 16px; box-shadow: 0 10px 26px rgba(16,84,224,.10); }
+.op-card h4 { font-size: calc(17px * var(--fs)); font-weight: 700; color: var(--blue); line-height: 1.55; }
+.op-line { display: flex; align-items: baseline; gap: 10px; margin-top: 10px; }
+.op-line:first-of-type { margin-top: 12px; }
 .op-tag {
-  flex: 0 0 auto; padding: 1px 6px; border-radius: 6px;
-  font-size: calc(14px * var(--fs)); font-weight: 600;
+  flex: 0 0 46px; text-align: center; padding: 2px 0; border-radius: 7px;
+  font-size: calc(13px * var(--fs)); font-weight: 600;
   color: var(--blue); background: rgba(16,84,224,.08);
 }
 .list-row > svg { width: 14px; height: 14px; flex: 0 0 14px; opacity: .45; }
@@ -2151,8 +2152,6 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   box-shadow: 0 5px 10px rgba(16,84,224,.06);
 }
 .basis-line { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.sec-ico { width: 16px; height: 16px; flex: 0 0 16px; }
-.sec-ico svg { width: 16px; height: 16px; }
 .basis-sec { display: flex; flex-direction: column; gap: 10px; }
 .basis-sec + .basis-sec { margin-top: 16px; }
 .basis-sec-title {
@@ -2179,21 +2178,37 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   padding: 6px;
 }
 
-/* 「依据资料」：卡顶一行，右侧「展开 / 折叠」胶囊（真机 PlanBasisSection.materialToggle） */
-.basis-sec-row { display: flex; align-items: center; gap: 8px; }
-.basis-sec-row .type-h { flex: 1 1 auto; min-width: 0; }
-.basis-material-btn {
-  display: flex; align-items: center; justify-content: flex-start; gap: 8px; width: 100%;
-  min-height: 44px; padding: 0; border: 0; border-radius: 0; cursor: pointer;
-  background: transparent; color: var(--blue); font-family: inherit;
-  font-size: calc(15px * var(--fs)); font-weight: 600;
+/* 卡头收在卡内：图标井 + 标题 + 数量角标 + 右侧「依据资料」胶囊（真机 PlanBasisSection.cardHeader） */
+.basis-head { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.basis-head-ico {
+  width: 30px; height: 30px; flex: 0 0 30px; border-radius: 9px;
+  background: rgba(16,84,224,.12); color: var(--blue);
+  display: flex; align-items: center; justify-content: center;
 }
-.basis-material-btn svg { width: 13px; height: 13px; flex: 0 0 13px; }
-.basis-material-btn em {
-  font-style: normal; font-weight: 700; font-size: calc(14px * var(--fs));
-  min-height: 32px; padding: 0 12px; border-radius: 999px;
-  background: rgba(16,84,224,.12);
-  display: inline-flex; align-items: center;
+.basis-head-ico svg { width: 15px; height: 15px; }
+.basis-head-ico img { width: 17px; height: 17px; }
+.basis-head-ico.red { background: rgba(220,72,72,.12); color: var(--appt); }
+.basis-head-title {
+  display: flex; align-items: center; gap: 6px; flex: 1 1 auto; min-width: 0;
+  font-size: calc(16px * var(--fs)); font-weight: 700; color: var(--blue);
+}
+.basis-head-title.red { color: var(--appt); }
+.basis-material-chip {
+  display: inline-flex; align-items: center; height: 44px; padding: 0; flex: 0 0 auto;
+  border: 0; background: transparent; cursor: pointer; font-family: inherit; color: var(--blue);
+}
+.basis-material-chip-in {
+  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px;
+  border-radius: 999px; background: rgba(16,84,224,.12);
+  font-size: calc(13.5px * var(--fs)); font-weight: 600;
+}
+.basis-material-chip-in svg { width: 12px; height: 12px; flex: 0 0 12px; }
+.basis-material-chip-in svg:last-child { width: 10px; height: 10px; flex: 0 0 10px; opacity: .8; transition: transform .25s ease; }
+.basis-material-chip.on .basis-material-chip-in svg:last-child { transform: rotate(180deg); }
+/* 铺开的来源照片：浅蓝柔底托住（真机 PlanBasisSourcePhotos 的 5% 蓝底圆角 14） */
+.basis-materials {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 12px; border-radius: 14px; background: rgba(16,84,224,.05);
 }
 
 /* 一块改完：已改 N 处 + 取消 / 确认（收在模块卡底，真机 PlanBasisSection.confirmRow） */
