@@ -58,6 +58,7 @@
     spark: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 13.6 8.4 20 10l-6.4 1.6L12 18l-1.6-6.4L4 10l6.4-1.6L12 2Zm7 10 1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3Z"/></svg>`,
     folder: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 6h7l2 2h9v12H3V6Z"/></svg>`,
     trash: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 3h6l1 2h5v2H3V5h5l1-2Zm1 6h2v10h-2V9Zm4 0h2v10h-2V9Z"/></svg>`,
+    search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>`,
     phone: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 2.5 9 5.8a1.5 1.5 0 0 1-.3 1.9l-1.5 1.4a12.5 12.5 0 0 0 8 8l1.4-1.5a1.5 1.5 0 0 1 1.9-.3l3.3 2.4a1.5 1.5 0 0 1 .2 2.2l-1.7 2.1c-.6.7-1.6 1-2.6.7C9.4 20.2 3.8 14.6 1.8 6.3c-.3-1 .0-2 .7-2.6L4.6 2.1a1.5 1.5 0 0 1 2 .4Z"/></svg>`,
     bell: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a6 6 0 0 1 6 6v5l1.6 2.4H4.4L6 14V9a6 6 0 0 1 6-6Zm-2.2 16h4.4A2.2 2.2 0 0 1 12 21a2.2 2.2 0 0 1-2.2-2Z"/></svg>`,
     bellSlash: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a6 6 0 0 1 6 6v5l1.6 2.4H4.4L6 14V9a6 6 0 0 1 6-6Zm-2.2 16h4.4A2.2 2.2 0 0 1 12 21a2.2 2.2 0 0 1-2.2-2Z" opacity=".38"/><path d="M4.3 3.1 3.1 4.3l16.6 16.6 1.2-1.2z"/></svg>`,
@@ -1084,7 +1085,7 @@
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。" },
     consult: { code: "SmartConsultChatView", note: "按住说话；上滑超 70pt 立即发送。可切文字输入。底坞三功能：解读指标 / 解读报告带上下文，拍照问诊挂待发图。V10.56：空态只有 Logo 问候，不再放示例问句、也不再灌样例对话。V0.0 三个入口（底坞中圆 / 血压监测 / 身体报告）压暗点不开，切 V0.1 才进得来。" },
     profile: { code: "ServiceView", note: "Hero 健康档案 + 操作记录/通知/协议。无 VIP。V0.0 不出现家属管理与右上身份胶囊、档案标「本人」（切 V0.1 恢复）。身份胶囊仍决定写入归属，但不再在卡片上盖章；本人和家属的操作都进「操作记录」。" },
-    activity: { code: "ActivityLogView", note: "V10.109 个人中心「操作记录」：一天一页、左右滑动换日，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内以时刻做块头（时刻 + 细分隔线）切成几块，块内白卡装内容。一件事记一条：一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）左 46px 定宽浅蓝标签 + 右侧实色蓝事项。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：未改动」。空态「还没有操作记录」；某一天没有记录写「这一天没有操作记录」。" },
+    activity: { code: "ActivityLogView", note: "V10.110 个人中心「操作记录」：一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内以时刻做块头（时刻 + 细分隔线）切成几块，块内白卡装内容。一件事记一条：一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）左 46px 定宽浅蓝标签 + 右侧实色蓝事项。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：本次未动」。结果行右侧带箭头的可点，跳到对应模块看当前存量；页顶搜索框搜记录内容，「⋯」菜单可跳到最早一天 / 管理记录（删除、改归属）/ 清空记录；超 300 条丢过更早记录时最早那页页脚提示。空态「还没有操作记录」；某一天没有记录写「这一天没有操作记录」。" },
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.98：用药与复查有存量也直接落本页，存量组列在底部组轨道。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "按组分区预览。与首次上传、身体报告·基础报告共用同一份存量。入组可改类别 / 删组（必传出院记录至少留一组）；复查不改类别。右上入组「解析」、存档「提交」。无存量时空态只留文案，拍资料走左上「拍摄」，页内不再放「拍摄资料」钮。" },
@@ -1166,8 +1167,12 @@
     completedBy: {},
     // 操作记录：本人与家属的照护动作，新的在前。卡片上不再盖章。
     ops: [],
-    // 操作记录当前页（YYYY-MM-DD）；空 = 今天
+    // 操作记录当前页（YYYY-MM-DD）；空 = 最近一条那天
     opDay: "",
+    opQuery: "",
+    opEdit: false,
+    opMenu: false,
+    opDropped: false,
     overlay: null,
     overlayData: {},
     scheduleFilter: "todo",
@@ -1448,12 +1453,14 @@
       { act: "bindFam", label: "（V0.1）家属绑定（最多 5 位）", optional: true },
       { act: "toggleCat", label: "打卡通知分类开关", optional: true },
     ]},
-    // V10.109：操作记录改成一天一页，右上角换日
+    // V10.110：操作记录按天看、可搜可管，结果行能跳模块
     { id: "activity-day", label: "已入组 · 操作记录按天看", cold: "demo", steps: [
       { screen: "profile", label: "首页右上「我的」进个人中心" },
-      { screen: "activity", label: "「操作记录」进全屏页：一天一页，右上角日期按钮写「今天」" },
+      { screen: "activity", label: "「操作记录」进全屏页：落在最近一条那天，右上角日期按钮同天" },
       { act: "openOpCal", label: "点右上角日期开日历（未来日不可选）" },
       { act: "pickCalDay", label: "选另一天，整页换成那一天；没有记录的写「这一天没有操作记录」", optional: true },
+      { act: "opMenu", label: "右上「⋯」：跳到最早一天 / 管理记录 / 清空记录" },
+      { act: "opEdit", label: "「管理记录」后每条出「删除 / 改归属」", optional: true },
     ]},
     // V10.57：身份胶囊升级为操作归属——家属代做的打卡在卡上留标记，切回本人仍可见
     { id: "family-proxy", label: "V0.1 · 家属代操作（代打卡留标记）", cold: "demo", steps: [
@@ -2502,7 +2509,7 @@
   /// 资料前后对比：已入组「用药与复查」对比载入的存量 S.docStock；首次创建直接列类别页数
   function opMaterialChange() {
     const now = (S.docGroups || []).filter((g) => g.pages > 0);
-    if (!S.docStock) return opMaterialValue(now) || "未改动";
+    if (!S.docStock) return opMaterialValue(now) || "本次未动";
     const byCat = (groups) => groups.reduce((m, g) => {
       const t = docCat(g.cat).t;
       m[t] = (m[t] || 0) + g.pages;
@@ -2516,7 +2523,7 @@
       if (d > 0) parts.push(`${t}新增 ${d} 页`);
       if (d < 0) parts.push(`${t}删掉 ${-d} 页`);
     });
-    return parts.join("、") || "未改动";
+    return parts.join("、") || "本次未动";
   }
   function finishArchive() {
     const visit = isVisitCapture();
@@ -2536,7 +2543,7 @@
     const doneAppts = fromCheckIn ? completeTodayAppointments() : [];
     logOp(visit ? "上传了复查资料" : "上传了资料", S.archivePlace || (visit ? "复查报告" : "基础报告"), [
       ["资料", material],
-      doneAppts.length ? ["打卡", `${opNames(doneAppts)} 已完成`] : ["计划", "未改动"],
+      doneAppts.length ? ["打卡", `${opNames(doneAppts)} 已完成`] : ["计划", "本次未动"],
     ]);
     S.archivePlace = null;
     // V10.49：复诊打卡提交不直接回首页，落复查报告页（该页底栏多一颗「返回首页」）
@@ -2720,6 +2727,7 @@
     bindLongPresses();
     bindSwipes();
     bindHoldTalk();
+    bindOpSearch();
     bindLoginFocus();
     bindEdgeBack();
     bindWheelCols();
@@ -4272,23 +4280,28 @@
         S.name = name;
         back();
       },
-      toggleSelf() { S.notifySelf = !S.notifySelf; render(); },
+      toggleSelf() { S.notifySelf = !S.notifySelf; logOp("改了到点提醒", "打卡通知", [["提醒", `总开关 已${S.notifySelf ? "打开" : "关闭"}`]]); render(); },
       // 全部打卡总开关：全开时点按全关，否则全开
       toggleAll() {
         const next = !allCatsOn();
         Object.keys(CAT).forEach((c) => { S.cats[c] = next; });
         (S.customCats || []).forEach((c) => { S.cats[c.id] = next; });
+        logOp("改了到点提醒", "打卡通知", [["提醒", `全部打卡 已${next ? "打开" : "关闭"}`]]);
         render();
       },
       toggleCat() {
         const c = el.dataset.cat;
         if (!c) return;
         S.cats[c] = !S.cats[c];
+        const nm = (CAT[c] && CAT[c].name) || ((S.customCats || []).find((x) => x.id === c) || {}).name || "类别";
+        logOp("改了到点提醒", "打卡通知", [["提醒", `${nm} 已${S.cats[c] ? "打开" : "关闭"}`]]);
         render();
       },
       toggleFam() {
         if (!S.family.length) { openOverlay("confirm", { title: "请先填写家属信息", body: "通知家属前请先绑定联系人", ok: "去填写", action: "goFamily" }); return; }
-        S.notifyFamily = !S.notifyFamily; render();
+        S.notifyFamily = !S.notifyFamily;
+        logOp("改了到点提醒", "打卡通知", [["提醒", `家属提醒 已${S.notifyFamily ? "打开" : "关闭"}`]]);
+        render();
       },
       goFamily() { closeOverlay(); go("family", "cover"); },
       // 计划页「去填写」：先记链路标记，家属页填完返回时自动进打卡通知页（真机 AddEditTaskView onDismiss）
@@ -4340,7 +4353,42 @@
       },
       shareStamp() { openOverlay("share"); },
       openCal() { openOverlay("stampCal"); },
-      // 操作记录换日（V10.109）：日历里只到今天、最早到第一条记录那天
+      opMenu() { S.opMenu = !S.opMenu; S.opEdit = false; render(); },
+      opGoEarliest() {
+        const all = opVisibleOps();
+        if (!all.length) return;
+        S.opDay = toYMD(new Date(all[all.length - 1].at));
+        S.opMenu = false;
+        render();
+      },
+      opEdit() { S.opEdit = !S.opEdit; S.opMenu = false; render(); },
+      opClearAsk() {
+        S.opMenu = false;
+        openOverlay("confirm", { title: "清空操作记录", body: "本机这份记录会全部删掉，档案、计划与资料不受影响。", ok: "清空", danger: true, action: "opClear" });
+      },
+      opClear() { S.ops = []; S.opDropped = false; S.opDay = ""; S.opQuery = ""; S.opEdit = false; closeOverlay(); render(); },
+      opDel() {
+        S.ops = (S.ops || []).filter((op) => op.id !== el.dataset.id);
+        render();
+      },
+      opReassign() { openOverlay("opActor", { id: el.dataset.id }); },
+      opPickActor() {
+        const op = (S.ops || []).find((x) => x.id === S.overlayData.id);
+        const id = el.dataset.id;
+        if (op) {
+          if (id) {
+            const member = (S.family || []).find((f) => String(f.id) === String(id));
+            if (member) { op.actor = member.name; op.actorId = member.id; }
+          } else {
+            op.actor = S.name || "本人";
+            op.actorId = null;
+          }
+        }
+        S.opEdit = false;
+        closeOverlay();
+        render();
+      },
+      // 操作记录换日（V10.110）：日历里只到今天、最早到第一条记录那天
       openOpCal() {
         const ymd = S.opDay || toYMD(new Date());
         openOverlay("datePick", { kind: "opDay", selected: ymd, month: ymd });
@@ -5757,33 +5805,32 @@
     },
 
     activity: () => {
-      const ops = S.ops || [];
-      // 记录按真实时间写入，这一页也按真实「今天」算
+      const all = opVisibleOps();
       const todayYMD = toYMD(new Date());
-      const sel = S.opDay || todayYMD;
-      const selDate = parseYMD(sel);
-      const dayTitle = sel === todayYMD
-        ? "今天"
-        : sel === toYMD(addDaysYMD(todayYMD, -1))
-          ? "昨天"
-          : `${selDate.getMonth() + 1}月${selDate.getDate()}日`;
-      const dayOps = ops.filter((op) => toYMD(new Date(op.at)) === sel).sort((a, b) => b.at - a.at);
-      const inner = !ops.length
-        ? `<div class="ta-c t-sec" style="padding:64px 16px;font-size:16px">还没有操作记录</div>`
-        : dayOps.length
-          ? dayOps.map((op) => {
-              const d = new Date(op.at);
-              const hm = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-              return `<div class="op-block">
-                <div class="op-block-head"><span class="op-block-time">${hm}</span><i></i></div>
-                <div class="op-card"><h4>${opHeadlineHTML(op)}</h4>${opLinesHTML(op)}</div>
-              </div>`;
-            }).join("")
-          : `<div class="ta-c t-sec" style="padding:64px 16px;font-size:15px">这一天没有操作记录</div>`;
-      const calBtn = ops.length ? cap(I.cal, dayTitle, "", "openOpCal") : "";
+      const q = (S.opQuery || "").trim();
+      const sel = S.opDay || (all.length ? toYMD(new Date(all[0].at)) : todayYMD);
+      const dayTitle = opDayTitle(sel, todayYMD);
+      const dayOps = all.filter((op) => toYMD(new Date(op.at)) === sel).sort((a, b) => b.at - a.at);
+      const earliestYMD = all.length ? toYMD(new Date(all[all.length - 1].at)) : todayYMD;
+      const inner = !all.length
+        ? `<div class="op-empty" style="font-size:calc(16px * var(--fs))">还没有操作记录</div>`
+        : q
+          ? opSearchBody(q)
+          : dayOps.length
+            ? dayOps.map((op) => opBlockHTML(op, false)).join("")
+              + (sel === earliestYMD && S.opDropped ? `<div class="op-foot-note">更早的记录不再保留（最多 300 条）</div>` : "")
+            : `<div class="op-empty">这一天没有操作记录</div>`;
+      const calBtn = all.length ? cap(I.cal, dayTitle, "", "openOpCal") : "";
+      const searchRow = all.length ? `
+        <div class="op-search-row px20" style="margin-top:6px">
+          <div class="op-search">${I.search}<input id="op-search" placeholder="搜记录内容" value="${escAttr(S.opQuery || "")}" /></div>
+          <button class="op-more" data-act="opMenu" type="button">⋯</button>
+          ${S.opMenu ? `<div class="menu-pop op-menu"><button data-act="opGoEarliest" type="button">跳到最早一天</button><button data-act="opEdit" type="button">${S.opEdit ? "完成管理" : "管理记录"}</button><button data-act="opClearAsk" type="button">清空记录</button></div>` : ""}
+        </div>` : "";
       return `<div class="page">
         ${navBar(cap(I.chevL, "返回"), "操作记录", calBtn)}
-        <div class="scroll px20" style="padding-top:6px"><div id="op-body">${inner}</div></div>
+        ${searchRow}
+        <div class="scroll px20" style="padding-top:6px"><div id="op-body"><div id="op-results">${inner}</div></div></div>
       </div>`;
     },
 
@@ -6277,13 +6324,35 @@
   function logOp(action, place, lines) {
     if (!S.ops) S.ops = [];
     let actor = S.name || "本人";
+    let actorId = null;
     if (genHasFamily() && S.role === "family") {
       const member = (S.family || []).find((m) => m.id === S.actorId) || (S.family || [])[0];
       actor = member ? member.name : "家属";
-      if (member) S.actorId = member.id;
+      if (member) { S.actorId = member.id; actorId = member.id; }
     }
-    S.ops.unshift({ at: Date.now(), actor, action, place: place || "", lines: (lines || []).filter((l) => l && l[1]) });
-    if (S.ops.length > 300) S.ops.length = 300;
+    const clean = (lines || []).filter((l) => l && l[1]);
+    // 取消打卡覆盖当天那条同计划的「打卡了」，不新增一条（V10.110）
+    if (action === "取消了打卡") {
+      const title = (clean.find((l) => l[0] === "计划") || [])[1];
+      const hit = S.ops.find((op) => op.action === "打卡了"
+        && toYMD(new Date(op.at)) === toYMD(new Date())
+        && (op.lines || []).some((l) => l[0] === "计划" && l[1] === title));
+      if (hit) {
+        hit.action = action;
+        hit.at = Date.now();
+        hit.place = place || "";
+        hit.actor = actor;
+        hit.actorId = actorId;
+        hit.lines = (hit.lines || []).filter((l) => l[0] === "计划");
+        S.ops.sort((a, b) => b.at - a.at);
+        return;
+      }
+    }
+    S.ops.unshift({
+      id: `op${Date.now()}${Math.random().toString(36).slice(2, 6)}`,
+      at: Date.now(), actor, actorId, action, place: place || "", lines: clean,
+    });
+    if (S.ops.length > 300) { S.ops.length = 300; S.opDropped = true; }
   }
   /// 操作记录换日（V10.109）：在「今天 → 最早一条记录那天」之间移动，真机同日翻页手势
   function opStepDay(delta) {
@@ -6338,14 +6407,63 @@
   }
   /// 人名浅蓝底胶囊，界面白底蓝边胶囊
   function opHeadlineHTML(op) {
-    const name = `<span class="op-name">${I.person}${esc(op.actor)}</span>`;
+    const unbound = op.actorId && !(S.family || []).some((m) => String(m.id) === String(op.actorId));
+    const name = `<span class="op-name">${I.person}${esc(op.actor)}</span>${unbound ? `<span class="op-unbound">已解绑</span>` : ""}`;
     const action = `<span class="op-plain">${esc(op.action)}</span>`;
     if (!op.place) return name + action;
     return `${name}<span class="op-plain">在</span><span class="op-place">${esc(op.place)}</span>${action}`;
   }
+  /// 结果行右侧带箭头的可点：跳到对应模块看当前存量（真机同款）
+  const OP_LINE_GO = { "计划": "schedule", "用药": "schedule", "日常": "schedule", "运动": "schedule", "打卡": "schedule", "复查": "schedule", "读数": "vitals", "资料": "report" };
   function opLinesHTML(op) {
-    return (op.lines || []).map(([label, value]) =>
-      `<div class="op-line"><span class="op-tag">${esc(label)}</span><span class="op-detail">${esc(value)}</span></div>`).join("");
+    return (op.lines || []).map(([label, value]) => {
+      const go = OP_LINE_GO[label];
+      return `<div class="op-line${go ? " go" : ""}"${go ? ` data-go="${go}"` : ""}><span class="op-tag">${esc(label)}</span><span class="op-detail">${esc(value)}</span>${go ? I.chevR : ""}</div>`;
+    }).join("");
+  }
+  function opText(op) {
+    return `${op.actor}在${op.place || ""}${op.action} ` + (op.lines || []).map((l) => `${l[0]}${l[1]}`).join(" ");
+  }
+  function opHM(at) {
+    const d = new Date(at);
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  }
+  function opDayTitle(sel, todayYMD) {
+    if (sel === todayYMD) return "今天";
+    if (sel === toYMD(addDaysYMD(todayYMD, -1))) return "昨天";
+    const d = parseYMD(sel);
+    return `${d.getMonth() + 1}月${d.getDate()}日`;
+  }
+  function opBlockHTML(op, withDay) {
+    const head = withDay ? `${opDayTitle(toYMD(new Date(op.at)), toYMD(new Date()))} ${opHM(op.at)}` : opHM(op.at);
+    const tools = S.opEdit
+      ? `<div class="op-tools"><button class="op-tool" data-act="opReassign" data-id="${op.id}" type="button">改归属</button><button class="op-tool danger" data-act="opDel" data-id="${op.id}" type="button">删除</button></div>`
+      : "";
+    return `<div class="op-block">
+      <div class="op-block-head"><span class="op-block-time">${head}</span><i></i></div>
+      <div class="op-card"><h4>${opHeadlineHTML(op)}</h4>${opLinesHTML(op)}${tools}</div>
+    </div>`;
+  }
+  function opVisibleOps() {
+    const showsFamily = genHasFamily();
+    return (S.ops || []).filter((op) => showsFamily || !op.actorId);
+  }
+  function opSearchBody(q) {
+    const hits = opVisibleOps().filter((op) => opText(op).indexOf(q) >= 0);
+    return `<div class="s13 t-sec" style="padding:2px 4px 12px">${hits.length ? `找到 ${hits.length} 条` : "没有找到相关的记录"}</div>`
+      + hits.map((op) => opBlockHTML(op, true)).join("");
+  }
+  /// 搜索只换结果区，不整屏重绘（重绘会把输入框焦点弄丢）
+  function bindOpSearch() {
+    const input = document.getElementById("op-search");
+    if (!input) return;
+    input.oninput = () => {
+      S.opQuery = input.value;
+      const box = document.getElementById("op-results");
+      if (!box) return;
+      box.innerHTML = opSearchBody(S.opQuery.trim());
+      bindClicks(box);
+    };
   }
   /// silent：顺带完成的打卡，由发起那件事写一条汇总
   function markProxy(id, place, silent) {
@@ -7208,6 +7326,21 @@
           </div>
         </div>
       </div>`,
+    opActor: () => {
+      const op = (S.ops || []).find((x) => x.id === S.overlayData.id) || {};
+      const rows = [{ id: "", name: S.name || "本人", rel: "本人" }]
+        .concat((S.family || []).map((f) => ({ id: f.id, name: f.name, rel: f.rel || "家属" })));
+      const none = (S.family || []).length ? "" : `<div class="s15 t-sec" style="padding:6px 16px 0">还没有绑定家属</div>`;
+      return `
+      <div class="scrim bottom" data-act="close">
+        <div class="sheet" onclick="event.stopPropagation()">
+          <div class="grab"></div>
+          <div class="s20 fb t" style="margin:2px 16px 12px">这条记录算谁的</div>
+          ${rows.map((r) => `<button class="op-actor-row${String(op.actorId || "") === String(r.id) ? " on" : ""}" data-act="opPickActor" data-id="${r.id}" type="button"><span>${esc(r.name)}</span><span class="s13 t-sec">${esc(r.rel)}</span></button>`).join("")}
+          ${none}
+        </div>
+      </div>`;
+    },
     stampCal: () => `
       <div class="scrim center" data-act="close">
         <div class="popup" onclick="event.stopPropagation()" style="padding:18px 18px 16px">

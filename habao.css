@@ -1246,6 +1246,25 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .op-place { color: var(--blue); background: #fff; box-shadow: inset 0 0 0 1px rgba(16,84,224,.40); }
 .op-plain { font-weight: 600; color: var(--blue); }
 .op-detail { flex: 1 1 auto; min-width: 0; color: var(--blue); font-weight: 600; font-size: calc(16px * var(--fs)); line-height: 1.5; }
+/* 操作记录（V10.110）：搜索行 + 更多菜单 + 管理态 + 跳转行 */
+.op-search-row { display: flex; align-items: center; gap: 10px; position: relative; }
+.op-search { flex: 1; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; background: #fff; border-radius: 14px; box-shadow: 0 4px 14px rgba(16,84,224,.06); }
+.op-search svg { width: 15px; height: 15px; color: rgba(16,84,224,.6); flex: 0 0 15px; }
+.op-search input { flex: 1; border: 0; outline: none; background: none; font-size: calc(15px * var(--fs)); color: var(--blue); font-family: inherit; }
+.op-search input::placeholder { color: var(--secondary); }
+.op-more { width: 40px; height: 40px; border-radius: 999px; border: 0; background: #fff; color: var(--blue); font-size: calc(19px * var(--fs)); font-weight: 700; line-height: 1; box-shadow: 0 4px 14px rgba(16,84,224,.08); cursor: pointer; }
+.op-menu { position: absolute; right: 0; top: 46px; z-index: 20; }
+.op-tools { display: flex; gap: 10px; margin-top: 12px; }
+.op-tool { flex: 1; height: 38px; border: 0; border-radius: 12px; background: rgba(16,84,224,.08); color: var(--blue); font-size: calc(15px * var(--fs)); font-weight: 600; cursor: pointer; font-family: inherit; }
+.op-tool.danger { color: var(--appt); background: rgba(220,72,72,.08); }
+.op-unbound { display: inline-flex; align-items: center; margin: 0 2px; padding: 1px 6px; border-radius: 999px; background: rgba(90,100,120,.12); color: var(--secondary); font-size: calc(12px * var(--fs)); font-weight: 600; vertical-align: middle; }
+.op-foot-note { padding: 10px 0 4px; text-align: center; font-size: calc(13px * var(--fs)); color: var(--secondary); }
+.op-empty { padding: 64px 16px; text-align: center; font-size: calc(15px * var(--fs)); color: var(--secondary); }
+.op-actor-row { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 52px; padding: 0 16px; border: 0; background: none; border-radius: 16px; font-size: calc(17px * var(--fs)); font-weight: 700; color: var(--blue); cursor: pointer; font-family: inherit; }
+.op-actor-row + .op-actor-row { margin-top: 8px; }
+.op-actor-row.on { background: rgba(16,84,224,.10); }
+.op-line.go { cursor: pointer; }
+.op-line.go svg { width: 12px; height: 12px; flex: 0 0 12px; opacity: .45; }
 /* 操作记录（V10.109）：一天一页；时刻做块头（时刻 + 细分隔线），下面白卡装内容 */
 .op-block { margin-bottom: 16px; }
 .op-block-head { display: flex; align-items: center; gap: 10px; margin: 0 2px 8px; }
