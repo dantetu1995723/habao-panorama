@@ -1135,7 +1135,7 @@
     "onboard-login": { code: "OnboardingFlowView", note: "短信登录 Demo 不校验。11 位手机 + 6 位验证码后「登录」可点。聚焦后口号改「欢迎使用哈宝」。V0.0 只两步（登录 → 完善信息），身份固定患者本人；V0.1 才多一步身份。" },
     "onboard-role": { code: "OnboardingFlowView", note: "V0.1 专属（V0.0 不出现）。家属也是管理患者的成员，填写的都是患者信息。大卡单选。" },
     "onboard-profile": { code: "PatientProfileFormFields", note: "姓名必填；「进入哈宝」始终可点，空姓名顶部 toast「请填写姓名」。步骤点 V0.0 是 2/2，V0.1 是 3/3。" },
-    home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 182–192，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页（横向时段泳道已不再作为首页）；底坞中圆哈宝问诊 V0.0 压暗点不开。打卡不再在卡片上盖家属章，记入个人中心「操作记录」。" },
+    home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 182–192，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页（横向时段泳道已不再作为首页）；底坞中圆哈宝问诊 V0.0 压暗点不开。打卡不再在卡片上盖家属章；谁打的记在 V0.1 个人中心「操作记录」，V0.0 没有这一页。" },
     schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行在时刻前标选中日完整年月日（2026年9月16日 13:00），元信息标单日/循环；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上编辑才进编辑。切「已完成」整页绿白。" },
     vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。底栏进入哈宝医生带本周评估，该钮 V0.0 压暗点不开、V0.1 可进。" },
     report: { code: "FollowUpModuleView", note: "综合结论 + 三等分入口 + 底栏哈宝医生（V0.0 压暗点不开，V0.1 可进）。" },
@@ -1145,10 +1145,10 @@
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。" },
     consult: { code: "SmartConsultChatView", note: "V10.126：底坞随系统键盘升降（不再自绘键盘动画），与键盘同帧；功能板那一截按「键盘还没占掉的高度」补足，上下与来回切都不再错拍。点输入框出光标；键盘和功能板共用底部同一截高度，来回切时输入框不跳。点加号：键盘落下、功能板（拍照 / 相册 / AI电话）从这一截里出来；再点输入框，功能板让回键盘。长按输入框把语音流式写进框里，松手留下，上滑取消。V0.0 三个入口压暗点不开，切 V0.1 才进得来。" },
-    profile: { code: "ServiceView", note: "Hero 健康档案 + 操作记录/通知/硬件/协议。无 VIP。V0.0 不出现家属管理与右上身份胶囊、档案标「本人」（切 V0.1 恢复）。身份胶囊仍决定写入归属，但不再在卡片上盖章；本人和家属的操作都进「操作记录」。硬件管理在打卡通知下一行。" },
-    hardware: { code: "HardwareManageView", note: "V10.128：三张设备模块卡：未绑定写「未绑定」、右端挂「扫码绑定」浅蓝胶囊；已绑定写绿色「已绑定 · 编号」、右端箭头。点未绑定卡进扫码页，点已绑定卡进设备页。副说明按已绑定的名字拼，三台齐了写「三台都已绑定」。" },
+    profile: { code: "ServiceView", note: "Hero 健康档案 + 打卡通知/协议。无 VIP。V0.0 不出现家属管理、操作记录、硬件管理，也没有右上身份胶囊，档案标「本人」（切 V0.1 恢复）。操作记录在打卡通知上面，硬件管理在下面；记录和绑定仍在，切回来能看见。身份胶囊仍决定写入归属，但不再在卡片上盖章。" },
+    hardware: { code: "HardwareManageView", note: "仅 V0.1（V0.0 个人中心没有这一行）。三张设备模块卡：未绑定写「未绑定」、右端挂「扫码绑定」浅蓝胶囊；已绑定写绿色「已绑定 · 编号」、右端箭头。点未绑定卡进扫码页，点已绑定卡进设备页。副说明按已绑定的名字拼，三台齐了写「三台都已绑定」。绑定留在本机，切回 V0.0 只藏入口。" },
     "hardware-scan": { code: "HardwareScanView", note: "V10.128：深蓝黑底全屏扫码页——264pt 取景框 + 青色扫描线，约 1.5 秒识别到对应哈宝设备（体重秤 2041 / 血压计 3086 / 手表 1172），四角转绿、白卡上浮，「绑定这台」或「重新扫描」，绑定后回列表。已绑定页显示编号和绑定日，解除要确认、确认后回列表。不调用摄像头，测量不写进档案或血压监测。退出保留，注销清空。" },
-    activity: { code: "ActivityLogView", note: "V10.113 个人中心「操作记录」：一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内以时刻做块头（时刻 + 细分隔线）切成几块，块内白卡装内容。一件事记一条：一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）左 46px 定宽浅蓝标签 + 右侧实色蓝事项。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：本次未动」。结果行只读，不带箭头、点了不跳模块；页顶搜索框搜记录内容；长按一条出「改归属 / 删除这条记录」，超 300 条丢过更早记录时最早那页页脚提示。空态「还没有操作记录」；某一天没有记录写「这一天没有操作记录」。" },
+    activity: { code: "ActivityLogView", note: "仅 V0.1（V0.0 个人中心没有这一行）。一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内以时刻做块头（时刻 + 细分隔线）切成几块，块内白卡装内容。一件事记一条：一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）左 46px 定宽浅蓝标签 + 右侧实色蓝事项。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：本次未动」。结果行只读，不带箭头、点了不跳模块；页顶搜索框搜记录内容；长按一条出「改归属 / 删除这条记录」，超 300 条丢过更早记录时最早那页页脚提示。空态「还没有操作记录」；某一天没有记录写「这一天没有操作记录」。记录仍写入，切回 V0.0 只藏入口。" },
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.98：用药与复查有存量也直接落本页，存量组列在底部组轨道。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "按组分区预览。与首次上传、身体报告·基础报告共用同一份存量。入组可改类别 / 删组（必传出院记录至少留一组）；复查不改类别。右上入组「解析」、存档「提交」。无存量时空态只留文案，拍资料走左上「拍摄」，页内不再放「拍摄资料」钮。" },
@@ -1323,7 +1323,7 @@
     sim: null,
     // 开发菜单：首页方案序号（真机 TodayScheme，0-3；本原型只渲染方案一）
     scheme: 0,
-    // 设计代际（真机 DesignGeneration）：V0.0 默认——家属管理与哈宝问诊都不开放，V0.1 才开。
+    // 设计代际（真机 DesignGeneration）：V0.0 默认——家属管理、操作记录、硬件管理与哈宝问诊都不开放，V0.1 才开。
     // 真机落盘记住选择、正式包固定 V0.0；原型随冷启动回 V0.0（与正式包一致）。
     gen: "0.0",
   };
@@ -1513,7 +1513,7 @@
       { act: "openDebug", label: "首页右上「…」打开开发菜单" },
       { act: "debugSeed", optional: true, label: "生成 Demo（铺满档案 + 计划 + 体征）" },
       { act: "debugRegenerate", optional: true, label: "重新生成（清计划与记录，留档案姓名）" },
-      { act: "debugGen", optional: true, label: "设计版本 V0.0 / V0.1（家属与哈宝问诊跟着开合）" },
+      { act: "debugGen", optional: true, label: "设计版本 V0.0 / V0.1（家属、操作记录、硬件管理与哈宝问诊跟着开合）" },
       { act: "debugTestLogin", label: "测试登录步骤（只退登录态）" },
       { screen: "onboard-login", label: "回登录向导，计划与记录仍在" },
     ]},
@@ -1523,7 +1523,7 @@
       { act: "bindFam", label: "（V0.1）家属绑定（最多 5 位）", optional: true },
       { act: "toggleCat", label: "打卡通知分类开关", optional: true },
     ]},
-    { id: "hardware", label: "已入组 · 扫码绑定硬件", cold: "demo", steps: [
+    { id: "hardware", label: "V0.1 · 扫码绑定硬件", cold: "demo", steps: [
       { screen: "profile", label: "个人中心" },
       { screen: "hardware", label: "硬件管理：三张设备模块卡" },
       { act: "openHw", label: "点「体重秤」卡进扫码页，自动扫码（约 1.5 秒识别）" },
@@ -1533,7 +1533,7 @@
       { act: "hwUnbind", label: "（可选）确认解除，回模块卡列表", optional: true },
     ]},
     // V10.125：操作记录按天看、可搜；结果行只读，不跳模块
-    { id: "activity-day", label: "已入组 · 操作记录按天看", cold: "demo", steps: [
+    { id: "activity-day", label: "V0.1 · 操作记录按天看", cold: "demo", steps: [
       { screen: "profile", label: "首页右上「我的」进个人中心" },
       { screen: "activity", label: "「操作记录」进全屏页：落在最近一条那天，右上角日期按钮同天" },
       { act: "openOpCal", label: "点右上角日期开日历（未来日不可选）" },
@@ -4348,8 +4348,27 @@
         toast("已删除");
         dismissCover();
       },
-      logout() { openOverlay("confirm", { title: "退出登录", body: "退出后需重新登录才能继续使用。", ok: "退出登录", action: "doLogout" }); },
-      unregister() { openOverlay("confirm", { title: "注销账号", body: "注销将清空本机档案、入组状态、康复计划、家属绑定、硬件绑定与问诊对话，且不可恢复。", ok: "确认注销", danger: true, action: "doUnregister" }); },
+      logout() {
+        openOverlay("confirm", {
+          title: "退出登录",
+          body: S.gen === "0.1"
+            ? "退出后需重新登录才能继续使用；本机的档案、计划、照护记录和硬件绑定会保留，要清空请用「注销账号」。"
+            : "退出后需重新登录才能继续使用；本机的档案和计划会保留，要清空请用「注销账号」。",
+          ok: "退出登录",
+          action: "doLogout",
+        });
+      },
+      unregister() {
+        openOverlay("confirm", {
+          title: "注销账号",
+          body: S.gen === "0.1"
+            ? "注销将清空本机档案、入组状态、康复计划、家属绑定、操作记录、硬件绑定与问诊对话，且不可恢复。"
+            : "注销将清空本机档案、入组状态、康复计划与问诊对话，且不可恢复。",
+          ok: "确认注销",
+          danger: true,
+          action: "doUnregister",
+        });
+      },
       openHw() {
         const k = el.dataset.k || "scale";
         S.hwKind = k;
@@ -4415,12 +4434,12 @@
       doUnregister() { resetAll(); setMode("login"); },
       roleSwitch() { S.role = S.role === "patient" ? "family" : "patient"; render(); },
       openDebug() { openOverlay("debugMenu"); },
-      // 设计版本（真机 DesignGenerationStore.select）：V0.0 家属与哈宝问诊不开放，切 V0.1 才开。
+      // 设计版本（真机 DesignGenerationStore.select）：V0.0 家属、操作记录、硬件管理与哈宝问诊不开放，切 V0.1 才开。
       // 真机落盘记住选择、正式包固定 V0.0；原型随冷启动回 V0.0。
       debugGen() {
         S.gen = el.dataset.gen;
         closeOverlay();
-        toast(`设计版本 V${S.gen}｜${genHasFamily() ? "家属管理与哈宝问诊已开放" : "家属管理与哈宝问诊未开放"}`);
+        toast(`设计版本 V${S.gen}｜${genHasFamily() ? "家属管理、操作记录、硬件管理与哈宝问诊已开放" : "家属管理、操作记录、硬件管理与哈宝问诊未开放"}`);
       },
       // 真机 V10.52 起调试菜单不再切方案（TodaySchemeFourView 只留文件、不再是首页），
       // 本原型的入口已撤，渲染与状态留档——要临时预览方案四，把开发菜单那两行加回来即可。
@@ -6185,9 +6204,9 @@
           <div class="list-island mt16">
             ${[
               ...(genHasFamily() ? [["family", I.two, "家属管理", S.family.length ? `已绑定 ${S.family.length} 人` : "尚未绑定家属"]] : []),
-              ["activity", I.clock, "操作记录", (S.ops && S.ops[0]) ? opHeadlineHTML(S.ops[0]) + ((S.ops[0].lines || []).length === 1 ? `<span class="op-plain">「${esc(S.ops[0].lines[0][1])}」</span>` : "") : "还没有记录"],
+              ...(S.gen === "0.1" ? [["activity", I.clock, "操作记录", (S.ops && S.ops[0]) ? opHeadlineHTML(S.ops[0]) + ((S.ops[0].lines || []).length === 1 ? `<span class="op-plain">「${esc(S.ops[0].lines[0][1])}」</span>` : "") : "还没有记录"]] : []),
               ["notify", I.bell, "打卡通知", notifyCaption()],
-              ["hardware", I.waves, "硬件管理", hwCaption()],
+              ...(S.gen === "0.1" ? [["hardware", I.waves, "硬件管理", hwCaption()]] : []),
             ].map(([id, ico, t, s]) => `
               <button class="list-row" data-go="${id}" type="button">
                 <div class="well">${ico}</div><div class="grow"><h4>${t}</h4><p>${s}</p></div>${I.chevR}
