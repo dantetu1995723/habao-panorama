@@ -22,6 +22,7 @@
   };
 
   const I = {
+    qr: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/><path d="M14 14h3v3h-3z"/><path d="M21 14v3"/><path d="M14 21h3"/><path d="M21 21h.01"/></svg>`,
     person: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a4.2 4.2 0 1 0-4.2-4.2A4.2 4.2 0 0 0 12 12Zm0 2.2c-3.6 0-8 1.8-8 5.4V21h16v-1.4c0-3.6-4.4-5.4-8-5.4Z"/></svg>`,
     walk: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 5.5a1.8 1.8 0 1 0-1.8-1.8 1.8 1.8 0 0 0 1.8 1.8ZM9.1 22l1.1-5.2 2.1 2V22h2.1v-5.1l-2.2-2.1 0.6-3.1a7.4 7.4 0 0 0 3.5 1.5v-2.1a5.4 5.4 0 0 1-3.1-1.4l-1.3-1.3a2.1 2.1 0 0 0-1.6-.6 2.2 2.2 0 0 0-1.8 1L6.2 12.2l1.7 1.2 2-3.3.8 4.1-2.5 1.4L6.6 22Z"/></svg>`,
     share: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5.5 13 3v2H8a3 3 0 0 0-3 3v4h2V8a1 1 0 0 1 1-1h5v2l3-3.5ZM6 13v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-6h-2v6H8v-6Z"/></svg>`,
@@ -95,6 +96,9 @@
     arrowU: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>`,
     tick: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`,
     hist: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4a8 8 0 1 1-7.4 4.9l1.8.7A6.2 6.2 0 1 0 12 5.8V8l3.4-3.2L12 1.6V4Zm-.8 4.4h1.6v4.1l3 1.8-.8 1.4-3.8-2.3V8.4Z"/></svg>`,
+    scale: `<svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M6 7.2h12A2.8 2.8 0 0 1 20.8 10v7.2A2.8 2.8 0 0 1 18 20H6a2.8 2.8 0 0 1-2.8-2.8V10A2.8 2.8 0 0 1 6 7.2Zm6 2.2a3.4 3.4 0 1 0 .1 6.8 3.4 3.4 0 0 0-.1-6.8Zm0 1.7a1.7 1.7 0 1 1 0 3.4 1.7 1.7 0 0 1 0-3.4Z"/></svg>`,
+    watch: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.2 2.2h7.6l.7 3.1h.3A2.2 2.2 0 0 1 19 7.5v9a2.2 2.2 0 0 1-2.2 2.2h-.3l-.7 3.1H8.2l-.7-3.1h-.3A2.2 2.2 0 0 1 5 16.5v-9a2.2 2.2 0 0 1 2.2-2.2h.3l.7-3.1Zm3.2 6.2v4.1l2.6 1.5-.9 1.5L9.6 13.4V8.4h1.8Z"/></svg>`,
+    waves: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8.5 8.4a5 5 0 0 0 0 7.2"/><path d="M5.6 5.6a9 9 0 0 0 0 12.8"/><path d="M15.5 8.4a5 5 0 0 1 0 7.2"/><path d="M18.4 5.6a9 9 0 0 1 0 12.8"/><circle cx="12" cy="12" r="1.35" fill="currentColor" stroke="none"/></svg>`,
   };
   Object.keys(I).forEach((k) => { I[k] = I[k].replace("<svg ", '<svg width="20" height="20" '); });
 
@@ -321,7 +325,7 @@
     return `${named}，来源出院记录的出院诊断 ${htnLabel()}。`;
   }
 
-  const DISEASE_INFO = ["冠心病", "不稳定型心绞痛", "PCI术后", "高血压3级", "2型糖尿病"];
+  const DISEASE_INFO = ["冠心病", "不稳定型心绞痛", "PCI术后", "高血压3级", "2型糖尿病", "室颤"];
 
   // ===== 解析依据可点选修正（真机 PlanBasisCorrection / PlanBasisFieldEditors）=====
   // 依据页看到的就是「解析到的字段」：改字段 → 条目与依据句按新字段重算。
@@ -331,7 +335,7 @@
   const BASIS_DIAGNOSES = [
     "冠心病", "不稳定型心绞痛", "稳定型心绞痛", "急性心肌梗死", "陈旧性心肌梗死",
     "PCI术后", "冠脉搭桥术后", "高血压1级", "高血压2级", "高血压3级",
-    "2型糖尿病", "心力衰竭", "心房颤动", "高脂血症", "心脏瓣膜病",
+    "2型糖尿病", "心力衰竭", "心房颤动", "高脂血症", "心脏瓣膜病", "室颤",
   ];
   /// 常见心内科用药
   const BASIS_DRUGS = [
@@ -386,6 +390,53 @@
   function diseaseLabels() {
     if (!S.diseaseInfo) S.diseaseInfo = DISEASE_INFO.slice();
     return S.diseaseInfo;
+  }
+  /// 与真机 AbsoluteContraindication.list 同一份（年龄单独按岁数判断）
+  const ABSOLUTE_CONTRA = [
+    "心肌炎", "心包炎", "夹层动脉瘤", "肥厚型心肌病", "甲亢", "肺部感染",
+    "Ⅱ–Ⅲ度房室传导阻滞", "心源性休克", "室壁瘤", "贫血", "糖尿病酮症酸中毒",
+    "慢性肾衰竭Ⅲ期及以上", "肺动脉高压", "室颤", "室速", "频发室早", "慢阻肺",
+    "下肢静脉血栓", "心衰Ⅲ级及以上", "CABG", "脑梗后遗症",
+  ];
+  const CONTRA_AGE_ITEM = "年龄＞70 岁";
+  function contraindicationHits() {
+    const blob = diseaseLabels().join("、").replace(/\s/g, "");
+    const hits = ABSOLUTE_CONTRA.filter((item) => blob.indexOf(String(item).replace(/\s/g, "")) >= 0);
+    if ((S.age ?? 58) > 70) hits.push(CONTRA_AGE_ITEM);
+    return hits;
+  }
+  function contraPrompt(hits) {
+    const diseases = hits.filter((h) => h !== CONTRA_AGE_ITEM);
+    let lead = diseases.length ? `你有${diseases.join("、")}` : "";
+    if (hits.indexOf(CONTRA_AGE_ITEM) >= 0) {
+      lead = lead ? `${lead}，且年龄超过 70 岁` : "你的年龄超过 70 岁";
+    }
+    if (!lead) lead = "当前情况不适合运动";
+    return `${lead}。这类情况不适合运动。`;
+  }
+  function beginWalk(taskId) {
+    S.walkTaskId = taskId;
+    S.walkStartedAt = demoNowHM();
+    S.walking = true;
+    S.paused = false;
+    S.walkSheet = true;
+    S.musicMenu = false;
+    S.walkSaved = false;
+    if (S.screen !== "walk") go("walk", "cover");
+    go("walk-session", "cover");
+  }
+  function openContraOrBegin(taskId) {
+    const hits = contraindicationHits();
+    if (!hits.length) { beginWalk(taskId); return; }
+    S.pendingWalk = { taskId };
+    if (S.screen !== "walk") go("walk", "cover");
+    openOverlay("confirm", {
+      title: "是否继续运动？",
+      body: contraPrompt(hits),
+      cancel: "暂不运动",
+      ok: "继续运动",
+      action: "confirmWalkDespiteContra",
+    });
   }
   /// 依据里的诊断原文：取第一枚含「高血压」的标签
   function htnLabel() {
@@ -1008,6 +1059,8 @@
     "profile>health-record": "cover",
     "profile>family": "cover",
     "profile>notify": "cover",
+    "profile>hardware": "cover",
+    "hardware>hardware-scan": "cover",
     "health-record>patient-edit": "cover",
     "notify>family": "cover",
     "confirm-plan>task-add": "cover",
@@ -1053,6 +1106,8 @@
       { id: "patient-edit", t: "患者信息", code: "PatientProfileEditView", how: "cover" },
       { id: "family", t: "家属管理", code: "FamilyManageView", how: "cover" },
       { id: "notify", t: "打卡通知", code: "CheckInNotificationView", how: "cover" },
+      { id: "hardware", t: "硬件管理", code: "HardwareManageView", how: "cover" },
+      { id: "hardware-scan", t: "扫码绑定", code: "HardwareScanView", how: "cover" },
       { id: "activity", t: "操作记录", code: "ActivityLogView", how: "cover" },
     ]},
     { g: "同 Cover 替换", items: [
@@ -1085,12 +1140,14 @@
     vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。底栏进入哈宝医生带本周评估，该钮 V0.0 压暗点不开、V0.1 可进。" },
     report: { code: "FollowUpModuleView", note: "综合结论 + 三等分入口 + 底栏哈宝医生（V0.0 压暗点不开，V0.1 可进）。" },
     "report-sub": { code: "BodyReportSubReportView", note: "V10.61：顶栏两枚 Tab「AI 解读 / 资料合集」，默认落 AI 解读；资料合集只读。底栏「新增报告资料」不论有无存量都直接进拍摄页（不再先落资料详情）。拍完提交：基础按类别追加、复查新开一次。复诊打卡形态在主钮下多一颗「返回首页」。" },
-    walk: { code: "WalkView", note: "大标题 + 44 回首页（dismiss cover，不压栈）。地图主卡底浮层：60 圆钮记录/分享 + 60 主胶囊。三态：开始运动 / 返回运动 / 保存并打卡。首页运动打卡先进本页再自动开会话。保存归属：计划入口完成原任务，自由入口按开始时刻新建「自主散步」，不猜测也不占用存量计划。" },
+    walk: { code: "WalkView", note: "大标题 + 44 回首页（dismiss cover，不压栈）。地图主卡底浮层：60 圆钮记录/分享 + 60 主胶囊。三态：开始运动 / 返回运动 / 保存并打卡。点「开始运动」、以及首页「进入运动，开始散步」，都先按出院诊断比对绝对禁忌症；命中弹「是否继续运动？」，写明疾病（演示病历含室颤），「暂不运动」留在地图，「继续运动」才开会话。返回运动不再问。保存归属：计划入口完成原任务，自由入口按开始时刻新建「自主散步」，不猜测也不占用存量计划。" },
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。" },
-    consult: { code: "SmartConsultChatView", note: "V10.124：点输入框出光标；键盘和功能板共用底部同一截高度，来回切时输入框不跳。点加号：键盘落下、功能板（拍照 / 相册 / AI电话）从这一截里出来；再点输入框，功能板让回键盘。长按输入框把语音流式写进框里，松手留下，上滑取消。V0.0 三个入口压暗点不开，切 V0.1 才进得来。" },
-    profile: { code: "ServiceView", note: "Hero 健康档案 + 操作记录/通知/协议。无 VIP。V0.0 不出现家属管理与右上身份胶囊、档案标「本人」（切 V0.1 恢复）。身份胶囊仍决定写入归属，但不再在卡片上盖章；本人和家属的操作都进「操作记录」。" },
+    consult: { code: "SmartConsultChatView", note: "V10.126：底坞随系统键盘升降（不再自绘键盘动画），与键盘同帧；功能板那一截按「键盘还没占掉的高度」补足，上下与来回切都不再错拍。点输入框出光标；键盘和功能板共用底部同一截高度，来回切时输入框不跳。点加号：键盘落下、功能板（拍照 / 相册 / AI电话）从这一截里出来；再点输入框，功能板让回键盘。长按输入框把语音流式写进框里，松手留下，上滑取消。V0.0 三个入口压暗点不开，切 V0.1 才进得来。" },
+    profile: { code: "ServiceView", note: "Hero 健康档案 + 操作记录/通知/硬件/协议。无 VIP。V0.0 不出现家属管理与右上身份胶囊、档案标「本人」（切 V0.1 恢复）。身份胶囊仍决定写入归属，但不再在卡片上盖章；本人和家属的操作都进「操作记录」。硬件管理在打卡通知下一行。" },
+    hardware: { code: "HardwareManageView", note: "V10.128：三张设备模块卡：未绑定写「未绑定」、右端挂「扫码绑定」浅蓝胶囊；已绑定写绿色「已绑定 · 编号」、右端箭头。点未绑定卡进扫码页，点已绑定卡进设备页。副说明按已绑定的名字拼，三台齐了写「三台都已绑定」。" },
+    "hardware-scan": { code: "HardwareScanView", note: "V10.128：深蓝黑底全屏扫码页——264pt 取景框 + 青色扫描线，约 1.5 秒识别到对应哈宝设备（体重秤 2041 / 血压计 3086 / 手表 1172），四角转绿、白卡上浮，「绑定这台」或「重新扫描」，绑定后回列表。已绑定页显示编号和绑定日，解除要确认、确认后回列表。不调用摄像头，测量不写进档案或血压监测。退出保留，注销清空。" },
     activity: { code: "ActivityLogView", note: "V10.113 个人中心「操作记录」：一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内以时刻做块头（时刻 + 细分隔线）切成几块，块内白卡装内容。一件事记一条：一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）左 46px 定宽浅蓝标签 + 右侧实色蓝事项。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：本次未动」。结果行只读，不带箭头、点了不跳模块；页顶搜索框搜记录内容；长按一条出「改归属 / 删除这条记录」，超 300 条丢过更早记录时最早那页页脚提示。空态「还没有操作记录」；某一天没有记录写「这一天没有操作记录」。" },
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.98：用药与复查有存量也直接落本页，存量组列在底部组轨道。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
@@ -1123,6 +1180,9 @@
     weight: 75,
     phone: "13800138013",
     birthday: "1968年3月12日",
+    hw: {},
+    hwKind: "scale",
+    hwPhase: "idle",
     block: 1,
     liveFace: null,
     syncDriver: "idle",
@@ -1406,6 +1466,7 @@
     { id: "walk-scheduled", label: "已入组 · 运动打卡 → 散步会话", cold: "demo", steps: [
       { act: "checkin", label: "点运动计划卡" },
       { act: "exerciseGo", label: "进入运动，开始散步" },
+      { act: "confirmOk", label: "出院诊断命中绝对禁忌症 → 确认继续" },
       { screen: "walk-session", label: "户外散步会话" },
       { act: "walkPause", label: "暂停（结束钮在暂停态）" },
       { act: "toggleMusic", label: "音乐", optional: true },
@@ -1416,6 +1477,7 @@
     ]},
     { id: "walk-free", label: "已入组 · 自由散步", cold: "demo", steps: [
       { act: "walkStart", label: "底坞「运动」→ 开始" },
+      { act: "confirmOk", label: "有绝对禁忌症时确认继续" },
       { screen: "walk-session", label: "散步会话" },
       { act: "walkPause", label: "暂停（结束钮在暂停态）" },
       { act: "walkEnd", label: "长按结束" },
@@ -1464,6 +1526,15 @@
       { act: "savePatient", label: "患者信息保存写回", optional: true },
       { act: "bindFam", label: "（V0.1）家属绑定（最多 5 位）", optional: true },
       { act: "toggleCat", label: "打卡通知分类开关", optional: true },
+    ]},
+    { id: "hardware", label: "已入组 · 扫码绑定硬件", cold: "demo", steps: [
+      { screen: "profile", label: "个人中心" },
+      { screen: "hardware", label: "硬件管理：三张设备模块卡" },
+      { act: "openHw", label: "点「体重秤」卡进扫码页，自动扫码（约 1.5 秒识别）" },
+      { act: "hwBind", label: "识别到哈宝体重秤 2041，「绑定这台」" },
+      { act: "openHw", label: "（可选）再点这张卡，进已绑定页", optional: true },
+      { act: "hwUnbindAsk", label: "（可选）「解除绑定」", optional: true },
+      { act: "hwUnbind", label: "（可选）确认解除，回模块卡列表", optional: true },
     ]},
     // V10.125：操作记录按天看、可搜；结果行只读，不跳模块
     { id: "activity-day", label: "已入组 · 操作记录按天看", cold: "demo", steps: [
@@ -2323,6 +2394,8 @@
       "patient-edit": [...home, C("profile"), C("health-record"), C("patient-edit")],
       family: [...home, C("profile"), C("family")],
       notify: [...home, C("profile"), C("notify")],
+      hardware: [...home, C("profile"), C("hardware")],
+      "hardware-scan": [...home, C("profile"), C("hardware"), C("hardware-scan")],
       "first-rest": [...home, C("first-rest")],
       "select-type": [...home, C("schedule"), C("select-type")],
       "ocr-capture": S.enrolled ? [...home, C("schedule"), C("ocr-capture")] : [...home, C("ocr-capture")],
@@ -3351,7 +3424,7 @@
         go("first-rest", "cover");
       },
       // 底坞「运动」圆钮 = 自由运动：不带计划归属，结束后新建「自主散步」
-      walkStart() { S.walkTaskId = null; S.walkStartedAt = demoNowHM(); S.walking = true; S.paused = false; S.walkSheet = true; S.musicMenu = false; S.walkSaved = false; go("walk-session", "cover"); },
+      walkStart() { openContraOrBegin(null); },
       walkResume() { go("walk-session", "cover"); },
       walkReturn() {
         if (topFrame().id === "walk-session") back();
@@ -3440,15 +3513,13 @@
       exerciseGo() {
         const id = S.overlayData.id;
         closeOverlay();
-        S.walking = true;
-        S.paused = false;
-        S.walkSheet = true;
-        S.musicMenu = false;
-        S.walkSaved = false;
-        S.walkTaskId = id;
-        S.walkStartedAt = demoNowHM();
-        if (S.screen !== "walk") go("walk", "cover");
-        go("walk-session", "cover");
+        openContraOrBegin(id);
+      },
+      confirmWalkDespiteContra() {
+        const taskId = S.pendingWalk ? S.pendingWalk.taskId : null;
+        S.pendingWalk = null;
+        closeOverlay();
+        beginWalk(taskId);
       },
       exerciseDone() {
         S.completed[S.overlayData.id] = true;
@@ -4282,7 +4353,56 @@
         dismissCover();
       },
       logout() { openOverlay("confirm", { title: "退出登录", body: "退出后需重新登录才能继续使用。", ok: "退出登录", action: "doLogout" }); },
-      unregister() { openOverlay("confirm", { title: "注销账号", body: "注销将清空本机档案、入组状态、康复计划、家属绑定与问诊对话，且不可恢复。", ok: "确认注销", danger: true, action: "doUnregister" }); },
+      unregister() { openOverlay("confirm", { title: "注销账号", body: "注销将清空本机档案、入组状态、康复计划、家属绑定、硬件绑定与问诊对话，且不可恢复。", ok: "确认注销", danger: true, action: "doUnregister" }); },
+      openHw() {
+        const k = el.dataset.k || "scale";
+        S.hwKind = k;
+        const bound = !!(S.hw && S.hw[k]);
+        if (hwTimer) { clearTimeout(hwTimer); hwTimer = null; }
+        S.hwPhase = bound ? "bound" : "scan";
+        go("hardware-scan");
+        // 进扫码页即自动扫，不用再点「开始查找」
+        if (!bound) act("hwScan", el);
+      },
+      hwScan() {
+        const kind = S.hwKind || "scale";
+        if (hwTimer) clearTimeout(hwTimer);
+        S.hwPhase = "scan";
+        render();
+        hwTimer = setTimeout(() => {
+          hwTimer = null;
+          if (S.screen === "hardware-scan" && S.hwPhase === "scan" && S.hwKind === kind) {
+            S.hwPhase = "found";
+            render();
+          }
+        }, 1500);
+      },
+      hwBind() {
+        const spec = hwSpec(S.hwKind);
+        if (!spec || S.hwPhase !== "found") return;
+        if (!S.hw) S.hw = {};
+        S.hw[spec.k] = { name: spec.name, serial: spec.serial, at: Date.now() };
+        S.hwPhase = "bound";
+        dismissCover();
+        toast(`已绑定${spec.name}`);
+      },
+      hwUnbindAsk() {
+        const spec = hwSpec(S.hwKind);
+        openOverlay("confirm", {
+          title: "解除绑定",
+          body: `解除后，这台${spec.title}不再记在本机。`,
+          ok: "解除绑定",
+          danger: true,
+          action: "hwUnbind",
+        });
+      },
+      hwUnbind() {
+        if (S.hw) delete S.hw[S.hwKind];
+        S.hwPhase = "idle";
+        S.overlay = null;
+        dismissCover();
+        toast("已解除绑定");
+      },
       // 退出登录：只退登录态，计划与记录全保留（真机 AccountStore.logout 只清 account）
       doLogout() {
         resetFlowFlags();
@@ -4317,8 +4437,10 @@
       // 真机「生成 Demo」：填档案 + applyDemoEnrollment + seedTestTasks + seedDemoVitals + 30 天打卡史
       debugSeed() {
         const sim = S.sim;
+        const hw = S.hw;
         resetAll();
         S.sim = sim;
+        S.hw = hw || {};
         S.loggedIn = true;
         S.enrolled = true;
         S.sys = 126; S.dia = 78; S.hr = 72; // seedDemoVitals：给「今日血压」一条读数
@@ -4329,8 +4451,10 @@
       // 真机「重新生成」：enrollment.reset + 清计划 / 体征 / 散步 / 问诊，但保留档案姓名
       debugRegenerate() {
         const sim = S.sim;
+        const hw = S.hw;
         resetAll();
         S.sim = sim;
+        S.hw = hw || {};
         S.enrolled = false;
         SEED.length = 0; // store.clearAll()
         S.completed = {};
@@ -5055,6 +5179,82 @@
           <div class="s4-fan" id="s4-fan">${s4FanHTML()}</div>
         </div>
       </div>`;
+  }
+
+  const HW_KINDS = [
+    { k: "scale", title: "体重秤", name: "哈宝体重秤", serial: "2041", qrTip: "二维码在秤底或包装盒上。", icon: "scale" },
+    { k: "bloodPressure", title: "血压计", name: "哈宝血压计", serial: "3086", qrTip: "二维码在机身底部或包装盒上。", icon: "ecg" },
+    { k: "watch", title: "手表", name: "哈宝手表", serial: "1172", qrTip: "二维码在表盒背面或包装上。", icon: "watch" },
+  ];
+  var hwTimer = null;
+  function hwSpec(k) {
+    return HW_KINDS.find((x) => x.k === k) || HW_KINDS[0];
+  }
+  function hwBound(k) {
+    return (S.hw || {})[k] || null;
+  }
+  function hwCaption() {
+    const names = HW_KINDS.filter((x) => hwBound(x.k)).map((x) => x.title);
+    if (!names.length) return "尚未绑定";
+    if (names.length === HW_KINDS.length) return "三台都已绑定";
+    return "已绑定" + names.join("、");
+  }
+  function hwDay(at) {
+    const d = new Date(at);
+    return `${d.getMonth() + 1}月${d.getDate()}日`;
+  }
+  function hwIcon(name) {
+    if (name === "scale") return I.scale;
+    if (name === "watch") return I.watch;
+    if (name === "waves") return I.waves;
+    return I.ecg;
+  }
+  function hwScanHTML() {
+    const spec = hwSpec(S.hwKind);
+    const device = hwBound(spec.k);
+    const phase = device ? "bound" : (S.hwPhase === "found" ? "found" : "scan");
+    if (phase === "bound") {
+      return `<div class="page">
+        ${navBar(cap(I.chevL, "返回"), spec.title)}
+        <div class="scroll px20" style="padding-top:8px">
+          <div class="hw-hero"><div class="hw-orb">${hwIcon(spec.icon)}</div><span class="hw-badge">${I.check}</span></div>
+          <div class="ta-c" style="margin-top:4px">
+            <div class="s22 fb t">${spec.name}</div>
+            <div class="s16 fb t-green" style="margin:8px 28px 0">已绑定</div>
+            <div class="s15 fm t-sec mono" style="margin-top:6px">编号 ${device.serial} · 绑定于 ${hwDay(device.at)}</div>
+          </div>
+        </div>
+        <div class="px20" style="padding-bottom:28px">
+          <button class="cta-danger" data-act="hwUnbindAsk" type="button">解除绑定</button>
+        </div>
+      </div>`;
+    }
+    const found = phase === "found";
+    const tips = found
+      ? `<div class="hw-scanhint">识别到一台设备</div><div class="hw-scantip2">确认是你的，再绑定。</div>`
+      : `<div class="hw-scanhint">对准「${spec.name}」包装上的二维码</div><div class="hw-scantip2">${spec.qrTip}</div>`;
+    const card = found
+      ? `<div class="hw-found"><div class="well">${hwIcon(spec.icon)}</div><div class="grow"><div class="s18 fb t">${spec.name}</div><div class="s14 fm t-sec mono">编号 ${spec.serial}</div></div></div>`
+      : "";
+    const dock = found
+      ? `<button class="cta" data-act="hwBind" type="button">绑定这台</button><button class="cta-darkghost mt8" data-act="hwScan" type="button">重新扫描</button>`
+      : `<button class="cta-darkghost" data-act="back" type="button">取消</button>`;
+    return `<div class="page hw-scanpage">
+      <div class="hw-scanbar">
+        <button class="hw-scanback" data-act="back" type="button" aria-label="返回">${I.chevL}</button>
+        <span class="hw-scantitle">扫描二维码</span>
+      </div>
+      <div class="hw-scancol">
+        <div class="hw-frame ${found ? "ok" : ""}">
+          <span class="hw-qr">${I.qr}</span>
+          <div class="hw-laserbox"><div class="hw-laser"></div></div>
+          <span class="hw-corner tl"></span><span class="hw-corner tr"></span><span class="hw-corner bl"></span><span class="hw-corner br"></span>
+        </div>
+        <div class="ta-c">${tips}</div>
+        <div class="w100">${card}</div>
+      </div>
+      <div class="px20" style="padding-bottom:28px">${dock}</div>
+    </div>`;
   }
 
   const screens = {
@@ -6007,6 +6207,7 @@
               ...(genHasFamily() ? [["family", I.two, "家属管理", S.family.length ? `已绑定 ${S.family.length} 人` : "尚未绑定家属"]] : []),
               ["activity", I.clock, "操作记录", (S.ops && S.ops[0]) ? opHeadlineHTML(S.ops[0]) + ((S.ops[0].lines || []).length === 1 ? `<span class="op-plain">「${esc(S.ops[0].lines[0][1])}」</span>` : "") : "还没有记录"],
               ["notify", I.bell, "打卡通知", notifyCaption()],
+              ["hardware", I.waves, "硬件管理", hwCaption()],
             ].map(([id, ico, t, s]) => `
               <button class="list-row" data-go="${id}" type="button">
                 <div class="well">${ico}</div><div class="grow"><h4>${t}</h4><p>${s}</p></div>${I.chevR}
@@ -6018,6 +6219,30 @@
           <button class="w100" style="border:0;background:none;color:#828EA5;padding:12px;font-size:16px;cursor:pointer" data-act="unregister" type="button">注销账号</button>
         </div>
       </div>`,
+
+    hardware: () => `
+      <div class="page">
+        ${navBar(cap(I.chevL, "返回"), "硬件管理")}
+        <div class="scroll px20" style="padding-top:12px">
+          <p class="s15 fm t-sec" style="margin:0 4px 12px">体重秤、血压计、手表各绑一台。绑定时扫包装上的二维码。</p>
+          <div class="col" style="gap:14px">
+            ${HW_KINDS.map((spec) => {
+              const d = hwBound(spec.k);
+              const sub = d
+                ? `<span class="t-green">已绑定</span><span class="t-sec"> · 编号 ${d.serial}</span>`
+                : `<span class="t-sec">未绑定</span>`;
+              const tail = d ? I.chevR : `<span class="hw-chip">${I.qr}<span>扫码绑定</span></span>`;
+              return `<button class="hw-card" data-act="openHw" data-k="${spec.k}" type="button">
+                <div class="well">${hwIcon(spec.icon)}</div>
+                <div class="grow"><h4 class="s18 fb t">${spec.title}</h4><p class="s14 fm">${sub}</p></div>
+                ${tail}
+              </button>`;
+            }).join("")}
+          </div>
+        </div>
+      </div>`,
+
+    "hardware-scan": () => hwScanHTML(),
 
     "health-record": () => {
       const age = 58;
@@ -7555,7 +7780,7 @@
           <h3>${S.overlayData.title || "确认"}</h3>
           <p>${S.overlayData.body || ""}</p>
           <div class="duo">
-            <button class="cancel" data-act="close" type="button">取消</button>
+            <button class="cancel" data-act="close" type="button">${S.overlayData.cancel || "取消"}</button>
             <button class="${S.overlayData.danger ? "danger" : "ok"}" data-act="confirmOk" type="button">${S.overlayData.ok || "确定"}</button>
           </div>
         </div>

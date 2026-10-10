@@ -2689,3 +2689,108 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   font-size: calc(15px * var(--fs)); font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+
+/* 硬件管理（V10.128）：设备模块卡 + 深蓝黑底扫码页 + 已绑定页 */
+.hw-card {
+  display: flex; align-items: center; gap: 14px; width: 100%;
+  padding: 16px; background: #fff; border: 0; border-radius: 22px;
+  box-shadow: 0 10px 26px rgba(16,84,224,.10);
+  cursor: pointer; font-family: inherit; text-align: left;
+}
+.hw-card .well { width: 56px; height: 56px; flex: 0 0 56px; border-radius: 50%; }
+.hw-card .well svg { width: 24px; height: 24px; flex: none; }
+.hw-card h4 { font-size: calc(18px * var(--fs)); font-weight: 700; color: var(--blue); }
+.hw-card p { font-size: calc(14px * var(--fs)); font-weight: 500; margin-top: 4px; }
+.hw-chip {
+  display: inline-flex; align-items: center; gap: 5px; flex: none;
+  height: 34px; padding: 0 12px; border-radius: 999px;
+  background: rgba(16,84,224,.12); color: var(--blue);
+  font-size: calc(14px * var(--fs)); font-weight: 700;
+}
+.hw-chip svg { width: 14px; height: 14px; flex: none; }
+.hw-hero {
+  position: relative; width: 200px; height: 200px; margin: 8px auto 0;
+  display: grid; place-items: center;
+}
+.hw-orb {
+  width: 112px; height: 112px; border-radius: 50%; position: relative; z-index: 1;
+  background: linear-gradient(135deg, rgba(16,84,224,.14), rgba(30,190,214,.12));
+  display: grid; place-items: center; color: var(--blue);
+}
+.hw-orb svg { width: 48px; height: 48px; flex: none; }
+.hw-badge {
+  position: absolute; right: 34px; bottom: 34px; z-index: 2;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: #fff; color: #1aa64a;
+  display: grid; place-items: center;
+  box-shadow: 0 2px 8px rgba(16,84,224,.12);
+}
+.hw-badge svg { width: 28px; height: 28px; flex: none; }
+.hw-found {
+  display: flex; align-items: center; gap: 14px;
+  margin: 22px 0 8px; padding: 16px;
+  background: #fff; border-radius: 22px;
+  box-shadow: 0 10px 26px rgba(16,84,224,.10);
+}
+.hw-found .well { border-radius: 50%; }
+.hw-scanpage { background: linear-gradient(#0A0E1A, #141E33); }
+.hw-scanbar { position: relative; display: flex; align-items: center; padding: 10px 16px; }
+.hw-scanback {
+  width: 40px; height: 40px; border-radius: 50%; border: 0; cursor: pointer;
+  background: rgba(255,255,255,.12); color: #fff;
+  display: grid; place-items: center;
+}
+.hw-scanback svg { width: 16px; height: 16px; flex: none; }
+.hw-scantitle {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  color: #fff; font-size: calc(17px * var(--fs)); font-weight: 600; white-space: nowrap;
+}
+.hw-scancol {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 26px; padding: 24px 20px 12px;
+}
+.hw-frame {
+  position: relative; width: 264px; height: 264px; border-radius: 28px;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18);
+  display: grid; place-items: center;
+}
+.hw-frame .hw-qr { position: absolute; color: rgba(255,255,255,.08); }
+.hw-frame .hw-qr svg { width: 92px; height: 92px; flex: none; }
+.hw-laserbox { position: absolute; inset: 0; border-radius: 28px; overflow: hidden; }
+.hw-laser {
+  position: absolute; left: 18px; right: 18px; top: 18px; height: 2.5px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  box-shadow: 0 0 8px rgba(30,190,214,.9);
+  animation: hw-sweep 2.2s ease-in-out infinite alternate;
+}
+@keyframes hw-sweep {
+  from { top: 18px; }
+  to { top: 242px; }
+}
+.hw-corner { position: absolute; width: 26px; height: 26px; border: 4px solid rgba(255,255,255,.9); }
+.hw-corner.tl { top: -2px; left: -2px; border-right: 0; border-bottom: 0; border-radius: 10px 0 0 0; }
+.hw-corner.tr { top: -2px; right: -2px; border-left: 0; border-bottom: 0; border-radius: 0 10px 0 0; }
+.hw-corner.bl { bottom: -2px; left: -2px; border-right: 0; border-top: 0; border-radius: 0 0 0 10px; }
+.hw-corner.br { bottom: -2px; right: -2px; border-left: 0; border-top: 0; border-radius: 0 0 10px 0; }
+.hw-frame.ok .hw-corner { border-color: var(--green); }
+.hw-frame.ok .hw-laserbox { display: none; }
+.hw-scanhint { color: rgba(255,255,255,.94); font-size: calc(17px * var(--fs)); font-weight: 600; text-align: center; }
+.hw-scantip2 { color: rgba(255,255,255,.55); font-size: calc(14px * var(--fs)); font-weight: 500; text-align: center; margin-top: 8px; }
+.hw-scanpage .hw-found { margin: 0; box-shadow: 0 14px 30px rgba(0,0,0,.4); }
+.cta-darkghost {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; min-height: 56px; border: 0; border-radius: 16px;
+  background: rgba(255,255,255,.14); color: rgba(255,255,255,.92);
+  font-size: calc(20px * var(--fs)); font-weight: 700;
+  cursor: pointer; font-family: inherit;
+}
+.cta-danger {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; min-height: 56px; border: 0; border-radius: 16px;
+  background: rgba(220, 72, 72, .10); color: var(--appt);
+  font-size: calc(20px * var(--fs)); font-weight: 700;
+  cursor: pointer; font-family: inherit;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-laser { animation: none; top: 50%; opacity: .4; }
+}
