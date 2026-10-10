@@ -1273,6 +1273,24 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   color: var(--blue); background: rgba(16,84,224,.08);
 }
 .list-row > svg { width: 14px; height: 14px; flex: 0 0 14px; opacity: .45; }
+.vip-card {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; margin-top: 16px; text-align: left; cursor: pointer;
+  background: #fff; border: 0; border-radius: 22px; padding: 14px 16px;
+  box-shadow: 0 10px 26px rgba(16,84,224,.10);
+}
+.vip-card h4 { font-size: calc(18px * var(--fs)); font-weight: 700; color: var(--blue); line-height: 1.4; margin: 0; }
+.vip-card p { font-size: calc(14px * var(--fs)); color: var(--secondary); margin: 2px 0 0; }
+.vip-cap {
+  flex: 0 0 auto; background: var(--blue); color: #fff;
+  border-radius: 999px; padding: 8px 14px;
+  font-size: calc(15px * var(--fs)); font-weight: 700;
+}
+.vip-cap.on { background: rgba(16,84,224,.10); color: var(--blue); }
+.vip-lock { flex: 0 0 auto; color: var(--blue); display: grid; place-items: center; }
+.vip-lock svg { width: 18px; height: 18px; flex: 0 0 18px; opacity: 1; }
+.hero .avatar svg { width: 22px; height: 22px; }
+.orb.ai.locked { opacity: .4; cursor: pointer; }
 
 .toggle {
   width: 51px; height: 31px; border-radius: 16px; border: 0;
