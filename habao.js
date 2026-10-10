@@ -1262,10 +1262,6 @@
     // 家属通知关（按任务 id 记；V10.52 计划页家属通知）
     famOff: {},
     mutedToday: {},
-    // 计划开关（V10.111）：类别之下的逐条计划（按任务 id 记，缺省开；只有 V0.1 有这些行）
-    planOff: {},
-    // 展开的类别（V10.115 回到一页折叠）：同时只展开一个，进页全收起
-    notifyFoldKey: null,
     walking: false,
     paused: false,
     walkSaved: false,
@@ -4066,7 +4062,7 @@
       // 未绑定先去填写（填完自动进打卡通知页），总闸关着引导去个人中心
       famNotify() {
         const t = SEED.find((x) => x.id === S.taskId);
-        const shown = familyGateOpen(taskCatKey(t), S.taskId) && !S.famOff[S.taskId];
+        const shown = familyGateOpen(taskCatKey(t)) && !S.famOff[S.taskId];
         if (!shown && blockedByFamilyGate(taskCatKey(t))) return;
         S.famOff[S.taskId] = !S.famOff[S.taskId];
         render();
@@ -4075,7 +4071,7 @@
       draftFamNotify() {
         if (!S.draft) return;
         const cat = taskCatKey(S.draft);
-        const shown = familyGateOpen(cat, S.screen === "task-edit" ? S.taskId : null) && S.draft.famNotify !== false;
+        const shown = familyGateOpen(cat) && S.draft.famNotify !== false;
         if (!shown && blockedByFamilyGate(cat)) return;
         S.draft.famNotify = !shown;
         render();
@@ -4501,22 +4497,6 @@
         S.cats[c] = !S.cats[c];
         const nm = (CAT[c] && CAT[c].name) || ((S.customCats || []).find((x) => x.id === c) || {}).name || "类别";
         logOp("改了到点提醒", "打卡通知", [["提醒", `${nm} 已${S.cats[c] ? "打开" : "关闭"}`]]);
-        render();
-      },
-      // 折叠（V10.115 回到一页折叠）：点类别标题行展开 / 收起，同时只展开一个
-      toggleFold() {
-        const c = el.dataset.cat;
-        if (!c || !genHasPlanSwitches()) return;
-        S.notifyFoldKey = S.notifyFoldKey === c ? null : c;
-        render();
-      },
-      // 计划开关（V10.111）：类别之下的逐条计划；类别关着时按钮 disabled，点不到
-      togglePlan() {
-        const id = el.dataset.id;
-        const t = SEED.find((x) => x.id === id);
-        if (!t) return;
-        S.planOff[id] = !S.planOff[id];
-        logOp("改了到点提醒", "打卡通知", [["提醒", `${t.title} 已${S.planOff[id] ? "关闭" : "打开"}`]]);
         render();
       },
       toggleFam() {
@@ -6357,17 +6337,16 @@
           </div>
           <div class="list-island mt16">
             ${rowToggle("全部打卡", allCatsOn(), "toggleAll", notifySys(I.check, true))}
-          </div>
-          ${[
-            ["服药", "medication"],
-            ["运动", "exercise"],
-            ["测血压", "monitoring"],
-            ["作息", "rest"],
-            ["饮食", "diet"],
-            ["复查", "appointment"],
-          ].map(([t, cat]) => catSection(t, cat, notifyCat(cat))).join("")}
-          ${(S.customCats || []).map((c) =>
-            catSection(c.name, c.id, notifySys(I[UNIFIED_CUSTOM_ICON], true))).join("")}
+            ${[
+              ["服药", "medication"],
+              ["运动", "exercise"],
+              ["测血压", "monitoring"],
+              ["作息", "rest"],
+              ["饮食", "diet"],
+              ["复查", "appointment"],
+            ].map(([t, cat]) => rowToggle(t, !!S.cats[cat], "toggleCat", notifyCat(cat), cat)).join("")}
+            ${(S.customCats || []).map((c) =>
+              rowToggle(c.name, !!S.cats[c.id], "toggleCat", notifySys(I[UNIFIED_CUSTOM_ICON], true), c.id)).join("")}
         </div>
       </div>`,
   };
@@ -6696,45 +6675,6 @@
       <button class="toggle ${on ? "on" : ""}" data-act="${actName}"${dataAttr ? ` data-cat="${dataAttr}"` : ""} type="button"><i></i></button>
     </div>`;
   }
-  /// 类别分区（V10.119）：一行分区头（图标井 + 名称 + 计划摘要 + 折叠箭头，不带开关）
-  /// + 展开时头下另起一张白卡：卡内不用图标、所有行缩进到母类标题线，左侧导引线正对图标中线。
-  function catSection(title, catKey, iconHTML) {
-    const plans = genHasPlanSwitches() ? SEED.filter((t) => taskCatKey(t) === catKey) : [];
-    const catOn = !!S.cats[catKey];
-    const off = plans.filter((t) => S.planOff[t.id]).length;
-    const caption = plans.length
-      ? (catOn ? `${plans.length} 条计划${off ? ` · 已关 ${off} 条` : ""}` : `已关闭 · ${plans.length} 条计划`)
-      : "暂无计划";
-    const open = S.notifyFoldKey === catKey;
-    const head = `<div class="cat-head${catOn ? "" : " dim"}" data-act="toggleFold" data-cat="${catKey}">
-      ${iconHTML || notifySys(I.bell)}
-      <div class="grow">
-        <div class="s20 fb t">${title}</div>
-        <div class="s14 t-sec" style="margin-top:2px">${caption}</div>
-      </div>
-      <span class="fold-chev${open ? " open" : ""}">${I.chevR}</span>
-    </div>`;
-    if (!open) return `<div class="cat-sec">${head}</div>`;
-    const master = `<div class="list-row child-row" style="min-height:58px">
-      <div class="grow s20 fb t">全部提醒</div>
-      <button class="toggle ${catOn ? "on" : ""}" data-act="toggleCat" data-cat="${catKey}" type="button"><i></i></button>
-    </div>`;
-    const rows = plans.map((t) => {
-      const on = catOn && !S.planOff[t.id];
-      const btn = catOn
-        ? `<button class="toggle ${on ? "on" : ""}" data-act="togglePlan" data-id="${t.id}" type="button"><i></i></button>`
-        : `<button class="toggle" disabled style="pointer-events:none;cursor:default" type="button"><i></i></button>`;
-      const hm = `${String(t.h).padStart(2, "0")}:${String(t.m).padStart(2, "0")}`;
-      return `<div class="list-row child-row" style="min-height:58px;${catOn ? "" : "opacity:.45"}">
-        <div class="grow">
-          <div class="s18 fb t">${t.title}</div>
-          <div class="s14 t-sec" style="margin-top:2px">${hm}</div>
-        </div>
-        ${btn}
-      </div>`;
-    }).join("");
-    return `<div class="cat-sec">${head}</div><div class="list-island child-card" style="margin-top:10px">${master}${rows}</div>`;
-  }
   /// 全部打卡 = 六类（含自定义）全开；关一类即显示为关
   function allCatsOn() {
     const ids = Object.keys(CAT).concat((S.customCats || []).map((c) => c.id));
@@ -6745,18 +6685,15 @@
     const ids = Object.keys(CAT).concat((S.customCats || []).map((c) => c.id));
     return ids.some((id) => !!S.cats[id]);
   }
-  /// 到点提醒总闸：通知自己 × 该类别开关 × 计划开关（V10.111，只有 V0.1 认这一层）。
-  /// 到点提醒串联在这道闸之后（同 TaskNotificationService 的 gate 判据；未取到类别时不拦，避免误报）
-  function gateOpen(cat, taskId) {
+  /// 到点提醒总闸：通知自己 × 该类别开关。到点提醒串联在这道闸之后
+  /// （同 TaskNotificationService 的 gate 判据；未取到类别时不拦，避免误报）
+  function gateOpen(cat) {
     if (!cat) return true;
-    if (!S.notifySelf || !S.cats[cat]) return false;
-    return !(genHasPlanSwitches() && taskId && S.planOff[taskId]);
+    return S.notifySelf && !!S.cats[cat];
   }
   /// 个人中心副说明：同 CheckInNotificationStore.caption 口径（未绑定家属不算家属通道）
   /// 设计代际（真机 DesignGeneration）：V0.1 才有家属管理与哈宝问诊
   function genHasFamily() { return S.gen === "0.1"; }
-  /// 打卡通知页的计划开关（V10.111）：同样只在 V0.1 出现，排程也只在 V0.1 认这一层
-  function genHasPlanSwitches() { return S.gen === "0.1"; }
   /* ── 家属代操作归属（V10.57）─────────────────────────────
      写入那一刻的身份 = 这条记录的操作人；只有 V0.1 有家属身份，故标记只在这一代际成立。
      本人写入不落键（与存量 / 种子数据字节一致），标记是「读记录」而不是「读界面」。 */
@@ -6958,18 +6895,7 @@
   /// `catOverride` 给添加 / 编辑态用——那时还没有落库的任务，按草稿的类别判
   function blockedByGate(catOverride) {
     const cat = catOverride || currentTaskCat();
-    // 计划开关只对已保存的计划判（V10.111）：查看态带 S.taskId，编辑态用被改的那条，添加态还没有这一层
-    const pid = catOverride ? (S.screen === "task-edit" ? S.taskId : null) : S.taskId;
-    if (gateOpen(cat, pid)) return false;
-    if (genHasPlanSwitches() && pid && S.planOff[pid] && S.notifySelf && !!S.cats[cat]) {
-      openOverlay("confirm", {
-        title: "请先打开这条计划的提醒",
-        body: "个人中心已关闭这条计划的提醒，在这里开启也不会响。要收到提醒，请先到个人中心「打卡通知」打开这条计划。",
-        ok: "去设置",
-        action: "goNotify",
-      });
-      return true;
-    }
+    if (gateOpen(cat)) return false;
     openOverlay("confirm", {
       title: `请先打开${catName(cat)}通知`,
       body: `个人中心已关闭「${catName(cat)}」通知，在这里开启也不会响。要收到提醒，请先到个人中心打开总开关。`,
@@ -6978,35 +6904,24 @@
     });
     return true;
   }
-  /// 家属通道总闸：通知家属 × 已绑定家属 × 该类别开关 × 计划开关（V10.111）
+  /// 家属通道总闸：通知家属 × 已绑定家属 × 该类别开关
   /// （同 CheckInNotificationPreference.allowsFamilyReminder；计划「家属通知」串联在这道闸之后）
-  function familyGateOpen(cat, taskId) {
+  function familyGateOpen(cat) {
     if (!genHasFamily()) return false; // V0.0 没有家属通道，计划页的「家属通知」整行不出现
     if (!S.notifyFamily || !S.family.length) return false;
-    if (genHasPlanSwitches() && taskId && S.planOff[taskId]) return false;
     if (!cat) return true;
     return !!S.cats[cat];
   }
   /// 家属通道关着时弹窗拦下：未绑定去填写；已绑定未开总闸去个人中心。返回 true 表示已拦下。
   function blockedByFamilyGate(catOverride) {
     const cat = catOverride || currentTaskCat();
-    const pid = catOverride ? (S.screen === "task-edit" ? S.taskId : null) : S.taskId;
-    if (familyGateOpen(cat, pid)) return false;
+    if (familyGateOpen(cat)) return false;
     if (!S.family.length) {
       openOverlay("confirm", {
         title: "请先填写家属信息",
         body: "通知家属前请先绑定联系人",
         ok: "去填写",
         action: "goFamilyFromTask",
-      });
-      return true;
-    }
-    if (genHasPlanSwitches() && pid && S.planOff[pid] && S.notifyFamily && !!S.cats[cat]) {
-      openOverlay("confirm", {
-        title: "请先打开这条计划的提醒",
-        body: "个人中心已关闭这条计划的提醒，在这里开启也不会发。要通知家属，请先到个人中心「打卡通知」打开这条计划。",
-        ok: "去设置",
-        action: "goNotify",
       });
       return true;
     }
@@ -7373,7 +7288,7 @@
   function reminderSwitches(d, done, accent) {
     const id = S.taskId;
     const rows = [];
-    const gate = gateOpen(taskCatKey(d), id);
+    const gate = gateOpen(taskCatKey(d));
     const muted = !!S.mutedToday[id];
     // 总闸关着时开关显示关、也拨不开——点它弹窗引导去个人中心（不留小字）
     rows.push(reminderRow(
@@ -7388,7 +7303,7 @@
     if (genHasFamily()) {
       rows.push(reminderRow("家属通知",
         done ? "本次已打卡，提醒已锁定" : "同步通知已绑定的家属",
-        done ? false : (familyGateOpen(taskCatKey(d), id) && !S.famOff[id]),
+        done ? false : (familyGateOpen(taskCatKey(d)) && !S.famOff[id]),
         "famNotify", done, accent.fg, false));
     }
 
@@ -7400,8 +7315,7 @@
   /// 「本次」= 系列里的第一次（新建的循环计划从起始日开始，那一次就是它的「本次」）。
   /// 切换写进草稿，随「添加 / 确认」一起落库。
   function draftReminderSwitch(d, accent) {
-    // 计划开关只对已保存的计划判：编辑态用被改的那条，添加态还没有这一层（V10.111）
-    const gate = gateOpen(taskCatKey(d), S.screen === "task-edit" ? S.taskId : null);
+    const gate = gateOpen(taskCatKey(d));
     const rows = [];
     rows.push(reminderRow(
       "本次提醒",
@@ -7410,7 +7324,7 @@
     // 家属通知（V10.52）：写进草稿随「添加 / 确认」落库；闸关着时拨不开、弹层引导。V0.0 不出现
     if (genHasFamily()) {
       rows.push(reminderRow("家属通知", "同步通知已绑定的家属",
-        familyGateOpen(taskCatKey(d), S.screen === "task-edit" ? S.taskId : null) && d.famNotify !== false,
+        familyGateOpen(taskCatKey(d)) && d.famNotify !== false,
         "draftFamNotify", false, accent.fg, false));
     }
 

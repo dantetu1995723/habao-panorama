@@ -1234,20 +1234,6 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .notify-ico.on { background: rgba(16,84,224,.88); color: #fff; }
 .notify-ico svg { width: 17px; height: 17px; }
-/* 打卡通知 · 类别分区（V10.119）：分区头（无开关）+ 展开卡；箭头随展开转 90° */
-.cat-sec { margin-top: 16px; }
-.cat-head { display: flex; align-items: center; gap: 12px; padding: 10px 16px; cursor: pointer; }
-.cat-head.dim { opacity: .5; }
-.fold-chev { display: grid; place-items: center; color: rgba(16, 84, 224, .5); transition: transform .2s; flex: 0 0 auto; }
-.fold-chev svg { width: 15px; height: 15px; }
-.fold-chev.open { transform: rotate(90deg); }
-/* 展开卡（V10.119）：卡内行缩进到母类标题线，左侧一条浅蓝导引线正对母类图标中线 */
-.child-card { position: relative; }
-.child-card::before {
-  content: ""; position: absolute; left: 36px; top: 12px; bottom: 12px;
-  width: 2px; border-radius: 1px; background: rgba(16, 84, 224, .16);
-}
-.child-row { padding-left: 52px; }
 .list-row h4 { font-size: calc(18px * var(--fs)); font-weight: 700; color: var(--blue); line-height: 1.55; }
 .list-row p { font-size: calc(14px * var(--fs)); color: var(--secondary); margin-top: 2px; }
 .op-name, .op-place {
