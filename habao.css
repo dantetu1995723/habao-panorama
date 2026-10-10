@@ -1260,7 +1260,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .op-place { color: var(--blue); background: #fff; box-shadow: inset 0 0 0 1px rgba(16,84,224,.40); }
 .op-plain { font-weight: 600; color: var(--blue); }
 .op-detail { flex: 1 1 auto; min-width: 0; color: var(--blue); font-weight: 600; font-size: calc(16px * var(--fs)); line-height: 1.5; }
-/* 操作记录（V10.113）：搜索行 + 长按弹层 + 跳转行 */
+/* 操作记录（V10.125）：搜索行 + 长按弹层；结果行不可点 */
 .op-search-row { display: flex; align-items: center; gap: 10px; position: relative; }
 .op-search { flex: 1; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; background: #fff; border-radius: 14px; box-shadow: 0 4px 14px rgba(16,84,224,.06); }
 .op-search svg { width: 15px; height: 15px; color: rgba(16,84,224,.6); flex: 0 0 15px; }
@@ -1272,8 +1272,6 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .op-actor-row { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 52px; padding: 0 16px; border: 0; background: none; border-radius: 16px; font-size: calc(17px * var(--fs)); font-weight: 700; color: var(--blue); cursor: pointer; font-family: inherit; }
 .op-actor-row + .op-actor-row { margin-top: 8px; }
 .op-actor-row.on { background: rgba(16,84,224,.10); }
-.op-line.go { cursor: pointer; }
-.op-line.go svg { width: 12px; height: 12px; flex: 0 0 12px; opacity: .45; }
 /* 操作记录（V10.109）：一天一页；时刻做块头（时刻 + 细分隔线），下面白卡装内容 */
 .op-block { margin-bottom: 16px; }
 .op-block-head { display: flex; align-items: center; gap: 10px; margin: 0 2px 8px; }

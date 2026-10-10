@@ -1091,7 +1091,7 @@
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。" },
     consult: { code: "SmartConsultChatView", note: "V10.124：点输入框出光标；键盘和功能板共用底部同一截高度，来回切时输入框不跳。点加号：键盘落下、功能板（拍照 / 相册 / AI电话）从这一截里出来；再点输入框，功能板让回键盘。长按输入框把语音流式写进框里，松手留下，上滑取消。V0.0 三个入口压暗点不开，切 V0.1 才进得来。" },
     profile: { code: "ServiceView", note: "Hero 健康档案 + 操作记录/通知/协议。无 VIP。V0.0 不出现家属管理与右上身份胶囊、档案标「本人」（切 V0.1 恢复）。身份胶囊仍决定写入归属，但不再在卡片上盖章；本人和家属的操作都进「操作记录」。" },
-    activity: { code: "ActivityLogView", note: "V10.113 个人中心「操作记录」：一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内以时刻做块头（时刻 + 细分隔线）切成几块，块内白卡装内容。一件事记一条：一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）左 46px 定宽浅蓝标签 + 右侧实色蓝事项。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：本次未动」。结果行右侧带箭头的可点，跳到对应模块看当前存量；页顶搜索框搜记录内容；长按一条出「改归属 / 删除这条记录」，超 300 条丢过更早记录时最早那页页脚提示。空态「还没有操作记录」；某一天没有记录写「这一天没有操作记录」。" },
+    activity: { code: "ActivityLogView", note: "V10.113 个人中心「操作记录」：一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内以时刻做块头（时刻 + 细分隔线）切成几块，块内白卡装内容。一件事记一条：一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）左 46px 定宽浅蓝标签 + 右侧实色蓝事项。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：本次未动」。结果行只读，不带箭头、点了不跳模块；页顶搜索框搜记录内容；长按一条出「改归属 / 删除这条记录」，超 300 条丢过更早记录时最早那页页脚提示。空态「还没有操作记录」；某一天没有记录写「这一天没有操作记录」。" },
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.98：用药与复查有存量也直接落本页，存量组列在底部组轨道。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "按组分区预览。与首次上传、身体报告·基础报告共用同一份存量。入组可改类别 / 删组（必传出院记录至少留一组）；复查不改类别。右上入组「解析」、存档「提交」。无存量时空态只留文案，拍资料走左上「拍摄」，页内不再放「拍摄资料」钮。" },
@@ -1465,7 +1465,7 @@
       { act: "bindFam", label: "（V0.1）家属绑定（最多 5 位）", optional: true },
       { act: "toggleCat", label: "打卡通知分类开关", optional: true },
     ]},
-    // V10.113：操作记录按天看、可搜，结果行能跳模块
+    // V10.125：操作记录按天看、可搜；结果行只读，不跳模块
     { id: "activity-day", label: "已入组 · 操作记录按天看", cold: "demo", steps: [
       { screen: "profile", label: "首页右上「我的」进个人中心" },
       { screen: "activity", label: "「操作记录」进全屏页：落在最近一条那天，右上角日期按钮同天" },
@@ -6629,12 +6629,10 @@
     if (!op.place) return name + action;
     return `${name}<span class="op-plain">在</span><span class="op-place">${esc(op.place)}</span>${action}`;
   }
-  /// 结果行右侧带箭头的可点：跳到对应模块看当前存量（真机同款）
-  const OP_LINE_GO = { "计划": "schedule", "用药": "schedule", "日常": "schedule", "运动": "schedule", "打卡": "schedule", "复查": "schedule", "读数": "vitals", "资料": "report" };
+  /// 结果行只读：不带箭头，点了不跳模块（V10.125）
   function opLinesHTML(op) {
     return (op.lines || []).map(([label, value]) => {
-      const go = OP_LINE_GO[label];
-      return `<div class="op-line${go ? " go" : ""}"${go ? ` data-go="${go}"` : ""}><span class="op-tag">${esc(label)}</span><span class="op-detail">${esc(value)}</span>${go ? I.chevR : ""}</div>`;
+      return `<div class="op-line"><span class="op-tag">${esc(label)}</span><span class="op-detail">${esc(value)}</span></div>`;
     }).join("");
   }
   function opText(op) {
@@ -6670,22 +6668,14 @@
   function bindOpHold() {
     document.querySelectorAll(".op-card").forEach((card) => {
       let timer = null;
-      let fired = false;
-      const open = () => { fired = true; openOverlay("opCard", { id: card.dataset.opId }); };
-      const start = () => { fired = false; timer = setTimeout(open, 550); };
+      const open = () => { openOverlay("opCard", { id: card.dataset.opId }); };
+      const start = () => { timer = setTimeout(open, 550); };
       const end = () => { if (timer) { clearTimeout(timer); timer = null; } };
       card.onpointerdown = start;
       card.onpointerup = end;
       card.onpointerleave = end;
       card.onpointercancel = end;
       card.oncontextmenu = (e) => { e.preventDefault(); open(); };
-      // 长按弹层之后，这一次松手别再顺带触发结果行的跳转
-      card.addEventListener("click", (e) => {
-        if (!fired) return;
-        fired = false;
-        e.stopPropagation();
-        e.preventDefault();
-      }, true);
     });
   }
   /// 搜索只换结果区，不整屏重绘（重绘会把输入框焦点弄丢）
