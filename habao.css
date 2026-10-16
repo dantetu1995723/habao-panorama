@@ -706,6 +706,27 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   font-size: calc(22px * var(--fs)); font-weight: 700; color: var(--blue); text-align: center;
 }
 .popup p { font-size: calc(15px * var(--fs)); font-weight: 500; color: var(--secondary); text-align: center; margin: 10px 0 16px; }
+.plan-cmp-list { display: flex; flex-direction: column; gap: 10px; margin: 16px 0 0; text-align: left; }
+.plan-cmp-card {
+  padding: 12px 14px; border-radius: 16px;
+  background: rgba(130,142,165,.08);
+  display: flex; flex-direction: column; gap: 5px;
+}
+.plan-cmp-card.primary { background: rgba(16,84,224,.10); }
+.plan-cmp-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  font-size: calc(13px * var(--fs)); font-weight: 700; color: var(--secondary);
+}
+.plan-cmp-head .mono { font-weight: 600; }
+.plan-cmp-card.primary .plan-cmp-head { color: var(--blue); }
+.plan-cmp-main {
+  font-size: calc(17px * var(--fs)); font-weight: 700; color: var(--text);
+}
+.plan-cmp-card.primary .plan-cmp-main { color: var(--blue); }
+.plan-cmp-sub {
+  font-size: calc(13px * var(--fs)); font-weight: 500; color: var(--secondary);
+}
+.plan-cmp-card.primary .plan-cmp-sub { color: rgba(16,84,224,.78); }
 .duo { display: flex; gap: 12px; margin-top: 16px; }
 .duo button {
   flex: 1; height: 56px; border: 0; border-radius: 16px;

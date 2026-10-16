@@ -1161,7 +1161,7 @@
     "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），进与首次上传 / 基础报告同一份资料详情，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
     "task-add": { code: "AddEditTaskView", note: "两大类折叠（不分页）：一条滚动里「事项」「时间与提醒」两组，标题行点一下收起、再点一下展开，进页两组都展开。「事项」：名称、备注、今日血压、分类。「时间与提醒」：计划类型 → 日期 / 开始日期（同一字段；单日读「日期」、循环读「开始日期」，过去日不可选；首页虚框锁定当天；切成循环计划不跳页，循环规则与持续时长就在下方就地出现）→ 循环规则（每日 / 每周 / 每月 + 自定义间隔，每月 1–31 与「月末」同格）→ 持续时长（预设不含 1天 / 1周 / 1个月、最长一年，末尾通栏「自定义」）→ 时间段 → 当日时刻 → 「到点提醒」（一档「本次提醒」，压的是这一次；新建的循环计划从起始日算）＋「家属通知」（V10.52：家属通道串联，未绑定先去填写、填完自动进打卡通知页；总闸关着弹「去设置」）→ 查看态删除 / 取消打卡。折叠只影响看不看得见，右上「添加」随时可保存。「家属通知」只在 V0.1 出现。" },
-    "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。开始日期锁定为原来的起始日；本次日期是打开的这一天，不能选更早。结束时间默认是本次日期的后一天。持续时长只留 3 档，放在结束时间上面，没有「自定义」。本次日期晚于开始日期时，点「确认」先弹出「新计划从本次日期开始执行，原计划前一日截止」。" },
+    "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。开始日期锁定为原来的起始日；本次日期是打开的这一天，不能选更早；持续时长与结束时间保留原设置。仅当修改了时间或循环相关字段（提醒时间、循环规则、计划类型、开始/本次日期、持续时长/结束时间）时，保存前弹出「确认更新计划」居中双卡弹窗，并排核对「当前计划（结束时间）」与「新计划（开始时间）」；仅改名称/备注/血压等直接原地保存。" },
     "task-view": { code: "AddEditTaskView", note: "同两大类折叠、只读（标题行仍可点折叠）。右上是「更新」。循环计划同时显示开始日期和本次日期（健康计划取日历选中日，首页取今天）。今日未打卡时，「时间与提醒」组底部按已保存类型删除：循环「删除本次计划 / 删除本次和后续计划」，单日「删除计划」；到点提醒只有一档「本次提醒」：压的是正在看的那一天，关掉只这一次不响，任务照常出现、照常能打卡；开关方向与个人中心总闸同向（开 = 会响）。今日之前、以及该日已打卡，到点提醒和删除都不出现。今日已打卡可「取消本次打卡」，取消后这两处回来。右上「更新」在今日之前和已打卡时都置灰禁用。「家属通知」只在 V0.1 出现（家属通道 = 通知家属 × 已绑定 × 类别开关）。" },
     "exercise-risk": { code: "BodyTestRunView", note: "Demo Toggle 模拟禁忌症。体测不参与入组。「稍后 / 退出评估 / 暂不创建」关整段评估流，不退回选择类型。" },
     "body-test": { code: "BodyTestRunView", note: "户外原地踏步三分钟。停止或倒计时归零后直进感受问卷，无完成中转页。" },
@@ -1944,6 +1944,9 @@
       rule: d.cycle ? d.rule : null,
       weekdays: d.cycle ? d.weekdays : null,
       monthDays: d.cycle ? d.monthDays : null,
+      duration: d.cycle ? d.duration : null,
+      endDate: d.cycle ? (d.endDate || null) : null,
+      customDays: d.cycle ? (d.customDays || null) : null,
       customId: d.customId || undefined,
       onceDate: d.onceDate || undefined,
     });
@@ -2037,11 +2040,12 @@
       cycle: t.cycle !== false,
       // 保留已存的循环规则，否则编辑一次「每周三」就退化成「每日」
       rule: t.rule || (appt ? "monthly" : "daily"),
-      weekdays: [6],
-      monthDays: [11],
-      duration: "oneYear",
+      weekdays: t.weekdays ? t.weekdays.slice() : [6],
+      monthDays: t.monthDays ? t.monthDays.slice() : [11],
+      duration: "duration" in t ? t.duration : "oneYear",
+      endDate: t.endDate || null,
       customId: t.customId || null,
-      customDays: null,
+      customDays: t.customDays || null,
       block: blockOf(t.h).id,
       hour: t.h,
       min: t.m,
@@ -2054,6 +2058,121 @@
       onceDate: t.onceDate || toYMD(demoDate()),
       // 正在看的这一次。健康计划用日历选中日，首页用今天。
       occurrence: S.taskOccurrence || toYMD(demoDate()),
+      touchedDuration: false,
+    };
+  }
+  function scheduleRuleTimeSummary(isCycle, rule, weekdays, monthDays, h, m) {
+    const timeText = `${pad(h ?? 8)}:${pad(m ?? 0)}`;
+    if (!isCycle) return `单日 ${timeText}`;
+    if (rule === "weekly") {
+      const labels = ["日", "一", "二", "三", "四", "五", "六"];
+      const w = (weekdays && weekdays.length ? weekdays : [6])
+        .slice()
+        .sort((a, b) => a - b)
+        .map((n) => labels[(n - 1 + 7) % 7] || "")
+        .join("");
+      return `每周${w} ${timeText}`;
+    }
+    if (rule === "monthly") {
+      const md = (monthDays && monthDays.length ? monthDays : [11]).slice();
+      const nums = md.filter((x) => x !== 0).sort((a, b) => a - b).map((x) => `${x}日`);
+      if (md.includes(0)) nums.push("月末");
+      return `每月${nums.join("、")} ${timeText}`;
+    }
+    return `每日 ${timeText}`;
+  }
+  function resolvedDraftEndYmd(d, anchorYmd) {
+    if (d.endDate) return d.endDate;
+    const days = d.customDays || (d.duration ? durationDayCount(d.duration) : 365);
+    return addDaysYMD(anchorYmd, days - 1);
+  }
+  function buildScheduleUpdatePrompt(orig, d) {
+    if (!orig || !d) return null;
+    const origBase = taskDraftFromSeed(orig);
+    const opened = S.taskOccurrence || toYMD(demoDate());
+    const today = toYMD(demoDate());
+    const defaultOcc = opened > today ? opened : today;
+
+    let changed = false;
+    if (d.hour !== origBase.hour || d.min !== origBase.min) changed = true;
+    if (!!d.cycle !== !!origBase.cycle) changed = true;
+    if (origBase.cycle) {
+      const curOcc = d.cycle ? (d.occurrence || defaultOcc) : (d.onceDate || defaultOcc);
+      if (curOcc !== defaultOcc) changed = true;
+    } else {
+      if ((d.onceDate || origBase.onceDate) !== origBase.onceDate) changed = true;
+    }
+    if (d.cycle && origBase.cycle) {
+      if (d.rule !== origBase.rule) changed = true;
+      if (d.rule === "weekly") {
+        const a = (d.weekdays || []).slice().sort().join(",");
+        const b = (origBase.weekdays || []).slice().sort().join(",");
+        if (a !== b) changed = true;
+      }
+      if (d.rule === "monthly") {
+        const a = (d.monthDays || []).slice().sort().join(",");
+        const b = (origBase.monthDays || []).slice().sort().join(",");
+        if (a !== b) changed = true;
+      }
+      const origEnd = resolvedDraftEndYmd(origBase, origBase.onceDate);
+      const curEnd = resolvedDraftEndYmd(d, origBase.onceDate);
+      if (curEnd !== origEnd || d.touchedDuration) changed = true;
+    }
+    if (!changed) return null;
+
+    const newStartYmd = (origBase.cycle && d.cycle)
+      ? (d.occurrence || defaultOcc)
+      : (d.onceDate || defaultOcc);
+    const oldStartYmd = origBase.onceDate;
+    const origEndYmd = origBase.cycle ? resolvedDraftEndYmd(origBase, oldStartYmd) : oldStartYmd;
+
+    let currentEndHeadline;
+    let currentFootnote;
+    let inlineMessage;
+    let splitsSeries = false;
+    const newStartText = yearMonthDayLabel(parseYMD(newStartYmd));
+
+    if (origBase.cycle && newStartYmd > oldStartYmd) {
+      splitsSeries = true;
+      if (origEndYmd < newStartYmd) {
+        const endText = yearMonthDayLabel(parseYMD(origEndYmd));
+        currentEndHeadline = `已在${endText}截止`;
+        currentFootnote = "原计划保持不变";
+        inlineMessage = `当前计划已在${endText}截止，新计划${newStartText}开始。`;
+      } else {
+        const prevYmd = addDaysYMD(newStartYmd, -1);
+        const prevText = yearMonthDayLabel(parseYMD(prevYmd));
+        currentEndHeadline = `${prevText}截止`;
+        currentFootnote = "此前打卡记录保留";
+        inlineMessage = `当前计划${prevText}截止，新计划${newStartText}开始。`;
+      }
+    } else {
+      currentEndHeadline = "立即结束";
+      currentFootnote = "按新设置替换当前排程";
+      inlineMessage = `当前计划立即结束，新计划${newStartText}开始。`;
+    }
+
+    const currentRuleTimeText = scheduleRuleTimeSummary(
+      origBase.cycle, origBase.rule, origBase.weekdays, origBase.monthDays, origBase.hour, origBase.min
+    );
+    const newRuleTimeText = scheduleRuleTimeSummary(
+      d.cycle, d.rule, d.weekdays, d.monthDays, d.hour, d.min
+    );
+    const newStartHeadline = `${newStartText}开始`;
+    const newFootnote = d.cycle
+      ? `至${yearMonthDayLabel(parseYMD(resolvedDraftEndYmd(d, newStartYmd)))}截止`
+      : "仅执行当日一次";
+
+    return {
+      splitsSeries,
+      newStartYmd,
+      currentRuleTimeText,
+      currentEndHeadline,
+      currentFootnote,
+      newRuleTimeText,
+      newStartHeadline,
+      newFootnote,
+      inlineMessage,
     };
   }
   function initDraft(seed) {
@@ -3778,7 +3897,17 @@
       },
       draftCycle() {
         if (!S.draft || S.lockRecurrence) return;
-        S.draft.cycle = el.dataset.v === "1";
+        const orig = SEED.find((x) => x.id === S.taskId);
+        const nextCycle = el.dataset.v === "1";
+        S.draft.cycle = nextCycle;
+        if (S.screen === "task-edit" && orig && orig.cycle !== false) {
+          if (!nextCycle) {
+            S.draft.onceDate = S.draft.occurrence || S.taskOccurrence || toYMD(demoDate());
+          } else {
+            S.draft.occurrence = S.draft.onceDate || S.taskOccurrence || toYMD(demoDate());
+            S.draft.onceDate = orig.onceDate || toYMD(demoDate());
+          }
+        }
         if (S.draft.cycle) S.draft.rule = S.draft.cat === "appointment" ? "monthly" : (S.draft.rule || "daily");
         render();
       },
@@ -3801,7 +3930,15 @@
         S.draft.weekdays = [...set];
         render();
       },
-      draftDur() { if (S.draft) { S.draft.duration = el.dataset.d; S.draft.endDate = null; S.draft.customDays = null; render(); } },
+      draftDur() {
+        if (S.draft) {
+          S.draft.duration = el.dataset.d;
+          S.draft.endDate = null;
+          S.draft.customDays = null;
+          S.draft.touchedDuration = true;
+          render();
+        }
+      },
       openCustomCat() {
         if (S.taskMode === "view" && S.screen === "task-view") return;
         S.customFromType = false;
@@ -3966,7 +4103,8 @@
       openOnceDate() {
         if (!S.draft || S.lockRecurrence) return;
         const ymd = S.draft.onceDate || toYMD(demoDate());
-        openOverlay("datePick", { selected: ymd, month: ymd });
+        const floor = S.screen === "task-edit" ? (S.taskOccurrence || toYMD(demoDate())) : null;
+        openOverlay("datePick", { selected: ymd, month: ymd, minYmd: floor });
       },
       openOccurrenceDate() {
         if (!S.draft) return;
@@ -3976,8 +4114,10 @@
       },
       openSeriesEnd() {
         if (!S.draft) return;
-        const anchor = (S.screen === "task-edit" && S.draft.cycle) ? (S.draft.occurrence || S.draft.onceDate) : S.draft.onceDate;
-        const ymd = S.draft.endDate || addDaysYMD(anchor, 1);
+        const orig = SEED.find((x) => x.id === S.taskId);
+        const showOcc = S.screen === "task-edit" && S.draft.cycle && orig && orig.cycle !== false;
+        const anchor = showOcc ? (S.draft.occurrence || S.draft.onceDate) : S.draft.onceDate;
+        const ymd = resolvedDraftEndYmd(S.draft, anchor);
         openOverlay("datePick", { selected: ymd, month: ymd, kind: "seriesEnd", minYmd: anchor });
       },
       pickCalDay() {
@@ -3990,11 +4130,10 @@
           S.customDurDays = Math.min(365, Math.max(minDays, diff));
         } else if (S.overlayData.kind === "occurrence" && S.draft) {
           S.draft.occurrence = el.dataset.ymd;
-          // 还停在「更新」给的默认（后一天）时，本次日期一改，结束时间跟着后移一天
-          if (!S.draft.duration) S.draft.endDate = addDaysYMD(el.dataset.ymd, 1);
         } else if (S.overlayData.kind === "seriesEnd" && S.draft) {
           S.draft.endDate = el.dataset.ymd;
           S.draft.duration = null;
+          S.draft.touchedDuration = true;
         } else if (S.overlayData.kind === "opDay") {
           S.opDay = el.dataset.ymd;
         } else if (S.draft) S.draft.onceDate = el.dataset.ymd;
@@ -4045,7 +4184,17 @@
         const picked = basisDraftFor(el.dataset.id) ?? a.sourceYMD;
         openOverlay("datePick", { kind: "basisDate", i: +hit[1], selected: picked, month: picked });
       },
-      draftBlock() { if (S.draft && !S.lockBlock) { S.draft.block = +el.dataset.b; render(); } },
+      draftBlock() {
+        if (!S.draft || S.lockBlock) return;
+        const b = +el.dataset.b;
+        S.draft.block = b;
+        const blk = BLOCKS[b];
+        if (blk && (S.draft.hour < blk.start || S.draft.hour >= blk.end)) {
+          S.draft.hour = b === 1 ? 8 : blk.start;
+          S.draft.min = 0;
+        }
+        render();
+      },
       editDraftTime() {
         if (!S.draft) return;
         openOverlay("time", { title: "提醒时间", h: S.draft.hour, m: S.draft.min, kind: "draft", block: S.draft.block });
@@ -4250,8 +4399,6 @@
           const opened = S.taskOccurrence || toYMD(demoDate());
           const today = toYMD(demoDate());
           S.draft.occurrence = opened > today ? opened : today;
-          S.draft.endDate = addDaysYMD(S.draft.occurrence, 1);
-          S.draft.duration = null;
         }
         go("task-edit", "replace");
       },
@@ -4259,13 +4406,13 @@
       saveTask() {
         syncDraftInputs();
         if (!S.draft?.title) { toast("请填写事项名称"); return; }
-        const d = S.draft;
-        if (d.cycle && d.occurrence && d.onceDate && d.occurrence > d.onceDate) {
-          const prev = parseYMD(d.occurrence);
-          prev.setDate(prev.getDate() - 1);
+        const orig = SEED.find((x) => x.id === S.taskId);
+        const prompt = buildScheduleUpdatePrompt(orig, S.draft);
+        if (prompt) {
           openOverlay("confirm", {
-            title: "确认原计划结束",
-            body: `新计划从${yearMonthDayLabel(parseYMD(d.occurrence))}开始执行，原计划${yearMonthDayLabel(prev)}截止。`,
+            title: "确认更新计划",
+            planCompare: prompt,
+            cancel: "返回",
             ok: "确认",
             action: "commitSaveTask",
           });
@@ -4274,9 +4421,11 @@
         map.commitSaveTask();
       },
       commitSaveTask() {
+        const orig = SEED.find((x) => x.id === S.taskId);
+        const prompt = buildScheduleUpdatePrompt(orig, S.draft);
         closeOverlay();
-        if (S.draft?.cycle && S.draft.occurrence && S.draft.onceDate && S.draft.occurrence > S.draft.onceDate) {
-          S.draft.onceDate = S.draft.occurrence;
+        if (prompt && S.draft) {
+          S.draft.onceDate = prompt.newStartYmd;
         }
         applyDraftToTask(S.taskId, S.draft);
         logOp("修改了计划", entryPlace(), [["计划", taskTitle(S.taskId)]]);
@@ -7553,7 +7702,9 @@
           ${!(S.lockCategory && mode === "add") && mode !== "view" ? chip({ selected: false, label: "自定义", icon: I.plus, dash: true, act: "openCustomCat" }) : ""}
         </div>`;
     // 已保存循环计划点「更新」：开始日期锁定。首页虚框仍锁定当天。查看态整页只读，仍保持语义色。
-    const lockStart = lockRec || (mode === "edit" && d.cycle);
+    const origCycle = t.cycle !== false;
+    const showOcc = mode !== "add" && d.cycle && origCycle;
+    const lockStart = lockRec || (mode === "edit" && showOcc);
     const dateRow = (label, ymd, act, locked) => {
       const on = editable && !locked;
       // 查看态三个日期都不可改，整条置灰；更新态只把锁定的开始日期压灰
@@ -7565,13 +7716,14 @@
           ${on ? `<span class="dim">${I.chevUD}</span>` : ""}
         </button>`;
     };
-    const anchor = mode === "edit" && d.cycle ? (d.occurrence || d.onceDate) : d.onceDate;
-    const endYmd = d.endDate || addDaysYMD(anchor, (d.duration ? durationDayCount(d.duration) : 365) - 1);
-    const occurrenceRow = (mode !== "add" && d.cycle)
+    const anchor = mode === "edit" && showOcc ? (d.occurrence || d.onceDate) : d.onceDate;
+    const endYmd = resolvedDraftEndYmd(d, anchor);
+    const occurrenceRow = showOcc
       ? dateRow("本次日期", d.occurrence || S.taskOccurrence || toYMD(demoDate()), "openOccurrenceDate", false)
       : "";
-    const splitNote = (mode === "edit" && d.cycle && d.occurrence && d.onceDate && d.occurrence > d.onceDate)
-      ? `<div class="month-day-hint">新计划从${yearMonthDayLabel(parseYMD(d.occurrence))}开始执行，原计划${yearMonthDayLabel(parseYMD(addDaysYMD(d.occurrence, -1)))}截止。</div>`
+    const schedPrompt = mode === "edit" ? buildScheduleUpdatePrompt(t, d) : null;
+    const splitNote = schedPrompt
+      ? `<div class="month-day-hint">${esc(schedPrompt.inlineMessage)}</div>`
       : "";
     const dateBlock = `
         <div class="sec-label" style="margin-top:0">计划类型</div>
@@ -7825,17 +7977,33 @@
         </div>
       </div>`;
     },
-    confirm: () => `
+    confirm: () => {
+      const cmp = S.overlayData.planCompare;
+      const content = cmp ? `
+        <div class="plan-cmp-list">
+          <div class="plan-cmp-card">
+            <div class="plan-cmp-head"><span>当前计划</span><span class="mono">${esc(cmp.currentRuleTimeText)}</span></div>
+            <div class="plan-cmp-main mono">${esc(cmp.currentEndHeadline)}</div>
+            <div class="plan-cmp-sub mono">${esc(cmp.currentFootnote)}</div>
+          </div>
+          <div class="plan-cmp-card primary">
+            <div class="plan-cmp-head"><span>新计划</span><span class="mono">${esc(cmp.newRuleTimeText)}</span></div>
+            <div class="plan-cmp-main mono">${esc(cmp.newStartHeadline)}</div>
+            <div class="plan-cmp-sub mono">${esc(cmp.newFootnote)}</div>
+          </div>
+        </div>` : `<p>${S.overlayData.body || ""}</p>`;
+      return `
       <div class="scrim center" data-act="close">
         <div class="popup" onclick="event.stopPropagation()">
           <h3>${S.overlayData.title || "确认"}</h3>
-          <p>${S.overlayData.body || ""}</p>
+          ${content}
           <div class="duo">
             <button class="cancel" data-act="close" type="button">${S.overlayData.cancel || "取消"}</button>
             <button class="${S.overlayData.danger ? "danger" : "ok"}" data-act="confirmOk" type="button">${S.overlayData.ok || "确定"}</button>
           </div>
         </div>
-      </div>`,
+      </div>`;
+    },
     consultImage: () => `
       <div class="scrim bottom" data-act="close">
         <div class="sheet" onclick="event.stopPropagation()">
