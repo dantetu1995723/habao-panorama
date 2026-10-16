@@ -1161,7 +1161,7 @@
     "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），进与首次上传 / 基础报告同一份资料详情，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
     "task-add": { code: "AddEditTaskView", note: "两大类折叠（不分页）：一条滚动里「事项」「时间与提醒」两组，标题行点一下收起、再点一下展开，进页两组都展开。「事项」：名称、备注、今日血压、分类。「时间与提醒」：计划类型 → 日期 / 开始日期（同一字段；单日读「日期」、循环读「开始日期」，过去日不可选；首页虚框锁定当天；切成循环计划不跳页，循环规则与持续时长就在下方就地出现）→ 循环规则（每日 / 每周 / 每月 + 自定义间隔，每月 1–31 与「月末」同格）→ 持续时长（预设不含 1天 / 1周 / 1个月、最长一年，末尾通栏「自定义」）→ 时间段 → 当日时刻 → 「到点提醒」（一档「本次提醒」，压的是这一次；新建的循环计划从起始日算）＋「家属通知」（V10.52：家属通道串联，未绑定先去填写、填完自动进打卡通知页；总闸关着弹「去设置」）→ 查看态删除 / 取消打卡。折叠只影响看不看得见，右上「添加」随时可保存。「家属通知」只在 V0.1 出现。" },
-    "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。开始日期锁定为原来的起始日；下方「新计划开始日期」默认今天（若原计划在未来开始则默认原起始日），月历里可选今天及之后任意日期；持续时长与结束时间保留原设置。仅当修改了时间或循环相关字段（提醒时间、循环规则、计划类型、开始/新计划开始日期、持续时长/结束时间）时，保存前弹出「确认更新计划」居中双卡弹窗，并排核对「当前计划（结束时间）」与「新计划（开始时间）」；仅改名称/备注/血压等直接原地保存。" },
+    "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。日期行显示「原开始日期」（锁定为原来的起始日）与下方「新开始日期」（默认今天，若原计划在未来开始则默认原起始日，月历里可选今天及之后任意日期）；持续时长与结束时间保留原设置。仅当修改了时间或循环相关字段（提醒时间、循环规则、计划类型、开始/新开始日期、持续时长/结束时间）时，保存前弹出「确认更新计划」居中双卡弹窗，并排核对「当前计划（结束时间）」与「新计划（开始时间）」；仅改名称/备注/血压等直接原地保存。" },
     "task-view": { code: "AddEditTaskView", note: "同两大类折叠、只读（标题行仍可点折叠）。右上是「更新」。循环计划同时显示「开始日期」和「今天日期」（当天日期）。今日未打卡时，「时间与提醒」组底部按已保存类型删除：循环「删除本次计划 / 删除本次和后续计划」，单日「删除计划」；到点提醒只有一档「本次提醒」：压的是正在看的那一天，关掉只这一次不响，任务照常出现、照常能打卡；开关方向与个人中心总闸同向（开 = 会响）。今日之前、以及该日已打卡，到点提醒和删除都不出现。今日已打卡可「取消本次打卡」，取消后这两处回来。右上「更新」在今日之前和已打卡时都置灰禁用。「家属通知」只在 V0.1 出现（家属通道 = 通知家属 × 已绑定 × 类别开关）。" },
     "exercise-risk": { code: "BodyTestRunView", note: "Demo Toggle 模拟禁忌症。体测不参与入组。「稍后 / 退出评估 / 暂不创建」关整段评估流，不退回选择类型。" },
     "body-test": { code: "BodyTestRunView", note: "户外原地踏步三分钟。停止或倒计时归零后直进感受问卷，无完成中转页。" },
@@ -7776,7 +7776,7 @@
             chip({ selected: d.cat === "custom" && d.customId === c.id, label: c.name, icon: I[UNIFIED_CUSTOM_ICON], act: "pickCustomCat", extra: `data-id="${c.id}"`, locked: S.lockCategory && mode === "add" })).join("")}
           ${!(S.lockCategory && mode === "add") && mode !== "view" ? chip({ selected: false, label: "自定义", icon: I.plus, dash: true, act: "openCustomCat" }) : ""}
         </div>`;
-    // 已保存计划在循环态下：查看态展示「今天日期」，更改态展示「新计划开始日期」；点「更新」锁定开始日期。首页虚框仍锁定当天。
+    // 已保存计划在循环态下：查看态展示「今天日期」，更改态展示「新开始日期」；点「更新」锁定开始日期为「原开始日期」。首页虚框仍锁定当天。
     const showOcc = mode !== "add" && d.cycle;
     const lockStart = lockRec || (mode === "edit" && showOcc);
     const dateRow = (label, ymd, act, locked) => {
@@ -7792,7 +7792,7 @@
     };
     const anchor = mode === "edit" && showOcc ? (d.occurrence || d.onceDate) : d.onceDate;
     const endYmd = resolvedDraftEndYmd(d, anchor);
-    const occLabel = viewing ? "今天日期" : "新计划开始日期";
+    const occLabel = viewing ? "今天日期" : "新开始日期";
     const occYmd = viewing ? toYMD(demoDate()) : (d.occurrence || defaultNewPlanStartYmd(t));
     const occurrenceRow = showOcc
       ? dateRow(occLabel, occYmd, "openOccurrenceDate", false)
@@ -7801,13 +7801,14 @@
     const splitNote = schedPrompt
       ? `<div class="month-day-hint">${esc(schedPrompt.inlineMessage)}</div>`
       : "";
+    const startLabel = (mode === "edit" && showOcc) ? "原开始日期" : (d.cycle ? "开始日期" : "日期");
     const dateBlock = `
         <div class="sec-label" style="margin-top:0">计划类型</div>
         <div class="flex gap8">
           ${chip({ selected: !d.cycle, label: "单日计划", icon: I.cal, act: "draftCycle", extra: 'data-v="0"', locked: lockRec })}
           ${chip({ selected: d.cycle, label: "循环计划", icon: I.cycle, act: "draftCycle", extra: 'data-v="1"', locked: lockRec })}
         </div>
-        ${dateRow(d.cycle ? "开始日期" : "日期", d.onceDate, "openOnceDate", lockStart)}
+        ${dateRow(startLabel, d.onceDate, "openOnceDate", lockStart)}
         ${occurrenceRow}
         ${splitNote}`;
     const cycleBlock = `
