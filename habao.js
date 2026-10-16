@@ -2084,9 +2084,8 @@
       touchedDuration: false,
     };
   }
-  function scheduleRuleDurationSummary(isCycle, rule, weekdays, monthDays, duration, customDays, h, m) {
-    const timeText = `${pad(h ?? 8)}:${pad(m ?? 0)}`;
-    if (!isCycle) return `单日 ${timeText}`;
+  function scheduleRuleSummary(isCycle, rule, weekdays, monthDays) {
+    if (!isCycle) return "单日";
     let ruleText = "每日";
     if (rule === "weekly") {
       const labels = ["日", "一", "二", "三", "四", "五", "六"];
@@ -2102,7 +2101,10 @@
       if (md.includes(0)) nums.push("月末");
       ruleText = `每月${nums.join("、")}`;
     }
-
+    return ruleText;
+  }
+  function scheduleDurationSummary(isCycle, rule, duration, customDays) {
+    if (!isCycle) return "1天";
     let durationText = "一年";
     const opts = durationOpts(rule);
     const matched = opts.find((opt) => opt[0] === duration);
@@ -2111,6 +2113,16 @@
     } else if (customDays) {
       durationText = `${customDays}天`;
     }
+    return durationText;
+  }
+  function scheduleTimeSummary(h, m) {
+    return `${pad(h ?? 8)}:${pad(m ?? 0)}`;
+  }
+  function scheduleRuleDurationSummary(isCycle, rule, weekdays, monthDays, duration, customDays, h, m) {
+    const timeText = scheduleTimeSummary(h, m);
+    if (!isCycle) return `单日 ${timeText}`;
+    const ruleText = scheduleRuleSummary(isCycle, rule, weekdays, monthDays);
+    const durationText = scheduleDurationSummary(isCycle, rule, duration, customDays);
     return `${ruleText} · ${durationText} ${timeText}`;
   }
   function resolvedDraftEndYmd(d, anchorYmd) {
@@ -2158,8 +2170,6 @@
     const newEndYmd = d.cycle ? resolvedDraftEndYmd(d, newStartYmd) : newStartYmd;
 
     let currentEndYmd;
-    let currentFootnote;
-    let newFootnote;
     let inlineMessage;
     let splitsSeries = false;
     const newStartText = yearMonthDayLabel(parseYMD(newStartYmd));
@@ -2169,42 +2179,42 @@
       if (origEndYmd < newStartYmd) {
         currentEndYmd = origEndYmd;
         const endText = yearMonthDayLabel(parseYMD(origEndYmd));
-        currentFootnote = "原计划保持不变";
-        newFootnote = "原计划已截止，新排程独立生效";
         inlineMessage = `当前计划已在${endText}截止，新计划${newStartText}开始。`;
       } else {
         currentEndYmd = addDaysYMD(newStartYmd, -1);
         const prevText = yearMonthDayLabel(parseYMD(currentEndYmd));
-        currentFootnote = "此前打卡记录保留";
-        newFootnote = "此前打卡记录保留，新排程从开始日生效";
         inlineMessage = `当前计划${prevText}截止，新计划${newStartText}开始。`;
       }
     } else {
       currentEndYmd = origBase.cycle ? (addDaysYMD(newStartYmd, -1) >= oldStartYmd ? addDaysYMD(newStartYmd, -1) : oldStartYmd) : oldStartYmd;
-      currentFootnote = "按新设置替换当前排程";
-      newFootnote = "按新设置替换当前排程";
       inlineMessage = `当前计划立即结束，新计划${newStartText}开始。`;
     }
 
-    const currentDateRangeHeadline = `${yearMonthDayLabel(parseYMD(oldStartYmd))} – ${yearMonthDayLabel(parseYMD(currentEndYmd))}`;
-    const newDateRangeHeadline = `${yearMonthDayLabel(parseYMD(newStartYmd))} – ${yearMonthDayLabel(parseYMD(newEndYmd))}`;
+    const currentStartText = yearMonthDayLabel(parseYMD(oldStartYmd));
+    const currentEndText = yearMonthDayLabel(parseYMD(currentEndYmd));
+    const newEndText = yearMonthDayLabel(parseYMD(newEndYmd));
 
-    const currentRuleTimeText = scheduleRuleDurationSummary(
-      origBase.cycle, origBase.rule, origBase.weekdays, origBase.monthDays, origBase.duration, origBase.customDays, origBase.hour, origBase.min
-    );
-    const newRuleTimeText = scheduleRuleDurationSummary(
-      d.cycle, d.rule, d.weekdays, d.monthDays, d.duration, d.customDays, d.hour, d.min
-    );
+    const currentRuleText = scheduleRuleSummary(origBase.cycle, origBase.rule, origBase.weekdays, origBase.monthDays);
+    const currentDurationText = scheduleDurationSummary(origBase.cycle, origBase.rule, origBase.duration, origBase.customDays);
+    const currentTimeText = scheduleTimeSummary(origBase.hour, origBase.min);
+
+    const newRuleText = scheduleRuleSummary(d.cycle, d.rule, d.weekdays, d.monthDays);
+    const newDurationText = scheduleDurationSummary(d.cycle, d.rule, d.duration, d.customDays);
+    const newTimeText = scheduleTimeSummary(d.hour, d.min);
 
     return {
       splitsSeries,
       newStartYmd,
-      currentRuleTimeText,
-      currentDateRangeHeadline,
-      currentFootnote,
-      newRuleTimeText,
-      newDateRangeHeadline,
-      newFootnote,
+      currentStartText,
+      currentEndText,
+      currentRuleText,
+      currentDurationText,
+      currentTimeText,
+      newStartText,
+      newEndText,
+      newRuleText,
+      newDurationText,
+      newTimeText,
       inlineMessage,
     };
   }
@@ -8071,14 +8081,22 @@
       const content = cmp ? `
         <div class="plan-cmp-list">
           <div class="plan-cmp-card">
-            <div class="plan-cmp-head"><span>当前计划</span><span class="mono">${esc(cmp.currentRuleTimeText)}</span></div>
-            <div class="plan-cmp-main mono">${esc(cmp.currentDateRangeHeadline)}</div>
-            <div class="plan-cmp-sub mono">${esc(cmp.currentFootnote)}</div>
+            <div class="plan-cmp-head">当前计划</div>
+            <div class="plan-cmp-rows">
+              <div class="plan-cmp-row"><span class="lbl">开始日期：</span><span class="val mono">${esc(cmp.currentStartText)}</span></div>
+              <div class="plan-cmp-row"><span class="lbl">结束日期：</span><span class="val mono">${esc(cmp.currentEndText)}</span></div>
+              <div class="plan-cmp-row"><span class="lbl">持续时长：</span><span class="val mono">${esc(cmp.currentDurationText)}</span></div>
+              <div class="plan-cmp-row"><span class="lbl">循环规则：</span><span class="val mono">${esc(cmp.currentRuleText)} ${esc(cmp.currentTimeText)}</span></div>
+            </div>
           </div>
           <div class="plan-cmp-card primary">
-            <div class="plan-cmp-head"><span>新计划</span><span class="mono">${esc(cmp.newRuleTimeText)}</span></div>
-            <div class="plan-cmp-main mono">${esc(cmp.newDateRangeHeadline)}</div>
-            <div class="plan-cmp-sub mono">${esc(cmp.newFootnote)}</div>
+            <div class="plan-cmp-head">新计划</div>
+            <div class="plan-cmp-rows">
+              <div class="plan-cmp-row"><span class="lbl">开始日期：</span><span class="val mono">${esc(cmp.newStartText)}</span></div>
+              <div class="plan-cmp-row"><span class="lbl">结束日期：</span><span class="val mono">${esc(cmp.newEndText)}</span></div>
+              <div class="plan-cmp-row"><span class="lbl">持续时长：</span><span class="val mono">${esc(cmp.newDurationText)}</span></div>
+              <div class="plan-cmp-row"><span class="lbl">循环规则：</span><span class="val mono">${esc(cmp.newRuleText)} ${esc(cmp.newTimeText)}</span></div>
+            </div>
           </div>
         </div>` : `<p>${S.overlayData.body || ""}</p>`;
       return `
