@@ -8006,7 +8006,7 @@
             </div>
           </div>
           <div class="sec-label">时间段</div>
-          <div class="grid3 tight">${BLOCKS.map(periodChip).join("")}</div>
+          <div class="v02-grid4 tight">${BLOCKS.map(periodChip).join("")}</div>
           ${v02SwitchRows.length ? `
             <div class="sec-label">到点提醒</div>
             <div class="v02-remind-box" style="background:${accent.muted}">${v02SwitchRows.join("")}</div>` : ""}

@@ -1072,7 +1072,9 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   line-height: 1.2;
 }
 .v02-editor-card {
-  flex: 1; min-height: 0;
+  min-height: 388px;
+  height: 388px;
+  box-sizing: border-box;
   background: linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 100%);
   border-radius: 24px;
   padding: 18px;
@@ -1102,12 +1104,13 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   display: flex; flex-direction: column; gap: 8px; width: 100%;
 }
 .v02-twin-times {
-  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
 }
 .v02-time-box {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
-  width: 100%; padding: 14px; border-radius: 16px; border: 0;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  width: 100%; padding: 10px 12px; border-radius: 14px; border: 0;
   font-family: inherit; text-align: left; cursor: pointer;
+  box-sizing: border-box;
 }
 .v02-time-box:disabled { cursor: default; }
 .v02-time-box.idle {
@@ -1115,52 +1118,42 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   cursor: default;
 }
 .v02-time-top {
-  display: flex; align-items: center; gap: 6px; width: 100%;
+  display: flex; align-items: center; gap: 5px; width: 100%;
 }
-.v02-time-top .ico { display: inline-flex; width: 13px; height: 13px; }
-.v02-time-top .ico svg { width: 13px; height: 13px; }
+.v02-time-top .ico { display: inline-flex; width: 12px; height: 12px; }
+.v02-time-top .ico svg { width: 12px; height: 12px; }
 .v02-time-top .lab {
-  font-size: calc(13px * var(--fs)); font-weight: 600; color: var(--secondary);
+  font-size: calc(12px * var(--fs)); font-weight: 600; color: var(--secondary);
 }
 .v02-time-top .chev {
   margin-left: auto; display: inline-flex; opacity: .65;
 }
-.v02-time-top .chev svg { width: 11px; height: 11px; }
+.v02-time-top .chev svg { width: 10px; height: 10px; }
 .v02-time-val {
-  display: flex; align-items: center; height: 34px;
-  font-size: calc(28px * var(--fs)); font-weight: 700;
+  display: flex; align-items: center; height: 28px;
+  font-size: calc(24px * var(--fs)); font-weight: 700;
   font-variant-numeric: tabular-nums; line-height: 1;
 }
 .v02-time-val.idle-txt {
-  font-size: calc(22px * var(--fs)); font-weight: 700;
+  font-size: calc(18px * var(--fs)); font-weight: 700;
   color: rgba(130,142,165,.65);
 }
-.v02-period-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  margin-top: 18px; margin-bottom: 10px;
-}
-.v02-period-badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 5px 10px; border-radius: 999px;
-  font-size: calc(12px * var(--fs)); font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-.v02-period-badge svg { width: 12px; height: 12px; }
 .v02-period-chip {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-  width: 100%; padding: 11px 6px; border-radius: 12px; border: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  width: 100%; padding: 6px 4px; border-radius: 10px; border: 0;
   font-family: inherit; cursor: pointer;
+  box-sizing: border-box;
 }
 .v02-period-chip:disabled { cursor: default; }
 .v02-period-chip .p-name {
-  font-size: calc(15px * var(--fs)); font-weight: 700; line-height: 1.15;
+  font-size: calc(13px * var(--fs)); font-weight: 700; line-height: 1.15;
 }
 .v02-period-chip .p-range {
-  font-size: calc(13px * var(--fs)); font-weight: 700;
+  font-size: calc(11px * var(--fs)); font-weight: 700;
   font-variant-numeric: tabular-nums; line-height: 1.15;
 }
 .v02-grid4 {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
 }
 .v02-dates-list {
   border-radius: 16px;
