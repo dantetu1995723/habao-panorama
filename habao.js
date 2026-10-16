@@ -1137,8 +1137,8 @@
     "onboard-login": { code: "OnboardingFlowView", note: "短信登录 Demo 不校验。11 位手机 + 6 位验证码后「登录」可点。聚焦后口号改「欢迎使用哈宝」。V0.0 只两步（登录 → 完善信息），身份固定患者本人；V0.1 才多一步身份。" },
     "onboard-role": { code: "OnboardingFlowView", note: "V0.1 专属（V0.0 不出现）。家属也是管理患者的成员，填写的都是患者信息。大卡单选。" },
     "onboard-profile": { code: "PatientProfileFormFields", note: "姓名必填；「进入哈宝」始终可点，空姓名顶部 toast「请填写姓名」。步骤点 V0.0 是 2/2，V0.1 是 3/3。" },
-    home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 182–192，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页（横向时段泳道已不再作为首页）；底坞中圆哈宝问诊 V0.0 压暗点不开，V0.1 未开通 VIP 时同样压暗、点按进 VIP 页，开通后可进。打卡不再在卡片上盖家属章；谁打的记在 V0.1 个人中心「操作记录」，V0.0 没有这一页。" },
-    schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行在时刻前标选中日完整年月日（2026年9月16日 13:00），元信息标单日/循环；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上编辑才进编辑。切「已完成」整页绿白。" },
+    home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 196–206，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。每张计划卡展示标题、提醒时间（或已完成）及「开始日期 – 结束日期」起止区间。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页（横向时段泳道已不再作为首页）；底坞中圆哈宝问诊 V0.0 压暗点不开，V0.1 未开通 VIP 时同样压暗、点按进 VIP 页，开通后可进。打卡不再在卡片上盖家属章；谁打的记在 V0.1 个人中心「操作记录」，V0.0 没有这一页。" },
+    schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行展示时刻与单日/循环/类别胶囊，下方展示「开始日期 – 结束日期」起止区间；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上更新才进编辑。切「已完成」整页绿白。" },
     vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。底栏进入哈宝医生带本周评估：V0.0 压暗点不开；V0.1 未开通 VIP 时压暗、点按进 VIP 页；开通后可进。" },
     report: { code: "FollowUpModuleView", note: "综合结论 + 三等分入口 + 底栏哈宝医生（V0.0 压暗点不开；V0.1 未开通 VIP 时压暗、点按进 VIP 页；开通后可进）。" },
     "report-sub": { code: "BodyReportSubReportView", note: "V10.61：顶栏两枚 Tab「AI 解读 / 资料合集」，默认落 AI 解读；资料合集只读。底栏「新增报告资料」不论有无存量都直接进拍摄页（不再先落资料详情）。拍完提交：基础按类别追加、复查新开一次。复诊打卡形态在主钮下多一颗「返回首页」。" },
@@ -1161,8 +1161,8 @@
     "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），进与首次上传 / 基础报告同一份资料详情，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
     "task-add": { code: "AddEditTaskView", note: "两大类折叠（不分页）：一条滚动里「事项」「时间与提醒」两组，标题行点一下收起、再点一下展开，进页两组都展开。「事项」：名称、备注、今日血压、分类。「时间与提醒」：计划类型 → 日期 / 开始日期（同一字段；单日读「日期」、循环读「开始日期」，过去日不可选；首页虚框锁定当天；切成循环计划不跳页，循环规则与持续时长就在下方就地出现）→ 循环规则（每日 / 每周 / 每月 + 自定义间隔，每月 1–31 与「月末」同格）→ 持续时长（预设不含 1天 / 1周 / 1个月、最长一年，末尾通栏「自定义」）→ 时间段 → 当日时刻 → 「到点提醒」（一档「本次提醒」，压的是这一次；新建的循环计划从起始日算）＋「家属通知」（V10.52：家属通道串联，未绑定先去填写、填完自动进打卡通知页；总闸关着弹「去设置」）→ 查看态删除 / 取消打卡。折叠只影响看不看得见，右上「添加」随时可保存。「家属通知」只在 V0.1 出现。" },
-    "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。开始日期锁定为原来的起始日；本次日期是打开的这一天，不能选更早；持续时长与结束时间保留原设置。仅当修改了时间或循环相关字段（提醒时间、循环规则、计划类型、开始/本次日期、持续时长/结束时间）时，保存前弹出「确认更新计划」居中双卡弹窗，并排核对「当前计划（结束时间）」与「新计划（开始时间）」；仅改名称/备注/血压等直接原地保存。" },
-    "task-view": { code: "AddEditTaskView", note: "同两大类折叠、只读（标题行仍可点折叠）。右上是「更新」。循环计划同时显示开始日期和本次日期（健康计划取日历选中日，首页取今天）。今日未打卡时，「时间与提醒」组底部按已保存类型删除：循环「删除本次计划 / 删除本次和后续计划」，单日「删除计划」；到点提醒只有一档「本次提醒」：压的是正在看的那一天，关掉只这一次不响，任务照常出现、照常能打卡；开关方向与个人中心总闸同向（开 = 会响）。今日之前、以及该日已打卡，到点提醒和删除都不出现。今日已打卡可「取消本次打卡」，取消后这两处回来。右上「更新」在今日之前和已打卡时都置灰禁用。「家属通知」只在 V0.1 出现（家属通道 = 通知家属 × 已绑定 × 类别开关）。" },
+    "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。开始日期锁定为原来的起始日；下方「新计划开始日期」默认今天（若原计划在未来开始则默认原起始日），月历里可选今天及之后任意日期；持续时长与结束时间保留原设置。仅当修改了时间或循环相关字段（提醒时间、循环规则、计划类型、开始/新计划开始日期、持续时长/结束时间）时，保存前弹出「确认更新计划」居中双卡弹窗，并排核对「当前计划（结束时间）」与「新计划（开始时间）」；仅改名称/备注/血压等直接原地保存。" },
+    "task-view": { code: "AddEditTaskView", note: "同两大类折叠、只读（标题行仍可点折叠）。右上是「更新」。循环计划同时显示「开始日期」和「今天日期」（当天日期）。今日未打卡时，「时间与提醒」组底部按已保存类型删除：循环「删除本次计划 / 删除本次和后续计划」，单日「删除计划」；到点提醒只有一档「本次提醒」：压的是正在看的那一天，关掉只这一次不响，任务照常出现、照常能打卡；开关方向与个人中心总闸同向（开 = 会响）。今日之前、以及该日已打卡，到点提醒和删除都不出现。今日已打卡可「取消本次打卡」，取消后这两处回来。右上「更新」在今日之前和已打卡时都置灰禁用。「家属通知」只在 V0.1 出现（家属通道 = 通知家属 × 已绑定 × 类别开关）。" },
     "exercise-risk": { code: "BodyTestRunView", note: "Demo Toggle 模拟禁忌症。体测不参与入组。「稍后 / 退出评估 / 暂不创建」关整段评估流，不退回选择类型。" },
     "body-test": { code: "BodyTestRunView", note: "户外原地踏步三分钟。停止或倒计时归零后直进感受问卷，无完成中转页。" },
     "body-test-sit": { code: "BodyTestRunView", note: "室内 1 分钟坐立。次数大号读数 + 倒计时 + 同龄参考。停止后问卷顶部两栏「测试时长 / 完成次数」。" },
@@ -1866,7 +1866,7 @@
     minH: 300, maxH: 560, stripH: 56, stripGap: 10,
     overflow: 1.06, centerPast: 0.38, hugPad: 5, plate: 0.96,
     scrubMin: 64, scrubMaxR: 0.26,
-    addH: 76, rowGap: 12, cardBase: 182, cardFocus: 192,
+    addH: 76, rowGap: 12, cardBase: 196, cardFocus: 206,
     labelOrbit: 0.66, tickOrbit: 0.935, handTip: 0.48,
     reading: 270, degPerPt: 0.68, sector: 360 / 7,
     titleArc: 16, actionArc: 22,
@@ -1915,6 +1915,16 @@
     if (t.endDate) return t.endDate;
     const days = t.customDays || (t.duration ? durationDayCount(t.duration) : 365);
     return addDaysYMD(start, days - 1);
+  }
+  function taskDateRangeLabel(t) {
+    const startYmd = t.onceDate || toYMD(demoDate());
+    const endYmd = resolvedTaskEndYmd(t);
+    return `${yearMonthDayLabel(parseYMD(startYmd))} – ${yearMonthDayLabel(parseYMD(endYmd))}`;
+  }
+  function defaultNewPlanStartYmd(orig) {
+    const today = toYMD(demoDate());
+    const origStart = orig?.onceDate || today;
+    return origStart > today ? origStart : today;
   }
   function liveTasks(ymd = toYMD(demoDate())) {
     const skip = skippedOn(ymd);
@@ -2069,8 +2079,8 @@
       muteFirst: !!S.mutedToday[t.id],
       note: t.note || "",
       onceDate: t.onceDate || toYMD(demoDate()),
-      // 正在看的这一次。健康计划用日历选中日，首页用今天。
-      occurrence: S.taskOccurrence || toYMD(demoDate()),
+      // 查看态展示「今天日期」（当天）；更改态展示「新计划开始日期」（默认今天或未来计划起始日）
+      occurrence: defaultNewPlanStartYmd(t),
       touchedDuration: false,
     };
   }
@@ -2095,17 +2105,16 @@
     return `每日 ${timeText}`;
   }
   function resolvedDraftEndYmd(d, anchorYmd) {
-    if (d.endDate) return d.endDate;
+    if (d.endDate && d.endDate >= anchorYmd) return d.endDate;
     const days = d.customDays || (d.duration ? durationDayCount(d.duration) : 365);
     return addDaysYMD(anchorYmd, days - 1);
   }
   function buildScheduleUpdatePrompt(orig, d) {
     if (!orig || !d) return null;
     const origBase = taskDraftFromSeed(orig);
-    const opened = S.taskOccurrence || toYMD(demoDate());
     const today = toYMD(demoDate());
     const origStart = origBase.onceDate || today;
-    const defaultOcc = [opened, today, origStart].sort()[2];
+    const defaultOcc = defaultNewPlanStartYmd(orig);
     const activeStart = d.cycle ? (d.occurrence || defaultOcc) : (d.onceDate || defaultOcc);
 
     let changed = false;
@@ -3914,9 +3923,9 @@
         S.draft.cycle = nextCycle;
         if (S.screen === "task-edit" && orig) {
           if (!nextCycle) {
-            S.draft.onceDate = S.draft.occurrence || S.taskOccurrence || toYMD(demoDate());
+            S.draft.onceDate = S.draft.occurrence || defaultNewPlanStartYmd(orig);
           } else {
-            S.draft.occurrence = S.draft.onceDate || S.taskOccurrence || toYMD(demoDate());
+            S.draft.occurrence = S.draft.onceDate || defaultNewPlanStartYmd(orig);
             S.draft.onceDate = orig.onceDate || toYMD(demoDate());
           }
         }
@@ -3932,7 +3941,7 @@
         S.editorCollapsed = [...set];
         render();
       },
-      draftRule() { if (S.draft) { S.draft.rule = el.dataset.r; S.draft.duration = "oneYear"; S.draft.customDays = null; render(); } },
+      draftRule() { if (S.draft) { S.draft.rule = el.dataset.r; S.draft.duration = "oneYear"; S.draft.endDate = null; S.draft.customDays = null; render(); } },
       draftWeek() {
         if (!S.draft) return;
         const n = +el.dataset.w;
@@ -4115,24 +4124,14 @@
       openOnceDate() {
         if (!S.draft || S.lockRecurrence) return;
         const ymd = S.draft.onceDate || toYMD(demoDate());
-        let floor = null;
-        if (S.screen === "task-edit") {
-          const orig = SEED.find((x) => x.id === S.taskId);
-          const opened = S.taskOccurrence || toYMD(demoDate());
-          const today = toYMD(demoDate());
-          const origStart = orig?.onceDate || today;
-          floor = [opened, today, origStart].sort()[2];
-        }
+        const floor = S.screen === "task-edit" ? toYMD(demoDate()) : null;
         openOverlay("datePick", { selected: ymd, month: ymd, minYmd: floor });
       },
       openOccurrenceDate() {
         if (!S.draft) return;
         const orig = SEED.find((x) => x.id === S.taskId);
-        const opened = S.taskOccurrence || toYMD(demoDate());
-        const today = toYMD(demoDate());
-        const origStart = orig?.onceDate || today;
-        const floor = [opened, today, origStart].sort()[2];
-        const ymd = S.draft.occurrence || floor;
+        const floor = toYMD(demoDate());
+        const ymd = S.draft.occurrence || defaultNewPlanStartYmd(orig);
         openOverlay("datePick", { selected: ymd, month: ymd, kind: "occurrence", minYmd: floor });
       },
       openSeriesEnd() {
@@ -4154,7 +4153,7 @@
           const nextOcc = el.dataset.ymd;
           S.draft.occurrence = nextOcc;
           const orig = SEED.find((x) => x.id === S.taskId);
-          if (orig && orig.endDate && !S.draft.touchedDuration && nextOcc > orig.endDate) {
+          if (orig && orig.endDate && !S.draft.touchedDuration && nextOcc >= orig.endDate) {
             S.draft.endDate = null;
             S.draft.duration = "oneYear";
             S.draft.customDays = null;
@@ -4191,6 +4190,15 @@
           S.overlayData.selected = ymd;
           S.overlayData.month = ymd;
           S.draft.occurrence = ymd;
+          const orig = S.tasks.find(t => t.id === S.draft.id);
+          if (orig && orig.endDate && !S.draft.touchedDuration) {
+            const minDays = customDurMinDays(S.draft.rule || "daily");
+            const remDays = Math.floor((parseYMD(orig.endDate) - parseYMD(ymd)) / 86400000) + 1;
+            if (ymd >= orig.endDate || remDays < minDays) {
+              S.draft.endDate = null;
+              S.draft.duration = 1;
+            }
+          }
         } else if (S.overlayData.kind === "seriesEnd" && S.draft) {
           S.overlayData.selected = ymd;
           S.overlayData.month = ymd;
@@ -4438,12 +4446,9 @@
         const orig = SEED.find((x) => x.id === S.taskId);
         initDraft(orig);
         if (S.draft) {
-          const opened = S.taskOccurrence || toYMD(demoDate());
-          const today = toYMD(demoDate());
-          const origStart = orig?.onceDate || today;
-          const floor = [opened, today, origStart].sort()[2];
-          S.draft.occurrence = floor;
-          if (!S.draft.cycle) S.draft.onceDate = floor;
+          const defaultStart = defaultNewPlanStartYmd(orig);
+          S.draft.occurrence = defaultStart;
+          if (!S.draft.cycle) S.draft.onceDate = defaultStart;
         }
         go("task-edit", "replace");
       },
@@ -5212,6 +5217,7 @@
           <div class="s4-card-l">
             <h3 class="s4-card-t">${t.title}</h3>
             <p class="s4-card-plan">计划时间：${blockOf(t.h).title}${t.h}:${pad(t.m)}</p>
+            <p class="s4-card-dates">${taskDateRangeLabel(t)}</p>
           </div>
           <span class="s4-art">${(CAT_ICON[t.cat] || CAT_ICON.rest)()}</span>
         </div>
@@ -7305,6 +7311,7 @@
           <div class="task-meta">
             <h3>${t.title}</h3>
             <div class="task-status">${done ? `已完成 ${I.check}` : spoken(t.h, t.m)}</div>
+            <div class="task-dates">${taskDateRangeLabel(t)}</div>
           </div>
         </div>
         <div class="task-ops">
@@ -7583,12 +7590,15 @@
     const notes = note
       ? cardNote(I.alignLeft, note, idx == null ? null : "editNote", idx)
       : "";
+    const seedTask = id ? SEED.find((x) => x.id === id) : null;
+    const rangeText = seedTask ? taskDateRangeLabel(seedTask) : taskDateRangeLabel({ cycle: isCycle });
     return `<div class="act-card ${cls}">
       <div class="act-card-main">
         <div class="badge b40 ${cls}"><img src="${A.task[kind]}" alt="" /></div>
         <div class="grow">
           <div class="s15 fb ${done ? "t-green" : kind === "appointment" ? "t-appt" : "t"}">${title}</div>
-          <div class="act-info">${date ? `<span class="dt">${date}</span>` : ""}<span class="tm">${time}</span>${dose ? `<span class="act-chip">${dose}</span>` : ""}<span class="act-chip">${isCycle ? "循环" : "单日"}</span><span class="act-chip">${chip}</span></div>
+          <div class="act-info"><span class="tm">${time}</span>${dose ? `<span class="act-chip">${dose}</span>` : ""}<span class="act-chip">${isCycle ? "循环" : "单日"}</span><span class="act-chip">${chip}</span></div>
+          <div class="act-dates">${rangeText}</div>
         </div>
         ${check}
       </div>
@@ -7766,7 +7776,7 @@
             chip({ selected: d.cat === "custom" && d.customId === c.id, label: c.name, icon: I[UNIFIED_CUSTOM_ICON], act: "pickCustomCat", extra: `data-id="${c.id}"`, locked: S.lockCategory && mode === "add" })).join("")}
           ${!(S.lockCategory && mode === "add") && mode !== "view" ? chip({ selected: false, label: "自定义", icon: I.plus, dash: true, act: "openCustomCat" }) : ""}
         </div>`;
-    // 已保存计划在循环态下展示「本次日期」；点「更新」锁定开始日期。首页虚框仍锁定当天。
+    // 已保存计划在循环态下：查看态展示「今天日期」，更改态展示「新计划开始日期」；点「更新」锁定开始日期。首页虚框仍锁定当天。
     const showOcc = mode !== "add" && d.cycle;
     const lockStart = lockRec || (mode === "edit" && showOcc);
     const dateRow = (label, ymd, act, locked) => {
@@ -7782,8 +7792,10 @@
     };
     const anchor = mode === "edit" && showOcc ? (d.occurrence || d.onceDate) : d.onceDate;
     const endYmd = resolvedDraftEndYmd(d, anchor);
+    const occLabel = viewing ? "今天日期" : "新计划开始日期";
+    const occYmd = viewing ? toYMD(demoDate()) : (d.occurrence || defaultNewPlanStartYmd(t));
     const occurrenceRow = showOcc
-      ? dateRow("本次日期", d.occurrence || S.taskOccurrence || toYMD(demoDate()), "openOccurrenceDate", false)
+      ? dateRow(occLabel, occYmd, "openOccurrenceDate", false)
       : "";
     const schedPrompt = mode === "edit" ? buildScheduleUpdatePrompt(t, d) : null;
     const splitNote = schedPrompt
