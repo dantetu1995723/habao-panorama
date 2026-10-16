@@ -2084,9 +2084,10 @@
       touchedDuration: false,
     };
   }
-  function scheduleRuleTimeSummary(isCycle, rule, weekdays, monthDays, h, m) {
+  function scheduleRuleDurationSummary(isCycle, rule, weekdays, monthDays, duration, customDays, h, m) {
     const timeText = `${pad(h ?? 8)}:${pad(m ?? 0)}`;
     if (!isCycle) return `单日 ${timeText}`;
+    let ruleText = "每日";
     if (rule === "weekly") {
       const labels = ["日", "一", "二", "三", "四", "五", "六"];
       const w = (weekdays && weekdays.length ? weekdays : [6])
@@ -2094,15 +2095,23 @@
         .sort((a, b) => a - b)
         .map((n) => labels[(n - 1 + 7) % 7] || "")
         .join("");
-      return `每周${w} ${timeText}`;
-    }
-    if (rule === "monthly") {
+      ruleText = `每周${w}`;
+    } else if (rule === "monthly") {
       const md = (monthDays && monthDays.length ? monthDays : [11]).slice();
       const nums = md.filter((x) => x !== 0).sort((a, b) => a - b).map((x) => `${x}日`);
       if (md.includes(0)) nums.push("月末");
-      return `每月${nums.join("、")} ${timeText}`;
+      ruleText = `每月${nums.join("、")}`;
     }
-    return `每日 ${timeText}`;
+
+    let durationText = "一年";
+    const opts = durationOpts(rule);
+    const matched = opts.find((opt) => opt[0] === duration);
+    if (matched) {
+      durationText = matched[1];
+    } else if (customDays) {
+      durationText = `${customDays}天`;
+    }
+    return `${ruleText} · ${durationText} ${timeText}`;
   }
   function resolvedDraftEndYmd(d, anchorYmd) {
     if (d.endDate && d.endDate >= anchorYmd) return d.endDate;
@@ -2146,9 +2155,11 @@
     const newStartYmd = activeStart;
     const oldStartYmd = origStart;
     const origEndYmd = origBase.cycle ? resolvedDraftEndYmd(origBase, oldStartYmd) : oldStartYmd;
+    const newEndYmd = d.cycle ? resolvedDraftEndYmd(d, newStartYmd) : newStartYmd;
 
-    let currentEndHeadline;
+    let currentEndYmd;
     let currentFootnote;
+    let newFootnote;
     let inlineMessage;
     let splitsSeries = false;
     const newStartText = yearMonthDayLabel(parseYMD(newStartYmd));
@@ -2156,42 +2167,43 @@
     if (newStartYmd > oldStartYmd) {
       splitsSeries = true;
       if (origEndYmd < newStartYmd) {
+        currentEndYmd = origEndYmd;
         const endText = yearMonthDayLabel(parseYMD(origEndYmd));
-        currentEndHeadline = `已在${endText}截止`;
         currentFootnote = "原计划保持不变";
+        newFootnote = "原计划已截止，新排程独立生效";
         inlineMessage = `当前计划已在${endText}截止，新计划${newStartText}开始。`;
       } else {
-        const prevYmd = addDaysYMD(newStartYmd, -1);
-        const prevText = yearMonthDayLabel(parseYMD(prevYmd));
-        currentEndHeadline = `${prevText}截止`;
+        currentEndYmd = addDaysYMD(newStartYmd, -1);
+        const prevText = yearMonthDayLabel(parseYMD(currentEndYmd));
         currentFootnote = "此前打卡记录保留";
+        newFootnote = "此前打卡记录保留，新排程从开始日生效";
         inlineMessage = `当前计划${prevText}截止，新计划${newStartText}开始。`;
       }
     } else {
-      currentEndHeadline = "立即结束";
+      currentEndYmd = origBase.cycle ? (addDaysYMD(newStartYmd, -1) >= oldStartYmd ? addDaysYMD(newStartYmd, -1) : oldStartYmd) : oldStartYmd;
       currentFootnote = "按新设置替换当前排程";
+      newFootnote = "按新设置替换当前排程";
       inlineMessage = `当前计划立即结束，新计划${newStartText}开始。`;
     }
 
-    const currentRuleTimeText = scheduleRuleTimeSummary(
-      origBase.cycle, origBase.rule, origBase.weekdays, origBase.monthDays, origBase.hour, origBase.min
+    const currentDateRangeHeadline = `${yearMonthDayLabel(parseYMD(oldStartYmd))} – ${yearMonthDayLabel(parseYMD(currentEndYmd))}`;
+    const newDateRangeHeadline = `${yearMonthDayLabel(parseYMD(newStartYmd))} – ${yearMonthDayLabel(parseYMD(newEndYmd))}`;
+
+    const currentRuleTimeText = scheduleRuleDurationSummary(
+      origBase.cycle, origBase.rule, origBase.weekdays, origBase.monthDays, origBase.duration, origBase.customDays, origBase.hour, origBase.min
     );
-    const newRuleTimeText = scheduleRuleTimeSummary(
-      d.cycle, d.rule, d.weekdays, d.monthDays, d.hour, d.min
+    const newRuleTimeText = scheduleRuleDurationSummary(
+      d.cycle, d.rule, d.weekdays, d.monthDays, d.duration, d.customDays, d.hour, d.min
     );
-    const newStartHeadline = `${newStartText}开始`;
-    const newFootnote = d.cycle
-      ? `至${yearMonthDayLabel(parseYMD(resolvedDraftEndYmd(d, newStartYmd)))}截止`
-      : "仅执行当日一次";
 
     return {
       splitsSeries,
       newStartYmd,
       currentRuleTimeText,
-      currentEndHeadline,
+      currentDateRangeHeadline,
       currentFootnote,
       newRuleTimeText,
-      newStartHeadline,
+      newDateRangeHeadline,
       newFootnote,
       inlineMessage,
     };
@@ -8060,12 +8072,12 @@
         <div class="plan-cmp-list">
           <div class="plan-cmp-card">
             <div class="plan-cmp-head"><span>当前计划</span><span class="mono">${esc(cmp.currentRuleTimeText)}</span></div>
-            <div class="plan-cmp-main mono">${esc(cmp.currentEndHeadline)}</div>
+            <div class="plan-cmp-main mono">${esc(cmp.currentDateRangeHeadline)}</div>
             <div class="plan-cmp-sub mono">${esc(cmp.currentFootnote)}</div>
           </div>
           <div class="plan-cmp-card primary">
             <div class="plan-cmp-head"><span>新计划</span><span class="mono">${esc(cmp.newRuleTimeText)}</span></div>
-            <div class="plan-cmp-main mono">${esc(cmp.newStartHeadline)}</div>
+            <div class="plan-cmp-main mono">${esc(cmp.newDateRangeHeadline)}</div>
             <div class="plan-cmp-sub mono">${esc(cmp.newFootnote)}</div>
           </div>
         </div>` : `<p>${S.overlayData.body || ""}</p>`;

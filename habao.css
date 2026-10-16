@@ -727,7 +727,8 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .plan-cmp-head .mono { font-weight: 600; }
 .plan-cmp-card.primary .plan-cmp-head { color: var(--blue); }
 .plan-cmp-main {
-  font-size: calc(17px * var(--fs)); font-weight: 700; color: var(--text);
+  font-size: calc(15.5px * var(--fs)); font-weight: 700; color: var(--blue);
+  word-break: break-all;
 }
 .plan-cmp-card.primary .plan-cmp-main { color: var(--blue); }
 .plan-cmp-sub {
