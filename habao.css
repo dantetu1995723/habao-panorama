@@ -1035,100 +1035,83 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .ed-group-chev.open { transform: rotate(180deg); }
 .ed-group-body { margin-top: 4px; }
 
-/* V0.2 计划详情页：时间 × 内容重点融合布局 */
+/* V0.2 计划详情页：极简现代版（零套娃、零截断、零赘字） */
 .v02-editor-card {
   background: linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 100%);
   border-radius: 24px;
-  padding: 16px 16px 18px;
+  padding: 20px;
   box-shadow: 0 12px 24px rgba(16,84,224,.07), -2px -4px 8px rgba(255,255,255,.9);
 }
-.v02-editor-card + .v02-editor-card { margin-top: 16px; }
-.v02-hero-banner {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 12px 14px; border-radius: 18px;
-}
-.v02-hero-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.v02-cat-badge {
-  width: 46px; height: 46px; flex: 0 0 46px; border-radius: 14px;
-  display: grid; place-items: center; color: #fff;
-}
-.v02-cat-badge svg { width: 22px; height: 22px; }
-.v02-block-tag {
-  display: inline-flex; align-items: center;
-  padding: 2px 8px; border-radius: 999px;
-  background: rgba(255,255,255,.84);
-  font-size: calc(11px * var(--fs)); font-weight: 700;
+.v02-editor-card + .v02-editor-card { margin-top: 18px; }
+.v02-hero-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
 }
 .v02-big-time {
-  display: inline-flex; align-items: baseline; gap: 6px;
-  background: transparent; border: 0; padding: 0; margin-top: 2px;
-  font-family: inherit; font-size: calc(30px * var(--fs)); font-weight: 700;
-  font-variant-numeric: tabular-nums; line-height: 1.05; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; border: 0; padding: 0; margin-top: 6px;
+  font-family: inherit; font-size: calc(38px * var(--fs)); font-weight: 700;
+  font-variant-numeric: tabular-nums; line-height: 1; cursor: pointer;
 }
 .v02-big-time:disabled { cursor: default; }
-.v02-big-time svg { width: 12px; height: 12px; opacity: .6; align-self: center; }
+.v02-time-chev {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center;
+}
+.v02-time-chev svg { width: 13px; height: 13px; }
+.v02-vsep { width: 1px; height: 48px; flex: 0 0 1px; }
 .v02-checkin-col {
-  display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0;
 }
 .v02-checkin-pill {
-  display: inline-flex; align-items: center;
-  padding: 7px 13px; border-radius: 999px; border: 0;
-  background: rgba(255,255,255,.88);
-  font-family: inherit; font-size: calc(16px * var(--fs)); font-weight: 700;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 8px 14px; border-radius: 999px; border: 0;
+  font-family: inherit; font-size: calc(20px * var(--fs)); font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 .v02-checkin-pill.idle {
-  background: rgba(255,255,255,.78);
-  color: rgba(130,142,165,.68);
-  font-size: calc(15px * var(--fs)); font-weight: 600;
-}
-.v02-content-well {
-  margin-top: 16px;
-  padding: 12px;
-  border-radius: 18px;
-}
-.v02-timeline-box {
-  margin-top: 16px;
-  padding: 14px;
-  border-radius: 18px;
-}
-.v02-locked-strip {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  padding: 10px 12px; border-radius: 12px;
   background: rgba(130,142,165,.10);
-  color: var(--secondary);
-  font-size: calc(15px * var(--fs)); font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  color: rgba(130,142,165,.65);
+  font-size: calc(16px * var(--fs)); font-weight: 600;
 }
-.v02-date-pair {
-  display: flex; align-items: flex-end; gap: 8px;
+.v02-grid4 {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
 }
-.v02-date-pair + .v02-locked-strip,
-.v02-locked-strip + .v02-date-pair { margin-top: 12px; }
-.v02-date-col { flex: 1 1 0; min-width: 0; }
-.v02-date-arrow {
-  flex: 0 0 16px; display: grid; place-items: center;
-  padding-bottom: 13px; opacity: .6;
+.v02-dates-list {
+  margin-top: 18px;
+  border-radius: 16px;
+  overflow: hidden;
 }
-.v02-date-arrow svg { width: 14px; height: 14px; }
-.v02-date-btn {
-  display: flex; align-items: center; justify-content: space-between; gap: 4px;
-  width: 100%; padding: 11px 10px; border-radius: 12px; border: 0;
-  font-family: inherit; font-size: calc(14.5px * var(--fs)); font-weight: 700;
-  font-variant-numeric: tabular-nums; text-align: left; cursor: pointer;
-  white-space: nowrap; overflow: hidden;
+.v02-date-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%; padding: 15px 16px; border: 0; background: transparent;
+  font-family: inherit; text-align: left; cursor: pointer;
 }
-.v02-date-btn:disabled { cursor: default; }
-.v02-date-btn .dim { opacity: .55; display: grid; flex-shrink: 0; }
-.v02-date-btn .dim svg { width: 11px; height: 11px; }
-.v02-prompt-banner {
-  display: flex; align-items: flex-start; gap: 8px;
-  margin-top: 12px; padding: 10px 12px; border-radius: 12px;
-  background: rgba(255,255,255,.88);
-  font-size: calc(13px * var(--fs)); font-weight: 600;
-  font-variant-numeric: tabular-nums; line-height: 1.45;
+.v02-date-row:disabled { cursor: default; }
+.v02-date-row .lab {
+  font-size: calc(15px * var(--fs)); font-weight: 600; color: var(--secondary);
+  white-space: nowrap;
 }
-.v02-prompt-banner svg { width: 15px; height: 15px; flex: 0 0 15px; margin-top: 2px; }
+.v02-date-row .val {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: calc(16px * var(--fs)); font-weight: 700;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.v02-date-row .val svg { width: 12px; height: 12px; opacity: .6; }
+.v02-date-sep { height: 1px; margin: 0 16px; }
+.v02-switch-card {
+  margin-top: 18px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 100%);
+  border-radius: 20px;
+  padding: 2px 18px;
+  box-shadow: 0 12px 24px rgba(16,84,224,.07), -2px -4px 8px rgba(255,255,255,.9);
+}
+.v02-switch-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 14px 0;
+}
+.v02-switch-row + .v02-switch-row {
+  border-top: 1px solid rgba(16,84,224,.08);
+}
 .date-row.grow { width: auto; min-width: 0; }
 .date-row:not(.grow) { width: 100%; }
 .date-row:not([data-act]) { cursor: default; }

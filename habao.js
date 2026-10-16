@@ -7868,48 +7868,45 @@
         ${hideRemindDelete ? "" : (viewing ? reminderSwitches(d, done, accent) : draftReminderSwitch(d, accent))}
         ${mode === "view" && !hideRemindDelete ? deletePlanButtons(d) : ""}
         ${viewing && done && !past ? cancelCheckInBlock(accent) : ""}`;
-    // V0.2：时刻 × 事项重点融合双主卡 + 起止时间轴排程卡（字段与交互完全不变）
+    // V0.2：极简现代版（零套娃、零截断、零赘字，通栏对齐起止日期行 + 单行时间段 + 四列循环规则）
     if (genIsV02()) {
       const blkObj = BLOCKS.find((b) => b.id === d.block) || BLOCKS[0];
-      const catIconFn = d.cat === "custom" ? () => I[UNIFIED_CUSTOM_ICON] : (CAT_ICON[d.cat] || CAT_ICON.monitoring);
       const vitalsHTML = editorVitalsBlock(d, mode, done, accent);
       const heroCard = `
         <div class="v02-editor-card">
-          <div class="v02-hero-banner" style="background:${accent.muted}">
+          <div class="v02-hero-header">
             <div class="grow">
-              <div class="flex items-center gap6">
-                <span class="v02-cat-badge" style="background:${accent.fg}">${catIconFn()}</span>
-                <span class="s13 fb" style="color:rgba(130,142,165,.82)">提醒时间</span>
-                <span class="v02-block-tag" style="background:${accent.fg}">${blkObj.title}</span>
-              </div>
+              <div class="sec-label" style="margin-top:0">提醒时间</div>
               <button class="v02-big-time" style="color:${accent.fg}" ${editable ? 'data-act="editDraftTime"' : "disabled"} type="button">
                 <span>${pad(d.hour)}:${pad(d.min)}</span>
-                ${editable ? `<span class="dim">${I.chevUD}</span>` : ""}
+                ${editable ? `<span class="v02-time-chev" style="background:${accent.muted};color:${accent.fg}">${I.chevUD}</span>` : ""}
               </button>
             </div>
+            <div class="v02-vsep" style="background:${accent.muted}"></div>
             <div class="v02-checkin-col">
-              <span class="s13 fb" style="color:rgba(130,142,165,.82)">打卡时间</span>
+              <div class="sec-label" style="margin-top:0">打卡时间</div>
               ${done
-                ? `<button class="v02-checkin-pill" style="background:#fff;color:${accent.fg}" type="button">07:18</button>`
+                ? `<button class="v02-checkin-pill" style="background:${accent.muted};color:${accent.fg}" type="button">07:18</button>`
                 : `<span class="v02-checkin-pill idle">未打卡</span>`}
             </div>
           </div>
-          <div class="v02-content-well" style="border-color:${accent.muted}">
-            <div class="sec-label" style="margin-top:0">事项名称</div>
-            ${editable
-              ? `<input class="voice-box w100" name="taskTitle" style="color:${accent.fg};border:0" placeholder="填写事项名称" value="${String(d.title || "").replace(/"/g, "&quot;")}" />`
-              : `<div class="voice-box" style="color:${accent.fg}">${d.title}</div>`}
-            <div style="height:1px;background:${accent.muted};margin:12px 0"></div>
-            <div class="sec-label" style="margin-top:0">补充备注</div>
-            ${editable
-              ? `<textarea class="voice-box tall w100" name="taskNote" style="color:${accent.fg};border:0;resize:none;font-family:inherit" placeholder="补充说明，例如剂量 / 注意事项">${d.note || ""}</textarea>`
-              : `<div class="voice-box tall" style="color:${accent.fg}">${d.note}</div>`}
-            ${vitalsHTML ? `<div style="height:1px;background:${accent.muted};margin:12px 0"></div>${vitalsHTML}` : ""}
+          <div class="flex items-center justify-between" style="margin-top:20px;margin-bottom:8px">
+            <div class="sec-label" style="margin:0">时间段</div>
+            <span class="s13 fb" style="color:${accent.fg};opacity:.85;font-variant-numeric:tabular-nums">${blkObj.title} ${blkObj.range}</span>
           </div>
-          <div class="sec-label">时间段</div>
-          <div class="grid3 tight">${BLOCKS.map((b) =>
-            `<button class="opt-chip block-chip ${b.id === d.block ? "on" : ""}" style="background:${b.id === d.block ? accent.fg : (viewing || lockTime) ? "rgba(130,142,165,.10)" : accent.muted};color:${b.id === d.block ? "#fff" : (viewing || lockTime) ? "rgba(130,142,165,.50)" : accent.fg}" ${editable && !lockTime ? `data-act="draftBlock" data-b="${b.id}"` : ""} type="button"><b>${b.title}</b><small>${b.range}</small></button>`
+          <div class="v02-grid4">${BLOCKS.map((b) =>
+            chip({ selected: b.id === d.block, label: b.title, act: "draftBlock", extra: `data-b="${b.id}"`, locked: lockTime, compact: true })
           ).join("")}</div>
+          <div style="height:1px;background:${accent.muted};margin:20px 0 4px"></div>
+          <div class="sec-label">事项名称</div>
+          ${editable
+            ? `<input class="voice-box w100" name="taskTitle" style="color:${accent.fg};border:0" placeholder="填写事项名称" value="${String(d.title || "").replace(/"/g, "&quot;")}" />`
+            : `<div class="voice-box" style="color:${accent.fg}">${d.title}</div>`}
+          <div class="sec-label">补充备注</div>
+          ${editable
+            ? `<textarea class="voice-box tall w100" name="taskNote" style="color:${accent.fg};border:0;resize:none;font-family:inherit" placeholder="补充说明，例如剂量 / 注意事项">${d.note || ""}</textarea>`
+            : `<div class="voice-box tall" style="color:${accent.fg}">${d.note}</div>`}
+          ${vitalsHTML}
           <div class="sec-label">事项分类</div>
           <div class="grid3">${Object.keys(CAT).map((c) =>
             chip({ selected: c === d.cat, label: CAT[c].chip, icon: CAT_ICON[c](), act: "draftCat", extra: `data-c="${c}"`,
@@ -7920,74 +7917,41 @@
           </div>
         </div>`;
 
-      const compactDateBtn = (ymd, act, locked) => {
+      const alignedDateRow = (label, ymd, act, locked) => {
         const on = editable && !locked;
         const muted = !editable || locked;
-        return `<button class="v02-date-btn" style="background:${muted ? "rgba(130,142,165,.10)" : accent.muted};color:${muted ? "rgba(130,142,165,.72)" : accent.fg}" ${on ? `data-act="${act}"` : "disabled"} type="button">
-          <span>${planDateLabel(ymd, true)}</span>
-          ${on ? `<span class="dim">${I.chevUD}</span>` : ""}
+        return `<button class="v02-date-row" ${on ? `data-act="${act}"` : "disabled"} type="button">
+          <span class="lab">${label}</span>
+          <span class="val" style="color:${muted ? "var(--secondary)" : accent.fg}">
+            <span>${planDateLabel(ymd, true)}</span>
+            ${on ? I.chevUD : ""}
+          </span>
         </button>`;
       };
+      const dateSep = `<div class="v02-date-sep" style="background:${accent.muted}"></div>`;
 
-      const durChips = `
-        <div class="sec-label" style="margin-top:12px">持续时长</div>
-        <div class="grid3 tight">${durationOpts(d.rule).map(([id, lab]) =>
-          chip({ selected: d.duration === id, label: lab, act: "draftDur", extra: `data-d="${id}"`, compact: true })).join("")}</div>`;
-
-      let timelineInner = "";
+      let datesRowsHTML = "";
       if (!d.cycle) {
-        timelineInner = dateRow("日期", d.onceDate, "openOnceDate", lockStart);
+        datesRowsHTML = alignedDateRow("日期", d.onceDate, "openOnceDate", lockStart);
       } else if (mode === "edit" && showOcc) {
-        timelineInner = `
-          <div class="v02-locked-strip">
-            <span>原开始日期</span>
-            <b>${planDateLabel(d.onceDate, true)}</b>
-          </div>
-          <div class="v02-date-pair">
-            <div class="v02-date-col">
-              <div class="sec-label">新开始日期</div>
-              ${compactDateBtn(occYmd, "openOccurrenceDate", false)}
-            </div>
-            <div class="v02-date-arrow">→</div>
-            <div class="v02-date-col">
-              <div class="sec-label">结束时间</div>
-              ${compactDateBtn(endYmd, "openSeriesEnd", false)}
-            </div>
-          </div>
-          ${durChips}
-          ${schedPrompt ? `<div class="v02-prompt-banner" style="background:${accent.muted};color:${accent.fg}">${I.cycle}<span>${esc(schedPrompt.inlineMessage)}</span></div>` : ""}`;
+        datesRowsHTML = `
+          ${alignedDateRow("原开始日期", d.onceDate, "openOnceDate", true)}
+          ${dateSep}
+          ${alignedDateRow("新开始日期", occYmd, "openOccurrenceDate", false)}
+          ${dateSep}
+          ${alignedDateRow("结束时间", endYmd, "openSeriesEnd", false)}`;
       } else if (viewing && showOcc) {
-        timelineInner = `
-          <div class="v02-date-pair">
-            <div class="v02-date-col">
-              <div class="sec-label">开始日期</div>
-              ${compactDateBtn(d.onceDate, "openOnceDate", true)}
-            </div>
-            <div class="v02-date-arrow">→</div>
-            <div class="v02-date-col">
-              <div class="sec-label">结束时间</div>
-              ${compactDateBtn(endYmd, "openSeriesEnd", true)}
-            </div>
-          </div>
-          <div class="v02-locked-strip" style="margin-top:10px;margin-bottom:0">
-            <span>今天日期</span>
-            <b style="color:${accent.fg}">${planDateLabel(occYmd, true)}</b>
-          </div>
-          ${durChips}`;
+        datesRowsHTML = `
+          ${alignedDateRow("开始日期", d.onceDate, "openOnceDate", true)}
+          ${dateSep}
+          ${alignedDateRow("今天日期", occYmd, "openOccurrenceDate", true)}
+          ${dateSep}
+          ${alignedDateRow("结束时间", endYmd, "openSeriesEnd", true)}`;
       } else {
-        timelineInner = `
-          <div class="v02-date-pair">
-            <div class="v02-date-col">
-              <div class="sec-label">开始日期</div>
-              ${compactDateBtn(d.onceDate, "openOnceDate", lockStart)}
-            </div>
-            <div class="v02-date-arrow">→</div>
-            <div class="v02-date-col">
-              <div class="sec-label">结束时间</div>
-              ${compactDateBtn(endYmd, "openSeriesEnd", false)}
-            </div>
-          </div>
-          ${durChips}`;
+        datesRowsHTML = `
+          ${alignedDateRow("开始日期", d.onceDate, "openOnceDate", lockStart)}
+          ${dateSep}
+          ${alignedDateRow("结束时间", endYmd, "openSeriesEnd", false)}`;
       }
 
       const scheduleCard = `
@@ -7997,26 +7961,43 @@
             ${chip({ selected: !d.cycle, label: "单日计划", icon: I.cal, act: "draftCycle", extra: 'data-v="0"', locked: lockRec })}
             ${chip({ selected: d.cycle, label: "循环计划", icon: I.cycle, act: "draftCycle", extra: 'data-v="1"', locked: lockRec })}
           </div>
-          <div class="v02-timeline-box" style="border-color:${accent.muted}">
-            ${timelineInner}
+          <div class="v02-dates-list" style="background:${accent.muted}">
+            ${datesRowsHTML}
           </div>
           ${d.cycle ? `
+            <div class="sec-label">持续时长</div>
+            <div class="grid3 tight">${durationOpts(d.rule).map(([id, lab]) =>
+              chip({ selected: d.duration === id, label: lab, act: "draftDur", extra: `data-d="${id}"`, compact: true })).join("")}</div>
             <div class="sec-label">循环规则</div>
-            <div class="grid3 tight">${[["daily", "每日"], ["weekly", "每周"], ["monthly", "每月"]].map(([r, lab]) =>
-              chip({ selected: d.rule === r, label: lab, act: "draftRule", extra: `data-r="${r}"` })).join("")}</div>
+            <div class="v02-grid4">${[["daily", "每日"], ["weekly", "每周"], ["monthly", "每月"]].map(([r, lab]) =>
+              chip({ selected: d.rule === r, label: lab, act: "draftRule", extra: `data-r="${r}"`, compact: true })).join("")}
+              ${chip({ selected: d.rule === "custom", label: "自定义", act: "draftRule", extra: 'data-r="daily"', compact: true })}
+            </div>
             ${d.rule === "weekly" ? `<div class="flex gap6 mt10">${weekdays.map(([n, lab]) =>
               chip({ selected: (d.weekdays || []).includes(n), label: lab, act: "draftWeek", extra: `data-w="${n}"`, compact: true })).join("")}</div>` : ""}
             ${d.rule === "monthly" ? `<div class="month-day-grid mt10">${Array.from({ length: 31 }, (_, i) => i + 1).map((day) =>
               chip({ selected: (d.monthDays || []).includes(day), label: String(day), act: "draftMonthDay", extra: `data-d="${day}"`, compact: true })).join("")}
-              ${chip({ selected: (d.monthDays || []).includes(0), label: "月末", act: "draftMonthDay", extra: 'data-d="0"', compact: true })}</div>
-              ${monthDayHints(d.monthDays || []).map((h) => `<div class="month-day-hint">${h}</div>`).join("")}` : ""}
+              ${chip({ selected: (d.monthDays || []).includes(0), label: "月末", act: "draftMonthDay", extra: 'data-d="0"', compact: true })}</div>` : ""}
           ` : ""}
         </div>`;
 
+      const v02SwitchRows = [];
+      if (!hideRemindDelete) {
+        const gate = gateOpen(taskCatKey(d));
+        const id = S.taskId || "t1";
+        const muted = viewing ? !!S.muted[id] : !!d.muteFirst;
+        const on = done ? false : (gate && !muted);
+        v02SwitchRows.push(reminderRow("本次提醒", "", on, viewing ? "muteToday" : "draftMuteToday", done, accent.fg));
+        if (genHasFamily()) {
+          const famOn = done ? false : (familyGateOpen(taskCatKey(d)) && (viewing ? !S.famOff[id] : d.famNotify !== false));
+          v02SwitchRows.push(reminderRow("家属通知", "", famOn, viewing ? "famNotify" : "draftFamNotify", done, accent.fg));
+        }
+      }
+
       const footerCard = `
-        ${hideRemindDelete ? "" : `<div class="v02-editor-card" style="padding-top:4px">${viewing ? reminderSwitches(d, done, accent) : draftReminderSwitch(d, accent)}</div>`}
+        ${v02SwitchRows.length ? `<div class="v02-switch-card">${v02SwitchRows.join("")}</div>` : ""}
         ${mode === "view" && !hideRemindDelete ? deletePlanButtons(d) : ""}
-        ${viewing && done && !past ? cancelCheckInBlock(accent) : ""}`;
+        ${viewing && done && !past ? `<button class="cta-ghost mt16" style="color:${accent.fg};background:${accent.muted}" data-act="undoCheckIn" type="button">${I.undo}取消本次打卡</button>` : ""}`;
 
       return `<div class="page editor-page" style="--accent:${accent.fg}">
         ${navBar(left.replace('data-act="back"', mode === "edit" ? 'data-act="cancelEdit"' : mode === "add" ? 'data-act="cancelAdd"' : 'data-act="back"'), title, right)}
