@@ -1909,9 +1909,22 @@
   // 计划可见性：长期删除已 splice 出 SEED；「仅删本次」记在 skippedDays[日期]
   // 循环计划的「仅删本次」只影响当天，次日仍回来（真机 RehabPlanStore.skipOccurrence）
   function skippedOn(ymd) { return S.skippedDays[ymd] || []; }
+  function resolvedTaskEndYmd(t) {
+    const start = t.onceDate || toYMD(demoDate());
+    if (t.cycle === false) return start;
+    if (t.endDate) return t.endDate;
+    const days = t.customDays || (t.duration ? durationDayCount(t.duration) : 365);
+    return addDaysYMD(start, days - 1);
+  }
   function liveTasks(ymd = toYMD(demoDate())) {
     const skip = skippedOn(ymd);
-    return SEED.filter((t) => !skip.includes(t.id));
+    return SEED.filter((t) => {
+      if (skip.includes(t.id)) return false;
+      if (t.onceDate && ymd < t.onceDate) return false;
+      if (t.cycle === false && t.onceDate && ymd !== t.onceDate) return false;
+      if (t.endDate && ymd > t.endDate) return false;
+      return true;
+    });
   }
   function addSkipped(ymd, id) {
     if (!S.skippedDays[ymd]) S.skippedDays[ymd] = [];
@@ -2091,16 +2104,17 @@
     const origBase = taskDraftFromSeed(orig);
     const opened = S.taskOccurrence || toYMD(demoDate());
     const today = toYMD(demoDate());
-    const defaultOcc = opened > today ? opened : today;
+    const origStart = origBase.onceDate || today;
+    const defaultOcc = [opened, today, origStart].sort()[2];
+    const activeStart = d.cycle ? (d.occurrence || defaultOcc) : (d.onceDate || defaultOcc);
 
     let changed = false;
     if (d.hour !== origBase.hour || d.min !== origBase.min) changed = true;
     if (!!d.cycle !== !!origBase.cycle) changed = true;
     if (origBase.cycle) {
-      const curOcc = d.cycle ? (d.occurrence || defaultOcc) : (d.onceDate || defaultOcc);
-      if (curOcc !== defaultOcc) changed = true;
+      if (activeStart !== defaultOcc) changed = true;
     } else {
-      if ((d.onceDate || origBase.onceDate) !== origBase.onceDate) changed = true;
+      if (activeStart !== origStart) changed = true;
     }
     if (d.cycle && origBase.cycle) {
       if (d.rule !== origBase.rule) changed = true;
@@ -2114,16 +2128,14 @@
         const b = (origBase.monthDays || []).slice().sort().join(",");
         if (a !== b) changed = true;
       }
-      const origEnd = resolvedDraftEndYmd(origBase, origBase.onceDate);
-      const curEnd = resolvedDraftEndYmd(d, origBase.onceDate);
+      const origEnd = resolvedDraftEndYmd(origBase, origStart);
+      const curEnd = resolvedDraftEndYmd(d, activeStart);
       if (curEnd !== origEnd || d.touchedDuration) changed = true;
     }
     if (!changed) return null;
 
-    const newStartYmd = (origBase.cycle && d.cycle)
-      ? (d.occurrence || defaultOcc)
-      : (d.onceDate || defaultOcc);
-    const oldStartYmd = origBase.onceDate;
+    const newStartYmd = activeStart;
+    const oldStartYmd = origStart;
     const origEndYmd = origBase.cycle ? resolvedDraftEndYmd(origBase, oldStartYmd) : oldStartYmd;
 
     let currentEndHeadline;
@@ -2132,7 +2144,7 @@
     let splitsSeries = false;
     const newStartText = yearMonthDayLabel(parseYMD(newStartYmd));
 
-    if (origBase.cycle && newStartYmd > oldStartYmd) {
+    if (newStartYmd > oldStartYmd) {
       splitsSeries = true;
       if (origEndYmd < newStartYmd) {
         const endText = yearMonthDayLabel(parseYMD(origEndYmd));
@@ -3900,7 +3912,7 @@
         const orig = SEED.find((x) => x.id === S.taskId);
         const nextCycle = el.dataset.v === "1";
         S.draft.cycle = nextCycle;
-        if (S.screen === "task-edit" && orig && orig.cycle !== false) {
+        if (S.screen === "task-edit" && orig) {
           if (!nextCycle) {
             S.draft.onceDate = S.draft.occurrence || S.taskOccurrence || toYMD(demoDate());
           } else {
@@ -4103,19 +4115,29 @@
       openOnceDate() {
         if (!S.draft || S.lockRecurrence) return;
         const ymd = S.draft.onceDate || toYMD(demoDate());
-        const floor = S.screen === "task-edit" ? (S.taskOccurrence || toYMD(demoDate())) : null;
+        let floor = null;
+        if (S.screen === "task-edit") {
+          const orig = SEED.find((x) => x.id === S.taskId);
+          const opened = S.taskOccurrence || toYMD(demoDate());
+          const today = toYMD(demoDate());
+          const origStart = orig?.onceDate || today;
+          floor = [opened, today, origStart].sort()[2];
+        }
         openOverlay("datePick", { selected: ymd, month: ymd, minYmd: floor });
       },
       openOccurrenceDate() {
         if (!S.draft) return;
-        const ymd = S.draft.occurrence || S.taskOccurrence || toYMD(demoDate());
-        const floor = S.taskOccurrence || toYMD(demoDate());
+        const orig = SEED.find((x) => x.id === S.taskId);
+        const opened = S.taskOccurrence || toYMD(demoDate());
+        const today = toYMD(demoDate());
+        const origStart = orig?.onceDate || today;
+        const floor = [opened, today, origStart].sort()[2];
+        const ymd = S.draft.occurrence || floor;
         openOverlay("datePick", { selected: ymd, month: ymd, kind: "occurrence", minYmd: floor });
       },
       openSeriesEnd() {
         if (!S.draft) return;
-        const orig = SEED.find((x) => x.id === S.taskId);
-        const showOcc = S.screen === "task-edit" && S.draft.cycle && orig && orig.cycle !== false;
+        const showOcc = S.screen === "task-edit" && S.draft.cycle;
         const anchor = showOcc ? (S.draft.occurrence || S.draft.onceDate) : S.draft.onceDate;
         const ymd = resolvedDraftEndYmd(S.draft, anchor);
         openOverlay("datePick", { selected: ymd, month: ymd, kind: "seriesEnd", minYmd: anchor });
@@ -4129,7 +4151,14 @@
           const minDays = customDurMinDays(S.draft?.rule || "daily");
           S.customDurDays = Math.min(365, Math.max(minDays, diff));
         } else if (S.overlayData.kind === "occurrence" && S.draft) {
-          S.draft.occurrence = el.dataset.ymd;
+          const nextOcc = el.dataset.ymd;
+          S.draft.occurrence = nextOcc;
+          const orig = SEED.find((x) => x.id === S.taskId);
+          if (orig && orig.endDate && !S.draft.touchedDuration && nextOcc > orig.endDate) {
+            S.draft.endDate = null;
+            S.draft.duration = "oneYear";
+            S.draft.customDays = null;
+          }
         } else if (S.overlayData.kind === "seriesEnd" && S.draft) {
           S.draft.endDate = el.dataset.ymd;
           S.draft.duration = null;
@@ -4146,16 +4175,28 @@
       },
       calToday() {
         // 操作记录按真实「今天」算（记录按真实时间写入）
-        const ymd = S.overlayData.kind === "opDay" ? toYMD(new Date()) : toYMD(demoDate());
+        const rawToday = S.overlayData.kind === "opDay" ? toYMD(new Date()) : toYMD(demoDate());
+        const ymd = S.overlayData.minYmd && S.overlayData.minYmd > rawToday ? S.overlayData.minYmd : rawToday;
         if (S.overlayData.kind === "opDay") {
           S.overlayData.selected = ymd;
           S.overlayData.month = ymd;
+          S.opDay = ymd;
         } else if (S.overlayData.kind === "customDur") {
           const minDays = customDurMinDays(S.draft?.rule || "daily");
           if (minDays > 1) return;
           S.overlayData.selected = ymd;
           S.overlayData.month = ymd;
           S.customDurDays = 1;
+        } else if (S.overlayData.kind === "occurrence" && S.draft) {
+          S.overlayData.selected = ymd;
+          S.overlayData.month = ymd;
+          S.draft.occurrence = ymd;
+        } else if (S.overlayData.kind === "seriesEnd" && S.draft) {
+          S.overlayData.selected = ymd;
+          S.overlayData.month = ymd;
+          S.draft.endDate = ymd;
+          S.draft.duration = null;
+          S.draft.touchedDuration = true;
         } else {
           S.overlayData.selected = ymd;
           S.overlayData.month = ymd;
@@ -4394,11 +4435,15 @@
         replace("task-add");
       },
       editTask() {
-        initDraft(SEED.find((x) => x.id === S.taskId));
-        if (S.draft?.cycle) {
+        const orig = SEED.find((x) => x.id === S.taskId);
+        initDraft(orig);
+        if (S.draft) {
           const opened = S.taskOccurrence || toYMD(demoDate());
           const today = toYMD(demoDate());
-          S.draft.occurrence = opened > today ? opened : today;
+          const origStart = orig?.onceDate || today;
+          const floor = [opened, today, origStart].sort()[2];
+          S.draft.occurrence = floor;
+          if (!S.draft.cycle) S.draft.onceDate = floor;
         }
         go("task-edit", "replace");
       },
@@ -4424,10 +4469,30 @@
         const orig = SEED.find((x) => x.id === S.taskId);
         const prompt = buildScheduleUpdatePrompt(orig, S.draft);
         closeOverlay();
-        if (prompt && S.draft) {
+        if (prompt && prompt.splitsSeries && orig && S.draft) {
+          const today = toYMD(demoDate());
+          const origStart = orig.onceDate || today;
+          const origEnd = resolvedTaskEndYmd(orig);
+          if (orig.cycle !== false && origEnd >= prompt.newStartYmd) {
+            orig.onceDate = origStart;
+            orig.endDate = addDaysYMD(prompt.newStartYmd, -1);
+            orig.duration = null;
+            orig.customDays = null;
+          } else if (!orig.onceDate) {
+            orig.onceDate = origStart;
+          }
+          const newId = nextTaskId();
+          SEED.push({ ...orig, id: newId });
           S.draft.onceDate = prompt.newStartYmd;
+          applyDraftToTask(newId, S.draft);
+          const opened = S.taskOccurrence || today;
+          S.taskId = opened >= prompt.newStartYmd ? newId : orig.id;
+        } else {
+          if (prompt && S.draft) {
+            S.draft.onceDate = prompt.newStartYmd;
+          }
+          applyDraftToTask(S.taskId, S.draft);
         }
-        applyDraftToTask(S.taskId, S.draft);
         logOp("修改了计划", entryPlace(), [["计划", taskTitle(S.taskId)]]);
         go("task-view", "replace");
       },
@@ -7701,9 +7766,8 @@
             chip({ selected: d.cat === "custom" && d.customId === c.id, label: c.name, icon: I[UNIFIED_CUSTOM_ICON], act: "pickCustomCat", extra: `data-id="${c.id}"`, locked: S.lockCategory && mode === "add" })).join("")}
           ${!(S.lockCategory && mode === "add") && mode !== "view" ? chip({ selected: false, label: "自定义", icon: I.plus, dash: true, act: "openCustomCat" }) : ""}
         </div>`;
-    // 已保存循环计划点「更新」：开始日期锁定。首页虚框仍锁定当天。查看态整页只读，仍保持语义色。
-    const origCycle = t.cycle !== false;
-    const showOcc = mode !== "add" && d.cycle && origCycle;
+    // 已保存计划在循环态下展示「本次日期」；点「更新」锁定开始日期。首页虚框仍锁定当天。
+    const showOcc = mode !== "add" && d.cycle;
     const lockStart = lockRec || (mode === "edit" && showOcc);
     const dateRow = (label, ymd, act, locked) => {
       const on = editable && !locked;
