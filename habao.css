@@ -1035,7 +1035,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .ed-group-chev.open { transform: rotate(180deg); }
 .ed-group-body { margin-top: 4px; }
 
-/* V0.2 计划详情页：极简现代版（零套娃、零截断、零赘字） */
+/* V0.2 计划详情页：三大认知模块（事项内容 / 时刻与提醒 / 周期与日期）+ 1:1 对称时刻卡 + 醒目时段标注 */
 .v02-editor-card {
   background: linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 100%);
   border-radius: 24px;
@@ -1043,41 +1043,82 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   box-shadow: 0 12px 24px rgba(16,84,224,.07), -2px -4px 8px rgba(255,255,255,.9);
 }
 .v02-editor-card + .v02-editor-card { margin-top: 18px; }
-.v02-hero-header {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+.v02-mod-head {
+  display: flex; align-items: center; gap: 8px;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(16,84,224,.08);
 }
-.v02-big-time {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: transparent; border: 0; padding: 0; margin-top: 6px;
-  font-family: inherit; font-size: calc(38px * var(--fs)); font-weight: 700;
-  font-variant-numeric: tabular-nums; line-height: 1; cursor: pointer;
-}
-.v02-big-time:disabled { cursor: default; }
-.v02-time-chev {
-  width: 26px; height: 26px; border-radius: 50%;
+.v02-mod-ico {
+  width: 26px; height: 26px; border-radius: 8px; flex: 0 0 26px;
   display: grid; place-items: center;
 }
-.v02-time-chev svg { width: 13px; height: 13px; }
-.v02-vsep { width: 1px; height: 48px; flex: 0 0 1px; }
-.v02-checkin-col {
-  display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0;
+.v02-mod-ico svg { width: 14px; height: 14px; }
+.v02-mod-title {
+  font-size: calc(16px * var(--fs)); font-weight: 700; line-height: 1.2;
 }
-.v02-checkin-pill {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 8px 14px; border-radius: 999px; border: 0;
-  font-family: inherit; font-size: calc(20px * var(--fs)); font-weight: 700;
+.v02-twin-times {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+}
+.v02-time-box {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  width: 100%; padding: 14px; border-radius: 16px; border: 0;
+  font-family: inherit; text-align: left; cursor: pointer;
+}
+.v02-time-box:disabled { cursor: default; }
+.v02-time-box.idle {
+  background: rgba(130,142,165,.08);
+  cursor: default;
+}
+.v02-time-top {
+  display: flex; align-items: center; gap: 6px; width: 100%;
+}
+.v02-time-top .ico { display: inline-flex; width: 13px; height: 13px; }
+.v02-time-top .ico svg { width: 13px; height: 13px; }
+.v02-time-top .lab {
+  font-size: calc(13px * var(--fs)); font-weight: 600; color: var(--secondary);
+}
+.v02-time-top .chev {
+  margin-left: auto; display: inline-flex; opacity: .65;
+}
+.v02-time-top .chev svg { width: 11px; height: 11px; }
+.v02-time-val {
+  display: flex; align-items: center; height: 34px;
+  font-size: calc(28px * var(--fs)); font-weight: 700;
+  font-variant-numeric: tabular-nums; line-height: 1;
+}
+.v02-time-val.idle-txt {
+  font-size: calc(22px * var(--fs)); font-weight: 700;
+  color: rgba(130,142,165,.65);
+}
+.v02-period-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  margin-top: 18px; margin-bottom: 10px;
+}
+.v02-period-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 10px; border-radius: 999px;
+  font-size: calc(12px * var(--fs)); font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
-.v02-checkin-pill.idle {
-  background: rgba(130,142,165,.10);
-  color: rgba(130,142,165,.65);
-  font-size: calc(16px * var(--fs)); font-weight: 600;
+.v02-period-badge svg { width: 12px; height: 12px; }
+.v02-period-chip {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  width: 100%; padding: 11px 6px; border-radius: 12px; border: 0;
+  font-family: inherit; cursor: pointer;
+}
+.v02-period-chip:disabled { cursor: default; }
+.v02-period-chip .p-name {
+  font-size: calc(15px * var(--fs)); font-weight: 700; line-height: 1.15;
+}
+.v02-period-chip .p-range {
+  font-size: calc(13px * var(--fs)); font-weight: 700;
+  font-variant-numeric: tabular-nums; line-height: 1.15;
 }
 .v02-grid4 {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
 }
 .v02-dates-list {
-  margin-top: 18px;
   border-radius: 16px;
   overflow: hidden;
 }
@@ -1098,19 +1139,10 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .v02-date-row .val svg { width: 12px; height: 12px; opacity: .6; }
 .v02-date-sep { height: 1px; margin: 0 16px; }
-.v02-switch-card {
-  margin-top: 18px;
-  background: linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 100%);
-  border-radius: 20px;
-  padding: 2px 18px;
-  box-shadow: 0 12px 24px rgba(16,84,224,.07), -2px -4px 8px rgba(255,255,255,.9);
-}
-.v02-switch-row {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  padding: 14px 0;
-}
-.v02-switch-row + .v02-switch-row {
-  border-top: 1px solid rgba(16,84,224,.08);
+.v02-remind-box {
+  border-radius: 16px;
+  padding: 0 16px;
+  overflow: hidden;
 }
 .date-row.grow { width: auto; min-width: 0; }
 .date-row:not(.grow) { width: 100%; }

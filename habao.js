@@ -1160,9 +1160,9 @@
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），进与首次上传 / 基础报告同一份资料详情，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
-    "task-add": { code: "AddEditTaskView", note: "V0.0 / V0.1 为「事项」「时间与提醒」两大类折叠；V0.2 升级为「时刻 × 事项重点融合」双主卡布局（字段不变）：主卡一顶部大号提醒时间 + 时段胶囊 + 打卡时间横幅，直连同框事项名称、补充备注、今日血压，下接时间段与事项分类；主卡二收拢计划类型、起止时间轴容器（开始日期 → 结束时间 + 持续时长预设）与循环规则；底部独立承接到点提醒与家属通知。「家属通知」只在 V0.1 / V0.2 出现。" },
-    "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。V0.2 在起止时间轴容器内顶部锁定「原开始日期」，下方并排对照「新开始日期 → 结束时间」与持续时长预设，并在改动时间/周期时内联高亮蓝底新旧计划切分提示条。仅当修改了时间或循环相关字段时，保存前弹出「确认更新计划」居中双卡弹窗；仅改名称/备注/血压等直接原地保存。" },
-    "task-view": { code: "AddEditTaskView", note: "查看计划（只读，右上「更新」）。V0.2 顶部融合横幅展示提醒时间与打卡时间，循环计划在时间轴容器内并排展示「开始日期 → 结束时间」及「今天日期」与持续时长。今日未打卡时底部出现「本次提醒」与删除按钮；今日之前或已打卡时隐藏提醒与删除，「更新」置灰；今日已打卡可「取消本次打卡」。" },
+    "task-add": { code: "AddEditTaskView", note: "V0.0 / V0.1 为「事项」「时间与提醒」两大类折叠；V0.2 重构为三大清晰认知模块（字段不变）：模块一「事项内容」（事项名称 + 补充备注 + 今日血压 + 统一实心芯片事项分类）、模块二「时刻与提醒」（1:1 对称等高双子卡「提醒时间 & 打卡时间」+ 带醒目时段胶囊与 15pt/13pt 粗体双行时间标注的「时间段」+ 同款圆角列表「到点提醒 / 家属通知」）、模块三「周期与日期」（计划类型 + 通栏左标签右完整年月日「执行日期 / 起止日期」+ 持续时长 + 单行四列循环规则）。" },
+    "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。V0.2 按「事项内容 → 时刻与提醒 → 周期与日期」三大认知模块组织；「提醒时间」与「打卡时间」采用 1:1 对称双生卡片，「时间段」配备醒目粗体时间范围标注；「起止日期」通栏对齐展示「原开始日期（锁定）→ 新开始日期 → 结束时间」，100% 零截断。修改时间或周期字段保存前弹出「确认更新计划」双卡弹窗；仅改名称/备注/血压等直接原地保存。" },
+    "task-view": { code: "AddEditTaskView", note: "查看计划（只读，右上「更新」）。V0.2 按「事项内容 → 时刻与提醒 → 周期与日期」三大认知模块组织，「提醒时间」与「打卡时间」1:1 对称展示，「时间段」醒目标注时间范围，「到点提醒」收纳在「时刻与提醒」模块内且在查看态下可直接切换；循环计划在「起止日期」内对齐展示「开始日期 → 今天日期 → 结束时间」。今日未打卡时底部出现删除按钮；今日之前或已打卡时隐藏提醒与删除，「更新」置灰；今日已打卡可「取消本次打卡」。" },
     "exercise-risk": { code: "BodyTestRunView", note: "Demo Toggle 模拟禁忌症。体测不参与入组。「稍后 / 退出评估 / 暂不创建」关整段评估流，不退回选择类型。" },
     "body-test": { code: "BodyTestRunView", note: "户外原地踏步三分钟。停止或倒计时归零后直进感受问卷，无完成中转页。" },
     "body-test-sit": { code: "BodyTestRunView", note: "室内 1 分钟坐立。次数大号读数 + 倒计时 + 同龄参考。停止后问卷顶部两栏「测试时长 / 完成次数」。" },
@@ -7868,37 +7868,21 @@
         ${hideRemindDelete ? "" : (viewing ? reminderSwitches(d, done, accent) : draftReminderSwitch(d, accent))}
         ${mode === "view" && !hideRemindDelete ? deletePlanButtons(d) : ""}
         ${viewing && done && !past ? cancelCheckInBlock(accent) : ""}`;
-    // V0.2：极简现代版（零套娃、零截断、零赘字，通栏对齐起止日期行 + 单行时间段 + 四列循环规则）
+    // V0.2：三大认知模块（事项内容 / 时刻与提醒 / 周期与日期）+ 1:1 对称时刻卡 + 醒目时段标注 + 全页统一视觉体验
     if (genIsV02()) {
       const blkObj = BLOCKS.find((b) => b.id === d.block) || BLOCKS[0];
       const vitalsHTML = editorVitalsBlock(d, mode, done, accent);
-      const heroCard = `
+      const modHead = (ico, text) => `
+        <div class="v02-mod-head">
+          <span class="v02-mod-ico" style="background:${accent.muted};color:${accent.fg}">${ico}</span>
+          <span class="v02-mod-title" style="color:${accent.fg}">${text}</span>
+        </div>`;
+
+      // 模块一：事项内容（事项名称 + 补充备注 + 今日血压 + 事项分类）
+      const contentCard = `
         <div class="v02-editor-card">
-          <div class="v02-hero-header">
-            <div class="grow">
-              <div class="sec-label" style="margin-top:0">提醒时间</div>
-              <button class="v02-big-time" style="color:${accent.fg}" ${editable ? 'data-act="editDraftTime"' : "disabled"} type="button">
-                <span>${pad(d.hour)}:${pad(d.min)}</span>
-                ${editable ? `<span class="v02-time-chev" style="background:${accent.muted};color:${accent.fg}">${I.chevUD}</span>` : ""}
-              </button>
-            </div>
-            <div class="v02-vsep" style="background:${accent.muted}"></div>
-            <div class="v02-checkin-col">
-              <div class="sec-label" style="margin-top:0">打卡时间</div>
-              ${done
-                ? `<button class="v02-checkin-pill" style="background:${accent.muted};color:${accent.fg}" type="button">07:18</button>`
-                : `<span class="v02-checkin-pill idle">未打卡</span>`}
-            </div>
-          </div>
-          <div class="flex items-center justify-between" style="margin-top:20px;margin-bottom:8px">
-            <div class="sec-label" style="margin:0">时间段</div>
-            <span class="s13 fb" style="color:${accent.fg};opacity:.85;font-variant-numeric:tabular-nums">${blkObj.title} ${blkObj.range}</span>
-          </div>
-          <div class="v02-grid4">${BLOCKS.map((b) =>
-            chip({ selected: b.id === d.block, label: b.title, act: "draftBlock", extra: `data-b="${b.id}"`, locked: lockTime, compact: true })
-          ).join("")}</div>
-          <div style="height:1px;background:${accent.muted};margin:20px 0 4px"></div>
-          <div class="sec-label">事项名称</div>
+          ${modHead(I.doc, "事项内容")}
+          <div class="sec-label" style="margin-top:0">事项名称</div>
           ${editable
             ? `<input class="voice-box w100" name="taskTitle" style="color:${accent.fg};border:0" placeholder="填写事项名称" value="${String(d.title || "").replace(/"/g, "&quot;")}" />`
             : `<div class="voice-box" style="color:${accent.fg}">${d.title}</div>`}
@@ -7908,15 +7892,76 @@
             : `<div class="voice-box tall" style="color:${accent.fg}">${d.note}</div>`}
           ${vitalsHTML}
           <div class="sec-label">事项分类</div>
-          <div class="grid3">${Object.keys(CAT).map((c) =>
+          <div class="grid3 tight">${Object.keys(CAT).map((c) =>
             chip({ selected: c === d.cat, label: CAT[c].chip, icon: CAT_ICON[c](), act: "draftCat", extra: `data-c="${c}"`,
               locked: (S.lockCategory && mode === "add") || (S.lockProfessional && mode === "add" && PROFESSIONAL.has(c)) })).join("")}
             ${(S.customCats || []).map((c) =>
               chip({ selected: d.cat === "custom" && d.customId === c.id, label: c.name, icon: I[UNIFIED_CUSTOM_ICON], act: "pickCustomCat", extra: `data-id="${c.id}"`, locked: S.lockCategory && mode === "add" })).join("")}
-            ${!(S.lockCategory && mode === "add") && mode !== "view" ? chip({ selected: false, label: "自定义", icon: I.plus, dash: true, act: "openCustomCat" }) : ""}
+            ${!(S.lockCategory && mode === "add") && mode !== "view" ? chip({ selected: false, label: "自定义", icon: I.plus, act: "openCustomCat" }) : ""}
           </div>
         </div>`;
 
+      // 模块二：时刻与提醒（1:1 对称「提醒时间 & 打卡时间」+ 醒目「时间段」+「到点提醒」）
+      const periodChip = (b) => {
+        const sel = b.id === d.block;
+        const lkd = viewing || lockTime;
+        const bg = sel ? accent.fg : lkd ? "rgba(130,142,165,.10)" : accent.muted;
+        const fg = sel ? "#fff" : lkd ? "rgba(130,142,165,.55)" : accent.fg;
+        const subFg = sel ? "rgba(255,255,255,.95)" : lkd ? "rgba(130,142,165,.50)" : accent.fg;
+        const dis = lkd && !sel;
+        return `<button class="v02-period-chip" style="background:${bg};color:${fg}" ${!dis && editable && !lockTime ? `data-act="draftBlock" data-b="${b.id}"` : "disabled"} type="button">
+          <span class="p-name">${b.title}</span>
+          <span class="p-range" style="color:${subFg};opacity:${sel ? 1 : 0.88}">${b.range}</span>
+        </button>`;
+      };
+
+      const v02SwitchRows = [];
+      if (!hideRemindDelete) {
+        const gate = gateOpen(taskCatKey(d));
+        const id = S.taskId || "t1";
+        const muted = viewing ? !!S.mutedToday[id] : !!d.muteFirst;
+        const on = done ? false : (gate && !muted);
+        v02SwitchRows.push(reminderRow("本次提醒", "", on, viewing ? "muteToday" : "draftMuteToday", done, accent.fg));
+        if (genHasFamily()) {
+          const famOn = done ? false : (familyGateOpen(taskCatKey(d)) && (viewing ? !S.famOff[id] : d.famNotify !== false));
+          v02SwitchRows.push(`<div class="v02-date-sep" style="background:${accent.muted};margin:0"></div>` + reminderRow("家属通知", "", famOn, viewing ? "famNotify" : "draftFamNotify", done, accent.fg));
+        }
+      }
+
+      const timeAndRemindCard = `
+        <div class="v02-editor-card">
+          ${modHead(I.bell, "时刻与提醒")}
+          <div class="v02-twin-times">
+            <button class="v02-time-box" style="background:${accent.muted};color:${accent.fg}" ${editable ? 'data-act="editDraftTime"' : "disabled"} type="button">
+              <div class="v02-time-top">
+                <span class="ico" style="color:${accent.fg};opacity:.75">${I.bell}</span>
+                <span class="lab">提醒时间</span>
+                ${editable ? `<span class="chev" style="color:${accent.fg}">${I.chevUD}</span>` : ""}
+              </div>
+              <div class="v02-time-val" style="color:${accent.fg}">${pad(d.hour)}:${pad(d.min)}</div>
+            </button>
+            <div class="v02-time-box ${done ? "" : "idle"}" style="${done ? `background:${accent.muted};color:${accent.fg}` : ""}">
+              <div class="v02-time-top">
+                <span class="ico" style="color:${done ? accent.fg : "var(--secondary)"};opacity:.75">${done ? I.check : I.clock}</span>
+                <span class="lab">打卡时间</span>
+                ${done && editable ? `<span class="chev" style="color:${accent.fg}">${I.chevUD}</span>` : ""}
+              </div>
+              ${done
+                ? `<div class="v02-time-val" style="color:${accent.fg}">07:18</div>`
+                : `<div class="v02-time-val idle-txt">未打卡</div>`}
+            </div>
+          </div>
+          <div class="v02-period-head">
+            <div class="sec-label" style="margin:0">时间段</div>
+            <span class="v02-period-badge" style="background:${accent.muted};color:${accent.fg}">${I.clock}<span>${blkObj.title} · ${blkObj.range}</span></span>
+          </div>
+          <div class="grid3 tight">${BLOCKS.map(periodChip).join("")}</div>
+          ${v02SwitchRows.length ? `
+            <div class="sec-label">到点提醒</div>
+            <div class="v02-remind-box" style="background:${accent.muted}">${v02SwitchRows.join("")}</div>` : ""}
+        </div>`;
+
+      // 模块三：周期与日期（计划类型 + 执行日期/起止日期 + 持续时长 + 循环规则）
       const alignedDateRow = (label, ymd, act, locked) => {
         const on = editable && !locked;
         const muted = !editable || locked;
@@ -7956,11 +8001,13 @@
 
       const scheduleCard = `
         <div class="v02-editor-card">
+          ${modHead(I.cal, "周期与日期")}
           <div class="sec-label" style="margin-top:0">计划类型</div>
           <div class="flex gap8">
             ${chip({ selected: !d.cycle, label: "单日计划", icon: I.cal, act: "draftCycle", extra: 'data-v="0"', locked: lockRec })}
             ${chip({ selected: d.cycle, label: "循环计划", icon: I.cycle, act: "draftCycle", extra: 'data-v="1"', locked: lockRec })}
           </div>
+          <div class="sec-label">${d.cycle ? "起止日期" : "执行日期"}</div>
           <div class="v02-dates-list" style="background:${accent.muted}">
             ${datesRowsHTML}
           </div>
@@ -7981,27 +8028,13 @@
           ` : ""}
         </div>`;
 
-      const v02SwitchRows = [];
-      if (!hideRemindDelete) {
-        const gate = gateOpen(taskCatKey(d));
-        const id = S.taskId || "t1";
-        const muted = viewing ? !!S.muted[id] : !!d.muteFirst;
-        const on = done ? false : (gate && !muted);
-        v02SwitchRows.push(reminderRow("本次提醒", "", on, viewing ? "muteToday" : "draftMuteToday", done, accent.fg));
-        if (genHasFamily()) {
-          const famOn = done ? false : (familyGateOpen(taskCatKey(d)) && (viewing ? !S.famOff[id] : d.famNotify !== false));
-          v02SwitchRows.push(reminderRow("家属通知", "", famOn, viewing ? "famNotify" : "draftFamNotify", done, accent.fg));
-        }
-      }
-
-      const footerCard = `
-        ${v02SwitchRows.length ? `<div class="v02-switch-card">${v02SwitchRows.join("")}</div>` : ""}
+      const footerActions = `
         ${mode === "view" && !hideRemindDelete ? deletePlanButtons(d) : ""}
         ${viewing && done && !past ? `<button class="cta-ghost mt16" style="color:${accent.fg};background:${accent.muted}" data-act="undoCheckIn" type="button">${I.undo}取消本次打卡</button>` : ""}`;
 
       return `<div class="page editor-page" style="--accent:${accent.fg}">
         ${navBar(left.replace('data-act="back"', mode === "edit" ? 'data-act="cancelEdit"' : mode === "add" ? 'data-act="cancelAdd"' : 'data-act="back"'), title, right)}
-        <div class="scroll px20" style="padding-top:4px;padding-bottom:28px">${heroCard}${scheduleCard}${footerCard}</div>
+        <div class="scroll px20" style="padding-top:4px;padding-bottom:28px">${contentCard}${timeAndRemindCard}${scheduleCard}${footerActions}</div>
       </div>`;
     }
 
