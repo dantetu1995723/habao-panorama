@@ -1035,18 +1035,58 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .ed-group-chev.open { transform: rotate(180deg); }
 .ed-group-body { margin-top: 4px; }
 
-/* V0.2 计划详情页：三大认知模块（事项内容 / 时刻与提醒 / 周期与日期）+ 1:1 对称时刻卡 + 醒目时段标注 */
+/* V0.2 计划详情页：无滚动「三联动态磁贴 + 单屏模块舞台」切换架构 */
+.v02-stage-page {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 6px 20px 18px;
+  overflow: hidden;
+}
+.v02-live-tiles {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  flex-shrink: 0;
+}
+.v02-live-tile {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 5px;
+  width: 100%; padding: 10px 11px; border-radius: 16px;
+  border: 1px solid rgba(16,84,224,.14);
+  background: rgba(255,255,255,.92);
+  box-shadow: 0 2px 6px rgba(0,0,0,.03);
+  font-family: inherit; text-align: left; cursor: pointer;
+  min-width: 0;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.v02-live-tile.on {
+  border-color: transparent;
+}
+.v02-live-tile .t-top {
+  display: flex; align-items: center; gap: 5px; width: 100%;
+  font-size: calc(12px * var(--fs)); font-weight: 700;
+}
+.v02-live-tile .t-top svg { width: 12px; height: 12px; flex-shrink: 0; }
+.v02-live-tile .t-val {
+  width: 100%;
+  font-size: calc(15px * var(--fs)); font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  line-height: 1.2;
+}
+.v02-live-tile .t-tag {
+  display: inline-flex; align-items: center;
+  padding: 2px 7px; border-radius: 999px;
+  font-size: calc(11px * var(--fs)); font-weight: 700;
+  max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .v02-editor-card {
   background: linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 100%);
   border-radius: 24px;
-  padding: 20px;
+  padding: 18px;
   box-shadow: 0 12px 24px rgba(16,84,224,.07), -2px -4px 8px rgba(255,255,255,.9);
 }
-.v02-editor-card + .v02-editor-card { margin-top: 18px; }
 .v02-mod-head {
   display: flex; align-items: center; gap: 8px;
-  padding-bottom: 12px;
-  margin-bottom: 16px;
+  padding-bottom: 10px;
+  margin-bottom: 14px;
   border-bottom: 1px solid rgba(16,84,224,.08);
 }
 .v02-mod-ico {
@@ -1056,6 +1096,27 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .v02-mod-ico svg { width: 14px; height: 14px; }
 .v02-mod-title {
   font-size: calc(16px * var(--fs)); font-weight: 700; line-height: 1.2;
+}
+.v02-mod-step {
+  margin-left: auto;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 6px; border-radius: 999px;
+  font-size: calc(12px * var(--fs)); font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.v02-mod-step button {
+  width: 22px; height: 22px; border: 0; background: transparent;
+  display: inline-grid; place-items: center; padding: 0; cursor: pointer;
+  color: inherit;
+}
+.v02-mod-step button:disabled { opacity: .32; cursor: default; }
+.v02-mod-step button svg { width: 11px; height: 11px; }
+.v02-bottom-dock {
+  margin-top: auto;
+  flex-shrink: 0;
+}
+.v02-bottom-dock .duo-del {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
 }
 .v02-twin-times {
   display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;

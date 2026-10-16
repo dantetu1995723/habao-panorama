@@ -1160,9 +1160,9 @@
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），进与首次上传 / 基础报告同一份资料详情，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
-    "task-add": { code: "AddEditTaskView", note: "V0.0 / V0.1 为「事项」「时间与提醒」两大类折叠；V0.2 重构为三大清晰认知模块（字段不变）：模块一「事项内容」（事项名称 + 补充备注 + 今日血压 + 统一实心芯片事项分类）、模块二「时刻与提醒」（1:1 对称等高双子卡「提醒时间 & 打卡时间」+ 带醒目时段胶囊与 15pt/13pt 粗体双行时间标注的「时间段」+ 同款圆角列表「到点提醒 / 家属通知」）、模块三「周期与日期」（计划类型 + 通栏左标签右完整年月日「执行日期 / 起止日期」+ 持续时长 + 单行四列循环规则）。" },
-    "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。V0.2 按「事项内容 → 时刻与提醒 → 周期与日期」三大认知模块组织；「提醒时间」与「打卡时间」采用 1:1 对称双生卡片，「时间段」配备醒目粗体时间范围标注；「起止日期」通栏对齐展示「原开始日期（锁定）→ 新开始日期 → 结束时间」，100% 零截断。修改时间或周期字段保存前弹出「确认更新计划」双卡弹窗；仅改名称/备注/血压等直接原地保存。" },
-    "task-view": { code: "AddEditTaskView", note: "查看计划（只读，右上「更新」）。V0.2 按「事项内容 → 时刻与提醒 → 周期与日期」三大认知模块组织，「提醒时间」与「打卡时间」1:1 对称展示，「时间段」醒目标注时间范围，「到点提醒」收纳在「时刻与提醒」模块内且在查看态下可直接切换；循环计划在「起止日期」内对齐展示「开始日期 → 今天日期 → 结束时间」。今日未打卡时底部出现删除按钮；今日之前或已打卡时隐藏提醒与删除，「更新」置灰；今日已打卡可「取消本次打卡」。" },
+    "task-add": { code: "AddEditTaskView", note: "V0.0 / V0.1 为「事项」「时间与提醒」两大类折叠；V0.2 重构为**无滚动「三联动态磁贴 + 单屏模块舞台」切换架构**（字段不变）：顶部三联动态磁贴（① 事项内容、② 时刻与提醒、③ 周期与日期）实时回显三大模块核心设定，不切页即可一眼总览；中部单屏舞台一次仅聚焦展示 1 个大模块（支持点按磁贴、点按卡头 `‹ 1/3 ›` 步进或左右滑动手势切换），彻底消除滚动与视觉负担。" },
+    "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。V0.2 采用无滚动「三联动态磁贴 + 单屏模块舞台」切换架构：顶部磁贴实时回显事项、时刻与周期摘要，中部单屏切换「事项内容 / 时刻与提醒 / 周期与日期」；「提醒时间」与「打卡时间」1:1 对称同构，「时间段」配备醒目粗体时间范围标注，「起止日期」通栏对齐零截断。修改时间或周期字段保存前弹出「确认更新计划」双卡弹窗；仅改名称/备注/血压等直接原地保存。" },
+    "task-view": { code: "AddEditTaskView", note: "查看计划（只读，右上「更新」）。V0.2 采用无滚动「三联动态磁贴 + 单屏模块舞台」切换架构，顶部三枚磁贴一眼总览事项、时刻与周期，中部单屏切换三大模块；「到点提醒」收纳在「时刻与提醒」模块内且在查看态下可直接切换；底部固定操作坞并排展示删除或「取消本次打卡」按钮，无需滚动。" },
     "exercise-risk": { code: "BodyTestRunView", note: "Demo Toggle 模拟禁忌症。体测不参与入组。「稍后 / 退出评估 / 暂不创建」关整段评估流，不退回选择类型。" },
     "body-test": { code: "BodyTestRunView", note: "户外原地踏步三分钟。停止或倒计时归零后直进感受问卷，无完成中转页。" },
     "body-test-sit": { code: "BodyTestRunView", note: "室内 1 分钟坐立。次数大号读数 + 倒计时 + 同龄参考。停止后问卷顶部两栏「测试时长 / 完成次数」。" },
@@ -3367,6 +3367,8 @@
       ["#date-pick-swipe", () => act("calMonth", { dataset: { dir: "-1" } }), () => act("calMonth", { dataset: { dir: "1" } })],
       // 操作记录：左右拖动换一天（右拖往新的一天，左拖往更早）
       ["#op-body", () => opStepDay(1), () => opStepDay(-1)],
+      // V0.2 计划详情页：单屏模块舞台左右轻扫切换三大模块
+      ["#v02-stage-swipe", () => act("v02StepMod", { dataset: { dir: "-1" } }), () => act("v02StepMod", { dataset: { dir: "1" } })],
     ];
     pairs.forEach(([sel, right, left]) => {
       const el = document.querySelector(sel);
@@ -3961,6 +3963,19 @@
         const set = new Set(S.editorCollapsed || []);
         if (set.has(g)) set.delete(g); else set.add(g);
         S.editorCollapsed = [...set];
+        render();
+      },
+      v02PickMod() {
+        syncDraftInputs();
+        S.v02Mod = Math.max(0, Math.min(2, +el.dataset.m || 0));
+        render();
+      },
+      v02StepMod() {
+        syncDraftInputs();
+        const cur = S.v02Mod ?? 0;
+        const next = Math.max(0, Math.min(2, cur + (+el.dataset.dir || 0)));
+        if (next === cur) return;
+        S.v02Mod = next;
         render();
       },
       draftRule() { if (S.draft) { S.draft.rule = el.dataset.r; S.draft.duration = "oneYear"; S.draft.endDate = null; S.draft.customDays = null; render(); } },
@@ -7868,14 +7883,61 @@
         ${hideRemindDelete ? "" : (viewing ? reminderSwitches(d, done, accent) : draftReminderSwitch(d, accent))}
         ${mode === "view" && !hideRemindDelete ? deletePlanButtons(d) : ""}
         ${viewing && done && !past ? cancelCheckInBlock(accent) : ""}`;
-    // V0.2：三大认知模块（事项内容 / 时刻与提醒 / 周期与日期）+ 1:1 对称时刻卡 + 醒目时段标注 + 全页统一视觉体验
+    // V0.2：无滚动「三联动态磁贴 + 单屏模块舞台」切换架构（事项内容 / 时刻与提醒 / 周期与日期）
     if (genIsV02()) {
+      const modIdx = Math.max(0, Math.min(2, S.v02Mod ?? 0));
       const blkObj = BLOCKS.find((b) => b.id === d.block) || BLOCKS[0];
       const vitalsHTML = editorVitalsBlock(d, mode, done, accent);
+
+      const catLabel = d.cat === "custom"
+        ? ((S.customCats || []).find((x) => x.id === d.customId)?.name || "自定义")
+        : (CAT[d.cat]?.chip || "事项");
+      const contentPrimary = (d.title || "").trim() || catLabel;
+      const timePrimary = `${pad(d.hour)}:${pad(d.min)}`;
+      const ruleMap = { daily: "每日", weekly: "每周", monthly: "每月", custom: "自定义" };
+      const schedPrimary = d.cycle ? (ruleMap[d.rule] || "每日") : "单日计划";
+      const durLabel = (() => {
+        if (!d.cycle) {
+          const dt = parseYMD(d.onceDate || toYMD(demoDate()));
+          return `${dt.getMonth() + 1}月${dt.getDate()}日`;
+        }
+        const opt = durationOpts(d.rule).find(([id]) => id === d.duration);
+        return opt ? opt[1] : "一年";
+      })();
+
+      const liveTile = (idx, ico, label, val, tag) => {
+        const on = modIdx === idx;
+        const bg = on ? accent.fg : "rgba(255,255,255,.92)";
+        const border = on ? "transparent" : `${accent.fg}24`;
+        const shadow = on ? `0 6px 14px ${accent.fg}36` : "0 2px 6px rgba(0,0,0,.03)";
+        const topFg = on ? "rgba(255,255,255,.92)" : "var(--secondary)";
+        const icoFg = on ? "rgba(255,255,255,.92)" : accent.fg;
+        const valFg = on ? "#fff" : accent.fg;
+        const tagBg = on ? "rgba(255,255,255,.22)" : accent.muted;
+        const tagFg = on ? "#fff" : accent.fg;
+        return `<button class="v02-live-tile ${on ? "on" : ""}" style="background:${bg};border-color:${border};box-shadow:${shadow}" data-act="v02PickMod" data-m="${idx}" type="button">
+          <div class="t-top" style="color:${topFg}"><span style="color:${icoFg};display:inline-flex">${ico}</span><span>${label}</span></div>
+          <div class="t-val" style="color:${valFg}">${esc(val)}</div>
+          <span class="t-tag" style="background:${tagBg};color:${tagFg}">${esc(tag)}</span>
+        </button>`;
+      };
+
+      const liveSwitcher = `
+        <div class="v02-live-tiles">
+          ${liveTile(0, I.doc, "事项内容", contentPrimary, catLabel)}
+          ${liveTile(1, I.bell, "时刻与提醒", timePrimary, blkObj.title)}
+          ${liveTile(2, I.cal, "周期与日期", schedPrimary, durLabel)}
+        </div>`;
+
       const modHead = (ico, text) => `
         <div class="v02-mod-head">
           <span class="v02-mod-ico" style="background:${accent.muted};color:${accent.fg}">${ico}</span>
           <span class="v02-mod-title" style="color:${accent.fg}">${text}</span>
+          <span class="v02-mod-step" style="background:${accent.muted};color:${accent.fg}">
+            <button data-act="v02StepMod" data-dir="-1" ${modIdx === 0 ? "disabled" : ""} type="button" aria-label="上一模块">${I.chevL}</button>
+            <span>${modIdx + 1} / 3</span>
+            <button data-act="v02StepMod" data-dir="1" ${modIdx === 2 ? "disabled" : ""} type="button" aria-label="下一模块">${I.chevR}</button>
+          </span>
         </div>`;
 
       // 模块一：事项内容（事项名称 + 补充备注 + 今日血压 + 事项分类）
@@ -7884,12 +7946,12 @@
           ${modHead(I.doc, "事项内容")}
           <div class="sec-label" style="margin-top:0">事项名称</div>
           ${editable
-            ? `<input class="voice-box w100" name="taskTitle" style="color:${accent.fg};border:0" placeholder="填写事项名称" value="${String(d.title || "").replace(/"/g, "&quot;")}" />`
-            : `<div class="voice-box" style="color:${accent.fg}">${d.title}</div>`}
+            ? `<input class="voice-box w100" name="taskTitle" style="color:${accent.fg};border:0;min-height:46px" placeholder="填写事项名称" value="${String(d.title || "").replace(/"/g, "&quot;")}" />`
+            : `<div class="voice-box" style="color:${accent.fg};min-height:46px">${d.title}</div>`}
           <div class="sec-label">补充备注</div>
           ${editable
-            ? `<textarea class="voice-box tall w100" name="taskNote" style="color:${accent.fg};border:0;resize:none;font-family:inherit" placeholder="补充说明，例如剂量 / 注意事项">${d.note || ""}</textarea>`
-            : `<div class="voice-box tall" style="color:${accent.fg}">${d.note}</div>`}
+            ? `<textarea class="voice-box w100" name="taskNote" style="color:${accent.fg};border:0;resize:none;font-family:inherit;min-height:${d.cat === "monitoring" ? "52px" : "68px"}" placeholder="补充说明，例如剂量 / 注意事项">${d.note || ""}</textarea>`
+            : `<div class="voice-box" style="color:${accent.fg};min-height:${d.cat === "monitoring" ? "52px" : "68px"}">${d.note}</div>`}
           ${vitalsHTML}
           <div class="sec-label">事项分类</div>
           <div class="grid3 tight">${Object.keys(CAT).map((c) =>
@@ -7965,7 +8027,7 @@
       const alignedDateRow = (label, ymd, act, locked) => {
         const on = editable && !locked;
         const muted = !editable || locked;
-        return `<button class="v02-date-row" ${on ? `data-act="${act}"` : "disabled"} type="button">
+        return `<button class="v02-date-row" style="padding:${d.cycle && d.rule === "monthly" ? "11px 16px" : "14px 16px"}" ${on ? `data-act="${act}"` : "disabled"} type="button">
           <span class="lab">${label}</span>
           <span class="val" style="color:${muted ? "var(--secondary)" : accent.fg}">
             <span>${planDateLabel(ymd, true)}</span>
@@ -8022,19 +8084,35 @@
             </div>
             ${d.rule === "weekly" ? `<div class="flex gap6 mt10">${weekdays.map(([n, lab]) =>
               chip({ selected: (d.weekdays || []).includes(n), label: lab, act: "draftWeek", extra: `data-w="${n}"`, compact: true })).join("")}</div>` : ""}
-            ${d.rule === "monthly" ? `<div class="month-day-grid mt10">${Array.from({ length: 31 }, (_, i) => i + 1).map((day) =>
+            ${d.rule === "monthly" ? `<div class="month-day-grid mt8">${Array.from({ length: 31 }, (_, i) => i + 1).map((day) =>
               chip({ selected: (d.monthDays || []).includes(day), label: String(day), act: "draftMonthDay", extra: `data-d="${day}"`, compact: true })).join("")}
               ${chip({ selected: (d.monthDays || []).includes(0), label: "月末", act: "draftMonthDay", extra: 'data-d="0"', compact: true })}</div>` : ""}
           ` : ""}
         </div>`;
 
-      const footerActions = `
-        ${mode === "view" && !hideRemindDelete ? deletePlanButtons(d) : ""}
-        ${viewing && done && !past ? `<button class="cta-ghost mt16" style="color:${accent.fg};background:${accent.muted}" data-act="undoCheckIn" type="button">${I.undo}取消本次打卡</button>` : ""}`;
+      const activeStageHTML = modIdx === 0 ? contentCard : modIdx === 1 ? timeAndRemindCard : scheduleCard;
+
+      let bottomDockHTML = "";
+      if (mode === "view" && !hideRemindDelete) {
+        const persisted = SEED.find((x) => x.id === S.taskId);
+        const isRec = persisted ? persisted.cycle !== false : !!d.cycle;
+        bottomDockHTML = `<div class="v02-bottom-dock">${isRec
+          ? `<div class="duo-del">
+              <button class="del-plan" style="margin-top:0" data-act="deleteThisPlan" type="button">${I.trash}删除本次计划</button>
+              <button class="del-plan" style="margin-top:0" data-act="deleteFuturePlans" type="button">${I.trash}删除本次和后续</button>
+            </div>`
+          : `<button class="del-plan" style="margin-top:0" data-act="deletePlan" type="button">${I.trash}删除计划</button>`}</div>`;
+      } else if (viewing && done && !past) {
+        bottomDockHTML = `<div class="v02-bottom-dock"><button class="cta-ghost" style="color:${accent.fg};background:${accent.muted};margin-top:0" data-act="undoCheckIn" type="button">${I.undo}取消本次打卡</button></div>`;
+      }
 
       return `<div class="page editor-page" style="--accent:${accent.fg}">
         ${navBar(left.replace('data-act="back"', mode === "edit" ? 'data-act="cancelEdit"' : mode === "add" ? 'data-act="cancelAdd"' : 'data-act="back"'), title, right)}
-        <div class="scroll px20" style="padding-top:4px;padding-bottom:28px">${contentCard}${timeAndRemindCard}${scheduleCard}${footerActions}</div>
+        <div class="v02-stage-page" id="v02-stage-swipe">
+          ${liveSwitcher}
+          ${activeStageHTML}
+          ${bottomDockHTML}
+        </div>
       </div>`;
     }
 
