@@ -1181,6 +1181,33 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   padding: 0 16px;
   overflow: hidden;
 }
+.v02-ro-box {
+  display: flex; align-items: center;
+  width: 100%; border-radius: 14px;
+  padding: 12px 14px;
+  box-sizing: border-box;
+  line-height: 1.4;
+}
+.v02-ro-box.note {
+  align-items: flex-start;
+}
+.v02-ro-row {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; border-radius: 14px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+}
+.v02-ro-ico {
+  width: 30px; height: 30px; border-radius: 9px; flex: 0 0 30px;
+  display: grid; place-items: center;
+}
+.v02-ro-ico svg { width: 15px; height: 15px; }
+.v02-ro-tag {
+  margin-left: auto;
+  font-size: calc(12px * var(--fs)); font-weight: 600;
+  padding: 5px 10px; border-radius: 99px;
+  white-space: nowrap;
+}
 .date-row.grow { width: auto; min-width: 0; }
 .date-row:not(.grow) { width: 100%; }
 .date-row:not([data-act]) { cursor: default; }

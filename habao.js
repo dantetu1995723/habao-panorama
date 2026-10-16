@@ -7933,26 +7933,37 @@
         </div>`;
 
       // 模块一：事项内容（事项名称 + 补充备注 + 今日血压 + 事项分类）
+      const isCatLocked = viewing || (S.lockCategory && mode === "add");
+      const catIcoHTML = d.cat === "custom" ? I[UNIFIED_CUSTOM_ICON] : (CAT_ICON[d.cat] ? CAT_ICON[d.cat]() : I.doc);
+      const catKindBadge = PROFESSIONAL.has(d.cat) ? "专业康复日程" : "日常健康管理";
+      const trimmedNote = String(d.note || "").trim();
+      const visibleCatKeys = Object.keys(CAT).filter((c) => !(S.lockProfessional && mode === "add" && PROFESSIONAL.has(c)));
+
       const contentCard = `
         <div class="v02-editor-card">
           ${modHead(I.doc, "事项内容")}
           <div class="sec-label" style="margin-top:0">事项名称</div>
           ${editable
             ? `<input class="voice-box w100" name="taskTitle" style="color:${accent.fg};border:0;min-height:46px" placeholder="填写事项名称" value="${String(d.title || "").replace(/"/g, "&quot;")}" />`
-            : `<div class="voice-box" style="color:${accent.fg};min-height:46px">${d.title}</div>`}
+            : `<div class="v02-ro-box" style="background:${accent.muted};color:${accent.fg};font-size:calc(16px * var(--fs));font-weight:700;min-height:${d.cat === "monitoring" ? "42px" : "48px"}">${esc(contentPrimary)}</div>`}
           <div class="sec-label">补充备注</div>
           ${editable
             ? `<textarea class="voice-box w100" name="taskNote" style="color:${accent.fg};border:0;resize:none;font-family:inherit;min-height:${d.cat === "monitoring" ? "52px" : "68px"}" placeholder="补充说明，例如剂量 / 注意事项">${d.note || ""}</textarea>`
-            : `<div class="voice-box" style="color:${accent.fg};min-height:${d.cat === "monitoring" ? "52px" : "68px"}">${d.note}</div>`}
+            : `<div class="v02-ro-box note" style="background:${accent.muted};color:${trimmedNote ? accent.fg : "var(--secondary)"};opacity:${trimmedNote ? 1 : 0.78};font-size:calc(${trimmedNote ? 15 : 14}px * var(--fs));font-weight:500;min-height:${d.cat === "monitoring" ? "44px" : "68px"}">${trimmedNote ? esc(trimmedNote) : "暂无补充备注"}</div>`}
           ${vitalsHTML}
           <div class="sec-label">事项分类</div>
-          <div class="grid3 tight">${Object.keys(CAT).map((c) =>
-            chip({ selected: c === d.cat, label: CAT[c].chip, icon: CAT_ICON[c](), act: "draftCat", extra: `data-c="${c}"`,
-              locked: (S.lockCategory && mode === "add") || (S.lockProfessional && mode === "add" && PROFESSIONAL.has(c)) })).join("")}
-            ${(S.customCats || []).map((c) =>
-              chip({ selected: d.cat === "custom" && d.customId === c.id, label: c.name, icon: I[UNIFIED_CUSTOM_ICON], act: "pickCustomCat", extra: `data-id="${c.id}"`, locked: S.lockCategory && mode === "add" })).join("")}
-            ${!(S.lockCategory && mode === "add") && mode !== "view" ? chip({ selected: false, label: "自定义", icon: I.plus, act: "openCustomCat" }) : ""}
-          </div>
+          ${isCatLocked
+            ? `<div class="v02-ro-row" style="background:${accent.muted}">
+                <span class="v02-ro-ico" style="background:${accent.muted};color:${accent.fg}">${catIcoHTML}</span>
+                <span style="font-size:calc(16px * var(--fs));font-weight:700;color:${accent.fg}">${esc(catLabel)}</span>
+                <span class="v02-ro-tag" style="background:rgba(255,255,255,.72);color:var(--secondary)">${catKindBadge}</span>
+              </div>`
+            : `<div class="grid3 tight">${visibleCatKeys.map((c) =>
+                chip({ selected: c === d.cat, label: CAT[c].chip, icon: CAT_ICON[c](), act: "draftCat", extra: `data-c="${c}"` })).join("")}
+                ${(S.customCats || []).map((c) =>
+                  chip({ selected: d.cat === "custom" && d.customId === c.id, label: c.name, icon: I[UNIFIED_CUSTOM_ICON], act: "pickCustomCat", extra: `data-id="${c.id}"` })).join("")}
+                ${chip({ selected: false, label: "自定义", icon: I.plus, act: "openCustomCat" })}
+              </div>`}
         </div>`;
 
       // 模块二：时刻与提醒（1:1 对称「提醒时间 & 打卡时间」+ 醒目「时间段」+「到点提醒」）
@@ -7982,6 +7993,17 @@
         }
       }
 
+      const lockedRemindStatusHTML = (viewing && hideRemindDelete)
+        ? `<div class="sec-label">到点提醒</div>
+           <div class="v02-ro-row" style="background:${accent.muted};padding:14px">
+             <span class="v02-ro-ico" style="background:${accent.muted};color:${accent.fg}">${done ? I.check : I.bellSlash}</span>
+             <div style="display:flex;flex-direction:column;gap:3px">
+               <span style="font-size:calc(15px * var(--fs));font-weight:700;color:${accent.fg}">${done ? "今日已完成打卡，本次提醒已结束" : "历史日程记录，提醒已结束"}</span>
+               <span style="font-size:calc(12px * var(--fs));font-weight:500;color:var(--secondary)">${done && !past ? "如需调整提醒或更新计划，请先在底部取消本次打卡" : "历史日期仅作记录回顾，不会触发响铃提醒"}</span>
+             </div>
+           </div>`
+        : "";
+
       const timeAndRemindCard = `
         <div class="v02-editor-card">
           ${modHead(I.bell, "时刻与提醒")}
@@ -8006,19 +8028,26 @@
             </div>
           </div>
           <div class="sec-label">时间段</div>
-          <div class="v02-grid4 tight">${BLOCKS.map(periodChip).join("")}</div>
+          ${(viewing || lockTime)
+            ? `<div class="v02-ro-row" style="background:${accent.muted}">
+                <span class="v02-ro-ico" style="background:${accent.muted};color:${accent.fg}">${I.clock}</span>
+                <span style="font-size:calc(16px * var(--fs));font-weight:700;color:${accent.fg}">${blkObj.title}</span>
+                <span class="v02-ro-tag" style="background:rgba(255,255,255,.78);color:${accent.fg};font-weight:700;font-variant-numeric:tabular-nums">${blkObj.range}</span>
+              </div>`
+            : `<div class="v02-grid4 tight">${BLOCKS.map(periodChip).join("")}</div>`}
           ${v02SwitchRows.length ? `
             <div class="sec-label">到点提醒</div>
-            <div class="v02-remind-box" style="background:${accent.muted}">${v02SwitchRows.join("")}</div>` : ""}
+            <div class="v02-remind-box" style="background:${accent.muted}">${v02SwitchRows.join("")}</div>` : lockedRemindStatusHTML}
         </div>`;
 
       // 模块三：周期与日期（计划类型 + 执行日期/起止日期 + 持续时长 + 循环规则）
       const alignedDateRow = (label, ymd, act, locked) => {
         const on = editable && !locked;
-        const muted = !editable || locked;
-        return `<button class="v02-date-row" style="padding:${d.cycle && d.rule === "monthly" ? "11px 16px" : "14px 16px"}" ${on ? `data-act="${act}"` : "disabled"} type="button">
+        const valColor = viewing ? accent.fg : (locked ? `${accent.fg}BF` : accent.fg);
+        const padStyle = viewing ? "11px 16px" : (d.cycle && d.rule === "monthly" ? "11px 16px" : "14px 16px");
+        return `<button class="v02-date-row" style="padding:${padStyle}" ${on ? `data-act="${act}"` : "disabled"} type="button">
           <span class="lab">${label}</span>
-          <span class="val" style="color:${muted ? "var(--secondary)" : accent.fg}">
+          <span class="val" style="color:${valColor}">
             <span>${planDateLabel(ymd, true)}</span>
             ${on ? I.chevUD : ""}
           </span>
@@ -8028,7 +8057,11 @@
 
       let datesRowsHTML = "";
       if (!d.cycle) {
-        datesRowsHTML = alignedDateRow("日期", d.onceDate, "openOnceDate", lockStart);
+        datesRowsHTML = viewing
+          ? `${alignedDateRow("执行日期", d.onceDate, "openOnceDate", true)}
+             ${dateSep}
+             ${alignedDateRow("今天日期", occYmd, "openOccurrenceDate", true)}`
+          : alignedDateRow("日期", d.onceDate, "openOnceDate", lockStart);
       } else if (mode === "edit" && showOcc) {
         datesRowsHTML = `
           ${alignedDateRow("原开始日期", d.onceDate, "openOnceDate", true)}
@@ -8050,34 +8083,97 @@
           ${alignedDateRow("结束时间", endYmd, "openSeriesEnd", false)}`;
       }
 
-      const scheduleCard = `
-        <div class="v02-editor-card">
-          ${modHead(I.cal, "周期与日期")}
-          <div class="sec-label" style="margin-top:0">计划类型</div>
-          <div class="flex gap8">
-            ${chip({ selected: !d.cycle, label: "单日计划", icon: I.cal, act: "draftCycle", extra: 'data-v="0"', locked: lockRec })}
-            ${chip({ selected: d.cycle, label: "循环计划", icon: I.cycle, act: "draftCycle", extra: 'data-v="1"', locked: lockRec })}
-          </div>
-          <div class="sec-label">${d.cycle ? "起止日期" : "执行日期"}</div>
-          <div class="v02-dates-list" style="background:${accent.muted}">
-            ${datesRowsHTML}
-          </div>
-          ${d.cycle ? `
-            <div class="sec-label">持续时长</div>
-            <div class="grid3 tight">${durationOpts(d.rule).map(([id, lab]) =>
-              chip({ selected: d.duration === id, label: lab, act: "draftDur", extra: `data-d="${id}"`, compact: true })).join("")}</div>
-            <div class="sec-label">循环规则</div>
-            <div class="v02-grid4">${[["daily", "每日"], ["weekly", "每周"], ["monthly", "每月"]].map(([r, lab]) =>
-              chip({ selected: d.rule === r, label: lab, act: "draftRule", extra: `data-r="${r}"`, compact: true })).join("")}
-              ${chip({ selected: d.rule === "custom", label: "自定义", act: "draftRule", extra: 'data-r="daily"', compact: true })}
+      const viewDurationSummary = (() => {
+        if (!d.cycle) return "1天（单日）";
+        const totalDays = Math.max(1, Math.floor((parseYMD(endYmd) - parseYMD( anchor || d.onceDate || toYMD(demoDate()) )) / 86400000) + 1);
+        const opt = durationOpts(d.rule).find(([id]) => id === d.duration);
+        if (opt) {
+          return opt[1].endsWith("天") ? `共 ${opt[1]}` : `${opt[1]}（${totalDays}天）`;
+        }
+        return `共 ${totalDays}天`;
+      })();
+
+      const viewRecurrenceSummary = (() => {
+        if (!d.cycle) return "仅执行当日一次（不循环）";
+        if (d.rule === "daily") return "每日重复执行";
+        if (d.rule === "weekly") {
+          const picked = weekdays.filter(([n]) => (d.weekdays || []).includes(n)).map(([, lab]) => `周${lab}`);
+          if (picked.length === 7) return "每周（周一至周日）";
+          return picked.length ? `每周（${picked.join("、")}）` : "每周重复执行";
+        }
+        if (d.rule === "monthly") {
+          const days = (d.monthDays || []).filter((x) => x > 0).sort((a, b) => a - b).map((x) => `${x}日`);
+          if ((d.monthDays || []).includes(0)) days.push("月末");
+          return days.length ? `每月${days.join("、")}` : "每月重复执行";
+        }
+        return "自定义间隔重复执行";
+      })();
+
+      const scheduleCard = viewing
+        ? `<div class="v02-editor-card">
+            ${modHead(I.cal, "周期与日期")}
+            <div class="v02-twin-times">
+              <div class="v02-time-box" style="background:${accent.muted};color:${accent.fg};cursor:default">
+                <div class="v02-time-top">
+                  <span class="ico" style="color:${accent.fg};opacity:.75">${d.cycle ? I.cycle : I.cal}</span>
+                  <span class="lab">计划类型</span>
+                </div>
+                <div class="v02-time-val" style="color:${accent.fg};font-size:calc(17px * var(--fs));height:24px">${d.cycle ? "循环计划" : "单日计划"}</div>
+              </div>
+              <div class="v02-time-box" style="background:${accent.muted};color:${accent.fg};cursor:default">
+                <div class="v02-time-top">
+                  <span class="ico" style="color:${accent.fg};opacity:.75">${I.clock}</span>
+                  <span class="lab">持续时长</span>
+                </div>
+                <div class="v02-time-val" style="color:${accent.fg};font-size:calc(17px * var(--fs));height:24px">${esc(viewDurationSummary)}</div>
+              </div>
             </div>
-            ${d.rule === "weekly" ? `<div class="flex gap6 mt10">${weekdays.map(([n, lab]) =>
-              chip({ selected: (d.weekdays || []).includes(n), label: lab, act: "draftWeek", extra: `data-w="${n}"`, compact: true })).join("")}</div>` : ""}
-            ${d.rule === "monthly" ? `<div class="month-day-grid mt8">${Array.from({ length: 31 }, (_, i) => i + 1).map((day) =>
-              chip({ selected: (d.monthDays || []).includes(day), label: String(day), act: "draftMonthDay", extra: `data-d="${day}"`, compact: true })).join("")}
-              ${chip({ selected: (d.monthDays || []).includes(0), label: "月末", act: "draftMonthDay", extra: 'data-d="0"', compact: true })}</div>` : ""}
-          ` : ""}
-        </div>`;
+            <div class="sec-label">循环规则</div>
+            <div class="v02-ro-row" style="background:${accent.muted}">
+              <span class="v02-ro-ico" style="background:${accent.muted};color:${accent.fg}">${I.cycle}</span>
+              <span style="font-size:calc(15px * var(--fs));font-weight:700;color:${accent.fg}">${esc(viewRecurrenceSummary)}</span>
+            </div>
+            <div class="sec-label">${d.cycle ? "起止日期" : "执行日期"}</div>
+            <div class="v02-dates-list" style="background:${accent.muted}">
+              ${datesRowsHTML}
+            </div>
+          </div>`
+        : `<div class="v02-editor-card">
+            ${modHead(I.cal, "周期与日期")}
+            <div class="sec-label" style="margin-top:0">计划类型</div>
+            ${lockRec
+              ? `<div class="v02-ro-row" style="background:${accent.muted}">
+                  <span class="v02-ro-ico" style="background:${accent.muted};color:${accent.fg}">${I.cal}</span>
+                  <span style="font-size:calc(15px * var(--fs));font-weight:700;color:${accent.fg}">单日计划</span>
+                  <span class="v02-ro-tag" style="background:rgba(255,255,255,.72);color:var(--secondary)">今日计划固定为单日</span>
+                </div>`
+              : `<div class="flex gap8">
+                  ${chip({ selected: !d.cycle, label: "单日计划", icon: I.cal, act: "draftCycle", extra: 'data-v="0"', locked: lockRec })}
+                  ${chip({ selected: d.cycle, label: "循环计划", icon: I.cycle, act: "draftCycle", extra: 'data-v="1"', locked: lockRec })}
+                </div>`}
+            <div class="sec-label">${d.cycle ? "起止日期" : "执行日期"}</div>
+            <div class="v02-dates-list" style="background:${accent.muted}">
+              ${datesRowsHTML}
+            </div>
+            ${d.cycle ? `
+              <div class="sec-label" style="display:flex;align-items:center;justify-content:space-between">
+                <span>持续时长</span>
+                ${!durationOpts(d.rule).some(([id]) => id === d.duration) ? `<span style="color:${accent.fg};font-size:calc(12px * var(--fs));font-weight:700">${esc(viewDurationSummary)}</span>` : ""}
+              </div>
+              <div class="grid3 tight">${durationOpts(d.rule).map(([id, lab]) =>
+                chip({ selected: d.duration === id, label: lab, act: "draftDur", extra: `data-d="${id}"`, compact: true })).join("")}</div>
+              <div class="sec-label">循环规则</div>
+              <div class="v02-grid4">${[["daily", "每日"], ["weekly", "每周"], ["monthly", "每月"]].map(([r, lab]) =>
+                chip({ selected: d.rule === r, label: lab, act: "draftRule", extra: `data-r="${r}"`, compact: true })).join("")}
+                ${chip({ selected: d.rule === "custom", label: "自定义", act: "draftRule", extra: 'data-r="daily"', compact: true })}
+              </div>
+              ${d.rule === "weekly" ? `<div class="flex gap6 mt10">${weekdays.map(([n, lab]) =>
+                chip({ selected: (d.weekdays || []).includes(n), label: lab, act: "draftWeek", extra: `data-w="${n}"`, compact: true })).join("")}</div>` : ""}
+              ${d.rule === "monthly" ? `<div class="month-day-grid mt8">${Array.from({ length: 31 }, (_, i) => i + 1).map((day) =>
+                chip({ selected: (d.monthDays || []).includes(day), label: String(day), act: "draftMonthDay", extra: `data-d="${day}"`, compact: true })).join("")}
+                ${chip({ selected: (d.monthDays || []).includes(0), label: "月末", act: "draftMonthDay", extra: 'data-d="0"', compact: true })}</div>` : ""}
+            ` : ""}
+          </div>`;
 
       const activeStageHTML = modIdx === 0 ? contentCard : modIdx === 1 ? timeAndRemindCard : scheduleCard;
 
