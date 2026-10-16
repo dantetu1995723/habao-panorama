@@ -982,17 +982,17 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .sel-chip {
   border: 0; border-radius: 14px; padding: 10px 6px;
   background: var(--input); color: var(--secondary);
-  font-size: calc(14px * var(--fs)); font-weight: 600; cursor: pointer;
+  font-size: calc(15px * var(--fs)); font-weight: 600; cursor: pointer;
 }
 .sel-chip.on { background: rgba(16,84,224,.12); color: var(--blue); }
 .sel-chip.on.appt { background: rgba(220,72,72,.16); color: var(--appt); }
 .sel-chip.on.green { background: rgba(26,166,74,.14); color: var(--green-deep); }
 .sel-chip.off { opacity: .35; pointer-events: none; }
-.sec-label { font-size: calc(13px * var(--fs)); font-weight: 700; color: var(--secondary); margin: 18px 0 8px; }
+.sec-label { font-size: calc(15px * var(--fs)); font-weight: 600; color: rgba(130,142,165,.95); margin: 18px 0 8px; }
 .voice-box {
   min-height: 48px; background: #fff; border-radius: 16px;
   box-shadow: 0 3px 6px rgba(16,84,224,.08);
-  padding: 12px 14px; font-size: calc(15px * var(--fs)); font-weight: 500;
+  padding: 12px 14px; font-size: calc(16px * var(--fs)); font-weight: 600;
 }
 .voice-box.tall { min-height: 96px; }
 .vitals-island {
@@ -1061,12 +1061,12 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .v02-live-tile .t-top {
   display: flex; align-items: center; gap: 4px; width: 100%;
-  font-size: calc(12px * var(--fs)); font-weight: 700;
+  font-size: calc(13px * var(--fs)); font-weight: 700;
 }
-.v02-live-tile .t-top svg { width: 12px; height: 12px; flex-shrink: 0; }
+.v02-live-tile .t-top svg { width: 13px; height: 13px; flex-shrink: 0; }
 .v02-live-tile .t-val {
   width: 100%;
-  font-size: calc(15px * var(--fs)); font-weight: 700;
+  font-size: calc(16px * var(--fs)); font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   line-height: 1.2;
@@ -1088,12 +1088,12 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   border-bottom: 1px solid rgba(16,84,224,.08);
 }
 .v02-mod-ico {
-  width: 26px; height: 26px; border-radius: 8px; flex: 0 0 26px;
+  width: 28px; height: 28px; border-radius: 8px; flex: 0 0 28px;
   display: grid; place-items: center;
 }
-.v02-mod-ico svg { width: 14px; height: 14px; }
+.v02-mod-ico svg { width: 15px; height: 15px; }
 .v02-mod-title {
-  font-size: calc(16px * var(--fs)); font-weight: 700; line-height: 1.2;
+  font-size: calc(17px * var(--fs)); font-weight: 700; line-height: 1.2;
 }
 .v02-bottom-dock {
   margin-top: auto;
@@ -1120,22 +1120,22 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .v02-time-top {
   display: flex; align-items: center; gap: 5px; width: 100%;
 }
-.v02-time-top .ico { display: inline-flex; width: 12px; height: 12px; }
-.v02-time-top .ico svg { width: 12px; height: 12px; }
+.v02-time-top .ico { display: inline-flex; width: 13px; height: 13px; }
+.v02-time-top .ico svg { width: 13px; height: 13px; }
 .v02-time-top .lab {
-  font-size: calc(12px * var(--fs)); font-weight: 600; color: var(--secondary);
+  font-size: calc(14px * var(--fs)); font-weight: 600; color: rgba(130,142,165,.95);
 }
 .v02-time-top .chev {
   margin-left: auto; display: inline-flex; opacity: .65;
 }
-.v02-time-top .chev svg { width: 10px; height: 10px; }
+.v02-time-top .chev svg { width: 11px; height: 11px; }
 .v02-time-val {
   display: flex; align-items: center; height: 28px;
   font-size: calc(24px * var(--fs)); font-weight: 700;
   font-variant-numeric: tabular-nums; line-height: 1;
 }
 .v02-time-val.idle-txt {
-  font-size: calc(18px * var(--fs)); font-weight: 700;
+  font-size: calc(20px * var(--fs)); font-weight: 700;
   color: rgba(130,142,165,.65);
 }
 .v02-period-chip {
@@ -1146,10 +1146,10 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .v02-period-chip:disabled { cursor: default; }
 .v02-period-chip .p-name {
-  font-size: calc(13px * var(--fs)); font-weight: 700; line-height: 1.15;
+  font-size: calc(14px * var(--fs)); font-weight: 700; line-height: 1.15;
 }
 .v02-period-chip .p-range {
-  font-size: calc(11px * var(--fs)); font-weight: 700;
+  font-size: calc(12px * var(--fs)); font-weight: 700;
   font-variant-numeric: tabular-nums; line-height: 1.15;
 }
 .v02-grid4 {
@@ -1166,7 +1166,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .v02-date-row:disabled { cursor: default; }
 .v02-date-row .lab {
-  font-size: calc(15px * var(--fs)); font-weight: 600; color: var(--secondary);
+  font-size: calc(15px * var(--fs)); font-weight: 600; color: rgba(130,142,165,.95);
   white-space: nowrap;
 }
 .v02-date-row .val {
@@ -1174,7 +1174,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   font-size: calc(16px * var(--fs)); font-weight: 700;
   font-variant-numeric: tabular-nums; white-space: nowrap;
 }
-.v02-date-row .val svg { width: 12px; height: 12px; opacity: .6; }
+.v02-date-row .val svg { width: 13px; height: 13px; opacity: .6; }
 .v02-date-sep { height: 1px; margin: 0 16px; }
 .v02-remind-box {
   border-radius: 16px;
@@ -1187,7 +1187,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   padding: 10px 14px;
   box-sizing: border-box;
   font-size: calc(16px * var(--fs));
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.4;
 }
 .v02-ro-box.note {
@@ -1198,8 +1198,10 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   width: 100%; border-radius: 12px;
   padding: 10px 14px;
   box-sizing: border-box;
+  font-size: calc(15px * var(--fs));
+  font-weight: 700;
 }
-.v02-active-chip svg { width: 14px; height: 14px; }
+.v02-active-chip svg { width: 15px; height: 15px; }
 .v02-ro-row {
   display: flex; align-items: center; gap: 10px;
   width: 100%; border-radius: 14px;

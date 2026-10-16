@@ -7735,11 +7735,11 @@
   function reminderRow(title, caption, on, actName, disabled, fg) {
     const icoSize = 18;
     const ico = `<span style="display:grid;place-items:center;width:${icoSize}px;height:${icoSize}px;flex:0 0 ${icoSize}px;color:${on ? fg : "var(--secondary)"}">${on ? I.bell : I.bellSlash}</span>`;
-    const cap = caption ? `<div class="s12 t-sec" style="margin-top:2px">${caption}</div>` : "";
+    const cap = caption ? `<div class="s13 t-sec" style="margin-top:2px">${caption}</div>` : "";
     const row = `<div class="list-row" style="min-height:56px;gap:12px">
       ${ico}
       <div class="grow">
-        <div class="s17 fb t">${title}</div>
+        <div class="s16 fb t">${title}</div>
         ${cap}
       </div>
       <button class="toggle ${on ? "on" : ""}" ${disabled ? 'disabled style="pointer-events:none;cursor:default"' : `data-act="${actName}"`} type="button"><i></i></button>
@@ -7944,18 +7944,18 @@
           ${modHead(I.doc, "事项内容")}
           <div class="sec-label" style="margin-top:0">事项名称</div>
           ${editable
-            ? `<input class="voice-box w100" name="taskTitle" style="color:${accent.fg};border:0;font-size:calc(16px * var(--fs));font-weight:500;min-height:${d.cat === "monitoring" ? "42px" : "46px"}" placeholder="填写事项名称" value="${String(d.title || "").replace(/"/g, "&quot;")}" />`
-            : `<div class="v02-ro-box" style="background:${accent.muted};color:${accent.fg};font-size:calc(16px * var(--fs));font-weight:500;min-height:${d.cat === "monitoring" ? "42px" : "46px"}">${esc(contentPrimary)}</div>`}
+            ? `<input class="voice-box w100" name="taskTitle" style="color:${accent.fg};border:0;font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" ? "42px" : "46px"}" placeholder="填写事项名称" value="${String(d.title || "").replace(/"/g, "&quot;")}" />`
+            : `<div class="v02-ro-box" style="background:${accent.muted};color:${accent.fg};font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" ? "42px" : "46px"}">${esc(contentPrimary)}</div>`}
           <div class="sec-label">补充备注</div>
           ${editable
-            ? `<textarea class="voice-box w100" name="taskNote" style="color:${accent.fg};border:0;resize:none;font-family:inherit;font-size:calc(16px * var(--fs));font-weight:500;min-height:${d.cat === "monitoring" ? "42px" : "46px"}" placeholder="补充说明，例如剂量 / 注意事项">${d.note || ""}</textarea>`
-            : `<div class="v02-ro-box note" style="background:${accent.muted};color:${trimmedNote ? accent.fg : "var(--secondary)"};opacity:${trimmedNote ? 1 : 0.78};font-size:calc(16px * var(--fs));font-weight:500;min-height:${d.cat === "monitoring" ? "42px" : "46px"}">${trimmedNote ? esc(trimmedNote) : "暂无补充备注"}</div>`}
+            ? `<textarea class="voice-box w100" name="taskNote" style="color:${accent.fg};border:0;resize:none;font-family:inherit;font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" ? "42px" : "46px"}" placeholder="补充说明，例如剂量 / 注意事项">${d.note || ""}</textarea>`
+            : `<div class="v02-ro-box note" style="background:${accent.muted};color:${trimmedNote ? accent.fg : "var(--secondary)"};opacity:${trimmedNote ? 1 : 0.78};font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" ? "42px" : "46px"}">${trimmedNote ? esc(trimmedNote) : "暂无补充备注"}</div>`}
           ${vitalsHTML}
           <div class="sec-label">事项分类</div>
           ${isCatLocked
             ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
                 <span style="display:inline-flex;opacity:.85">${catIcoHTML}</span>
-                <span style="font-size:calc(14px * var(--fs));font-weight:600">${esc(catLabel)}</span>
+                <span style="font-size:calc(15px * var(--fs));font-weight:600">${esc(catLabel)}</span>
               </div>`
             : `<div class="grid3 tight">${visibleCatKeys.map((c) =>
                 chip({ selected: c === d.cat, label: CAT[c].chip, icon: CAT_ICON[c](), act: "draftCat", extra: `data-c="${c}"` })).join("")}
@@ -7997,8 +7997,8 @@
            <div class="v02-ro-row" style="background:${accent.muted};padding:14px">
              <span class="v02-ro-ico" style="background:${accent.muted};color:${accent.fg}">${done ? I.check : I.bellSlash}</span>
              <div style="display:flex;flex-direction:column;gap:3px">
-               <span style="font-size:calc(15px * var(--fs));font-weight:700;color:${accent.fg}">${done ? "今日已完成打卡，本次提醒已结束" : "历史日程记录，提醒已结束"}</span>
-               <span style="font-size:calc(12px * var(--fs));font-weight:500;color:var(--secondary)">${done && !past ? "如需调整提醒或更新计划，请先在底部取消本次打卡" : "历史日期仅作记录回顾，不会触发响铃提醒"}</span>
+               <span style="font-size:calc(16px * var(--fs));font-weight:700;color:${accent.fg}">${done ? "今日已完成打卡，本次提醒已结束" : "历史日程记录，提醒已结束"}</span>
+               <span style="font-size:calc(13px * var(--fs));font-weight:500;color:var(--secondary)">${done && !past ? "如需调整提醒或更新计划，请先在底部取消本次打卡" : "历史日期仅作记录回顾，不会触发响铃提醒"}</span>
              </div>
            </div>`
         : "";
@@ -8030,8 +8030,8 @@
           ${(viewing || lockTime)
             ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
                 <span style="display:inline-flex;opacity:.85">${I.clock}</span>
-                <span style="font-size:calc(14px * var(--fs));font-weight:700">${blkObj.title}</span>
-                <span style="font-size:calc(13px * var(--fs));font-weight:600;font-variant-numeric:tabular-nums;opacity:.85">${blkObj.range}</span>
+                <span style="font-size:calc(15px * var(--fs));font-weight:700">${blkObj.title}</span>
+                <span style="font-size:calc(14px * var(--fs));font-weight:600;font-variant-numeric:tabular-nums;opacity:.85">${blkObj.range}</span>
               </div>`
             : `<div class="v02-grid4 tight">${BLOCKS.map(periodChip).join("")}</div>`}
           ${v02SwitchRows.length ? `
@@ -8111,7 +8111,7 @@
       const planTypeHTML = (viewing || lockRec)
         ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
             <span style="display:inline-flex;opacity:.85">${d.cycle ? I.cycle : I.cal}</span>
-            <span style="font-size:calc(14px * var(--fs));font-weight:700">${d.cycle ? "循环计划" : "单日计划"}</span>
+            <span style="font-size:calc(15px * var(--fs));font-weight:700">${d.cycle ? "循环计划" : "单日计划"}</span>
           </div>`
         : `<div class="flex gap8">
             ${chip({ selected: !d.cycle, label: "单日计划", icon: I.cal, act: "draftCycle", extra: 'data-v="0"', locked: lockRec })}
@@ -8121,7 +8121,7 @@
       const durationHTML = viewing
         ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
             <span style="display:inline-flex;opacity:.85">${I.clock}</span>
-            <span style="font-size:calc(14px * var(--fs));font-weight:700;font-variant-numeric:tabular-nums">${esc(viewDurationSummary)}</span>
+            <span style="font-size:calc(15px * var(--fs));font-weight:700;font-variant-numeric:tabular-nums">${esc(viewDurationSummary)}</span>
           </div>`
         : `<div class="grid3 tight">${durationOpts(d.rule).map(([id, lab]) =>
             chip({ selected: d.duration === id, label: lab, act: "draftDur", extra: `data-d="${id}"`, compact: true })).join("")}</div>`;
@@ -8129,7 +8129,7 @@
       const recurrenceHTML = viewing
         ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
             <span style="display:inline-flex;opacity:.85">${I.cycle}</span>
-            <span style="font-size:calc(14px * var(--fs));font-weight:700">${esc(viewRecurrenceSummary)}</span>
+            <span style="font-size:calc(15px * var(--fs));font-weight:700">${esc(viewRecurrenceSummary)}</span>
           </div>`
         : `<div class="v02-grid4">${[["daily", "每日"], ["weekly", "每周"], ["monthly", "每月"]].map(([r, lab]) =>
             chip({ selected: d.rule === r, label: lab, act: "draftRule", extra: `data-r="${r}"`, compact: true })).join("")}
