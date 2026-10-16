@@ -7905,7 +7905,7 @@
         return opt ? opt[1] : "一年";
       })();
 
-      const liveTile = (idx, ico, label, val, tag) => {
+      const liveTile = (idx, ico, label, val) => {
         const on = modIdx === idx;
         const bg = on ? accent.fg : "rgba(255,255,255,.92)";
         const border = on ? "transparent" : `${accent.fg}24`;
@@ -7913,31 +7913,23 @@
         const topFg = on ? "rgba(255,255,255,.92)" : "var(--secondary)";
         const icoFg = on ? "rgba(255,255,255,.92)" : accent.fg;
         const valFg = on ? "#fff" : accent.fg;
-        const tagBg = on ? "rgba(255,255,255,.22)" : accent.muted;
-        const tagFg = on ? "#fff" : accent.fg;
         return `<button class="v02-live-tile ${on ? "on" : ""}" style="background:${bg};border-color:${border};box-shadow:${shadow}" data-act="v02PickMod" data-m="${idx}" type="button">
           <div class="t-top" style="color:${topFg}"><span style="color:${icoFg};display:inline-flex">${ico}</span><span>${label}</span></div>
           <div class="t-val" style="color:${valFg}">${esc(val)}</div>
-          <span class="t-tag" style="background:${tagBg};color:${tagFg}">${esc(tag)}</span>
         </button>`;
       };
 
       const liveSwitcher = `
         <div class="v02-live-tiles">
-          ${liveTile(0, I.doc, "事项内容", contentPrimary, catLabel)}
-          ${liveTile(1, I.bell, "时刻与提醒", timePrimary, blkObj.title)}
-          ${liveTile(2, I.cal, "周期与日期", schedPrimary, durLabel)}
+          ${liveTile(0, I.doc, "事项内容", contentPrimary)}
+          ${liveTile(1, I.bell, "时刻与提醒", timePrimary)}
+          ${liveTile(2, I.cal, "周期与日期", schedPrimary)}
         </div>`;
 
       const modHead = (ico, text) => `
         <div class="v02-mod-head">
           <span class="v02-mod-ico" style="background:${accent.muted};color:${accent.fg}">${ico}</span>
           <span class="v02-mod-title" style="color:${accent.fg}">${text}</span>
-          <span class="v02-mod-step" style="background:${accent.muted};color:${accent.fg}">
-            <button data-act="v02StepMod" data-dir="-1" ${modIdx === 0 ? "disabled" : ""} type="button" aria-label="上一模块">${I.chevL}</button>
-            <span>${modIdx + 1} / 3</span>
-            <button data-act="v02StepMod" data-dir="1" ${modIdx === 2 ? "disabled" : ""} type="button" aria-label="下一模块">${I.chevR}</button>
-          </span>
         </div>`;
 
       // 模块一：事项内容（事项名称 + 补充备注 + 今日血压 + 事项分类）
@@ -8013,10 +8005,7 @@
                 : `<div class="v02-time-val idle-txt">未打卡</div>`}
             </div>
           </div>
-          <div class="v02-period-head">
-            <div class="sec-label" style="margin:0">时间段</div>
-            <span class="v02-period-badge" style="background:${accent.muted};color:${accent.fg}">${I.clock}<span>${blkObj.title} · ${blkObj.range}</span></span>
-          </div>
+          <div class="sec-label">时间段</div>
           <div class="grid3 tight">${BLOCKS.map(periodChip).join("")}</div>
           ${v02SwitchRows.length ? `
             <div class="sec-label">到点提醒</div>
@@ -8097,11 +8086,11 @@
         const persisted = SEED.find((x) => x.id === S.taskId);
         const isRec = persisted ? persisted.cycle !== false : !!d.cycle;
         bottomDockHTML = `<div class="v02-bottom-dock">${isRec
-          ? `<div class="duo-del">
-              <button class="del-plan" style="margin-top:0" data-act="deleteThisPlan" type="button">${I.trash}删除本次计划</button>
-              <button class="del-plan" style="margin-top:0" data-act="deleteFuturePlans" type="button">${I.trash}删除本次和后续</button>
+          ? `<div class="duo-del-col">
+              <button class="del-plan" style="margin-top:0;width:100%" data-act="deleteThisPlan" type="button">${I.trash}删除本次计划</button>
+              <button class="del-plan" style="margin-top:0;width:100%" data-act="deleteFuturePlans" type="button">${I.trash}删除本次和后续计划</button>
             </div>`
-          : `<button class="del-plan" style="margin-top:0" data-act="deletePlan" type="button">${I.trash}删除计划</button>`}</div>`;
+          : `<button class="del-plan" style="margin-top:0;width:100%" data-act="deletePlan" type="button">${I.trash}删除计划</button>`}</div>`;
       } else if (viewing && done && !past) {
         bottomDockHTML = `<div class="v02-bottom-dock"><button class="cta-ghost" style="color:${accent.fg};background:${accent.muted};margin-top:0" data-act="undoCheckIn" type="button">${I.undo}取消本次打卡</button></div>`;
       }
