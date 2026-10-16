@@ -1160,9 +1160,9 @@
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），进与首次上传 / 基础报告同一份资料详情，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
-    "task-add": { code: "AddEditTaskView", note: "两大类折叠（不分页）：一条滚动里「事项」「时间与提醒」两组，标题行点一下收起、再点一下展开，进页两组都展开。「事项」：名称、备注、今日血压、分类。「时间与提醒」：计划类型 → 日期 / 开始日期（同一字段；单日读「日期」、循环读「开始日期」，过去日不可选；首页虚框锁定当天；切成循环计划不跳页，循环规则与持续时长就在下方就地出现）→ 循环规则（每日 / 每周 / 每月 + 自定义间隔，每月 1–31 与「月末」同格）→ 持续时长（预设不含 1天 / 1周 / 1个月、最长一年，末尾通栏「自定义」）→ 时间段 → 当日时刻 → 「到点提醒」（一档「本次提醒」，压的是这一次；新建的循环计划从起始日算）＋「家属通知」（V10.52：家属通道串联，未绑定先去填写、填完自动进打卡通知页；总闸关着弹「去设置」）→ 查看态删除 / 取消打卡。折叠只影响看不看得见，右上「添加」随时可保存。「家属通知」只在 V0.1 出现。" },
-    "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。日期行显示「原开始日期」（锁定为原来的起始日）与下方「新开始日期」（默认今天，若原计划在未来开始则默认原起始日，月历里可选今天及之后任意日期）；持续时长与结束时间保留原设置。仅当修改了时间或循环相关字段（提醒时间、循环规则、计划类型、开始/新开始日期、持续时长/结束时间）时，保存前弹出「确认更新计划」居中双卡弹窗，并排核对「当前计划（结束时间）」与「新计划（开始时间）」；仅改名称/备注/血压等直接原地保存。" },
-    "task-view": { code: "AddEditTaskView", note: "同两大类折叠、只读（标题行仍可点折叠）。右上是「更新」。循环计划同时显示「开始日期」和「今天日期」（当天日期）。今日未打卡时，「时间与提醒」组底部按已保存类型删除：循环「删除本次计划 / 删除本次和后续计划」，单日「删除计划」；到点提醒只有一档「本次提醒」：压的是正在看的那一天，关掉只这一次不响，任务照常出现、照常能打卡；开关方向与个人中心总闸同向（开 = 会响）。今日之前、以及该日已打卡，到点提醒和删除都不出现。今日已打卡可「取消本次打卡」，取消后这两处回来。右上「更新」在今日之前和已打卡时都置灰禁用。「家属通知」只在 V0.1 出现（家属通道 = 通知家属 × 已绑定 × 类别开关）。" },
+    "task-add": { code: "AddEditTaskView", note: "V0.0 / V0.1 为「事项」「时间与提醒」两大类折叠；V0.2 升级为「时刻 × 事项重点融合」双主卡布局（字段不变）：主卡一顶部大号提醒时间 + 时段胶囊 + 打卡时间横幅，直连同框事项名称、补充备注、今日血压，下接时间段与事项分类；主卡二收拢计划类型、起止时间轴容器（开始日期 → 结束时间 + 持续时长预设）与循环规则；底部独立承接到点提醒与家属通知。「家属通知」只在 V0.1 / V0.2 出现。" },
+    "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。V0.2 在起止时间轴容器内顶部锁定「原开始日期」，下方并排对照「新开始日期 → 结束时间」与持续时长预设，并在改动时间/周期时内联高亮蓝底新旧计划切分提示条。仅当修改了时间或循环相关字段时，保存前弹出「确认更新计划」居中双卡弹窗；仅改名称/备注/血压等直接原地保存。" },
+    "task-view": { code: "AddEditTaskView", note: "查看计划（只读，右上「更新」）。V0.2 顶部融合横幅展示提醒时间与打卡时间，循环计划在时间轴容器内并排展示「开始日期 → 结束时间」及「今天日期」与持续时长。今日未打卡时底部出现「本次提醒」与删除按钮；今日之前或已打卡时隐藏提醒与删除，「更新」置灰；今日已打卡可「取消本次打卡」。" },
     "exercise-risk": { code: "BodyTestRunView", note: "Demo Toggle 模拟禁忌症。体测不参与入组。「稍后 / 退出评估 / 暂不创建」关整段评估流，不退回选择类型。" },
     "body-test": { code: "BodyTestRunView", note: "户外原地踏步三分钟。停止或倒计时归零后直进感受问卷，无完成中转页。" },
     "body-test-sit": { code: "BodyTestRunView", note: "室内 1 分钟坐立。次数大号读数 + 倒计时 + 同龄参考。停止后问卷顶部两栏「测试时长 / 完成次数」。" },
@@ -4605,7 +4605,7 @@
       logout() {
         openOverlay("confirm", {
           title: "退出登录",
-          body: S.gen === "0.1"
+          body: genIsV01()
             ? "退出后需重新登录才能继续使用；本机的档案、计划、照护记录和硬件绑定会保留，要清空请用「注销账号」。"
             : "退出后需重新登录才能继续使用；本机的档案和计划会保留，要清空请用「注销账号」。",
           ok: "退出登录",
@@ -4615,7 +4615,7 @@
       unregister() {
         openOverlay("confirm", {
           title: "注销账号",
-          body: S.gen === "0.1"
+          body: genIsV01()
             ? "注销将清空本机档案、入组状态、康复计划、家属绑定、操作记录、硬件绑定、问诊对话与 VIP 开通状态，且不可恢复。"
             : "注销将清空本机档案、入组状态、康复计划与问诊对话，且不可恢复。",
           ok: "确认注销",
@@ -4721,12 +4721,13 @@
       },
       roleSwitch() { S.role = S.role === "patient" ? "family" : "patient"; render(); },
       openDebug() { openOverlay("debugMenu"); },
-      // 设计版本（真机 DesignGenerationStore.select）：V0.0 家属、操作记录、硬件管理与哈宝问诊不开放，切 V0.1 才开。
+      // 设计版本（真机 DesignGenerationStore.select）：V0.0 家属、操作记录、硬件管理与哈宝问诊不开放，切 V0.1 / V0.2 才开；V0.2 启用计划详情页「时刻 × 事项重点融合」新版布局。
       // 真机落盘记住选择、正式包固定 V0.0；原型随冷启动回 V0.0。
       debugGen() {
         S.gen = el.dataset.gen;
         closeOverlay();
-        toast(`设计版本 V${S.gen}｜${S.gen === "0.1" ? (S.vip ? "VIP 已开通，家属管理、操作记录、硬件管理与哈宝问诊可用" : "家属管理、操作记录、硬件管理与哈宝问诊需开通 VIP") : "家属管理、操作记录、硬件管理与哈宝问诊未开放"}`);
+        const v02Note = S.gen === "0.2" ? " · 计划详情页已切换为「时刻×事项融合」新版布局" : "";
+        toast(`设计版本 V${S.gen}｜${genIsV01() ? (S.vip ? "VIP 已开通，家属管理、操作记录、硬件管理与哈宝问诊可用" : "家属管理、操作记录、硬件管理与哈宝问诊需开通 VIP") : "家属管理、操作记录、硬件管理与哈宝问诊未开放"}${v02Note}`);
       },
       // 真机 V10.52 起调试菜单不再切方案（TodaySchemeFourView 只留文件、不再是首页），
       // 本原型的入口已撤，渲染与状态留档——要临时预览方案四，把开发菜单那两行加回来即可。
@@ -7029,9 +7030,9 @@
     if (!cat) return true;
     return S.notifySelf && !!S.cats[cat];
   }
-  /// 个人中心副说明：同 CheckInNotificationStore.caption 口径（未绑定家属不算家属通道）
-  /// V0.1 才出现家属 / 硬件 / 操作记录 / 问诊的入口。真正能用还要开通 VIP。
-  function genIsV01() { return S.gen === "0.1"; }
+  /// V0.1 / V0.2 出现家属 / 硬件 / 操作记录 / 问诊的入口。真正能用还要开通 VIP。V0.2 额外启用计划详情页新版布局。
+  function genIsV01() { return S.gen === "0.1" || S.gen === "0.2"; }
+  function genIsV02() { return S.gen === "0.2"; }
   function genHasFamily() { return genIsV01() && !!S.vip; }
   function vipExpiryText() {
     if (!S.vipUntil) return "";
@@ -7867,6 +7868,162 @@
         ${hideRemindDelete ? "" : (viewing ? reminderSwitches(d, done, accent) : draftReminderSwitch(d, accent))}
         ${mode === "view" && !hideRemindDelete ? deletePlanButtons(d) : ""}
         ${viewing && done && !past ? cancelCheckInBlock(accent) : ""}`;
+    // V0.2：时刻 × 事项重点融合双主卡 + 起止时间轴排程卡（字段与交互完全不变）
+    if (genIsV02()) {
+      const blkObj = BLOCKS.find((b) => b.id === d.block) || BLOCKS[0];
+      const catIconFn = d.cat === "custom" ? () => I[UNIFIED_CUSTOM_ICON] : (CAT_ICON[d.cat] || CAT_ICON.monitoring);
+      const vitalsHTML = editorVitalsBlock(d, mode, done, accent);
+      const heroCard = `
+        <div class="v02-editor-card">
+          <div class="v02-hero-banner" style="background:${accent.muted}">
+            <div class="grow">
+              <div class="flex items-center gap6">
+                <span class="v02-cat-badge" style="background:${accent.fg}">${catIconFn()}</span>
+                <span class="s13 fb" style="color:rgba(130,142,165,.82)">提醒时间</span>
+                <span class="v02-block-tag" style="background:${accent.fg}">${blkObj.title}</span>
+              </div>
+              <button class="v02-big-time" style="color:${accent.fg}" ${editable ? 'data-act="editDraftTime"' : "disabled"} type="button">
+                <span>${pad(d.hour)}:${pad(d.min)}</span>
+                ${editable ? `<span class="dim">${I.chevUD}</span>` : ""}
+              </button>
+            </div>
+            <div class="v02-checkin-col">
+              <span class="s13 fb" style="color:rgba(130,142,165,.82)">打卡时间</span>
+              ${done
+                ? `<button class="v02-checkin-pill" style="background:#fff;color:${accent.fg}" type="button">07:18</button>`
+                : `<span class="v02-checkin-pill idle">未打卡</span>`}
+            </div>
+          </div>
+          <div class="v02-content-well" style="border-color:${accent.muted}">
+            <div class="sec-label" style="margin-top:0">事项名称</div>
+            ${editable
+              ? `<input class="voice-box w100" name="taskTitle" style="color:${accent.fg};border:0" placeholder="填写事项名称" value="${String(d.title || "").replace(/"/g, "&quot;")}" />`
+              : `<div class="voice-box" style="color:${accent.fg}">${d.title}</div>`}
+            <div style="height:1px;background:${accent.muted};margin:12px 0"></div>
+            <div class="sec-label" style="margin-top:0">补充备注</div>
+            ${editable
+              ? `<textarea class="voice-box tall w100" name="taskNote" style="color:${accent.fg};border:0;resize:none;font-family:inherit" placeholder="补充说明，例如剂量 / 注意事项">${d.note || ""}</textarea>`
+              : `<div class="voice-box tall" style="color:${accent.fg}">${d.note}</div>`}
+            ${vitalsHTML ? `<div style="height:1px;background:${accent.muted};margin:12px 0"></div>${vitalsHTML}` : ""}
+          </div>
+          <div class="sec-label">时间段</div>
+          <div class="grid3 tight">${BLOCKS.map((b) =>
+            `<button class="opt-chip block-chip ${b.id === d.block ? "on" : ""}" style="background:${b.id === d.block ? accent.fg : (viewing || lockTime) ? "rgba(130,142,165,.10)" : accent.muted};color:${b.id === d.block ? "#fff" : (viewing || lockTime) ? "rgba(130,142,165,.50)" : accent.fg}" ${editable && !lockTime ? `data-act="draftBlock" data-b="${b.id}"` : ""} type="button"><b>${b.title}</b><small>${b.range}</small></button>`
+          ).join("")}</div>
+          <div class="sec-label">事项分类</div>
+          <div class="grid3">${Object.keys(CAT).map((c) =>
+            chip({ selected: c === d.cat, label: CAT[c].chip, icon: CAT_ICON[c](), act: "draftCat", extra: `data-c="${c}"`,
+              locked: (S.lockCategory && mode === "add") || (S.lockProfessional && mode === "add" && PROFESSIONAL.has(c)) })).join("")}
+            ${(S.customCats || []).map((c) =>
+              chip({ selected: d.cat === "custom" && d.customId === c.id, label: c.name, icon: I[UNIFIED_CUSTOM_ICON], act: "pickCustomCat", extra: `data-id="${c.id}"`, locked: S.lockCategory && mode === "add" })).join("")}
+            ${!(S.lockCategory && mode === "add") && mode !== "view" ? chip({ selected: false, label: "自定义", icon: I.plus, dash: true, act: "openCustomCat" }) : ""}
+          </div>
+        </div>`;
+
+      const compactDateBtn = (ymd, act, locked) => {
+        const on = editable && !locked;
+        const muted = !editable || locked;
+        return `<button class="v02-date-btn" style="background:${muted ? "rgba(130,142,165,.10)" : accent.muted};color:${muted ? "rgba(130,142,165,.72)" : accent.fg}" ${on ? `data-act="${act}"` : "disabled"} type="button">
+          <span>${planDateLabel(ymd, true)}</span>
+          ${on ? `<span class="dim">${I.chevUD}</span>` : ""}
+        </button>`;
+      };
+
+      const durChips = `
+        <div class="sec-label" style="margin-top:12px">持续时长</div>
+        <div class="grid3 tight">${durationOpts(d.rule).map(([id, lab]) =>
+          chip({ selected: d.duration === id, label: lab, act: "draftDur", extra: `data-d="${id}"`, compact: true })).join("")}</div>`;
+
+      let timelineInner = "";
+      if (!d.cycle) {
+        timelineInner = dateRow("日期", d.onceDate, "openOnceDate", lockStart);
+      } else if (mode === "edit" && showOcc) {
+        timelineInner = `
+          <div class="v02-locked-strip">
+            <span>原开始日期</span>
+            <b>${planDateLabel(d.onceDate, true)}</b>
+          </div>
+          <div class="v02-date-pair">
+            <div class="v02-date-col">
+              <div class="sec-label">新开始日期</div>
+              ${compactDateBtn(occYmd, "openOccurrenceDate", false)}
+            </div>
+            <div class="v02-date-arrow">→</div>
+            <div class="v02-date-col">
+              <div class="sec-label">结束时间</div>
+              ${compactDateBtn(endYmd, "openSeriesEnd", false)}
+            </div>
+          </div>
+          ${durChips}
+          ${schedPrompt ? `<div class="v02-prompt-banner" style="background:${accent.muted};color:${accent.fg}">${I.cycle}<span>${esc(schedPrompt.inlineMessage)}</span></div>` : ""}`;
+      } else if (viewing && showOcc) {
+        timelineInner = `
+          <div class="v02-date-pair">
+            <div class="v02-date-col">
+              <div class="sec-label">开始日期</div>
+              ${compactDateBtn(d.onceDate, "openOnceDate", true)}
+            </div>
+            <div class="v02-date-arrow">→</div>
+            <div class="v02-date-col">
+              <div class="sec-label">结束时间</div>
+              ${compactDateBtn(endYmd, "openSeriesEnd", true)}
+            </div>
+          </div>
+          <div class="v02-locked-strip" style="margin-top:10px;margin-bottom:0">
+            <span>今天日期</span>
+            <b style="color:${accent.fg}">${planDateLabel(occYmd, true)}</b>
+          </div>
+          ${durChips}`;
+      } else {
+        timelineInner = `
+          <div class="v02-date-pair">
+            <div class="v02-date-col">
+              <div class="sec-label">开始日期</div>
+              ${compactDateBtn(d.onceDate, "openOnceDate", lockStart)}
+            </div>
+            <div class="v02-date-arrow">→</div>
+            <div class="v02-date-col">
+              <div class="sec-label">结束时间</div>
+              ${compactDateBtn(endYmd, "openSeriesEnd", false)}
+            </div>
+          </div>
+          ${durChips}`;
+      }
+
+      const scheduleCard = `
+        <div class="v02-editor-card">
+          <div class="sec-label" style="margin-top:0">计划类型</div>
+          <div class="flex gap8">
+            ${chip({ selected: !d.cycle, label: "单日计划", icon: I.cal, act: "draftCycle", extra: 'data-v="0"', locked: lockRec })}
+            ${chip({ selected: d.cycle, label: "循环计划", icon: I.cycle, act: "draftCycle", extra: 'data-v="1"', locked: lockRec })}
+          </div>
+          <div class="v02-timeline-box" style="border-color:${accent.muted}">
+            ${timelineInner}
+          </div>
+          ${d.cycle ? `
+            <div class="sec-label">循环规则</div>
+            <div class="grid3 tight">${[["daily", "每日"], ["weekly", "每周"], ["monthly", "每月"]].map(([r, lab]) =>
+              chip({ selected: d.rule === r, label: lab, act: "draftRule", extra: `data-r="${r}"` })).join("")}</div>
+            ${d.rule === "weekly" ? `<div class="flex gap6 mt10">${weekdays.map(([n, lab]) =>
+              chip({ selected: (d.weekdays || []).includes(n), label: lab, act: "draftWeek", extra: `data-w="${n}"`, compact: true })).join("")}</div>` : ""}
+            ${d.rule === "monthly" ? `<div class="month-day-grid mt10">${Array.from({ length: 31 }, (_, i) => i + 1).map((day) =>
+              chip({ selected: (d.monthDays || []).includes(day), label: String(day), act: "draftMonthDay", extra: `data-d="${day}"`, compact: true })).join("")}
+              ${chip({ selected: (d.monthDays || []).includes(0), label: "月末", act: "draftMonthDay", extra: 'data-d="0"', compact: true })}</div>
+              ${monthDayHints(d.monthDays || []).map((h) => `<div class="month-day-hint">${h}</div>`).join("")}` : ""}
+          ` : ""}
+        </div>`;
+
+      const footerCard = `
+        ${hideRemindDelete ? "" : `<div class="v02-editor-card" style="padding-top:4px">${viewing ? reminderSwitches(d, done, accent) : draftReminderSwitch(d, accent)}</div>`}
+        ${mode === "view" && !hideRemindDelete ? deletePlanButtons(d) : ""}
+        ${viewing && done && !past ? cancelCheckInBlock(accent) : ""}`;
+
+      return `<div class="page editor-page" style="--accent:${accent.fg}">
+        ${navBar(left.replace('data-act="back"', mode === "edit" ? 'data-act="cancelEdit"' : mode === "add" ? 'data-act="cancelAdd"' : 'data-act="back"'), title, right)}
+        <div class="scroll px20" style="padding-top:4px;padding-bottom:28px">${heroCard}${scheduleCard}${footerCard}</div>
+      </div>`;
+    }
+
     // 两组各包一层：标题行常显可点，字段随折叠隐现（字段与保存逻辑不受折叠影响）
     const body = `
       <div class="ed-group">
@@ -7983,7 +8140,7 @@
           <button class="dbg-row danger" data-act="debugRegenerate" type="button">${I.undo}<span>重新生成</span></button>
           <button class="dbg-row" data-act="debugTestLogin" type="button">${I.person}<span>测试登录步骤</span></button>
           <div class="dbg-sep"></div>
-          ${["0.0", "0.1"].map((v) => `
+          ${["0.0", "0.1", "0.2"].map((v) => `
             <button class="dbg-row" data-act="debugGen" data-gen="${v}" type="button">
               ${S.gen === v ? I.check : `<span style="width:19px;height:19px;flex:0 0 19px"></span>`}
               <span>设计版本 V${v}<em>${S.gen === v ? "当前" : ""}</em></span>
