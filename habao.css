@@ -1184,13 +1184,22 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .v02-ro-box {
   display: flex; align-items: center;
   width: 100%; border-radius: 14px;
-  padding: 12px 14px;
+  padding: 10px 14px;
   box-sizing: border-box;
+  font-size: calc(16px * var(--fs));
+  font-weight: 500;
   line-height: 1.4;
 }
 .v02-ro-box.note {
   align-items: flex-start;
 }
+.v02-active-chip {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; border-radius: 12px;
+  padding: 10px 14px;
+  box-sizing: border-box;
+}
+.v02-active-chip svg { width: 14px; height: 14px; }
 .v02-ro-row {
   display: flex; align-items: center; gap: 10px;
   width: 100%; border-radius: 14px;

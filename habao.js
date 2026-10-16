@@ -7944,19 +7944,18 @@
           ${modHead(I.doc, "事项内容")}
           <div class="sec-label" style="margin-top:0">事项名称</div>
           ${editable
-            ? `<input class="voice-box w100" name="taskTitle" style="color:${accent.fg};border:0;min-height:46px" placeholder="填写事项名称" value="${String(d.title || "").replace(/"/g, "&quot;")}" />`
-            : `<div class="v02-ro-box" style="background:${accent.muted};color:${accent.fg};font-size:calc(16px * var(--fs));font-weight:700;min-height:${d.cat === "monitoring" ? "42px" : "48px"}">${esc(contentPrimary)}</div>`}
+            ? `<input class="voice-box w100" name="taskTitle" style="color:${accent.fg};border:0;font-size:calc(16px * var(--fs));font-weight:500;min-height:${d.cat === "monitoring" ? "42px" : "46px"}" placeholder="填写事项名称" value="${String(d.title || "").replace(/"/g, "&quot;")}" />`
+            : `<div class="v02-ro-box" style="background:${accent.muted};color:${accent.fg};font-size:calc(16px * var(--fs));font-weight:500;min-height:${d.cat === "monitoring" ? "42px" : "46px"}">${esc(contentPrimary)}</div>`}
           <div class="sec-label">补充备注</div>
           ${editable
-            ? `<textarea class="voice-box w100" name="taskNote" style="color:${accent.fg};border:0;resize:none;font-family:inherit;min-height:${d.cat === "monitoring" ? "52px" : "68px"}" placeholder="补充说明，例如剂量 / 注意事项">${d.note || ""}</textarea>`
-            : `<div class="v02-ro-box note" style="background:${accent.muted};color:${trimmedNote ? accent.fg : "var(--secondary)"};opacity:${trimmedNote ? 1 : 0.78};font-size:calc(${trimmedNote ? 15 : 14}px * var(--fs));font-weight:500;min-height:${d.cat === "monitoring" ? "44px" : "68px"}">${trimmedNote ? esc(trimmedNote) : "暂无补充备注"}</div>`}
+            ? `<textarea class="voice-box w100" name="taskNote" style="color:${accent.fg};border:0;resize:none;font-family:inherit;font-size:calc(16px * var(--fs));font-weight:500;min-height:${d.cat === "monitoring" ? "42px" : "46px"}" placeholder="补充说明，例如剂量 / 注意事项">${d.note || ""}</textarea>`
+            : `<div class="v02-ro-box note" style="background:${accent.muted};color:${trimmedNote ? accent.fg : "var(--secondary)"};opacity:${trimmedNote ? 1 : 0.78};font-size:calc(16px * var(--fs));font-weight:500;min-height:${d.cat === "monitoring" ? "42px" : "46px"}">${trimmedNote ? esc(trimmedNote) : "暂无补充备注"}</div>`}
           ${vitalsHTML}
           <div class="sec-label">事项分类</div>
           ${isCatLocked
-            ? `<div class="v02-ro-row" style="background:${accent.muted}">
-                <span class="v02-ro-ico" style="background:${accent.muted};color:${accent.fg}">${catIcoHTML}</span>
-                <span style="font-size:calc(16px * var(--fs));font-weight:700;color:${accent.fg}">${esc(catLabel)}</span>
-                <span class="v02-ro-tag" style="background:rgba(255,255,255,.72);color:var(--secondary)">${catKindBadge}</span>
+            ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
+                <span style="display:inline-flex;opacity:.85">${catIcoHTML}</span>
+                <span style="font-size:calc(14px * var(--fs));font-weight:600">${esc(catLabel)}</span>
               </div>`
             : `<div class="grid3 tight">${visibleCatKeys.map((c) =>
                 chip({ selected: c === d.cat, label: CAT[c].chip, icon: CAT_ICON[c](), act: "draftCat", extra: `data-c="${c}"` })).join("")}
@@ -8029,10 +8028,10 @@
           </div>
           <div class="sec-label">时间段</div>
           ${(viewing || lockTime)
-            ? `<div class="v02-ro-row" style="background:${accent.muted}">
-                <span class="v02-ro-ico" style="background:${accent.muted};color:${accent.fg}">${I.clock}</span>
-                <span style="font-size:calc(16px * var(--fs));font-weight:700;color:${accent.fg}">${blkObj.title}</span>
-                <span class="v02-ro-tag" style="background:rgba(255,255,255,.78);color:${accent.fg};font-weight:700;font-variant-numeric:tabular-nums">${blkObj.range}</span>
+            ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
+                <span style="display:inline-flex;opacity:.85">${I.clock}</span>
+                <span style="font-size:calc(14px * var(--fs));font-weight:700">${blkObj.title}</span>
+                <span style="font-size:calc(13px * var(--fs));font-weight:600;font-variant-numeric:tabular-nums;opacity:.85">${blkObj.range}</span>
               </div>`
             : `<div class="v02-grid4 tight">${BLOCKS.map(periodChip).join("")}</div>`}
           ${v02SwitchRows.length ? `
@@ -8109,71 +8108,58 @@
         return "自定义间隔重复执行";
       })();
 
-      const scheduleCard = viewing
-        ? `<div class="v02-editor-card">
-            ${modHead(I.cal, "周期与日期")}
-            <div class="v02-twin-times">
-              <div class="v02-time-box" style="background:${accent.muted};color:${accent.fg};cursor:default">
-                <div class="v02-time-top">
-                  <span class="ico" style="color:${accent.fg};opacity:.75">${d.cycle ? I.cycle : I.cal}</span>
-                  <span class="lab">计划类型</span>
-                </div>
-                <div class="v02-time-val" style="color:${accent.fg};font-size:calc(17px * var(--fs));height:24px">${d.cycle ? "循环计划" : "单日计划"}</div>
-              </div>
-              <div class="v02-time-box" style="background:${accent.muted};color:${accent.fg};cursor:default">
-                <div class="v02-time-top">
-                  <span class="ico" style="color:${accent.fg};opacity:.75">${I.clock}</span>
-                  <span class="lab">持续时长</span>
-                </div>
-                <div class="v02-time-val" style="color:${accent.fg};font-size:calc(17px * var(--fs));height:24px">${esc(viewDurationSummary)}</div>
-              </div>
-            </div>
-            <div class="sec-label">循环规则</div>
-            <div class="v02-ro-row" style="background:${accent.muted}">
-              <span class="v02-ro-ico" style="background:${accent.muted};color:${accent.fg}">${I.cycle}</span>
-              <span style="font-size:calc(15px * var(--fs));font-weight:700;color:${accent.fg}">${esc(viewRecurrenceSummary)}</span>
-            </div>
-            <div class="sec-label">${d.cycle ? "起止日期" : "执行日期"}</div>
-            <div class="v02-dates-list" style="background:${accent.muted}">
-              ${datesRowsHTML}
-            </div>
+      const planTypeHTML = (viewing || lockRec)
+        ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
+            <span style="display:inline-flex;opacity:.85">${d.cycle ? I.cycle : I.cal}</span>
+            <span style="font-size:calc(14px * var(--fs));font-weight:700">${d.cycle ? "循环计划" : "单日计划"}</span>
           </div>`
-        : `<div class="v02-editor-card">
-            ${modHead(I.cal, "周期与日期")}
-            <div class="sec-label" style="margin-top:0">计划类型</div>
-            ${lockRec
-              ? `<div class="v02-ro-row" style="background:${accent.muted}">
-                  <span class="v02-ro-ico" style="background:${accent.muted};color:${accent.fg}">${I.cal}</span>
-                  <span style="font-size:calc(15px * var(--fs));font-weight:700;color:${accent.fg}">单日计划</span>
-                  <span class="v02-ro-tag" style="background:rgba(255,255,255,.72);color:var(--secondary)">今日计划固定为单日</span>
-                </div>`
-              : `<div class="flex gap8">
-                  ${chip({ selected: !d.cycle, label: "单日计划", icon: I.cal, act: "draftCycle", extra: 'data-v="0"', locked: lockRec })}
-                  ${chip({ selected: d.cycle, label: "循环计划", icon: I.cycle, act: "draftCycle", extra: 'data-v="1"', locked: lockRec })}
-                </div>`}
-            <div class="sec-label">${d.cycle ? "起止日期" : "执行日期"}</div>
-            <div class="v02-dates-list" style="background:${accent.muted}">
-              ${datesRowsHTML}
-            </div>
-            ${d.cycle ? `
-              <div class="sec-label" style="display:flex;align-items:center;justify-content:space-between">
-                <span>持续时长</span>
-                ${!durationOpts(d.rule).some(([id]) => id === d.duration) ? `<span style="color:${accent.fg};font-size:calc(12px * var(--fs));font-weight:700">${esc(viewDurationSummary)}</span>` : ""}
-              </div>
-              <div class="grid3 tight">${durationOpts(d.rule).map(([id, lab]) =>
-                chip({ selected: d.duration === id, label: lab, act: "draftDur", extra: `data-d="${id}"`, compact: true })).join("")}</div>
-              <div class="sec-label">循环规则</div>
-              <div class="v02-grid4">${[["daily", "每日"], ["weekly", "每周"], ["monthly", "每月"]].map(([r, lab]) =>
-                chip({ selected: d.rule === r, label: lab, act: "draftRule", extra: `data-r="${r}"`, compact: true })).join("")}
-                ${chip({ selected: d.rule === "custom", label: "自定义", act: "draftRule", extra: 'data-r="daily"', compact: true })}
-              </div>
-              ${d.rule === "weekly" ? `<div class="flex gap6 mt10">${weekdays.map(([n, lab]) =>
-                chip({ selected: (d.weekdays || []).includes(n), label: lab, act: "draftWeek", extra: `data-w="${n}"`, compact: true })).join("")}</div>` : ""}
-              ${d.rule === "monthly" ? `<div class="month-day-grid mt8">${Array.from({ length: 31 }, (_, i) => i + 1).map((day) =>
-                chip({ selected: (d.monthDays || []).includes(day), label: String(day), act: "draftMonthDay", extra: `data-d="${day}"`, compact: true })).join("")}
-                ${chip({ selected: (d.monthDays || []).includes(0), label: "月末", act: "draftMonthDay", extra: 'data-d="0"', compact: true })}</div>` : ""}
-            ` : ""}
+        : `<div class="flex gap8">
+            ${chip({ selected: !d.cycle, label: "单日计划", icon: I.cal, act: "draftCycle", extra: 'data-v="0"', locked: lockRec })}
+            ${chip({ selected: d.cycle, label: "循环计划", icon: I.cycle, act: "draftCycle", extra: 'data-v="1"', locked: lockRec })}
           </div>`;
+
+      const durationHTML = viewing
+        ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
+            <span style="display:inline-flex;opacity:.85">${I.clock}</span>
+            <span style="font-size:calc(14px * var(--fs));font-weight:700;font-variant-numeric:tabular-nums">${esc(viewDurationSummary)}</span>
+          </div>`
+        : `<div class="grid3 tight">${durationOpts(d.rule).map(([id, lab]) =>
+            chip({ selected: d.duration === id, label: lab, act: "draftDur", extra: `data-d="${id}"`, compact: true })).join("")}</div>`;
+
+      const recurrenceHTML = viewing
+        ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
+            <span style="display:inline-flex;opacity:.85">${I.cycle}</span>
+            <span style="font-size:calc(14px * var(--fs));font-weight:700">${esc(viewRecurrenceSummary)}</span>
+          </div>`
+        : `<div class="v02-grid4">${[["daily", "每日"], ["weekly", "每周"], ["monthly", "每月"]].map(([r, lab]) =>
+            chip({ selected: d.rule === r, label: lab, act: "draftRule", extra: `data-r="${r}"`, compact: true })).join("")}
+            ${chip({ selected: d.rule === "custom", label: "自定义", act: "draftRule", extra: 'data-r="daily"', compact: true })}
+          </div>
+          ${d.rule === "weekly" ? `<div class="flex gap6 mt10">${weekdays.map(([n, lab]) =>
+            chip({ selected: (d.weekdays || []).includes(n), label: lab, act: "draftWeek", extra: `data-w="${n}"`, compact: true })).join("")}</div>` : ""}
+          ${d.rule === "monthly" ? `<div class="month-day-grid mt8">${Array.from({ length: 31 }, (_, i) => i + 1).map((day) =>
+            chip({ selected: (d.monthDays || []).includes(day), label: String(day), act: "draftMonthDay", extra: `data-d="${day}"`, compact: true })).join("")}
+            ${chip({ selected: (d.monthDays || []).includes(0), label: "月末", act: "draftMonthDay", extra: 'data-d="0"', compact: true })}</div>` : ""}`;
+
+      const scheduleCard = `
+        <div class="v02-editor-card">
+          ${modHead(I.cal, "周期与日期")}
+          <div class="sec-label" style="margin-top:0">计划类型</div>
+          ${planTypeHTML}
+          <div class="sec-label">${d.cycle ? "起止日期" : "执行日期"}</div>
+          <div class="v02-dates-list" style="background:${accent.muted}">
+            ${datesRowsHTML}
+          </div>
+          ${d.cycle ? `
+            <div class="sec-label" style="display:flex;align-items:center;justify-content:space-between">
+              <span>持续时长</span>
+              ${!viewing && !durationOpts(d.rule).some(([id]) => id === d.duration) ? `<span style="color:${accent.fg};font-size:calc(12px * var(--fs));font-weight:700">${esc(viewDurationSummary)}</span>` : ""}
+            </div>
+            ${durationHTML}
+            <div class="sec-label">循环规则</div>
+            ${recurrenceHTML}
+          ` : ""}
+        </div>`;
 
       const activeStageHTML = modIdx === 0 ? contentCard : modIdx === 1 ? timeAndRemindCard : scheduleCard;
 
