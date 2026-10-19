@@ -1866,10 +1866,10 @@
     minH: 300, maxH: 560, stripH: 56, stripGap: 10,
     overflow: 1.06, centerPast: 0.38, hugPad: 5, plate: 0.96,
     scrubMin: 64, scrubMaxR: 0.26,
-    addH: 76, rowGap: 12, cardBase: 196, cardFocus: 206,
+    addH: 76, rowGap: 12, cardBase: 184, cardFocus: 198,
     labelOrbit: 0.66, tickOrbit: 0.935, handTip: 0.48,
     reading: 270, degPerPt: 0.68, sector: 360 / 7,
-    titleArc: 16, actionArc: 22,
+    titleArc: 14, actionArc: 18,
   };
 
   function homeModuleHeight(enrolled) {
@@ -1920,6 +1920,29 @@
     const startYmd = t.onceDate || toYMD(demoDate());
     const endYmd = resolvedTaskEndYmd(t);
     return `${yearMonthDayLabel(parseYMD(startYmd))} – ${yearMonthDayLabel(parseYMD(endYmd))}`;
+  }
+  function taskHomeDateLabel(t) {
+    const startYmd = t.onceDate || toYMD(demoDate());
+    const endYmd = resolvedTaskEndYmd(t);
+    const s = parseYMD(startYmd);
+    const e = parseYMD(endYmd);
+    const sY = s.getFullYear();
+    const eY = e.getFullYear();
+    const sM = s.getMonth() + 1;
+    const sD = s.getDate();
+    const eM = e.getMonth() + 1;
+    const eD = e.getDate();
+    const pad = (n) => String(n).padStart(2, "0");
+
+    if (t.cycle === false || t.recurrence === "once") {
+      return `单日 · ${sM}月${sD}日`;
+    }
+    if (sY === eY) {
+      return `${pad(sM)}.${pad(sD)} – ${pad(eM)}.${pad(eD)}`;
+    }
+    const sYY = String(sY).slice(-2);
+    const eYY = String(eY).slice(-2);
+    return `${sYY}.${pad(sM)}.${pad(sD)} – ${eYY}.${pad(eM)}.${pad(eD)}`;
   }
   function defaultNewPlanStartYmd(orig) {
     const today = toYMD(demoDate());
@@ -7348,7 +7371,7 @@
           <div class="task-meta">
             <h3>${t.title}</h3>
             <div class="task-status">${done ? `已完成 ${I.check}` : spoken(t.h, t.m)}</div>
-            <div class="task-dates">${taskDateRangeLabel(t)}</div>
+            <div class="task-dates">${taskHomeDateLabel(t)}</div>
           </div>
         </div>
         <div class="task-ops">
