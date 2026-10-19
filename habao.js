@@ -1866,10 +1866,10 @@
     minH: 300, maxH: 560, stripH: 56, stripGap: 10,
     overflow: 1.06, centerPast: 0.38, hugPad: 5, plate: 0.96,
     scrubMin: 64, scrubMaxR: 0.26,
-    addH: 76, rowGap: 12, cardBase: 184, cardFocus: 198,
+    addH: 76, rowGap: 12, cardBase: 184, cardFocus: 196,
     labelOrbit: 0.66, tickOrbit: 0.935, handTip: 0.48,
     reading: 270, degPerPt: 0.68, sector: 360 / 7,
-    titleArc: 14, actionArc: 18,
+    titleArc: 14, bodyArc: 12, actionArc: 16,
   };
 
   function homeModuleHeight(enrolled) {
@@ -1920,29 +1920,6 @@
     const startYmd = t.onceDate || toYMD(demoDate());
     const endYmd = resolvedTaskEndYmd(t);
     return `${yearMonthDayLabel(parseYMD(startYmd))} – ${yearMonthDayLabel(parseYMD(endYmd))}`;
-  }
-  function taskHomeDateLabel(t) {
-    const startYmd = t.onceDate || toYMD(demoDate());
-    const endYmd = resolvedTaskEndYmd(t);
-    const s = parseYMD(startYmd);
-    const e = parseYMD(endYmd);
-    const sY = s.getFullYear();
-    const eY = e.getFullYear();
-    const sM = s.getMonth() + 1;
-    const sD = s.getDate();
-    const eM = e.getMonth() + 1;
-    const eD = e.getDate();
-    const pad = (n) => String(n).padStart(2, "0");
-
-    if (t.cycle === false || t.recurrence === "once") {
-      return `单日 · ${sM}月${sD}日`;
-    }
-    if (sY === eY) {
-      return `${pad(sM)}.${pad(sD)} – ${pad(eM)}.${pad(eD)}`;
-    }
-    const sYY = String(sY).slice(-2);
-    const eYY = String(eY).slice(-2);
-    return `${sYY}.${pad(sM)}.${pad(sD)} – ${eYY}.${pad(eM)}.${pad(eD)}`;
   }
   function defaultNewPlanStartYmd(orig) {
     const today = toYMD(demoDate());
@@ -2523,8 +2500,9 @@
       if (path) path.setAttribute("d", d);
       const stroke = el.querySelector(".hug-stroke");
       if (stroke) stroke.setAttribute("d", d);
-      el.style.setProperty("--h-trail", `${trailingInset(h * 0.08, h * 0.56, w, geo.hugR, local, L.titleArc)}px`);
-      el.style.setProperty("--a-trail", `${trailingInset(h * 0.6, h - 4, w, geo.hugR, local, L.actionArc)}px`);
+      el.style.setProperty("--h-trail", `${trailingInset(h * 0.06, h * 0.28, w, geo.hugR, local, L.titleArc)}px`);
+      el.style.setProperty("--b-trail", `${trailingInset(h * 0.30, h * 0.62, w, geo.hugR, local, L.bodyArc)}px`);
+      el.style.setProperty("--a-trail", `${trailingInset(h * 0.66, h - 4, w, geo.hugR, local, L.actionArc)}px`);
       if (el.classList.contains("empty-lane")) {
         const contentTrail = trailingInset(h * 0.4, h * 0.6, w, geo.hugR, local, 16);
         const usableL = 18;
@@ -7367,12 +7345,13 @@
         <path class="hug-stroke" fill="none" stroke="${stroke}" stroke-width="${sw}" vector-effect="non-scaling-stroke"/>
       </svg>
       <div class="hug-inner">
-        <div class="task-head">${badge(t.cat, done)}
-          <div class="task-meta">
-            <h3>${t.title}</h3>
-            <div class="task-status">${done ? `已完成 ${I.check}` : spoken(t.h, t.m)}</div>
-            <div class="task-dates">${taskHomeDateLabel(t)}</div>
-          </div>
+        <div class="task-top">
+          ${badge(t.cat, done)}
+          <div class="task-status">${done ? `${I.check}<span>已完成</span>` : `${I.clock}<span>${spoken(t.h, t.m)}</span>`}</div>
+        </div>
+        <div class="task-body">
+          <h3 class="task-title">${t.title}</h3>
+          <div class="task-dates">${taskDateRangeLabel(t)}</div>
         </div>
         <div class="task-ops">
           <button class="btn-check" data-act="checkin" data-id="${t.id}" type="button">${done ? `${I.undo}取消` : `${I.tap}打卡`}</button>
