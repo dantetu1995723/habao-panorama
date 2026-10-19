@@ -4736,13 +4736,12 @@
       },
       roleSwitch() { S.role = S.role === "patient" ? "family" : "patient"; render(); },
       openDebug() { openOverlay("debugMenu"); },
-      // 设计版本（真机 DesignGenerationStore.select）：V0.0 家属、操作记录、硬件管理与哈宝问诊不开放，切 V0.1 / V0.2 才开；V0.2 启用计划详情页「时刻 × 事项重点融合」新版布局。
+      // 设计版本（真机 DesignGenerationStore.select）：V0.0 家属、操作记录、硬件管理与哈宝问诊不开放，切 V0.1 / V0.2 才开；计划详情页「时刻 × 事项重点融合」无滚动舞台架构在 V0.0–V0.2 全代际统一同步。
       // 真机落盘记住选择、正式包固定 V0.0；原型随冷启动回 V0.0。
       debugGen() {
         S.gen = el.dataset.gen;
         closeOverlay();
-        const v02Note = S.gen === "0.2" ? " · 计划详情页已切换为「时刻×事项融合」新版布局" : "";
-        toast(`设计版本 V${S.gen}｜${genIsV01() ? (S.vip ? "VIP 已开通，家属管理、操作记录、硬件管理与哈宝问诊可用" : "家属管理、操作记录、硬件管理与哈宝问诊需开通 VIP") : "家属管理、操作记录、硬件管理与哈宝问诊未开放"}${v02Note}`);
+        toast(`设计版本 V${S.gen}｜${genIsV01() ? (S.vip ? "VIP 已开通，家属管理、操作记录、硬件管理与哈宝问诊可用" : "家属管理、操作记录、硬件管理与哈宝问诊需开通 VIP") : "家属管理、操作记录、硬件管理与哈宝问诊未开放"}`);
       },
       // 真机 V10.52 起调试菜单不再切方案（TodaySchemeFourView 只留文件、不再是首页），
       // 本原型的入口已撤，渲染与状态留档——要临时预览方案四，把开发菜单那两行加回来即可。
@@ -7883,9 +7882,8 @@
         ${hideRemindDelete ? "" : (viewing ? reminderSwitches(d, done, accent) : draftReminderSwitch(d, accent))}
         ${mode === "view" && !hideRemindDelete ? deletePlanButtons(d) : ""}
         ${viewing && done && !past ? cancelCheckInBlock(accent) : ""}`;
-    // V0.2：无滚动「三联动态磁贴 + 单屏模块舞台」切换架构（事项内容 / 时刻与提醒 / 周期与日期）
-    if (genIsV02()) {
-      const modIdx = Math.max(0, Math.min(2, S.v02Mod ?? 0));
+    // 计划详情页（V0.0–V0.2 全代际统一同步）：无滚动「三联动态磁贴 + 单屏模块舞台」切换架构（事项内容 / 时刻与提醒 / 周期与日期）
+    const modIdx = Math.max(0, Math.min(2, S.v02Mod ?? 0));
       const blkObj = BLOCKS.find((b) => b.id === d.block) || BLOCKS[0];
       const vitalsHTML = editorVitalsBlock(d, mode, done, accent);
 
@@ -8186,22 +8184,6 @@
         </div>
       </div>`;
     }
-
-    // 两组各包一层：标题行常显可点，字段随折叠隐现（字段与保存逻辑不受折叠影响）
-    const body = `
-      <div class="ed-group">
-        ${groupHead("item", "事项")}
-        ${groupOpen("item") ? `<div class="ed-group-body">${nameBlock}</div>` : ""}
-      </div>
-      <div class="ed-group">
-        ${groupHead("schedule", "时间与提醒")}
-        ${groupOpen("schedule") ? `<div class="ed-group-body">${dateBlock}${d.cycle ? cycleBlock : ""}${momentBlock}</div>` : ""}
-      </div>`;
-    return `<div class="page editor-page" style="--accent:${accent.fg}">
-      ${navBar(left.replace('data-act="back"', mode === "edit" ? 'data-act="cancelEdit"' : mode === "add" ? 'data-act="cancelAdd"' : 'data-act="back"'), title, right)}
-      <div class="scroll px20" style="padding-top:4px;padding-bottom:28px">${body}</div>
-    </div>`;
-  }
 
   function calDays(green) {
     const todayYMD = toYMD(demoDate());
