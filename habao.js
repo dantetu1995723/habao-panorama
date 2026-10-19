@@ -4512,18 +4512,22 @@
         const orig = SEED.find((x) => x.id === S.taskId);
         const prompt = buildScheduleUpdatePrompt(orig, S.draft);
         closeOverlay();
+        let splitLine = null;
         if (prompt && prompt.splitsSeries && orig && S.draft) {
           const today = toYMD(demoDate());
           const origStart = orig.onceDate || today;
           const origEnd = resolvedTaskEndYmd(orig);
-          if (orig.cycle !== false && origEnd >= prompt.newStartYmd) {
+          const truncates = orig.cycle !== false && origEnd >= prompt.newStartYmd;
+          const cutEndYmd = truncates ? addDaysYMD(prompt.newStartYmd, -1) : origEnd;
+          if (truncates) {
             orig.onceDate = origStart;
-            orig.endDate = addDaysYMD(prompt.newStartYmd, -1);
+            orig.endDate = cutEndYmd;
             orig.duration = null;
             orig.customDays = null;
           } else if (!orig.onceDate) {
             orig.onceDate = origStart;
           }
+          splitLine = ["原计划", `${truncates ? "至" : "已在"}${yearMonthDayLabel(parseYMD(cutEndYmd))}结束`];
           const newId = nextTaskId();
           SEED.push({ ...orig, id: newId });
           S.draft.onceDate = prompt.newStartYmd;
@@ -4536,7 +4540,12 @@
           }
           applyDraftToTask(S.taskId, S.draft);
         }
-        logOp("修改了计划", entryPlace(), [["计划", taskTitle(S.taskId)]]);
+        const lines = [["计划", (S.draft && S.draft.title) || taskTitle(S.taskId)]];
+        if (splitLine) lines.push(splitLine);
+        if (S.draft && S.draft.cat === "monitoring" && S.sys && S.dia) {
+          lines.push(["读数", `血压 ${S.sys}/${S.dia}${S.hr ? `，心率 ${S.hr} bpm` : ""}`]);
+        }
+        logOp("修改了计划", entryPlace(), lines);
         go("task-view", "replace");
       },
       cancelEdit() { go("task-view", "replace"); },
@@ -4796,12 +4805,22 @@
         S.enter = false;
         toast("已退出登录，计划与记录保留");
       },
-      pickGenderEdit() { S.gender = el.dataset.g; render(); },
+      pickGenderEdit() {
+        if (!S.origPatient) S.origPatient = { name: S.name, gender: S.gender };
+        S.gender = el.dataset.g;
+        render();
+      },
       // 患者信息保存：写回档案再返回（真机 HealthRecordView save → profileStore.save → dismiss）
       savePatient() {
         const name = $("input[name=pname]")?.value?.trim();
         if (!name) { toast("请填写姓名"); return; }
+        const prev = S.origPatient || { name: S.name, gender: S.gender };
+        const changed = [];
+        if (prev.name !== name) changed.push(`姓名 ${prev.name}→${name}`);
+        if (prev.gender !== S.gender) changed.push(`性别 ${prev.gender}→${S.gender}`);
         S.name = name;
+        S.origPatient = null;
+        logOp("修改了患者信息", "健康档案", [["改动", changed.length ? changed.join("、") : "本次未动"]]);
         back();
       },
       toggleSelf() { S.notifySelf = !S.notifySelf; logOp("改了到点提醒", "打卡通知", [["提醒", `总开关 已${S.notifySelf ? "打开" : "关闭"}`]]); render(); },
@@ -4960,7 +4979,7 @@
       },
       qNext() {
         if (S.qIndex < QUESTIONS.length - 1) S.qIndex += 1;
-        else S.qDone = true;
+        else { S.qDone = true; logOp("提交了问卷", "问卷随访", []); }
         renderTop();
       },
       qPrev() { if (S.qIndex > 0) S.qIndex -= 1; renderTop(); },
