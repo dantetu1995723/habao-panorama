@@ -1485,8 +1485,17 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .op-name svg { width: 12px; height: 12px; flex: 0 0 12px; }
 .op-place { color: var(--blue); background: #fff; box-shadow: inset 0 0 0 1px rgba(16,84,224,.40); }
 .op-plain { font-weight: 600; color: var(--blue); }
+.op-how {
+  display: inline-block; padding: 2px 8px; margin: 2px;
+  border-radius: 8px; background: rgba(16,84,224,.08);
+  color: var(--blue); font-weight: 600; font-size: calc(16px * var(--fs)); line-height: 1.45;
+  vertical-align: middle; max-width: 100%; word-break: break-word;
+}
+.list-row .op-how {
+  font-size: calc(13px * var(--fs)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px;
+}
 .op-detail { flex: 1 1 auto; min-width: 0; color: var(--blue); font-weight: 600; font-size: calc(16px * var(--fs)); line-height: 1.5; }
-/* 操作记录（V10.125）：搜索行 + 长按弹层；结果行不可点 */
+/* 操作记录（V10.147）：5W1H 一句话特殊化呈现 + 搜索行 + 长按弹层；只读不可点 */
 .op-search-row { display: flex; align-items: center; gap: 10px; position: relative; }
 .op-search { flex: 1; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; background: #fff; border-radius: 14px; box-shadow: 0 4px 14px rgba(16,84,224,.06); }
 .op-search svg { width: 15px; height: 15px; color: rgba(16,84,224,.6); flex: 0 0 15px; }
@@ -1504,14 +1513,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .op-block-time { font-size: calc(15px * var(--fs)); font-weight: 600; color: var(--secondary); font-variant-numeric: tabular-nums; }
 .op-block-head i { flex: 1; height: 1px; background: rgba(16,84,224,.12); }
 .op-card { background: #fff; border-radius: 22px; padding: 16px; box-shadow: 0 10px 26px rgba(16,84,224,.10); }
-.op-card h4 { font-size: calc(17px * var(--fs)); font-weight: 700; color: var(--blue); line-height: 1.55; }
-.op-line { display: flex; align-items: baseline; gap: 10px; margin-top: 10px; }
-.op-line:first-of-type { margin-top: 12px; }
-.op-tag {
-  flex: 0 0 46px; text-align: center; padding: 2px 0; border-radius: 7px;
-  font-size: calc(13px * var(--fs)); font-weight: 600;
-  color: var(--blue); background: rgba(16,84,224,.08);
-}
+.op-card h4 { font-size: calc(17px * var(--fs)); font-weight: 700; color: var(--blue); line-height: 1.55; margin: 0; }
 .list-row > svg { width: 14px; height: 14px; flex: 0 0 14px; opacity: .45; }
 .vip-card {
   display: flex; align-items: center; gap: 12px;

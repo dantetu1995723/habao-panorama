@@ -1151,7 +1151,7 @@
     vip: { code: "VIPView", note: "仅从 V0.1 入口进来。Hero 写哈宝 VIP 与 ¥2400 / 年，下面四项：家属管理、硬件管理、操作记录、问诊。底栏「立即开通」先确认，演示不扣款，开通后有效期一年；已开通可「取消订阅」，确认后四项重新上锁，家属、记录和硬件绑定留在本机。注销清空开通状态，退出登录保留。" },
     hardware: { code: "HardwareManageView", note: "仅 V0.1（V0.0 个人中心没有这一行）。三张设备模块卡：未绑定写「未绑定」、右端挂「扫码绑定」浅蓝胶囊；已绑定写绿色「已绑定 · 编号」、右端箭头。点未绑定卡进扫码页，点已绑定卡进设备页。副说明按已绑定的名字拼，三台齐了写「三台都已绑定」。绑定留在本机，切回 V0.0 只藏入口。" },
     "hardware-scan": { code: "HardwareScanView", note: "V10.128：深蓝黑底全屏扫码页——264pt 取景框 + 青色扫描线，约 1.5 秒识别到对应哈宝设备（体重秤 2041 / 血压计 3086 / 手表 1172），四角转绿、白卡上浮，「绑定这台」或「重新扫描」，绑定后回列表。已绑定页显示编号和绑定日，解除要确认、确认后回列表。不调用摄像头，测量不写进档案或血压监测。退出保留，注销清空。" },
-    activity: { code: "ActivityLogView", note: "仅 V0.1（V0.0 个人中心没有这一行）。一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内以时刻做块头（时刻 + 细分隔线）切成几块，块内白卡装内容。一件事记一条：一句话 = 人名胶囊 + 在 + 入口界面胶囊 + 动作；结果行（资料 / 用药 / 复查 / 日常 / 运动 / 打卡 / 读数 / 计划 / 散步）左 46px 定宽浅蓝标签 + 右侧实色蓝事项。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条；只补资料写「计划：本次未动」。结果行只读，不带箭头、点了不跳模块；页顶搜索框搜记录内容；长按一条出「改归属 / 删除这条记录」，超 300 条丢过更早记录时最早那页页脚提示。空态「还没有操作记录」；某一天没有记录写「这一天没有操作记录」。记录仍写入，切回 V0.0 只藏入口。" },
+    activity: { code: "ActivityLogView", note: "仅 V0.1（V0.0 个人中心没有这一行）。一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内遵循 Who / Where / When / What / How 大一统规则字段：以 When（时刻 + 细分隔线）做块头，块内白卡只展示一句话 = [Who 人名浅蓝胶囊] + 在 + [Where 界面白底蓝框胶囊] + [What 粗体蓝字动作] + [How 浅蓝底圆角内容色块]，个人中心入口与记录页共用同一句式（入口处 How 单行省略）。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条 How；只补资料写「（计划本次未动）」。How 只读不跳模块；页顶搜索框搜记录内容；长按一条出「改归属 / 删除这条记录」，超 300 条丢过更早记录时最早那页页脚提示。" },
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.98：用药与复查有存量也直接落本页，存量组列在底部组轨道。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "按组分区预览。与首次上传、身体报告·基础报告共用同一份存量。入组可改类别 / 删组（必传出院记录至少留一组）；复查不改类别。右上入组「解析」、存档「提交」。无存量时空态只留文案，拍资料走左上「拍摄」，页内不再放「拍摄资料」钮。" },
@@ -6561,7 +6561,7 @@
           <div class="list-island mt16">
             ${[
               ...(genIsV01() ? [["family", I.two, "家属管理", S.family.length ? `已绑定 ${S.family.length} 人` : "尚未绑定家属"]] : []),
-              ...(genIsV01() ? [["activity", I.clock, "操作记录", (S.ops && S.ops[0]) ? opHeadlineHTML(S.ops[0]) + ((S.ops[0].lines || []).length === 1 ? `<span class="op-plain">「${esc(S.ops[0].lines[0][1])}」</span>` : "") : "还没有记录"]] : []),
+              ...(genIsV01() ? [["activity", I.clock, "操作记录", (S.ops && S.ops[0]) ? opHeadlineHTML(S.ops[0]) : "还没有记录"]] : []),
               ["notify", I.bell, "打卡通知", notifyCaption()],
               ...(genIsV01() ? [["hardware", I.waves, "硬件管理", hwCaption()]] : []),
             ].map(([id, ico, t, s]) => profileFeatureRow(id, ico, t, s)).join("")}
@@ -7111,9 +7111,30 @@
   /* ── 家属代操作归属（V10.57）─────────────────────────────
      写入那一刻的身份 = 这条记录的操作人；只有 V0.1 有家属身份，故标记只在这一代际成立。
      本人写入不落键（与存量 / 种子数据字节一致），标记是「读记录」而不是「读界面」。 */
-  /* V10.65 操作记录：一件事记一条（真机 ActivityLog.record(_:at:lines:)）。
-     action = 动作；place = 用户在哪发起；lines = [标签, 内容] 结果行，只写有变化的。 */
-  function logOp(action, place, lines) {
+  /* V10.147 操作记录：5W1H 大一统规则字段（真机 ActivityLog.record(_:at:how:)）。
+     When = at；Who = actor；Where = place；What = action；How = how（具体对象与变化结果，一句话呈现）。 */
+  function opNormalizeHow(action, howOrLines) {
+    if (typeof howOrLines === "string") return howOrLines.trim();
+    const clean = (howOrLines || []).filter((l) => l && l[1]);
+    if (!clean.length) return action === "提交了问卷" ? "随访问卷" : "";
+    if (clean.length === 1) {
+      return clean[0][0] === "计划" && clean[0][1] === "本次未动" ? "计划本次未动" : clean[0][1];
+    }
+    if (clean[0][0] === "计划") {
+      const extras = clean.slice(1).map(([k, v]) => (k === "原计划" ? `原计划${v}` : v));
+      return `${clean[0][1]}（${extras.join("，")}）`;
+    }
+    if (clean.length === 2 && clean[0][0] === "散步" && clean[1][0] === "打卡") {
+      return `${clean[0][1]}（${clean[1][1]}）`;
+    }
+    if (clean.length === 2 && clean[0][0] === "资料" && (clean[1][0] === "计划" || clean[1][0] === "打卡")) {
+      const suffix = clean[1][0] === "计划" && clean[1][1] === "本次未动" ? "计划本次未动" : clean[1][1];
+      return `${clean[0][1]}（${suffix}）`;
+    }
+    if (action === "生成了运动计划") return clean.map(([, v]) => v).join("；");
+    return clean.map(([k, v]) => `${k}：${v}`).join("；");
+  }
+  function logOp(action, place, howOrLines) {
     if (!S.ops) S.ops = [];
     let actor = S.name || "本人";
     let actorId = null;
@@ -7122,27 +7143,26 @@
       actor = member ? member.name : "家属";
       if (member) { S.actorId = member.id; actorId = member.id; }
     }
-    const clean = (lines || []).filter((l) => l && l[1]);
+    const how = opNormalizeHow(action, howOrLines);
     // 取消打卡覆盖当天那条同计划的「打卡了」，不新增一条（V10.113）
-    if (action === "取消了打卡") {
-      const title = (clean.find((l) => l[0] === "计划") || [])[1];
+    if (action === "取消了打卡" && how) {
       const hit = S.ops.find((op) => op.action === "打卡了"
         && toYMD(new Date(op.at)) === toYMD(new Date())
-        && (op.lines || []).some((l) => l[0] === "计划" && l[1] === title));
+        && (op.how === how || String(op.how || "").indexOf(`${how}（`) === 0));
       if (hit) {
         hit.action = action;
         hit.at = Date.now();
         hit.place = place || "";
         hit.actor = actor;
         hit.actorId = actorId;
-        hit.lines = (hit.lines || []).filter((l) => l[0] === "计划");
+        hit.how = how;
         S.ops.sort((a, b) => b.at - a.at);
         return;
       }
     }
     S.ops.unshift({
       id: `op${Date.now()}${Math.random().toString(36).slice(2, 6)}`,
-      at: Date.now(), actor, actorId, action, place: place || "", lines: clean,
+      at: Date.now(), actor, actorId, action, place: place || "", how,
     });
     if (S.ops.length > 300) { S.ops.length = 300; S.opDropped = true; }
   }
@@ -7171,7 +7191,7 @@
     if (unique.length > 3) return `${unique.slice(0, 3).join("、")} 等 ${list.length} 项`;
     return list.length > unique.length ? `${unique.join("、")} 共 ${list.length} 项` : unique.join("、");
   }
-  /// 成批计划按类分行；replacing = 每类被整批换掉的旧条数
+  /// 成批计划按类汇总；replacing = 每类被整批换掉的旧条数
   function opPlanLines(tasks, replacing) {
     const group = (cat) => (cat === "medication" ? "用药" : cat === "appointment" ? "复查" : cat === "exercise" ? "运动" : "日常");
     return ["用药", "复查", "日常", "运动"].map((g) => {
@@ -7189,30 +7209,30 @@
     });
     return out;
   }
+  function opHowText(op) {
+    if (typeof op.how === "string") return op.how;
+    return opNormalizeHow(op.action, op.lines);
+  }
   function opSentence(op) {
     const headline = op.place ? `${op.actor}在${op.place}${op.action}` : `${op.actor}${op.action}`;
-    const lines = op.lines || [];
-    return { headline, lines, summary: lines.length === 1 ? `${headline}「${lines[0][1]}」` : headline };
+    const how = opHowText(op);
+    return { headline, how, summary: how ? `${headline} ${how}` : headline };
   }
   function esc(s) {
     return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   }
-  /// 人名浅蓝底胶囊，界面白底蓝边胶囊
+  /// 5W1H 一句话特殊化：Who 浅蓝胶囊 + 在 + Where 白底蓝框胶囊 + What 粗体蓝字 + How 浅蓝底圆角块
   function opHeadlineHTML(op) {
     const unbound = op.actorId && !(S.family || []).some((m) => String(m.id) === String(op.actorId));
     const name = `<span class="op-name">${I.person}${esc(op.actor)}</span>${unbound ? `<span class="op-unbound">已解绑</span>` : ""}`;
     const action = `<span class="op-plain">${esc(op.action)}</span>`;
-    if (!op.place) return name + action;
-    return `${name}<span class="op-plain">在</span><span class="op-place">${esc(op.place)}</span>${action}`;
-  }
-  /// 结果行只读：不带箭头，点了不跳模块（V10.125）
-  function opLinesHTML(op) {
-    return (op.lines || []).map(([label, value]) => {
-      return `<div class="op-line"><span class="op-tag">${esc(label)}</span><span class="op-detail">${esc(value)}</span></div>`;
-    }).join("");
+    const how = opHowText(op);
+    const howBadge = how ? `<span class="op-how">${esc(how)}</span>` : "";
+    if (!op.place) return name + action + howBadge;
+    return `${name}<span class="op-plain">在</span><span class="op-place">${esc(op.place)}</span>${action}${howBadge}`;
   }
   function opText(op) {
-    return `${op.actor}在${op.place || ""}${op.action} ` + (op.lines || []).map((l) => `${l[0]}${l[1]}`).join(" ");
+    return `${op.actor}在${op.place || ""}${op.action} ${opHowText(op)}`;
   }
   function opHM(at) {
     const d = new Date(at);
@@ -7228,7 +7248,7 @@
     const head = withDay ? `${opDayTitle(toYMD(new Date(op.at)), toYMD(new Date()))} ${opHM(op.at)}` : opHM(op.at);
     return `<div class="op-block">
       <div class="op-block-head"><span class="op-block-time">${head}</span><i></i></div>
-      <div class="op-card" data-op-id="${op.id}"><h4>${opHeadlineHTML(op)}</h4>${opLinesHTML(op)}</div>
+      <div class="op-card" data-op-id="${op.id}"><h4>${opHeadlineHTML(op)}</h4></div>
     </div>`;
   }
   function opVisibleOps() {
