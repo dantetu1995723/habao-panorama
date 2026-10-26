@@ -166,11 +166,11 @@
   };
 
   const SEED = [
-    { id: "t1", title: "起床测血压", h: 6, m: 30, cat: "monitoring", note: "静坐 5 分钟后测量" },
+    { id: "t1", title: "起床测血压", h: 6, m: 30, cat: "monitoring", note: "依据出院记录，确诊高血压3级，每日测血压两次" },
     { id: "t2", title: "晨起温水", h: 7, m: 0, cat: "diet", note: "200–300 ml 温水" },
     { id: "t3", title: "早餐", h: 7, m: 30, cat: "diet", note: "低盐低脂，搭配粗粮" },
-    { id: "t4", title: "服用阿司匹林肠溶片", h: 8, m: 0, cat: "medication", note: "100 mg · 早餐后" },
-    { id: "t5", title: "服用美托洛尔缓释片", h: 8, m: 30, cat: "medication", note: "47.5 mg · 早餐后" },
+    { id: "t4", title: "服用阿司匹林肠溶片", h: 8, m: 0, cat: "medication", note: "依据出院记录，阿司匹林肠溶片每日用药一次" },
+    { id: "t5", title: "服用美托洛尔缓释片", h: 8, m: 30, cat: "medication", note: "依据出院记录，美托洛尔缓释片每日用药一次" },
     { id: "t6", title: "晨间散步", h: 9, m: 0, cat: "exercise", note: "匀速步行，心率 ≤ 110 bpm" },
     { id: "t7", title: "上肢康复操", h: 10, m: 0, cat: "exercise", note: "坐姿弹力带训练 · 2 组 × 10 次" },
     { id: "t8", title: "上午加餐", h: 10, m: 30, cat: "diet", note: "一份水果 / 坚果", cycle: false },
@@ -181,10 +181,10 @@
     { id: "t13", title: "饮水提醒", h: 16, m: 0, cat: "diet", note: "累计饮水 ≥ 800 ml（全天 1.5–2 L）" },
     { id: "t14", title: "晚餐", h: 18, m: 0, cat: "diet", note: "七分饱 · 少油少盐" },
     { id: "t15", title: "晚间散步", h: 19, m: 0, cat: "exercise", note: "饭后半小时 · 慢速" },
-    { id: "t16", title: "服用阿托伐他汀钙片", h: 21, m: 0, cat: "medication", note: "20 mg · 睡前" },
+    { id: "t16", title: "服用阿托伐他汀钙片", h: 21, m: 0, cat: "medication", note: "依据出院记录，阿托伐他汀钙片每晚用药一次" },
     { id: "t17", title: "放松冥想", h: 21, m: 30, cat: "rest", note: "深呼吸练习 · 478 呼吸法" },
     { id: "t18", title: "准备入睡", h: 22, m: 0, cat: "rest", note: "关闭屏幕，调暗灯光" },
-    { id: "t19", title: "心内科复查", h: 9, m: 0, cat: "appointment", note: "每月提醒 · 带齐近期血压/心率记录" },
+    { id: "t19", title: "心内科复查", h: 9, m: 0, cat: "appointment", note: "依据出院记录，每月复查一次，带齐近期血压/心率记录" },
   ];
   // 真机模拟：SEED 是 const 绑定、内容可变；冷启动时从这份快照还原
   const SEED0 = SEED.map((t) => ({ ...t }));
@@ -233,12 +233,37 @@
     return (liveMeds().find((x) => x.name === title) || {}).dose || "";
   }
 
-  /// 补充备注 = 来源依据（与真机 PlanBasisNarrative.supplementaryNote 同句，不含日程）
+  function medFreqPhrase(raw) {
+    const c = String(raw || "").replace(/\s+/g, "");
+    if (!c) return "每日用药一次";
+    if (c.indexOf("用药") >= 0 || c.indexOf("服药") >= 0) return c;
+    const map = [
+      ["每日1次", "每日用药一次"],
+      ["每日一次", "每日用药一次"],
+      ["每日2次", "每日用药两次"],
+      ["每日两次", "每日用药两次"],
+      ["每日二次", "每日用药两次"],
+      ["每日3次", "每日用药三次"],
+      ["每日三次", "每日用药三次"],
+      ["每晚1次", "每晚用药一次"],
+      ["每晚一次", "每晚用药一次"],
+      ["隔日1次", "隔日用药一次"],
+      ["隔日一次", "隔日用药一次"],
+      ["每周1次", "每周用药一次"],
+      ["每周一次", "每周用药一次"],
+      ["每12小时1次", "每12小时用药一次"],
+      ["每12小时一次", "每12小时用药一次"],
+    ];
+    for (let i = 0; i < map.length; i++) {
+      if (c.indexOf(map[i][0]) >= 0) return map[i][1];
+    }
+    return "每日用药一次";
+  }
+
+  /// 补充备注：直接写明来源依据与频次规则（与真机 PlanBasisNarrative.supplementaryNote 同句）
   function confirmMedNote(title) {
     const m = liveMeds().find((x) => x.name === title);
-    if (!m) return `${title}，来源出院记录的用药。`;
-    const parsed = [m.dose, m.freq, m.usage].filter(Boolean).join(" ");
-    return parsed ? `${title} ${parsed}，来源出院记录的用药。` : `${title}，来源出院记录的用药。`;
+    return `依据出院记录，${title}${medFreqPhrase(m ? m.freq : "")}`;
   }
 
   /// 顶部依据段：活卡片日程 + 来源（与真机 PlanBasisNarrative.scheduleBoundNote 同句）
@@ -260,10 +285,11 @@
   function confirmApptItems() {
     return liveAppts().map((a) => {
       const fire = apptFireDate(a);
+      const evt = a.source === "手术日期" ? "手术" : "出院";
       return {
         title: a.title,
         time: `每月${fire.getDate()}日 ${a.time}`,
-        note: `${a.title}，来源${a.category}的${a.source} ${ymdCn(a.sourceYMD)}。`,
+        note: `依据${a.category}，${ymdCn(a.sourceYMD)}${evt}，每月复查一次`,
       };
     });
   }
@@ -319,7 +345,7 @@
   }
 
   function confirmMonitorNote(title) {
-    return `${title}，来源出院记录的出院诊断 ${htnLabel()}。`;
+    return `依据出院记录，确诊${htnLabel()}，每日测血压两次`;
   }
 
   function confirmMonitorBasis(d) {
@@ -1158,7 +1184,7 @@
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "按组分区预览。与首次上传、身体报告·基础报告共用同一份存量。入组可改类别 / 删组（必传出院记录至少留一组）；复查不改类别。右上入组「解析」、存档「提交」。无存量时空态只留文案，拍资料走左上「拍摄」，页内不再放「拍摄资料」钮。" },
     "first-rest": { code: "CreateScheduleFlowView", note: "点名称换预设；点时刻出居中「时刻调整」弹层（标题为事项名，双列时/分步进，分步长 5，取消 / 完成，点遮罩取消）。默认六项（起床 / 三餐 / 午休 / 睡觉，不含测血压）。「稍后」关整段创建流回首页；底栏「拍照上传病历」替换本页，不压栈。" },
-    "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。顶栏「计划 / 解析依据」两枚 Tab（同构健康计划未完成/已完成），默认落计划。**每个大块一张模块卡**（疾病信息 / 用药 / 测血压 / 复查）：卡头收在白卡内一行——图标井 + 标题（16pt）+ 右侧「依据资料」胶囊（点开铺开这一块的来源照片，浅蓝柔底托住），下面叠可改原文，不再写灰色字段名和「因此安排」那句，页顶也不再放说明文字。原文直接打字（用药整行原文、测血压的高血压诊断、复查项目、出院诊断），打字时下方按已打的字给补全候选（本地词表占位，**接 AI 只换 PlanBasisPredictor 一处**；已等于原文的候选不出现），打字只落草稿、点该块「确认」才回写重算（卡底「取消 / 确认」两枚等宽铺满，不再写「已改 N 处」），本页无语音入口；**来源日期点开万年历**（`CalendarDatePickerView`）。**时刻与循环不在这一页改**（走计划页卡片的「编辑」）。「重新生成计划」收在每个大块的卡底：**确认过才出现**（带这一块的修正处数），按下时把这一块还压着的草稿一并落库、清掉这一块标记、切回计划页并 toast「已按修正重新生成计划」；**两页底栏同一条、只有一枚「重新拍照解析」**。同源重算条目与计划页跟着变，备注只在没被用户改过时重算；来源照片每块各挂自己的来源（疾病信息 / 用药 / 测血压挂出院记录、复查挂出院记录与手术记录；默认收起）。作息区首次入组才带；复查置底标红；右上「确认」写入用药+复查，左上「稍后」关整段流。" },
+    "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表（不再单设「计划 / 解析依据」顶部切换与解析依据页），解析来源直接写明在每条计划卡片的补充备注里（如「依据出院记录，阿司匹林肠溶片每日用药一次」「依据出院记录，确诊高血压3级，每日测血压两次」「依据出院记录，2026年9月17日出院，每月复查一次」），点开备注或点「编辑」即可修改。作息区首次入组才带；复查置底标红；底栏一枚「重新拍照解析」；右上「确认」写入用药+复查，左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），进与首次上传 / 基础报告同一份资料详情，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
@@ -3887,12 +3913,13 @@
         const cat = el.dataset.cat || "exercise";
         const time = el.dataset.time || "08:00";
         const hm = String(time).match(/(\d{1,2}):(\d{2})/);
+        const existingNote = S.confirmEditIndex != null ? (S.confirmDrafts?.[S.confirmEditIndex]?.note || "") : "";
         initDraft({
           cat,
           h: hm ? +hm[1] : parseHour(time),
           m: hm ? +hm[2] : 0,
           title: el.dataset.title || "",
-          note: "",
+          note: existingNote,
         });
         S.draft.cycle = cat !== "appointment";
         if (cat === "appointment") S.draft.rule = "monthly";
@@ -4634,6 +4661,7 @@
               title: S.draft.title,
               time: `${S.draft.hour}:${pad(S.draft.min)}`,
               cat: S.draft.cat,
+              note: S.draft.note || "",
               cycle: !!S.draft.cycle,
               muteFirst: !!S.draft.muteFirst,
             };
@@ -6168,9 +6196,7 @@
       <div class="page">
         ${navBar(`<button class="nav-text nav-hit" data-act="later" type="button">稍后</button>`, "确认计划",
           `<button class="nav-text blue nav-hit" data-act="confirmPlan" type="button">确认</button>`)}
-        <div class="px20" style="padding-top:12px">${confirmPaneTabs()}</div>
         <div class="scroll px20" style="padding-top:12px;padding-bottom:120px">
-          ${S.confirmPane === "basis" ? basisCopy() : `
           ${groups.map((g) => `
             <div class="confirm-period">
               ${sectionHead(I[g.icon], g.title, g.items.length)}
@@ -6188,7 +6214,7 @@
               cat: "appointment", title: a.title, time: a.time, appt: true, draft: true, cycle: true,
               note: a.note,
             })).join("")}</div>
-          </div>`}
+          </div>
         </div>
         <div class="px20 col gap10" style="padding-bottom:28px">
           <button class="cta h52" data-act="reparseCase" type="button">${I.cam}重新拍照解析</button>
