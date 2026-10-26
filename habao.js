@@ -206,12 +206,12 @@
   ];
 
   const REST_PRESET = [
-    { name: "起床", t: "07:00", note: "醒后先在床边坐一会，再慢慢起身" },
-    { name: "早餐", t: "07:30", note: "低盐低脂，搭配粗粮" },
-    { name: "午餐", t: "12:00", note: "每日盐摄入 < 5g · 多蔬菜" },
-    { name: "午休", t: "13:00", note: "保持安静环境，避免手机" },
-    { name: "晚餐", t: "18:00", note: "七分饱 · 少油少盐" },
-    { name: "上床睡觉", t: "22:00", note: "关闭屏幕，调暗灯光" },
+    { name: "起床", t: "07:00", note: "" },
+    { name: "早餐", t: "07:30", note: "" },
+    { name: "午餐", t: "12:00", note: "" },
+    { name: "午休", t: "13:00", note: "" },
+    { name: "晚餐", t: "18:00", note: "" },
+    { name: "上床睡觉", t: "22:00", note: "" },
   ];
 
   /// 出院诊断含高血压时由解析补进确认页，不进基础作息预设
@@ -1184,7 +1184,7 @@
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "按组分区预览。与首次上传、身体报告·基础报告共用同一份存量。入组可改类别 / 删组（必传出院记录至少留一组）；复查不改类别。右上入组「解析」、存档「提交」。无存量时空态只留文案，拍资料走左上「拍摄」，页内不再放「拍摄资料」钮。" },
     "first-rest": { code: "CreateScheduleFlowView", note: "点名称换预设；点时刻出居中「时刻调整」弹层（标题为事项名，双列时/分步进，分步长 5，取消 / 完成，点遮罩取消）。默认六项（起床 / 三餐 / 午休 / 睡觉，不含测血压）。「稍后」关整段创建流回首页；底栏「拍照上传病历」替换本页，不压栈。" },
-    "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表（不再单设「计划 / 解析依据」顶部切换与解析依据页），解析来源直接写明在每条计划卡片的补充备注里（如「依据出院记录，阿司匹林肠溶片每日用药一次」「依据出院记录，确诊高血压3级，每日测血压两次」「依据出院记录，2026年9月17日出院，每月复查一次」），点开备注或点「编辑」即可修改。作息区首次入组才带；复查置底标红；底栏一枚「重新拍照解析」；右上「确认」写入用药+复查，左上「稍后」关整段流。" },
+    "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表（不再单设「计划 / 解析依据」顶部切换与解析依据页），解析来源直接写明在每条计划卡片的补充备注里（如「依据出院记录，阿司匹林肠溶片每日用药一次」「依据出院记录，确诊高血压3级，每日测血压两次」「依据出院记录，2026年9月17日出院，每月复查一次」）；起床、早餐等非解析预设日程初始为无备注空集，默认显示「可编辑备注」占位。点开备注或点「编辑」即可修改。作息区首次入组才带；复查置底标红；底栏一枚「重新拍照解析」；右上「确认」写入用药+复查，左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），进与首次上传 / 基础报告同一份资料详情，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
@@ -6200,13 +6200,17 @@
           ${groups.map((g) => `
             <div class="confirm-period">
               ${sectionHead(I[g.icon], g.title, g.items.length)}
-              <div class="col gap10">${g.items.map((x) => actionCard({
-                cat: x.cat, title: x.title, time: x.time, draft: true, cycle: true, idx: x.i,
-                dose: x.cat === "medication" ? medDose(x.title) : "",
-                note: x.cat === "medication"
+              <div class="col gap10">${g.items.map((x) => {
+                const rawNote = x.cat === "medication"
                   ? (x.note != null ? x.note : confirmMedNote(x.title))
-                  : (x.note || ""),
-              })).join("")}</div>
+                  : (x.note || "");
+                return actionCard({
+                  cat: x.cat, title: x.title, time: x.time, draft: true, cycle: true, idx: x.i,
+                  dose: x.cat === "medication" ? medDose(x.title) : "",
+                  note: rawNote || "可编辑备注",
+                  noteEmpty: !rawNote,
+                });
+              }).join("")}</div>
             </div>`).join("")}
           <div class="confirm-period">
             ${sectionHead(I.cal, "复查计划", appts.length, true)}
@@ -8893,14 +8897,14 @@
   function periodHead(p, count) {
     return `<div class="period-h">${I[p.icon] || ""}${p.title}<span class="s12 t-sec">${count} 项</span></div>`;
   }
-  function cardNote(icon, text, actName, idx) {
-    const inner = `${icon}<span>${text}</span>`;
+  function cardNote(icon, text, actName, idx, isMuted) {
+    const inner = `${icon}<span${isMuted ? ' style="opacity:.6"' : ""}>${text}</span>`;
     return actName
       ? `<button class="act-note tappable" data-act="${actName}" data-i="${idx}" type="button">${inner}</button>`
       : `<div class="act-note">${inner}</div>`;
   }
 
-  function actionCard({ cat, title, time, date, appt, done, hist, id, toggle, draft, cycle, idx, dose, note }) {
+  function actionCard({ cat, title, time, date, appt, done, hist, id, toggle, draft, cycle, idx, dose, note, noteEmpty }) {
     const kind = appt || cat === "appointment" ? "appointment" : cat;
     const cls = done ? "done" : kind === "appointment" ? "appt" : "";
     const chip = CAT[kind]?.name || "";
@@ -8934,7 +8938,7 @@
     }
     const barCls = showDelete && !draft && isCycle ? " triple" : "";
     const notes = note
-      ? cardNote(I.alignLeft, note, idx == null ? null : "editNote", idx)
+      ? cardNote(I.alignLeft, note, idx == null ? null : "editNote", idx, noteEmpty)
       : "";
     const seedTask = id ? SEED.find((x) => x.id === id) : null;
     const rangeText = seedTask ? taskDateRangeLabel(seedTask) : taskDateRangeLabel({ cycle: isCycle });
