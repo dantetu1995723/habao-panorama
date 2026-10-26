@@ -100,6 +100,8 @@
     scale: `<svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M6 7.2h12A2.8 2.8 0 0 1 20.8 10v7.2A2.8 2.8 0 0 1 18 20H6a2.8 2.8 0 0 1-2.8-2.8V10A2.8 2.8 0 0 1 6 7.2Zm6 2.2a3.4 3.4 0 1 0 .1 6.8 3.4 3.4 0 0 0-.1-6.8Zm0 1.7a1.7 1.7 0 1 1 0 3.4 1.7 1.7 0 0 1 0-3.4Z"/></svg>`,
     watch: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.2 2.2h7.6l.7 3.1h.3A2.2 2.2 0 0 1 19 7.5v9a2.2 2.2 0 0 1-2.2 2.2h-.3l-.7 3.1H8.2l-.7-3.1h-.3A2.2 2.2 0 0 1 5 16.5v-9a2.2 2.2 0 0 1 2.2-2.2h.3l.7-3.1Zm3.2 6.2v4.1l2.6 1.5-.9 1.5L9.6 13.4V8.4h1.8Z"/></svg>`,
     waves: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8.5 8.4a5 5 0 0 0 0 7.2"/><path d="M5.6 5.6a9 9 0 0 0 0 12.8"/><path d="M15.5 8.4a5 5 0 0 1 0 7.2"/><path d="M18.4 5.6a9 9 0 0 1 0 12.8"/><circle cx="12" cy="12" r="1.35" fill="currentColor" stroke="none"/></svg>`,
+    medCase: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 3h6a2 2 0 0 1 2 2v2h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3V5a2 2 0 0 1 2-2Zm0 4h6V5H9v2Zm2 4v2H9v2h2v2h2v-2h2v-2h-2v-2h-2Z"/></svg>`,
+    shieldCheck: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5.4v6.1c0 5.1 3.4 9.8 8 11 4.6-1.2 8-5.9 8-11V5.4L12 2Zm-1.2 13.6-3.4-3.4 1.4-1.4 2 2 4.6-4.6 1.4 1.4-6 6Z"/></svg>`,
   };
   Object.keys(I).forEach((k) => { I[k] = I[k].replace("<svg ", '<svg width="20" height="20" '); });
 
@@ -1146,11 +1148,11 @@
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。" },
-    consult: { code: "SmartConsultChatView", note: "V10.126：底坞随系统键盘升降（不再自绘键盘动画），与键盘同帧；功能板那一截按「键盘还没占掉的高度」补足，上下与来回切都不再错拍。点输入框出光标；键盘和功能板共用底部同一截高度，来回切时输入框不跳。点加号：键盘落下、功能板（拍照 / 相册 / AI电话）从这一截里出来；再点输入框，功能板让回键盘。长按输入框把语音流式写进框里，松手留下，上滑取消。V0.0 三个入口压暗点不开。V0.1 未开通 VIP 时同样压暗，点按进 VIP 页；开通后可进。" },
+    consult: { code: "SmartConsultChatView", note: "V10.149：导航栏右上角并列「案例」与「对话」双胶囊。点「案例」展开「AI 问诊 · 联动案例库」浮层（三大模块分类：健康计划 / 指标检测 / 身体报告，共 6 套双向闭环案例），三大模块拥有各自正交不重叠的专属落点：健康计划落日程排程库（RehabPlanStore）、指标检测落体征测量库（VitalsStore）、身体报告落报告结论与随访评估库（ReviewConclusionText）。点选任一案例自动点亮底坞对应资料胶囊、展示顶部流程导览与数据摘要、还原 4 轮医患问答，并在末条 AI 回复下内嵌可执行闭环卡（支持一键新建/调整计划、记入复测读数、更新报告与随访结论，或直接跳转对应模块核对结果）。底坞随系统键盘同帧升降。" },
     profile: { code: "ServiceView", note: "Hero 健康档案 + 打卡通知/协议。V0.0 不出现家属管理、操作记录、硬件管理、VIP，也没有右上身份胶囊，档案标「本人」。V0.1 在档案卡下加 VIP 卡（¥2400 / 年）；未开通时家属管理、操作记录、硬件管理仍在列表里，副说明「开通 VIP 后可用」，点按进 VIP 页。开通后这三行恢复进入，身份胶囊、通知家属和问诊一起放开。记录和绑定仍在，取消订阅只重新上锁、不删数据。身份胶囊仍决定写入归属，但不再在卡片上盖章。" },
-    vip: { code: "VIPView", note: "仅从 V0.1 入口进来。Hero 写哈宝 VIP 与 ¥2400 / 年，下面四项：家属管理、硬件管理、操作记录、问诊。底栏「立即开通」先确认，演示不扣款，开通后有效期一年；已开通可「取消订阅」，确认后四项重新上锁，家属、记录和硬件绑定留在本机。注销清空开通状态，退出登录保留。" },
-    hardware: { code: "HardwareManageView", note: "仅 V0.1（V0.0 个人中心没有这一行）。三张设备模块卡：未绑定写「未绑定」、右端挂「扫码绑定」浅蓝胶囊；已绑定写绿色「已绑定 · 编号」、右端箭头。点未绑定卡进扫码页，点已绑定卡进设备页。副说明按已绑定的名字拼，三台齐了写「三台都已绑定」。绑定留在本机，切回 V0.0 只藏入口。" },
-    "hardware-scan": { code: "HardwareScanView", note: "V10.128：深蓝黑底全屏扫码页——264pt 取景框 + 青色扫描线，约 1.5 秒识别到对应哈宝设备（体重秤 2041 / 血压计 3086 / 手表 1172），四角转绿、白卡上浮，「绑定这台」或「重新扫描」，绑定后回列表。已绑定页显示编号和绑定日，解除要确认、确认后回列表。不调用摄像头，测量不写进档案或血压监测。退出保留，注销清空。" },
+    vip: { code: "VIPView", note: "仅从 V0.1 入口进来。Hero 写哈宝 VIP 与 ¥2400 / 年，下面六项完整详情：家属管理、硬件管理、操作记录、哈宝医生问诊，以及两项专属服务权益（家庭医生专业团队、支架保险理赔服务）。底栏「立即开通」先确认，演示不扣款，开通后有效期一年；已开通可「取消订阅」，确认后四项功能重新上锁、两项服务权益同步终止，家属、记录和硬件绑定留在本机。注销清空开通状态，退出登录保留。" },
+    hardware: { code: "HardwareManageView", note: "仅 V0.1（V0.0 个人中心没有这一行）。两张设备模块卡：未绑定写「未绑定」、右端挂「扫码绑定」浅蓝胶囊；已绑定写绿色「已绑定 · 编号」、右端箭头。点未绑定卡进扫码页，点已绑定卡进设备页。副说明按已绑定的名字拼，两台齐了写「两台都已绑定」。绑定留在本机，切回 V0.0 只藏入口。" },
+    "hardware-scan": { code: "HardwareScanView", note: "V10.128：深蓝黑底全屏扫码页——264pt 取景框 + 青色扫描线，约 1.5 秒识别到对应哈宝设备（血压计 3086 / 手表 1172），四角转绿、白卡上浮，「绑定这台」或「重新扫描」，绑定后回列表。已绑定页显示编号和绑定日，解除要确认、确认后回列表。不调用摄像头，测量不写进血压监测。退出保留，注销清空。" },
     activity: { code: "ActivityLogView", note: "仅 V0.1（V0.0 个人中心没有这一行）。一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内遵循 Who / Where / When / What / How 大一统规则字段：以 When（时刻 + 细分隔线）做块头，块内白卡只展示一句话 = [Who 人名浅蓝胶囊] + 在 + [Where 界面白底蓝框胶囊] + [What 粗体蓝字动作] + [How 浅蓝底圆角内容色块]，个人中心入口与记录页共用同一句式（入口处 How 单行省略）。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条 How；只补资料写「（计划本次未动）」。How 只读不跳模块；页顶搜索框搜记录内容；长按一条出「改归属 / 删除这条记录」，超 300 条丢过更早记录时最早那页页脚提示。" },
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.98：用药与复查有存量也直接落本页，存量组列在底部组轨道。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
@@ -1184,7 +1186,7 @@
     phone: "13800138013",
     birthday: "1968年3月12日",
     hw: {},
-    hwKind: "scale",
+    hwKind: "bloodPressure",
     hwPhase: "idle",
     block: 1,
     liveFace: null,
@@ -1232,7 +1234,15 @@
     inputMode: "voice",
     plusPanel: false,
     consultKeyboard: false,
-    consultModule: null,
+    consultModule: "plan",
+    caseMode: true,
+    caseMenu: false,
+    caseCat: "plan",
+    activeCaseId: "plan_medication",
+    caseStep: null,
+    appliedCaseActions: {},
+    consultReportOverall: "",
+    consultReportSub: {},
     pendingImage: false,
     chatDraft: "",
     completed: { t1: true, t2: true },
@@ -1496,8 +1506,9 @@
       { act: "debugGen", label: "先在开发菜单切到 V0.1（V0.0 三个入口压暗点不开）" },
       { screen: "vip", optional: true, label: "未开通时点压暗的哈宝，进 VIP 页" },
       { act: "activateVip", optional: true, label: "确认开通（演示不扣款）" },
-      { screen: "consult", label: "开通后：底坞中钮 / 血压监测 / 身体报告三入口" },
-      { act: "sendChat", label: "发送文字（V10.56 空态不再放示例问句）" },
+      { screen: "consult", label: "开通后进哈宝医生：右上「案例」默认处于被点击激活态" },
+      { anyAct: ["consultPlan", "consultVitals", "consultReport", "toggleCaseStepMode"], label: "点输入框上方三枚模块 Tab 直接切换案例（或逐步模拟提问）", optional: true },
+      { anyAct: ["applyCaseAction", "sendChat"], label: "点击落点卡片主按钮一键落库（或发送提问推进闭环）" },
       { act: "newChat", label: "新对话", optional: true },
       { screen: "consult-history", label: "「对话」→ 历史记录", optional: true },
     ]},
@@ -1535,9 +1546,9 @@
       { screen: "profile", label: "个人中心" },
       { screen: "vip", optional: true, label: "未开通时硬件这一行先进 VIP 页" },
       { act: "activateVip", optional: true, label: "确认开通（演示不扣款）" },
-      { screen: "hardware", label: "开通后进硬件管理：三张设备模块卡" },
-      { act: "openHw", label: "点「体重秤」卡进扫码页，自动扫码（约 1.5 秒识别）" },
-      { act: "hwBind", label: "识别到哈宝体重秤 2041，「绑定这台」" },
+      { screen: "hardware", label: "开通后进硬件管理：两张设备模块卡" },
+      { act: "openHw", label: "点「血压计」卡进扫码页，自动扫码（约 1.5 秒识别）" },
+      { act: "hwBind", label: "识别到哈宝血压计 3086，「绑定这台」" },
       { act: "openHw", label: "（可选）再点这张卡，进已绑定页", optional: true },
       { act: "hwUnbindAsk", label: "（可选）「解除绑定」", optional: true },
       { act: "hwUnbind", label: "（可选）确认解除，回模块卡列表", optional: true },
@@ -2592,7 +2603,23 @@
     };
     return (map[id] || [...home, C(id)]).map((f) => ({ ...f }));
   }
+  function ensureConsultCaseOnEnter(prevScreen) {
+    if (!S.caseMode) return;
+    let targetCat = null;
+    if (prevScreen === "vitals" || prevScreen === "vitals-detail") targetCat = "vitals";
+    else if (prevScreen === "report" || prevScreen === "report-sub" || prevScreen === "followup" || prevScreen === "analysis") targetCat = "report";
+    else if (prevScreen === "schedule") targetCat = "plan";
+    if (targetCat) {
+      const hit = CONSULT_CASES.find((c) => c.cat === targetCat);
+      if (hit) { applyConsultCase(hit, false); return; }
+    }
+    if (!S.activeCaseId || (!S.messages.length && S.caseStep == null)) {
+      const fallback = CONSULT_CASES.find((c) => c.id === S.activeCaseId) || CONSULT_CASES[0];
+      if (fallback) applyConsultCase(fallback, false);
+    }
+  }
   function present(id, how) {
+    const prevScreen = S.screen;
     S.overlay = null;
     S.chatMenu = false;
     // V10.49：复诊打卡形态只在落到复查报告页那一下成立，去别处即失效
@@ -2607,11 +2634,13 @@
       S.frames.push({ id, how });
     }
     S.screen = id;
+    if (id === "consult") ensureConsultCaseOnEnter(prevScreen);
     S.enter = true;
     render();
     S.enter = false;
   }
   function jump(id) {
+    const prevScreen = S.screen;
     resetFlowFlags();
     if (id === "ocr-detail" || id === "ocr-group") seedDocGroups(3);
     if (id === "confirm-plan") {
@@ -2629,6 +2658,7 @@
     }
     S.frames = hostPath(id);
     S.screen = id;
+    if (id === "consult") ensureConsultCaseOnEnter(prevScreen);
     S.overlay = null;
     S.chatMenu = false;
     render();
@@ -4332,9 +4362,35 @@
         const v = (S.chatDraft || "").trim();
         if (!v && !S.pendingImage) return;
         S.consultOpen = true;
+        const activeCase = S.caseMode ? CONSULT_CASES.find((x) => x.id === S.activeCaseId) : null;
+        if (activeCase && S.caseStep != null && S.caseStep < activeCase.turns.length) {
+          const userTurn = activeCase.turns[S.caseStep];
+          const aiTurn = activeCase.turns[S.caseStep + 1];
+          S.messages.push({ who: "user", t: v || (userTurn ? userTurn.t : "") });
+          if (aiTurn) S.messages.push({ ...aiTurn });
+          S.caseStep += 2;
+          if (S.caseStep < activeCase.turns.length) {
+            S.chatDraft = activeCase.turns[S.caseStep].t;
+          } else {
+            S.chatDraft = "";
+            S.caseStep = null;
+          }
+          S.pendingImage = false;
+          render();
+          return;
+        }
         const photo = S.pendingImage ? "（图片）" : "";
-        S.messages.push({ who: "user", t: `${photo}${v || "请帮我看看这张图片"}` });
-        S.messages.push({ who: "ai", t: "收到。结合你最近的血压和用药，我先帮你看一下可能原因与居家注意点。" });
+        const hadImage = !!S.pendingImage;
+        const userText = `${photo}${v || "请帮我看看这张图片"}`;
+        S.messages.push({ who: "user", t: userText });
+        const routed = routeFreeConsultTurn(v || "请帮我看看这张图片", hadImage);
+        if (routed.card) {
+          if (!S.freeCards) S.freeCards = {};
+          S.freeCards[routed.card.id] = routed.card;
+          S.messages.push({ who: "ai", t: routed.reply, caseId: routed.card.id });
+        } else {
+          S.messages.push({ who: "ai", t: routed.reply });
+        }
         S.chatDraft = "";
         S.pendingImage = false;
         render();
@@ -4649,7 +4705,7 @@
         });
       },
       openHw() {
-        const k = el.dataset.k || "scale";
+        const k = el.dataset.k || "bloodPressure";
         S.hwKind = k;
         const bound = !!(S.hw && S.hw[k]);
         if (hwTimer) { clearTimeout(hwTimer); hwTimer = null; }
@@ -4659,7 +4715,7 @@
         if (!bound) act("hwScan", el);
       },
       hwScan() {
-        const kind = S.hwKind || "scale";
+        const kind = S.hwKind || "bloodPressure";
         if (hwTimer) clearTimeout(hwTimer);
         S.hwPhase = "scan";
         render();
@@ -4714,7 +4770,7 @@
       askVip() {
         openOverlay("confirm", {
           title: "开通 VIP",
-          body: "费用 ¥2400 / 年。这是演示，不会真实扣款。开通后可以使用家属管理、硬件管理、操作记录和问诊。",
+          body: "费用 ¥2400 / 年。这是演示，不会真实扣款。开通后可以使用家属管理、硬件管理、操作记录、哈宝医生问诊，并享有家庭医生专业团队与支架保险理赔服务。",
           ok: "确认开通",
           action: "activateVip",
         });
@@ -4731,7 +4787,7 @@
       askCancelVip() {
         openOverlay("confirm", {
           title: "取消订阅",
-          body: "取消后家属管理、硬件管理、操作记录和问诊会重新锁上。已经绑定的家属、记录和硬件还会留在手机里。",
+          body: "取消后家属管理、硬件管理、操作记录和哈宝医生问诊会重新锁上，家庭医生专业团队与支架保险理赔服务同步终止。已经绑定的家属、记录和硬件还会留在手机里。",
           ok: "取消订阅",
           danger: true,
           action: "cancelVip",
@@ -4889,6 +4945,10 @@
         S.messages = [];
         S.consultOpen = false;
         S.chatMenu = false;
+        S.caseMenu = false;
+        S.caseMode = false;
+        S.activeCaseId = null;
+        S.caseStep = null;
         S.consultModule = null;
         S.pendingImage = false;
         S.plusPanel = false;
@@ -4897,11 +4957,197 @@
         S.chatDraft = "";
         render();
       },
-      toggleMenu() { S.chatMenu = !S.chatMenu; render(); },
+      toggleMenu() {
+        S.chatMenu = !S.chatMenu;
+        S.caseMenu = false;
+        S.consultKeyboard = false;
+        S.plusPanel = false;
+        render();
+      },
+      toggleCaseMode() {
+        S.caseMode = !S.caseMode;
+        S.chatMenu = false;
+        S.caseMenu = false;
+        S.consultKeyboard = false;
+        S.plusPanel = false;
+        if (S.caseMode) {
+          const cat = S.consultModule || S.caseCat || "plan";
+          const hit = CONSULT_CASES.find((c) => c.cat === cat) || CONSULT_CASES[0];
+          if (hit) applyConsultCase(hit, false);
+        } else {
+          S.activeCaseId = null;
+          S.caseStep = null;
+          S.messages = [];
+          S.chatDraft = "";
+        }
+        render();
+      },
+      toggleCaseMenu() {
+        act("toggleCaseMode");
+      },
+      closeCaseMenu() {
+        S.caseMenu = false;
+        S.chatMenu = false;
+        render();
+      },
+      pickCaseCat() {
+        const cat = el.dataset.cat || "plan";
+        const hit = CONSULT_CASES.find((c) => c.cat === cat);
+        if (hit) applyConsultCase(hit, S.caseStep != null);
+        render();
+      },
+      loadConsultCase() {
+        const cid = el.dataset.case;
+        const item = CONSULT_CASES.find((x) => x.id === cid);
+        if (!item) return;
+        applyConsultCase(item, S.caseStep != null);
+        render();
+      },
+      toggleCaseStepMode() {
+        const item = CONSULT_CASES.find((x) => x.id === S.activeCaseId);
+        if (!item) return;
+        applyConsultCase(item, S.caseStep == null);
+        render();
+      },
+      applyCaseAction() {
+        const cid = el.dataset.case;
+        const item = CONSULT_CASES.find((x) => x.id === cid);
+        const card = (item && item.card) || (S.freeCards && S.freeCards[cid]);
+        if (!card) return;
+        if (S.appliedCaseActions[cid]) return;
+        S.appliedCaseActions[cid] = true;
+        const eff = card.effect;
+        if (eff && eff.kind === "plan") {
+          const existing = SEED.find((t) => t.title === eff.title)
+            || SEED.find((t) => t.cat === eff.cat && (
+              (eff.title.includes("阿司匹林") && t.title.includes("阿司匹林"))
+              || (eff.title === "户外散步" && t.title.includes("散步"))
+            ));
+          if (existing) {
+            existing.h = eff.h;
+            existing.m = eff.m;
+            existing.note = eff.note;
+            logOp("修改了计划", "健康计划", existing.title);
+          } else {
+            SEED.push({
+              id: `case_${cid}`,
+              title: eff.title,
+              cat: eff.cat,
+              h: eff.h,
+              m: eff.m,
+              cycle: true,
+              rec: eff.rec || "每日",
+              durPreset: "一年",
+              note: eff.note || "",
+            });
+            logOp("新建了计划", "健康计划", eff.title);
+          }
+          toast("已同步至健康计划");
+        } else if (eff && eff.kind === "pausePlan") {
+          const targetTasks = SEED.filter((t) => (eff.title && t.title === eff.title) || (eff.cat && t.cat === eff.cat));
+          if (eff.pauseTodayOnly) {
+            targetTasks.forEach((t) => { delete S.completed[t.id]; });
+            logOp("删除了单次计划", "健康计划", eff.title || "今日运动计划");
+            toast("已删除今日该项计划");
+          } else {
+            for (let i = SEED.length - 1; i >= 0; i--) {
+              if ((eff.title && SEED[i].title === eff.title) || (eff.cat && SEED[i].cat === eff.cat)) {
+                SEED.splice(i, 1);
+              }
+            }
+            logOp("删除了后续计划", "健康计划", eff.title || "运动类计划");
+            toast("已删除后续运动计划");
+          }
+        } else if (eff && eff.kind === "checkInPlan") {
+          if (eff.sys && eff.dia && eff.hr) {
+            S.sys = eff.sys;
+            S.dia = eff.dia;
+            S.hr = eff.hr;
+          }
+          const hit = SEED.find((t) => !S.completed[t.id] && ((eff.title && t.title === eff.title) || (eff.cat && t.cat === eff.cat)))
+            || SEED.find((t) => !S.completed[t.id]);
+          if (hit) {
+            S.completed[hit.id] = true;
+            logOp("打卡了", "健康计划", hit.title);
+          } else {
+            logOp("打卡了", "健康计划", eff.title || "今日康复计划");
+          }
+          toast("已完成今日打卡");
+        } else if (eff && eff.kind === "vitals") {
+          S.sys = eff.sys;
+          S.dia = eff.dia;
+          S.hr = eff.hr;
+          logOp("记录了读数", "血压监测", `血压 ${eff.sys}/${eff.dia} mmHg · 心率 ${eff.hr} bpm`);
+          // 顺带完成当日待打卡的「测血压」计划
+          const pendingBp = SEED.find((t) => t.cat === "monitoring" && !S.completed[t.id]);
+          if (pendingBp) {
+            S.completed[pendingBp.id] = true;
+            logOp("打卡了", "健康计划", `${pendingBp.title}（血压 ${eff.sys}/${eff.dia}，心率 ${eff.hr} bpm）`);
+          }
+          if (eff.alsoRemind && !SEED.some((t) => t.cat === "monitoring" && t.h >= 18)) {
+            SEED.push({
+              id: `case_bp_${cid}`,
+              title: "晚间复测血压",
+              cat: "monitoring",
+              h: 20,
+              m: 0,
+              cycle: true,
+              rec: "每日",
+              durPreset: "一年",
+              note: "静坐 5 分钟后复测血压与心率",
+            });
+          }
+          toast("已记入血压监测");
+        } else if (eff && eff.kind === "report") {
+          S.consultReportOverall = eff.overall || "";
+          if (!S.consultReportSub) S.consultReportSub = {};
+          S.consultReportSub[eff.source] = eff.sub || "";
+          logOp(eff.act || "更新了报告解读", eff.place || "身体报告", eff.how || "");
+          toast("已更新身体报告结论");
+        } else if (eff && eff.kind === "archiveImages") {
+          const isReview = eff.target === "review";
+          const pages = eff.pages || 1;
+          if (isReview) {
+            ARCHIVE_DEMO.review.groups.push({ title: eff.groupTitle || "复查报告", pages });
+            if (eff.overall) S.consultReportOverall = eff.overall;
+            if (!S.consultReportSub) S.consultReportSub = {};
+            if (eff.sub) S.consultReportSub.review = eff.sub;
+            const doneAppts = completeTodayAppointments();
+            logOp("上传了复查资料", "复查报告", [
+              ["资料", `${cnOrdinal(ARCHIVE_DEMO.review.groups.length)}次复查 ${pages} 页`],
+              doneAppts.length ? ["打卡", `${opNames(doneAppts)} 已完成`] : ["计划", "本次未动"],
+            ]);
+            toast("已归入复查报告并联动完成今日复查计划");
+          } else {
+            ARCHIVE_DEMO.baseline.groups.push({ title: eff.groupTitle || "检查报告", pages });
+            if (eff.overall) S.consultReportOverall = eff.overall;
+            if (!S.consultReportSub) S.consultReportSub = {};
+            if (eff.sub) S.consultReportSub.baseline = eff.sub;
+            logOp("上传了资料", "基础报告", `${eff.groupTitle || "检查报告"} ${pages} 页`);
+            toast("已归入基础报告");
+          }
+        } else if (eff && eff.kind === "emergency") {
+          if (eff.sys && eff.dia && eff.hr) {
+            S.sys = eff.sys;
+            S.dia = eff.dia;
+            S.hr = eff.hr;
+            logOp("记录了读数", "血压监测", `危急读数：血压 ${eff.sys}/${eff.dia} mmHg · 心率 ${eff.hr} bpm`);
+          }
+          openOverlay("e120");
+          return;
+        }
+        render();
+      },
+      openCaseTarget() {
+        const target = el.dataset.target || "schedule";
+        go(target, "cover");
+      },
       togglePlus() {
         const opening = !S.plusPanel;
         S.plusPanel = opening;
         S.consultKeyboard = false;
+        S.caseMenu = false;
+        S.chatMenu = false;
         render();
       },
       consultCamera() {
@@ -4916,10 +5162,22 @@
         toast("已从相册选了一张，补充一句再发送");
         render();
       },
-      // 聊天框上方三枚胶囊：把对应存量挂进当前问诊，再点同一枚取消（真机 SmartConsultChatView）
-      consultPlan() { S.consultModule = S.consultModule === "plan" ? null : "plan"; render(); },
-      consultVitals() { S.consultModule = S.consultModule === "vitals" ? null : "vitals"; render(); },
-      consultReport() { S.consultModule = S.consultModule === "report" ? null : "report"; render(); },
+      // 聊天框上方三枚胶囊：案例模式下直接切换对应模块问诊案例（再点当前 Tab 切同模块另一例）；自由问诊下把对应存量挂进当前问诊
+      consultPlan() {
+        if (S.caseMode) { switchCaseByBottomTab("plan"); render(); return; }
+        S.consultModule = S.consultModule === "plan" ? null : "plan";
+        render();
+      },
+      consultVitals() {
+        if (S.caseMode) { switchCaseByBottomTab("vitals"); render(); return; }
+        S.consultModule = S.consultModule === "vitals" ? null : "vitals";
+        render();
+      },
+      consultReport() {
+        if (S.caseMode) { switchCaseByBottomTab("report"); render(); return; }
+        S.consultModule = S.consultModule === "report" ? null : "report";
+        render();
+      },
       consultImage() { openOverlay("consultImage"); },
       pickConsultPhoto() {
         S.pendingImage = true;
@@ -5504,7 +5762,6 @@
   }
 
   const HW_KINDS = [
-    { k: "scale", title: "体重秤", name: "哈宝体重秤", serial: "2041", qrTip: "二维码在秤底或包装盒上。", icon: "scale" },
     { k: "bloodPressure", title: "血压计", name: "哈宝血压计", serial: "3086", qrTip: "二维码在机身底部或包装盒上。", icon: "ecg" },
     { k: "watch", title: "手表", name: "哈宝手表", serial: "1172", qrTip: "二维码在表盒背面或包装上。", icon: "watch" },
   ];
@@ -5518,7 +5775,7 @@
   function hwCaption() {
     const names = HW_KINDS.filter((x) => hwBound(x.k)).map((x) => x.title);
     if (!names.length) return "尚未绑定";
-    if (names.length === HW_KINDS.length) return "三台都已绑定";
+    if (names.length === HW_KINDS.length) return "两台都已绑定";
     return "已绑定" + names.join("、");
   }
   function hwDay(at) {
@@ -5526,7 +5783,6 @@
     return `${d.getMonth() + 1}月${d.getDate()}日`;
   }
   function hwIcon(name) {
-    if (name === "scale") return I.scale;
     if (name === "watch") return I.watch;
     if (name === "waves") return I.waves;
     return I.ecg;
@@ -6151,7 +6407,7 @@
         <div class="px20 grow col" style="padding-top:16px">
           <div class="island-card grow" style="padding:18px;display:flex;flex-direction:column">
             <div class="flex gap10 s19 fb t report-h">${I.doc}综合结论</div>
-            <div class="scroll grow mt12 s21 fm t" style="line-height:1.45">出院后用药规律，血压总体平稳。复查未见新发缺血改变。随访问卷提示日常活动轻度受限，建议保持散步节奏、低盐饮食，复查按每月 6 日执行。</div>
+            <div class="scroll grow mt12 s21 fm t" style="line-height:1.45">出院后用药规律，血压总体平稳。复查未见新发缺血改变。随访问卷提示日常活动轻度受限，建议保持散步节奏、低盐饮食，复查按每月 6 日执行。${S.consultReportOverall ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生问诊补充结论】${S.consultReportOverall}</div>` : ""}</div>
           </div>
           <div class="island-card flex" style="margin:12px 0 4px;padding:8px;border-radius:18px">
             ${[
@@ -6176,7 +6432,9 @@
             ${reportPaneTabs()}
             <div class="scroll" style="margin-top:14px">
               ${S.reportPane === "archive" ? reportArchivePane() : `
-                <p class="s21 fm t">${S.reportKind === "visit" ? "尚无复查批次。上传复查资料后，会按批次更新这段解读。" : "出院诊断为急性前壁心梗 PCI 术后。EF 约 52%。用药含抗血小板、他汀与β阻滞剂，与当前计划一致。"}</p>`}
+                <p class="s21 fm t">${S.reportKind === "visit" ? "尚无复查批次。上传复查资料后，会按批次更新这段解读。" : "出院诊断为急性前壁心梗 PCI 术后。EF 约 52%。用药含抗血小板、他汀与β阻滞剂，与当前计划一致。"}</p>
+                ${S.reportKind === "visit" && S.consultReportSub?.review ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生跨期对照解读】${S.consultReportSub.review}</div>` : ""}
+                ${S.reportKind === "baseline" && S.consultReportSub?.baseline ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生基线报告解读】${S.consultReportSub.baseline}</div>` : ""}`}
             </div>
           </div>
         </div>
@@ -6198,6 +6456,7 @@
           <div class="island-card mt12" style="padding:18px">
             <div class="s18 fb t">2026年6月25日</div>
             <p class="s15 t-sec mt8">总体健康尚可，轻度活动受限，建议继续规律散步。</p>
+            ${S.consultReportSub?.followUp ? `<div class="mt12 s15 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生随访身心复评】${S.consultReportSub.followUp}</div>` : ""}
           </div>
         </div>
         <div class="px20 col gap10" style="padding-bottom:28px">
@@ -6335,8 +6594,10 @@
     },
 
     // 空态只有 Logo 问候。资料胶囊在上；下面一条输入框（点按打字，长按把语音流进框里）和一枚加号。
+    // 右上角并列「案例」与「对话」双胶囊：「案例」默认处于被点击激活态（案例模式），点击输入框上方的「今日计划 / 本周指标 / 身体报告」直接切换对应模块的问诊案例。
     consult: () => {
       const note = consultModuleNote();
+      const activeCase = S.caseMode ? (CONSULT_CASES.find((x) => x.id === S.activeCaseId) || null) : null;
       const mod = (id, act, icon, label) => {
         const on = S.consultModule === id;
         return `<button class="consult-mod${on ? " on" : ""}" type="button" data-act="${act}">${on ? I.tick : icon}<span>${label}</span></button>`;
@@ -6344,24 +6605,36 @@
       const canSend = consultCanSend();
       const plusItem = (act, icon, label) =>
         `<button class="plus-item" type="button" data-act="${act}"><span>${icon}</span>${label}</button>`;
+      const rightCaps = `<div class="flex center gap6">
+        <button class="cap${S.caseMode ? " on-blue" : ""}" data-act="toggleCaseMode" type="button" style="padding:0 11px;gap:4px">${I.sparkle || "✦"}案例</button>
+      </div>`;
       return `
       <div class="page rel${S.consultKeyboard ? " consult-kb" : ""}${S.plusPanel ? " consult-panel" : ""}">
-        ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="26" height="26" alt="" />哈宝医生</span>`,
-          `<button class="cap" data-act="toggleMenu" type="button">${I.chat}对话</button>`)}
+        ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="24" height="24" alt="" />哈宝医生</span>`, rightCaps)}
+        ${S.chatMenu ? `<div class="consult-pop-mask" data-act="closeCaseMenu"></div>` : ""}
         ${S.chatMenu ? `<div class="menu-pop"><button data-go="consult-history" type="button">历史</button><button data-act="newChat" type="button">新对话</button></div>` : ""}
         <div class="scroll px20 grow">
-          ${S.messages.length ? S.messages.map((m) => `<div class="bubble ${m.who}">${m.t}</div>`).join("") : `
+          ${activeCase ? consultCaseFlowBannerHTML(activeCase) : ""}
+          ${note ? consultContextCardHTML(note) : ""}
+          ${S.messages.length ? S.messages.map((m) => `
+            <div class="bubble ${m.who}">${m.t}</div>
+            ${m.caseId ? consultCaseActionHTML(m.caseId) : ""}
+          `).join("") : activeCase ? `
+            <div class="island-card ta-c" style="padding:14px 16px;margin-top:8px">
+              <div class="s15 fb t">已就绪：点击下方输入框右侧「发送」开始第 1 轮提问</div>
+              <div class="s13 t-sec mt4">系统已自动带入「${activeCase.catTitle}」存量数据并在输入框预填患者首轮话术</div>
+            </div>
+          ` : !note ? `
             <div class="island-card ta-c" style="padding:16px;margin-top:12px">
               <img src="${A.logo}" width="64" height="64" alt="" />
               <h2 class="s21 fb t mt8">你好，这里是哈宝医生</h2>
               <p class="s16 t-sec">有不适或用药疑问，都可以问我</p>
             </div>
-            `}
-          ${note ? `<div class="consult-ctx"><b>${note.title}</b><p>${note.body}</p></div>` : ""}
+            ` : ""}
         </div>
         <div class="consult-mods">
-          ${mod("plan", "consultPlan", I.cal, "今日计划")}
-          ${mod("vitals", "consultVitals", I.ecg, "本周指标")}
+          ${mod("plan", "consultPlan", I.cal, "健康计划")}
+          ${mod("vitals", "consultVitals", I.ecg, "血压监测")}
           ${mod("report", "consultReport", I.doc, "身体报告")}
         </div>
         ${S.pendingImage ? `<div class="consult-pending">已选 1 张图片，补充一句再发送</div>` : ""}
@@ -6499,10 +6772,12 @@
     vip: () => {
       const on = !!S.vip;
       const benefits = [
-        [I.two, "家属管理", "绑定最多 5 位家属，可以代为照护"],
-        [I.waves, "硬件管理", "绑定体重秤、血压计和手表"],
-        [I.clock, "操作记录", "查看谁在什么时候做了什么"],
-        [I.chat, "问诊", "向哈宝医生咨询"],
+        [I.two, "家属管理", "支持绑定最多5名家属参与管理，实时多端同步患者病情，支持代为打卡照护与到点提醒家属，医生、患者、家属三方共管，患者安心，家属放心。"],
+        [I.waves, "硬件管理", "配备并绑定可穿戴智能监测设备（血压计和手表），患者居家测量后实时上传管理中心，医生和家属均可远程实时监测数据（血压和心率），记录数据变化趋势，智能预警，及时干预异常指标，降低不良事件发生率。"],
+        [I.clock, "操作记录", "全程记录患者与家属在健康计划、血压监测、身体报告及问诊中的每一次操作，谁在什么时候做了什么一目了然，方便家属与医生随时核对。"],
+        [I.steth, "哈宝医生问诊", "提供全年不限次数的在线咨询与个性化康复随访管理，支持文字、图文、语音及AI电话咨询（400-1666199），覆盖检查报告解读、用药咨询、病情咨询、饮食与心理咨询；结合住院数据设定动态化危险因素管控目标（如低密度脂蛋白等），全程开展动态临床评估、主动症状管理、精准药物管理与生活方式干预。"],
+        [I.medCase, "家庭医生专业团队", "由心内科主诊医生团队联合哈瑞特医疗院外康复管理团队共同参与患者管理，将疾病康复从院内延伸至院外，哈瑞特医疗康复管理团队由专科医生、康复治疗师、健康管理师、营养师等多学科成员组成。"],
+        [I.shieldCheck, "支架保险理赔服务", "管理期间，若发生支架内（不含老支架）再狭窄需要介入治疗的，自费部分由中国人民保险予以报销，全年不限次数，单次最高可获得2万元再梗补助。住院期间，还可获得100元/天的住院津贴。（注：仅限购买哈瑞特医疗院外管理2400元/年服务包的支架术后客户，详见理赔须知）"],
       ];
       return `<div class="page">
         ${navBar(cap(I.chevL, "返回"), "VIP 会员")}
@@ -6512,7 +6787,7 @@
               <div class="avatar">${I.crown}</div>
               <div>
                 <div class="s18 fb">哈宝 VIP</div>
-                <div class="s13" style="opacity:.85">家属管理、硬件管理、操作记录和问诊</div>
+                <div class="s13" style="opacity:.85">家属管理、硬件管理、操作记录、问诊及专属服务权益</div>
               </div>
             </div>
             <div class="frost"></div>
@@ -6520,7 +6795,7 @@
           </div>
           <div class="list-island mt16">
             ${benefits.map(([ico, t, s]) => `
-              <div class="list-row">
+              <div class="list-row vip-benefit-row">
                 <div class="well">${ico}</div><div class="grow"><h4>${t}</h4><p>${s}</p></div>
               </div>`).join("")}
           </div>
@@ -6577,7 +6852,7 @@
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "硬件管理")}
         <div class="scroll px20" style="padding-top:12px">
-          <p class="s15 fm t-sec" style="margin:0 4px 12px">体重秤、血压计、手表各绑一台。绑定时扫包装上的二维码。</p>
+          <p class="s15 fm t-sec" style="margin:0 4px 12px">血压计、手表各绑一台。绑定时扫包装上的二维码。</p>
           <div class="col" style="gap:14px">
             ${HW_KINDS.map((spec) => {
               const d = hwBound(spec.k);
@@ -7010,21 +7285,986 @@
     send.hidden = !consultCanSend();
   }
 
-  /// 问诊三模块带入的存量摘要（真机 ConsultLaunchContext）
+  /// 问诊三模块带入的存量机械字段（真机 ConsultLaunchContext：外层统一顶栏，内部按各模块自身特色排列机械字段）
   function consultModuleNote() {
+    const activeCase = S.caseMode ? CONSULT_CASES.find((x) => x.id === S.activeCaseId) : null;
+    if (activeCase && activeCase.cat === S.consultModule) {
+      return {
+        kind: activeCase.cat,
+        title: activeCase.ctxTitle,
+        badge: activeCase.ctxBadge || "",
+        tone: activeCase.ctxTone || "blue",
+        planRows: activeCase.planRows || null,
+        vitalsData: activeCase.vitalsData || null,
+        reportRows: activeCase.reportRows || null,
+        body: activeCase.ctxSummary,
+      };
+    }
+    const catNameMap = { exercise: "运动", medication: "用药", monitoring: "监测", checkup: "复查" };
     if (S.consultModule === "plan") {
-      const all = liveTasks();
-      const head = all.slice(0, 4).map((t) => `${String(t.h).padStart(2, "0")}:${String(t.m).padStart(2, "0")} ${t.title}`).join("、");
-      const more = all.length > 4 ? `等 ${all.length} 项` : "";
-      return { title: "已带入今日健康计划", body: all.length ? `${head}${more}` : "今天还没有健康计划" };
+      const all = SEED.slice();
+      const todayList = liveTasks();
+      const todayIds = new Set(todayList.map((t) => t.id));
+      const doneCount = todayList.filter((t) => S.completed[t.id]).length;
+      const planRows = all.slice(0, 5).map((t) => {
+        const freq = t.cycle === false ? "单次" : (t.rec || "每日");
+        const time = `${String(t.h).padStart(2, "0")}:${String(t.m).padStart(2, "0")}`;
+        const isToday = todayIds.has(t.id);
+        const isDone = isToday && !!S.completed[t.id];
+        return {
+          cat: catNameMap[t.cat] || "计划",
+          title: t.title,
+          schedule: `${freq} ${time}`,
+          status: isDone ? "已打卡" : (isToday ? "待执行" : freq),
+          done: isDone,
+        };
+      });
+      return {
+        kind: "plan",
+        title: "已带入健康计划",
+        badge: todayList.length ? `共 ${all.length} 项 · 今日 ${doneCount}/${todayList.length}` : `共 ${all.length} 项`,
+        tone: "blue",
+        planRows,
+        body: "",
+      };
     }
     if (S.consultModule === "vitals") {
-      return { title: "已带入当前指标评估", body: "结合本周血压与心率继续问" };
+      const avg = vitalsWeekAvg();
+      const s = vitalsSummary();
+      const tone = s.badge === "整体平稳" ? "green" : "amber";
+      return {
+        kind: "vitals",
+        title: "已带入血压监测",
+        badge: `${vitalsWeekLabel()} · ${s.badge}`,
+        tone,
+        vitalsData: {
+          bpValue: `${avg.sys}/${avg.dia}`,
+          bpStatus: s.bpStat || "均在目标内",
+          hrValue: `${avg.hr}`,
+          hrStatus: s.hrStat || "整体平稳",
+          focusLabel: "区间重点",
+          focusText: s.text,
+          danger: false,
+        },
+        body: s.text,
+      };
     }
     if (S.consultModule === "report") {
-      return { title: "已带入身体报告结论", body: "结合综合结论继续问" };
+      const basePages = (S.docGroups || []).reduce((n, g) => n + (g.pages || 0), 0) || 4;
+      const visitCount = (S.visits || []).length || 2;
+      const followCount = (S.followUps || []).length || 1;
+      return {
+        kind: "report",
+        title: "已带入身体报告",
+        badge: "基础 · 复查 · 随访",
+        tone: "blue",
+        reportRows: [
+          { source: "基础报告", value: "冠心病术后基线 · 心超与出院小结", badge: `${basePages} 张` },
+          { source: "复查报告", value: "近期门诊复查 · 未见新发缺血改变", badge: `${visitCount} 次` },
+          { source: "问卷随访", value: "规律服药 · 日常温和散步恢复平稳", badge: `${followCount} 次` },
+        ],
+        body: "",
+      };
     }
     return null;
+  }
+
+  function consultContextCardHTML(note) {
+    const toneColors = {
+      blue: { fg: "var(--blue)", bg: "rgba(16,84,224,.10)" },
+      green: { fg: "#15803d", bg: "rgba(34,197,94,.14)" },
+      amber: { fg: "#b45309", bg: "rgba(245,158,11,.15)" },
+      red: { fg: "#dc2626", bg: "rgba(220,38,38,.14)" },
+    };
+    const tc = toneColors[note.tone] || toneColors.blue;
+    let bodyHTML = "";
+    if (note.kind === "plan" && note.planRows && note.planRows.length) {
+      bodyHTML = `<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">` +
+        note.planRows.map((r) => `
+          <div class="flex center gap8" style="padding:7px 10px;border-radius:11px;background:rgba(16,84,224,.04)">
+            <span style="padding:2px 7px;border-radius:6px;background:rgba(16,84,224,.09);color:var(--blue);font-size:11px;font-weight:700;flex-shrink:0">${r.cat}</span>
+            <span class="s13 fb grow" style="color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.title}</span>
+            <span class="s12 fm t-sec" style="font-variant-numeric:tabular-nums;flex-shrink:0">${r.schedule}</span>
+            <span style="padding:2px 7px;border-radius:999px;background:${r.done ? "rgba(34,197,94,.14)" : "rgba(16,84,224,.08)"};color:${r.done ? "#15803d" : "rgba(16,84,224,.78)"};font-size:11px;font-weight:700;flex-shrink:0">${r.status}</span>
+          </div>
+        `).join("") + `</div>`;
+    } else if (note.kind === "vitals" && note.vitalsData) {
+      const v = note.vitalsData;
+      const bpFg = v.danger ? "#dc2626" : "var(--blue)";
+      const bpBg = v.danger ? "rgba(220,38,38,.06)" : "rgba(16,84,224,.05)";
+      const focusFg = v.danger ? "#dc2626" : "var(--blue)";
+      const focusBg = v.danger ? "rgba(220,38,38,.05)" : "rgba(16,84,224,.04)";
+      bodyHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+          <div style="padding:8px 10px;border-radius:11px;background:${bpBg}">
+            <div class="flex between center">
+              <span class="s11 fb t-sec">平均血压</span>
+              <span style="font-size:11px;font-weight:700;color:${bpFg}">${v.bpStatus}</span>
+            </div>
+            <div style="margin-top:3px;display:flex;align-items:baseline;gap:3px">
+              <span style="font-size:17px;font-weight:800;color:${bpFg};font-variant-numeric:tabular-nums">${v.bpValue}</span>
+              <span style="font-size:11px;font-weight:600;color:${bpFg};opacity:.72">mmHg</span>
+            </div>
+          </div>
+          <div style="padding:8px 10px;border-radius:11px;background:rgba(225,29,72,.05)">
+            <div class="flex between center">
+              <span class="s11 fb t-sec">平均心率</span>
+              <span style="font-size:11px;font-weight:700;color:#e11d48">${v.hrStatus}</span>
+            </div>
+            <div style="margin-top:3px;display:flex;align-items:baseline;gap:3px">
+              <span style="font-size:17px;font-weight:800;color:#e11d48;font-variant-numeric:tabular-nums">${v.hrValue}</span>
+              <span style="font-size:11px;font-weight:600;color:#e11d48;opacity:.72">bpm</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex center gap8" style="margin-top:6px;padding:7px 10px;border-radius:11px;background:${focusBg}">
+          <span style="padding:2px 7px;border-radius:6px;background:${v.danger ? "rgba(220,38,38,.12)" : "rgba(16,84,224,.10)"};color:${focusFg};font-size:11px;font-weight:700;flex-shrink:0">${v.focusLabel || "区间重点"}</span>
+          <span class="s12 fm grow" style="color:rgba(16,84,224,.88);line-height:1.35">${v.focusText}</span>
+        </div>
+      `;
+    } else if (note.kind === "report" && note.reportRows && note.reportRows.length) {
+      bodyHTML = `<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">` +
+        note.reportRows.map((r) => `
+          <div class="flex center gap8" style="padding:7px 10px;border-radius:11px;background:rgba(16,84,224,.04)">
+            <span style="padding:2px 7px;border-radius:6px;background:rgba(16,84,224,.09);color:var(--blue);font-size:11px;font-weight:700;flex-shrink:0">${r.source}</span>
+            <span class="s12 fm grow" style="color:rgba(16,84,224,.88);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.value}</span>
+            <span style="padding:2px 7px;border-radius:999px;background:rgba(16,84,224,.07);color:var(--t-sec);font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;flex-shrink:0">${r.badge}</span>
+          </div>
+        `).join("") + `</div>`;
+    } else {
+      bodyHTML = `<div style="margin-top:8px;padding:9px 11px;border-radius:11px;background:rgba(16,84,224,.04);color:rgba(16,84,224,.86);font-size:12.5px;line-height:1.45">${note.body || ""}</div>`;
+    }
+    return `
+      <div class="consult-ctx" style="margin-top:8px;margin-bottom:10px;background:rgba(255,255,255,.96);border:1px solid rgba(16,84,224,.12);border-radius:18px;padding:12px 13px;box-shadow:0 5px 12px rgba(16,84,224,.05)">
+        <div class="flex between center gap8">
+          <div class="flex center gap8">
+            <img src="${A.logo}" width="26" height="26" alt="" />
+            <div class="s15 fb" style="color:var(--blue)">${note.title}</div>
+          </div>
+          ${note.badge ? `<span style="padding:3px 9px;border-radius:999px;background:${tc.bg};color:${tc.fg};font-size:11px;font-weight:700;font-variant-numeric:tabular-nums">${note.badge}</span>` : ""}
+        </div>
+        ${bodyHTML}
+      </div>
+    `;
+  }
+
+  const CONSULT_CASE_CATS = [
+    { id: "plan", title: "健康计划", steps: ["① 带入健康计划", "② 聊症状与日常安排", "③ 修改 / 新增 / 暂停 / 打卡"] },
+    { id: "vitals", title: "血压监测", steps: ["① 带入血压监测", "② 休息重测或风险判断", "③ 记录血压 / 危急呼叫"] },
+    { id: "report", title: "身体报告", steps: ["① 带入身体报告", "② 对比出院·复查·问卷", "③ 更新报告解读 / 保存照片"] },
+  ];
+
+  const CONSULT_CASES = [
+    // ───────── 模块一：健康计划（4 种常见操作，次按钮统一「查看健康计划」） ─────────
+    {
+      id: "plan_medication",
+      cat: "plan",
+      catTitle: "健康计划",
+      tag: "修改计划",
+      title: "早起吃药反酸 · 修改吃药时间",
+      inputLabel: "带入：健康计划（已有每日 07:30 阿司匹林计划）",
+      outputLabel: "结果：把吃药时间改到 08:30 早饭后 → 查看健康计划",
+      ctxTitle: "已带入健康计划",
+      ctxBadge: "共 4 项 · 今日 2/4",
+      ctxDetail: "健康计划 · 运动 / 用药 / 监测与复查",
+      ctxSummary: "当前共有 4 项日常计划：每日 06:30 早晨测血压（已打卡）、每日 07:30 阿司匹林肠溶片（已打卡）、每日 12:00 户外散步 30 分钟（待执行）、每日 20:00 阿托伐他汀钙片（待执行）。",
+      planRows: [
+        { cat: "监测", title: "早晨测血压", schedule: "每日 06:30", status: "已打卡", done: true },
+        { cat: "用药", title: "阿司匹林肠溶片", schedule: "每日 07:30", status: "已打卡", done: true },
+        { cat: "运动", title: "户外散步 30 分钟", schedule: "每日 12:00", status: "待执行", done: false },
+        { cat: "用药", title: "阿托伐他汀钙片", schedule: "每日 20:00", status: "待执行", done: false },
+      ],
+      turns: [
+        { who: "user", t: "哈宝医生，我每天早上 7 点半空腹吃阿司匹林，最近一上午胃里都有点反酸烧心，后面的药还能按原计划时间吃吗？" },
+        { who: "ai", t: "我看了您的「健康计划」，里面有每日 07:30 服用阿司匹林肠溶片（今天已打卡）。如果早上空腹吃总是反酸，需要先排查一下胃部情况。请问最近大便颜色正常吗？有没有黑便或者剧烈胃痛？" },
+        { who: "user", t: "没有黑便也不痛，就是一大早刚起床空腹吃有点反酸，能不能改到早饭后，顺便把提醒时间也改一下？" },
+        { who: "ai", t: "没有黑便和剧痛可以先放心。建议您把早上吃阿司匹林的时间改到早饭后半小时（08:30）温水送服，下次复查时再让医生看看要不要配护胃药。点下面按钮就能直接修改这条计划的时间：", caseId: "plan_medication" },
+      ],
+      card: {
+        badge: "健康计划 · 修改计划",
+        title: "修改计划：服用阿司匹林肠溶片",
+        lines: [
+          "修改内容：提醒时间从 07:30 改到 08:30（早饭后半小时）",
+          "记录保留：以前的打卡记录照常保留，从今天起按新时间提醒",
+          "补充备注：餐后 30 分钟温水送服，留意反酸是否好转",
+        ],
+        primaryBtn: "确认修改计划",
+        appliedBtn: "已修改健康计划",
+        secondaryBtn: "查看健康计划",
+        target: "schedule",
+        effect: { kind: "plan", title: "服用阿司匹林肠溶片", cat: "medication", h: 8, m: 30, rec: "每日", note: "餐后 30 分钟温水送服，留意反酸是否好转" },
+      },
+    },
+    {
+      id: "plan_exercise",
+      cat: "plan",
+      catTitle: "健康计划",
+      tag: "新增计划",
+      title: "晚上入睡困难 · 新增睡前泡脚计划",
+      inputLabel: "带入：健康计划（目前只有吃药、散步、测血压，无助眠作息计划）",
+      outputLabel: "结果：新加每晚 21:30 睡前温水泡脚计划 → 查看健康计划",
+      ctxTitle: "已带入健康计划",
+      ctxBadge: "共 4 项 · 今日 3/4",
+      ctxDetail: "健康计划 · 运动 / 用药 / 监测与复查",
+      ctxSummary: "当前共有 4 项日常计划：每日 06:30 早晨测血压（已打卡）、每日 08:00 阿司匹林肠溶片（已打卡）、每日 15:00 户外散步 30 分钟（已打卡）、每日 20:00 阿托伐他汀钙片（待执行），目前还没有睡前作息计划。",
+      planRows: [
+        { cat: "监测", title: "早晨测血压", schedule: "每日 06:30", status: "已打卡", done: true },
+        { cat: "用药", title: "阿司匹林肠溶片", schedule: "每日 08:00", status: "已打卡", done: true },
+        { cat: "运动", title: "户外散步 30 分钟", schedule: "每日 15:00", status: "已打卡", done: true },
+        { cat: "用药", title: "阿托伐他汀钙片", schedule: "每日 20:00", status: "待执行", done: false },
+      ],
+      turns: [
+        { who: "user", t: "哈宝医生，我最近晚上躺下总是翻来覆去睡不着，白天也没精神，有什么办法能帮我睡好一点吗？" },
+        { who: "ai", t: "睡不好确实容易让第二天血压波动。为了安全起见先问一下：您半夜会有喘不上气憋醒、胸口发闷，或者必须垫高枕头才能睡着的情况吗？" },
+        { who: "user", t: "那倒没有，呼吸很顺畅，就是晚上脚有点凉、脑子静不下来，很难入睡。" },
+        { who: "ai", t: "没有半夜憋醒和胸闷，说明心脏供血是平稳的。我看您的健康计划里还没有晚间助眠安排，建议每晚 21:30 用 40℃ 左右的温水泡脚 15 分钟、放下手机准备入睡。点下面按钮就能把这条新计划加进健康计划：", caseId: "plan_exercise" },
+      ],
+      card: {
+        badge: "健康计划 · 新增计划",
+        title: "新增计划：睡前温水泡脚 15 分钟",
+        lines: [
+          "提醒时间：每晚 21:30（作息 · 每天重复）",
+          "计划备注：40℃ 左右温水泡脚 15 分钟，放松助眠",
+          "保存效果：在健康计划里新加这一条，并开启到点提醒",
+        ],
+        primaryBtn: "一键加入健康计划",
+        appliedBtn: "已加入健康计划",
+        secondaryBtn: "查看健康计划",
+        target: "schedule",
+        effect: { kind: "plan", title: "睡前温水泡脚 15 分钟", cat: "rest", h: 21, m: 30, rec: "每日", note: "40℃ 左右温水泡脚 15 分钟，放松助眠" },
+      },
+    },
+    {
+      id: "plan_pause",
+      cat: "plan",
+      catTitle: "健康计划",
+      tag: "删除计划",
+      title: "感冒浑身乏力 · 删除今天散步计划",
+      inputLabel: "带入：健康计划（今日 15:00 下午散步待执行）",
+      outputLabel: "结果：删除今天这一次散步（明天照常恢复，也可删后续计划）→ 查看健康计划",
+      ctxTitle: "已带入健康计划",
+      ctxBadge: "共 4 项 · 今日 2/4",
+      ctxDetail: "健康计划 · 运动 / 用药 / 监测与复查",
+      ctxSummary: "当前共有 4 项日常计划：每日 06:30 早晨测血压（已打卡）、每日 08:00 阿司匹林肠溶片（已打卡）、每日 15:00 下午散步 30 分钟（待执行）、每日 21:00 阿托伐他汀钙片（待执行）。",
+      planRows: [
+        { cat: "监测", title: "早晨测血压", schedule: "每日 06:30", status: "已打卡", done: true },
+        { cat: "用药", title: "阿司匹林肠溶片", schedule: "每日 08:00", status: "已打卡", done: true },
+        { cat: "运动", title: "下午散步 30 分钟", schedule: "每日 15:00", status: "待执行", done: false },
+        { cat: "用药", title: "阿托伐他汀钙片", schedule: "每日 21:00", status: "待执行", done: false },
+      ],
+      turns: [
+        { who: "user", t: "哈宝医生，我昨晚有点着凉感冒、浑身酸软没力气，今天下午 3 点的散步计划还能去走吗？" },
+        { who: "ai", t: "感冒没力气的时候千万别勉强运动，否则会加重心脏负担！请问现在有没有发烧、胸闷或者心跳明显变快？" },
+        { who: "user", t: "体温正常也没有胸闷，就是人很困乏，只想在家歇一天，能只把今天这次散步删掉、不影响明天以后的计划吗？" },
+        { who: "ai", t: "完全可以！健康计划支持「删除本次计划」和「删除本次和后续计划」两种删除方式。您今天只是感冒乏力，只需要删掉今天这一次——今天不再提醒，明天起照常恢复。点下面按钮即可删除今天这次散步：", caseId: "plan_pause" },
+      ],
+      card: {
+        badge: "健康计划 · 删除计划",
+        title: "删除本次计划：今日下午散步",
+        lines: [
+          "删除方式：只删除今天这一次，明天起照常恢复（若需长期停用可删本次和后续）",
+          "提醒变化：取消今天下午的散步提醒，首页今日待办同步移出",
+          "操作记录：记入「在 [健康计划] 删除了单次计划」",
+        ],
+        primaryBtn: "删除今天这次散步",
+        appliedBtn: "已删除今天散步",
+        secondaryBtn: "查看健康计划",
+        target: "schedule",
+        effect: { kind: "pausePlan", title: "", cat: "exercise", pauseTodayOnly: true },
+      },
+    },
+    {
+      id: "plan_checkin",
+      cat: "plan",
+      catTitle: "健康计划",
+      tag: "完成打卡",
+      title: "晚上的药已吃 · 直接完成打卡",
+      inputLabel: "带入：健康计划（21:00 阿托伐他汀钙片还未打卡）",
+      outputLabel: "结果：直接在聊天里把今晚这顿药打上卡 → 查看健康计划",
+      ctxTitle: "已带入健康计划",
+      ctxBadge: "共 4 项 · 今日 3/4",
+      ctxDetail: "健康计划 · 运动 / 用药 / 监测与复查",
+      ctxSummary: "当前共有 4 项日常计划：今日已完成 3 项，仅剩 21:00 阿托伐他汀钙片待打卡。",
+      planRows: [
+        { cat: "监测", title: "早晨测血压", schedule: "每日 06:30", status: "已打卡", done: true },
+        { cat: "用药", title: "阿司匹林肠溶片", schedule: "每日 08:00", status: "已打卡", done: true },
+        { cat: "运动", title: "下午散步 30 分钟", schedule: "每日 15:00", status: "已打卡", done: true },
+        { cat: "用药", title: "阿托伐他汀钙片", schedule: "每日 21:00", status: "待打卡", done: false },
+      ],
+      turns: [
+        { who: "user", t: "哈宝医生，晚上的阿托伐他汀钙片我刚才已经用温水吃过了，顺便问下吃他汀期间能吃柚子吗？" },
+        { who: "ai", t: "幸亏您先问了一句！吃阿托伐他汀期间不能吃西柚（葡萄柚），因为它会影响药物在肝脏里的代谢，容易引起肌肉酸痛。请问您刚才吃药时吃柚子了吗？" },
+        { who: "user", t: "还没吃呢，正好家里买了先问问你，那我不吃了！另外刚才那粒他汀我已经吃完了。" },
+        { who: "ai", t: "太好了，苹果、梨、香蕉都可以正常吃。既然今晚的阿托伐他汀钙片已经吃过了，点下面按钮就能直接帮您把今天这顿药打上卡（首页转盘和今日集章也会一起点亮）：", caseId: "plan_checkin" },
+      ],
+      card: {
+        badge: "健康计划 · 完成打卡",
+        title: "完成打卡：服用阿托伐他汀钙片",
+        lines: [
+          "打卡项目：21:00 服用阿托伐他汀钙片",
+          "同步变化：取消今晚未响提醒 + 首页计划卡变绿 + 盖上今日集章",
+          "操作记录：记入「在 [健康计划] 打卡了 [服用阿托伐他汀钙片]」",
+        ],
+        primaryBtn: "一键完成打卡",
+        appliedBtn: "已完成打卡",
+        secondaryBtn: "查看健康计划",
+        target: "schedule",
+        effect: { kind: "checkInPlan", title: "服用阿托伐他汀钙片", cat: "medication" },
+      },
+    },
+
+    // ───────── 模块二：血压监测（3 种常见操作，次按钮统一「查看血压监测」） ─────────
+    {
+      id: "vitals_morning_bp",
+      cat: "vitals",
+      catTitle: "血压监测",
+      tag: "记录血压",
+      title: "早上血压偏高 · 休息重测后记入血压",
+      inputLabel: "带入：血压监测（近期 3 次早上偏高，平均 144/88）",
+      outputLabel: "结果：记入重测读数 134/82 并顺带完成今日测血压打卡 → 查看血压监测",
+      ctxTitle: "已带入血压监测",
+      ctxBadge: "建议关注",
+      ctxTone: "amber",
+      ctxDetail: "血压监测 · 趋势评估与测量明细",
+      ctxSummary: "近期有 3 次早上血压高于康复目标 <140/90 mmHg，平均血压 144/88 mmHg，平均心率 70 次/分（平稳），未超过 ≥180/110 的危险报警线。",
+      vitalsData: {
+        bpValue: "144/88",
+        bpStatus: "高于目标 (<140/90)",
+        hrValue: "70",
+        hrStatus: "整体平稳",
+        focusLabel: "近期重点",
+        focusText: "3 次早上血压偏高，未超过 ≥180/110 危险线",
+        danger: false,
+      },
+      turns: [
+        { who: "user", t: "哈宝医生，帮我看看最近的血压监测，好几天早上量都在 145/90 左右，是不是降压药压不住了？" },
+        { who: "ai", t: "我看了您的「血压监测」：最近平均血压 144/88 mmHg，确实比康复目标（<140/90 mmHg）略高一点，但离 ≥180/110 的危险线还很远，心率 70 次/分也很稳。早上刚起床或者憋尿时量血压容易偏高，您先去趟洗手间，安静坐 10 分钟再重测一次看看？" },
+        { who: "user", t: "刚安静坐了 10 分钟又量了一次，降到 134/82 了，心率 66！" },
+        { who: "ai", t: "安静重测降到 134/82 mmHg、心率 66 次/分，已经回到达标范围（<140/90）里了！说明降压药是管用的，前面只是刚起床活动引起的短暂波动。点下面按钮就能把这次读数记进「血压监测」，如果今天还有测血压计划没打卡，也会顺带帮您打上卡：", caseId: "vitals_morning_bp" },
+      ],
+      card: {
+        badge: "血压监测 · 记录血压",
+        title: "记入血压：134/82 mmHg · 心率 66 次/分",
+        lines: [
+          "本次读数：高压 134 / 低压 82 mmHg · 心率 66 次/分",
+          "达标情况：已在目标范围内（<140/90），状态平稳",
+          "顺带完成：写入血压监测更新曲线，并完成今日测血压计划打卡",
+        ],
+        primaryBtn: "记入血压监测",
+        appliedBtn: "已记入血压监测",
+        secondaryBtn: "查看血压监测",
+        target: "vitals",
+        effect: { kind: "vitals", sys: 134, dia: 82, hr: 66 },
+      },
+    },
+    {
+      id: "vitals_heart_rate",
+      cat: "vitals",
+      catTitle: "血压监测",
+      tag: "记录并加提醒",
+      title: "下午心跳偏快 · 记入读数并加晚间测压提醒",
+      inputLabel: "带入：血压监测（血压达标，下午有 2 次心率偏快）",
+      outputLabel: "结果：记入平复后读数 124/76 并加每晚 20:00 测压提醒 → 查看血压监测",
+      ctxTitle: "已带入血压监测",
+      ctxBadge: "建议关注",
+      ctxTone: "amber",
+      ctxDetail: "血压监测 · 趋势评估与测量明细",
+      ctxSummary: "近期平均血压 126/78 mmHg（达标），平均心率 76 次/分（有 2 次下午超出 55–60 的静息目标），未超过危险报警线。",
+      vitalsData: {
+        bpValue: "126/78",
+        bpStatus: "均在目标内",
+        hrValue: "76",
+        hrStatus: "偶有偏快 (55–60)",
+        focusLabel: "近期重点",
+        focusText: "2 次下午心率偏快，血压保持达标",
+        danger: false,
+      },
+      turns: [
+        { who: "user", t: "这两天下午总觉得心跳有点快、心里发慌，刚才看心率有 86 次/分，要不要紧？" },
+        { who: "ai", t: "我看了一下您的「血压监测」：血压 126/78 很达标；冠心病稳定期安静时理想心率是 55–60 次/分，86 次/分偏快但还没超过 100 次/分的危险报警线。请问今天控制心率的药（比如倍他乐克）按时吃了吗？下午有没有喝浓茶或咖啡？" },
+        { who: "user", t: "哎呀，今天中午忙忘了吃药，下午还喝了两杯绿茶！我现在歇了会儿量是血压 124/76，心率降到 62 了。" },
+        { who: "ai", t: "原因找到了：忘吃药加上喝绿茶让心跳加快了。现在休息后心率已经降回 62 次/分，下次按正常时间吃药就行，千万不要一次吃两倍的量！点下面按钮可以把这次读数记进「血压监测」，并顺手帮您加上每晚 20:00 的测血压提醒：", caseId: "vitals_heart_rate" },
+      ],
+      card: {
+        badge: "血压监测 · 记录并加提醒",
+        title: "记入血压：124/76 mmHg · 心率 62 次/分",
+        lines: [
+          "本次读数：高压 124 / 低压 76 mmHg · 心率 62 次/分",
+          "恢复情况：血压达标，心率已从 86 次/分平复下来",
+          "顺带安排：记入血压监测，并开启每晚 20:00 测血压提醒",
+        ],
+        primaryBtn: "记入读数并加晚间提醒",
+        appliedBtn: "已记入血压监测",
+        secondaryBtn: "查看血压监测",
+        target: "vitals",
+        effect: { kind: "vitals", sys: 124, dia: 76, hr: 62, alsoRemind: true },
+      },
+    },
+    {
+      id: "vitals_emergency",
+      cat: "vitals",
+      catTitle: "血压监测",
+      tag: "危急值报警",
+      title: "血压飙升伴胸闷 · 记录危急读数并呼叫 120",
+      inputLabel: "带入：血压监测（突发血压 186/112 mmHg、心率 104 伴胸闷）",
+      outputLabel: "结果：记录红色危急读数并弹出 120 急救呼叫 → 查看血压监测",
+      ctxTitle: "已带入血压监测",
+      ctxBadge: "危急告警",
+      ctxTone: "red",
+      ctxDetail: "血压监测 · 趋势评估与测量明细",
+      ctxSummary: "突发危险读数：高压 186 / 低压 112 mmHg，心率 104 次/分，已超过高压 ≥180、低压 ≥110、心率 >100 的危险报警线，伴头晕胸闷。",
+      vitalsData: {
+        bpValue: "186/112",
+        bpStatus: "超过危险线 (≥180/110)",
+        hrValue: "104",
+        hrStatus: "超过报警线 (>100)",
+        focusLabel: "单次报警",
+        focusText: "血压和心率同时越过危险线，伴胸闷头晕",
+        danger: true,
+      },
+      turns: [
+        { who: "user", t: "哈宝医生，我刚才生气后觉得头晕、胸口发闷，一量血压飙到了 186/112，心率 104，我现在该再吃一粒降压药出去散步消消气吗？" },
+        { who: "ai", t: "⚠️ 绝对不能去散步，也不要自己随便加吃降压药！您的血压 186/112、心率 104 已经超过危险报警线（≥180/110 且心率 >100），还伴有头晕胸闷。请问胸口闷痛有没有串到后背或左肩膀？身边有家人在吗？" },
+        { who: "user", t: "已经在沙发上半躺着了，老伴在旁边，胸口还是有点发紧。" },
+        { who: "ai", t: "请继续半躺着别动、解开领口保持呼吸顺畅，千万不要自己走路或开车去医院！点下面红色按钮会把这次危险读数记进「血压监测」（标红方便急诊医生查看），并马上帮您拨打 120：", caseId: "vitals_emergency" },
+      ],
+      card: {
+        isEmergency: true,
+        badge: "血压监测 · 危急值报警",
+        title: "危急报警：记录 186/112 并呼叫 120",
+        lines: [
+          "危险读数：血压 186/112 mmHg · 心率 104 次/分，伴胸闷头晕",
+          "安全第一：请原地半卧休息、家人陪同，切勿自行起身或开车",
+          "记录与急救：在血压监测中标红记下这次读数，并弹出 120 呼叫确认",
+        ],
+        primaryBtn: "记下危急读数并呼叫 120",
+        appliedBtn: "已记录并拉起 120",
+        secondaryBtn: "查看血压监测",
+        target: "vitals",
+        effect: { kind: "emergency", sys: 186, dia: 112, hr: 104 },
+      },
+    },
+
+    // ───────── 模块三：身体报告（3 种常见操作，次按钮统一「查看身体报告」） ─────────
+    {
+      id: "report_lipid_review",
+      cat: "report",
+      catTitle: "身体报告",
+      tag: "更新复查解读",
+      title: "复查血脂好转想停药 · 更新复查报告解读",
+      inputLabel: "带入：身体报告（出院时血脂 2.8 → 这次复查降到 1.7）",
+      outputLabel: "结果：把复查对比解读补充进身体报告 → 查看身体报告",
+      ctxTitle: "已带入身体报告",
+      ctxBadge: "基础 · 复查 · 随访",
+      ctxDetail: "身体报告 · 基础 / 复查 / 问卷随访",
+      ctxSummary: "已汇总 4 张基础报告、2 次复查报告与 1 次问卷随访：出院时为冠心病支架术后，LVEF 58%，低密度脂蛋白（LDL-C）2.8 mmol/L；这次复查降到 1.7 mmol/L，心电图正常。",
+      reportRows: [
+        { source: "基础报告", value: "支架术后 · 心超 LVEF 58% · 出院血脂 2.8", badge: "4 张" },
+        { source: "复查报告", value: "复查血脂 1.7 mmol/L · 心电图正常", badge: "2 次" },
+        { source: "问卷随访", value: "按时服药 · 恢复平稳", badge: "1 次" },
+      ],
+      turns: [
+        { who: "user", t: "哈宝医生，结合我的身体报告看看，这次复查化验单上低密度脂蛋白（LDL-C）降到 1.7 了，没有向上的箭头了，晚上的他汀可以减半或者停药吗？" },
+        { who: "ai", t: "千万不能自己减量或停药！我对比了您的「基础报告」和「复查报告」：您做过心脏支架手术，低密度脂蛋白从出院时的 2.8 降到 1.7，正是每天按时吃他汀的效果。但化验单上 <3.4 的参考值是给普通健康人看的，支架术后患者必须降到 <1.4 mmol/L 才算达标。" },
+        { who: "user", t: "原来不带箭头也还没到 1.4 的标准！那可以把这条解读记到我的身体报告里吗，免得我和家里人忘了又想停药？" },
+        { who: "ai", t: "没问题！我已经帮您整理好这次复查血脂和出院时的对比结论，点下面按钮就能直接写进「身体报告」的综合结论和复查报告解读里，方便您和家人随时查看：", caseId: "report_lipid_review" },
+      ],
+      card: {
+        badge: "身体报告 · 更新复查解读",
+        title: "更新解读：复查血脂对比与用药说明",
+        lines: [
+          "更新位置：身体报告「综合结论」+「复查报告 AI 解读」",
+          "指标对比：出院时 2.8 → 这次复查 1.7 mmol/L（支架术后目标 <1.4）",
+          "用药提醒：肝功能和肌酶正常，请继续按原剂量吃他汀，不要自己停药",
+        ],
+        primaryBtn: "更新到身体报告",
+        appliedBtn: "已更新到身体报告",
+        secondaryBtn: "查看身体报告",
+        target: "report",
+        effect: {
+          kind: "report",
+          source: "review",
+          overall: "复查低密度脂蛋白（LDL-C）1.7 mmol/L，比出院时（2.8 mmol/L）明显下降，但离支架术后 <1.4 mmol/L 的目标还差 0.3 mmol/L；肝肾功能与肌酶正常，请继续按原剂量服用他汀，切勿自行减停。",
+          sub: "本次复查化验单 LDL-C 1.7 mmol/L（化验单默认参考值针对普通人，支架术后需控制在 <1.4 mmol/L），较出院时 2.8 mmol/L 已稳步好转；转氨酶与肌酶正常，请继续维持当前他汀方案。",
+          place: "复查报告",
+          act: "更新了报告解读",
+          how: "复查血脂对比解读（出院 2.8 → 复查 1.7 mmol/L，目标 <1.4）",
+        },
+      },
+    },
+    {
+      id: "report_image_archive",
+      cat: "report",
+      catTitle: "身体报告",
+      tag: "保存报告照片",
+      title: "拍照发复查单 · 存入复查报告并完成打卡",
+      inputLabel: "带入：身体报告 + 在聊天里拍了门诊复查心电图和化验单",
+      outputLabel: "结果：照片存进复查报告资料合集 + 顺带完成今日复查打卡 → 查看身体报告",
+      ctxTitle: "已带入身体报告",
+      ctxBadge: "基础 · 复查 · 随访",
+      ctxDetail: "身体报告 · 基础 / 复查 / 问卷随访",
+      ctxSummary: "已汇总 4 张基础报告、2 次复查报告与 1 次问卷随访：支架术后恢复平稳，今天有 1 项待打卡的「心内科复查」计划。",
+      reportRows: [
+        { source: "基础报告", value: "支架术后 · 心超 LVEF 58%", badge: "4 张" },
+        { source: "复查报告", value: "今天刚拍门诊复查单（待保存）", badge: "2 次" },
+        { source: "问卷随访", value: "按时服药 · 恢复平稳", badge: "1 次" },
+      ],
+      turns: [
+        { who: "user", t: "（图片）哈宝医生，我今天去心内科门诊复查了，刚拍了这张复查心电图和血常规化验单，帮我看看正常吗？" },
+        { who: "ai", t: "我看完您拍的复查单了：这次心电图是正常窦性心律（64 次/分），和出院时相比没有新的心肌缺血；血常规里的血小板和血红蛋白也都正常。请问今天门诊医生有没有改您的药量？" },
+        { who: "user", t: "医生说恢复得挺好，药量不变，让我把这次复查单留好就行。" },
+        { who: "ai", t: "太好了！为了免得照片留在聊天记录里以后不好找，点下面按钮就能把刚才拍的复查单直接存进「身体报告 → 复查报告」的资料合集里，同时更新报告解读，并顺带帮您把今天的「复查」计划打上卡：", caseId: "report_image_archive" },
+      ],
+      card: {
+        badge: "身体报告 · 保存报告照片",
+        title: "保存照片到「复查报告」并完成复查打卡",
+        lines: [
+          "保存位置：身体报告 → 复查报告 · 资料合集（健康档案里也能看）",
+          "解读更新：同步更新身体报告「综合结论」和「复查报告 AI 解读」",
+          "顺带完成：自动把今天还没打卡的「复查」计划标为已完成",
+        ],
+        primaryBtn: "保存照片并完成复查打卡",
+        appliedBtn: "已存入身体报告并打卡",
+        secondaryBtn: "查看身体报告",
+        target: "report",
+        effect: {
+          kind: "archiveImages",
+          target: "review",
+          groupTitle: "复查报告",
+          pages: 1,
+          overall: "最新门诊复查单已保存：复查心电图窦性心律 64 次/分、无新发心肌缺血，血常规血小板与血红蛋白正常，继续维持原有用药方案。",
+          sub: "问诊上传门诊复查单（心电图+血常规）：与出院时相比恢复平稳，各项指标正常，已顺带完成今日复查计划打卡。",
+        },
+      },
+    },
+    {
+      id: "report_sleep_followup",
+      cat: "report",
+      catTitle: "身体报告",
+      tag: "更新随访解读",
+      title: "填完问卷担心支架移位 · 更新随访问卷解读",
+      inputLabel: "带入：身体报告（心脏超声 LVEF 58% + 复查心电图正常 + 51题随访问卷）",
+      outputLabel: "结果：把支架安全说明和睡眠建议补充进身体报告 → 查看身体报告",
+      ctxTitle: "已带入身体报告",
+      ctxBadge: "基础 · 复查 · 随访",
+      ctxDetail: "身体报告 · 基础 / 复查 / 问卷随访",
+      ctxSummary: "已汇总 4 张基础报告、2 次复查报告与 1 次问卷随访：基础心脏超声 LVEF 58% 心功能良好，复查心电图正常；本月 51 题问卷反映半夜容易醒、担心支架移位。",
+      reportRows: [
+        { source: "基础报告", value: "心脏超声 LVEF 58% · 心功能良好", badge: "4 张" },
+        { source: "复查报告", value: "心电图正常 · 无心肌缺血", badge: "2 次" },
+        { source: "问卷随访", value: "51 题问卷：半夜易醒 · 担心支架", badge: "1 次" },
+      ],
+      turns: [
+        { who: "user", t: "刚填完这个月的 51 题随访问卷，里面问到睡眠和情绪，我最近确实半夜容易醒、总担心翻身会让心脏支架移位，结合我的身体报告看看要紧吗？" },
+        { who: "ai", t: "我对照了您的「基础报告 + 复查报告 + 问卷随访」：请您完全放宽心！您的心脏超声射血分数（LVEF）58%，近期复查心电图也很正常；而且心脏支架装好后早就牢牢贴在血管壁上了，平时翻身、走路绝对不会移位或掉下来！" },
+        { who: "user", t: "听您拿超声和心电图报告这么一讲，我心里这块大石头总算落地了！能把这条说明记进我的身体报告里吗？" },
+        { who: "ai", t: "当然可以！点下面按钮就能把「心功能正常、支架稳固不会移位」的结论补充进「身体报告」的综合结论和问卷随访解读里，让您和家人看着更安心：", caseId: "report_sleep_followup" },
+      ],
+      card: {
+        badge: "身体报告 · 更新随访解读",
+        title: "更新随访解读：支架安全说明与睡眠建议",
+        lines: [
+          "更新位置：身体报告「综合结论」+「问卷随访 AI 解读」",
+          "检查依据：心脏超声 LVEF 58% + 复查心电图正常，心脏供血稳定",
+          "安心结论：支架牢靠不会因翻身移位，半夜易醒属于术后常见紧张反应",
+        ],
+        primaryBtn: "更新到身体报告",
+        appliedBtn: "已更新到身体报告",
+        secondaryBtn: "查看身体报告",
+        target: "report",
+        effect: {
+          kind: "report",
+          source: "followUp",
+          overall: "结合基础心脏超声（LVEF 58%）与复查心电图（无心肌缺血），心脏供血稳定、支架十分牢靠，日常翻身和散步不会移位；本月随访问卷反映的半夜易醒主要是术后担心引起的，放宽心规律作息即可。",
+          sub: "针对随访问卷中「半夜易醒、担心支架移位」的疑问：对照心脏超声与心电图确认心功能良好、支架稳固，消除不必要的焦虑，建议保持规律作息。",
+          place: "问卷随访",
+          act: "提交了问卷",
+          how: "补充随访问卷解读（确认心功能良好、支架稳固不移位）",
+        },
+      },
+    },
+  ];
+
+  function applyConsultCase(item, stepByStep) {
+    if (!item) return;
+    S.caseMode = true;
+    S.activeCaseId = item.id;
+    S.caseCat = item.cat;
+    S.consultModule = item.cat;
+    S.caseMenu = false;
+    S.chatMenu = false;
+    S.plusPanel = false;
+    S.consultKeyboard = false;
+    S.pendingImage = false;
+    if (stepByStep) {
+      S.caseStep = 0;
+      S.messages = [];
+      S.chatDraft = item.turns[0] ? item.turns[0].t : "";
+    } else {
+      S.caseStep = null;
+      S.messages = item.turns.map((t) => ({ ...t }));
+      S.chatDraft = "";
+    }
+  }
+
+  function switchCaseByBottomTab(cat) {
+    const list = CONSULT_CASES.filter((c) => c.cat === cat);
+    if (!list.length) return;
+    if (S.consultModule === cat && S.activeCaseId && list.some((c) => c.id === S.activeCaseId)) {
+      const idx = list.findIndex((c) => c.id === S.activeCaseId);
+      const next = list[(idx + 1) % list.length];
+      applyConsultCase(next, S.caseStep != null);
+    } else {
+      applyConsultCase(list[0], S.caseStep != null);
+    }
+  }
+
+  function consultCaseFlowBannerHTML(item) {
+    const siblings = CONSULT_CASES.filter((c) => c.cat === item.cat);
+    const applied = !!S.appliedCaseActions[item.id];
+    const turnsShown = S.messages.length;
+    const isStepping = S.caseStep != null && turnsShown < item.turns.length;
+    const loopSteps = [
+      { label: `① 带入资料`, cls: "on" },
+      { label: "② 问答沟通", cls: turnsShown >= 2 ? "on" : "" },
+      { label: "③ 一键保存", cls: applied ? "done" : (turnsShown >= item.turns.length ? "on" : "") },
+      { label: "④ 去模块查看", cls: applied ? "done" : "" },
+    ];
+    return `<div class="case-flow-banner" style="padding:12px;gap:10px">
+      <div class="flex between center" style="gap:8px">
+        <div class="s16 fb t" style="color:var(--blue)">${item.catTitle}</div>
+        <button class="case-switch-btn" data-act="toggleCaseStepMode" type="button" style="white-space:nowrap;flex-shrink:0;padding:5px 10px;font-size:12px;font-weight:700;border-radius:999px;background:${isStepping ? "rgba(22,163,74,.12)" : "rgba(16,84,224,.09)"};color:${isStepping ? "var(--green-deep)" : "var(--blue)"};border:1px solid ${isStepping ? "rgba(22,163,74,.25)" : "rgba(16,84,224,.18)"}">
+          ${isStepping ? "看完整对话" : "逐步模拟提问"}
+        </button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        ${siblings.map((sib, idx) => {
+          const isCur = sib.id === item.id;
+          return `<button data-act="loadConsultCase" data-case="${sib.id}" type="button" style="display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:10px;border:1px solid ${isCur ? "transparent" : "rgba(16,84,224,.12)"};background:${isCur ? "var(--blue)" : "rgba(16,84,224,.06)"};color:${isCur ? "#fff" : "var(--blue)"};cursor:pointer;font-family:inherit;text-align:left">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:${isCur ? "#fff" : "rgba(16,84,224,.85)"};color:${isCur ? "var(--blue)" : "#fff"};font-size:10.5px;font-weight:700">${idx + 1}</span>
+            <span style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">${sib.tag}</span>
+            ${isCur ? `<span style="font-size:10px;font-weight:700">✓</span>` : ""}
+          </button>`;
+        }).join("")}
+      </div>
+      <div class="case-pipe-row" style="background:transparent;padding:0;gap:3px">
+        ${loopSteps.map((st, idx) => `<span class="case-loop-step ${st.cls}" style="flex:1;text-align:center;padding:4px 3px;font-size:10.5px;font-weight:600;border-radius:6px">${st.label}</span>${idx < loopSteps.length - 1 ? `<i class="case-pipe-arr" style="font-size:8px;color:rgba(16,84,224,.35)">›</i>` : ""}`).join("")}
+      </div>
+    </div>`;
+  }
+
+  function consultCaseActionHTML(caseId) {
+    const item = CONSULT_CASES.find((x) => x.id === caseId);
+    const c = (item && item.card) || (S.freeCards && S.freeCards[caseId]);
+    if (!c) return "";
+    const applied = !!S.appliedCaseActions[caseId];
+    const emStyle = c.isEmergency && !applied
+      ? ` style="border-color:rgba(240,90,110,.55);background:linear-gradient(180deg,rgba(240,90,110,.11),rgba(240,90,110,.04))"`
+      : "";
+    const priStyle = c.isEmergency && !applied
+      ? ` style="background:#F05A6E;color:#fff"`
+      : "";
+    return `<div class="case-action-card${applied ? " done" : ""}"${emStyle}>
+      <div class="flex between center">
+        <span class="case-act-badge"${c.isEmergency && !applied ? ` style="background:rgba(240,90,110,.16);color:#F05A6E"` : ""}>${c.badge}</span>
+        <span class="case-act-state"${c.isEmergency && !applied ? ` style="color:#F05A6E"` : ""}>${applied ? "已生效" : (c.isEmergency ? "紧急优先" : "待执行")}</span>
+      </div>
+      <div class="s16 fb mt6 ${applied ? "t-green" : "t"}"${c.isEmergency && !applied ? ` style="color:#D83A52"` : ""}>${c.title}</div>
+      <div class="case-act-lines">
+        ${c.lines.map((l) => `<div class="case-act-line"><i${c.isEmergency && !applied ? ` style="background:#F05A6E"` : ""}></i><span>${l}</span></div>`).join("")}
+      </div>
+      <div class="case-act-btns">
+        <button class="case-btn-pri${applied ? " done" : ""}"${priStyle} data-act="applyCaseAction" data-case="${caseId}" type="button">
+          ${applied ? `✓ ${c.appliedBtn}` : `${c.isEmergency ? "🚨" : "⚡"} ${c.primaryBtn}`}
+        </button>
+        <button class="case-btn-sec${applied ? " done" : ""}" data-act="openCaseTarget" data-target="${c.target}" type="button">
+          ${c.secondaryBtn} ›
+        </button>
+      </div>
+    </div>`;
+  }
+
+  /// 自由问诊模式：结合患者提问生成三大模块操作卡（次按钮统一回到对应模块页面）
+  function routeFreeConsultTurn(text, hasImage) {
+    const q = (text || "").trim();
+    const id = `free_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const hasAny = (words) => words.some((w) => q.includes(w));
+    const bpMatch = q.match(/(\d{2,3})\s*[/／]\s*(\d{2,3})/);
+    const sys = bpMatch ? parseInt(bpMatch[1], 10) : null;
+    const dia = bpMatch ? parseInt(bpMatch[2], 10) : null;
+    const hrMatch = q.match(/心率\s*(\d{2,3})|(\d{2,3})\s*(?:bpm|次\/分)/i);
+    const hr = hrMatch ? parseInt(hrMatch[1] || hrMatch[2], 10) : 76;
+
+    // 1. 血压监测 · 危急值报警 → 次按钮「查看血压监测」
+    const isCriticalVitals = (sys && (sys >= 180 || sys < 90)) || (dia && dia >= 110) || hr > 100 || hr < 50;
+    const isRedFlag = hasAny(["胸口压榨", "胸痛不缓解", "冷汗", "黑便", "柏油便", "呕血", "晕厥", "眼前发黑", "呼吸困难", "180/", "190/"]);
+    if (isRedFlag || isCriticalVitals) {
+      const sVal = sys || 186;
+      const dVal = dia || 112;
+      return {
+        reply: "⚠️ 危险提醒：您描述的情况或读数已经超过危险报警线！请马上停止活动、原地半卧或坐下休息，千万不要自己开车去医院。点下面红色按钮记下这次危险读数并呼叫 120：",
+        card: {
+          id,
+          isEmergency: true,
+          badge: "血压监测 · 危急值报警",
+          title: "危急报警：记录读数并呼叫 120",
+          lines: [
+            "安全第一：原地半卧休息，保持呼吸顺畅，通知家人陪同",
+            `记录与急救：在血压监测中标红记下读数（${sVal}/${dVal} mmHg · 心率 ${hr} 次/分）并拉起 120`,
+          ],
+          primaryBtn: "记下危急读数并呼叫 120",
+          appliedBtn: "已记录并拉起 120",
+          secondaryBtn: "查看血压监测",
+          target: "vitals",
+          effect: { kind: "emergency", sys: sVal, dia: dVal, hr },
+        },
+      };
+    }
+
+    // 2. 身体报告 · 保存报告照片 → 次按钮「查看身体报告」
+    if (hasImage) {
+      const isBaseline = hasAny(["出院", "住院", "手术", "冠脉造影", "支架记录"]);
+      return {
+        reply: isBaseline
+          ? "我看完您拍的住院/出院资料了，点下面按钮就能把照片存进「身体报告 → 基础报告」的资料合集里，并更新报告解读："
+          : "我看完您拍的复查单了。点下面按钮就能把照片存进「身体报告 → 复查报告」的资料合集里，如果今天有待打卡的复查计划也会顺带帮您打上卡：",
+        card: {
+          id,
+          badge: "身体报告 · 保存报告照片",
+          title: isBaseline ? "保存照片到「基础报告」并更新解读" : "保存照片到「复查报告」并完成复查打卡",
+          lines: [
+            `保存位置：${isBaseline ? "身体报告 → 基础报告·资料合集" : "身体报告 → 复查报告·资料合集"}`,
+            isBaseline
+              ? "解读更新：同步更新基础报告 AI 解读与身体报告综合结论"
+              : "顺带完成：更新复查报告解读，并自动完成今天待打卡的「复查」计划",
+          ],
+          primaryBtn: isBaseline ? "保存到基础报告" : "保存照片并完成复查打卡",
+          appliedBtn: isBaseline ? "已存入身体报告" : "已存入身体报告并打卡",
+          secondaryBtn: "查看身体报告",
+          target: "report",
+          effect: {
+            kind: "archiveImages",
+            target: isBaseline ? "baseline" : "review",
+            groupTitle: isBaseline ? "检查报告" : "复查报告",
+            pages: 1,
+            overall: isBaseline
+              ? "已补充保存出院资料：冠脉支架植入术后血管通畅，心功能稳定，请继续按时吃药。"
+              : "最新复查化验单已保存：各项指标平稳，低密度脂蛋白持续好转。",
+            sub: isBaseline
+              ? "问诊补传出院检查单：确认术后心功能良好。"
+              : "问诊上传复查单：指标比出院时稳步好转，建议维持当前用药方案。",
+          },
+        },
+      };
+    }
+
+    // 3. 健康计划 · 删除计划（删除本次计划 / 删除本次和后续计划） → 次按钮「查看健康计划」
+    if (hasAny(["胸口发紧", "运动后胸闷", "走几步就喘", "禁忌", "暂停运动", "今天不运动", "腿疼", "感冒", "没力气", "删除", "删掉"])) {
+      const stopAll = hasAny(["胸口发紧", "运动后胸闷", "走几步就喘", "禁忌", "以后都不", "全部删", "后续"]);
+      return {
+        reply: stopAll
+          ? "⚠️ 您出现了运动后胸口发紧或明显喘不上气，不适合继续运动！建议先把今天及后面的运动计划删掉（以前的打卡记录保留），等门诊复查医生评估安全后再恢复："
+          : "身体感冒或没力气的时候不要勉强去散步。您可以只删除今天这一次散步计划，明天起日常散步照常恢复：",
+        card: {
+          id,
+          badge: "健康计划 · 删除计划",
+          title: stopAll ? "删除本次和后续计划：运动计划" : "删除本次计划：今日散步计划",
+          lines: [
+            stopAll
+              ? "删除范围：以前的打卡记录保留，从今天起删除后续运动计划"
+              : "删除范围：只删除今天这一次，明天起照常恢复提醒",
+            `操作记录：记入「在 [健康计划] ${stopAll ? "删除了后续计划" : "删除了单次计划"}」`,
+          ],
+          primaryBtn: stopAll ? "删除本次和后续运动计划" : "删除今天这次散步",
+          appliedBtn: stopAll ? "已删除后续运动计划" : "已删除今天散步",
+          secondaryBtn: "查看健康计划",
+          target: "schedule",
+          effect: { kind: "pausePlan", title: "", cat: "exercise", pauseTodayOnly: !stopAll },
+        },
+      };
+    }
+
+    // 4. 健康计划 · 完成打卡 → 次按钮「查看健康计划」
+    if (hasAny(["吃过了", "吃了药", "刚吃完", "打完卡", "走完了", "散完步"])) {
+      const isWalk = hasAny(["走完", "散完步"]);
+      const title = isWalk ? "晨间散步" : "服用阿司匹林肠溶片";
+      return {
+        reply: `按时完成计划对恢复很有帮助！点下面按钮就能直接在聊天里把今天的「${title}」打上卡（首页转盘和今日集章也会一起点亮）：`,
+        card: {
+          id,
+          badge: "健康计划 · 完成打卡",
+          title: `完成打卡：${title}`,
+          lines: [
+            `打卡项目：今日待完成的「${title}」`,
+            "同步变化：取消未响提醒 + 首页计划卡变绿 + 盖上今日集章",
+          ],
+          primaryBtn: "一键完成打卡",
+          appliedBtn: "已完成打卡",
+          secondaryBtn: "查看健康计划",
+          target: "schedule",
+          effect: { kind: "checkInPlan", title, cat: isWalk ? "exercise" : "medication" },
+        },
+      };
+    }
+
+    // 5. 血压监测 · 记录血压 / 记录并加提醒 → 次按钮「查看血压监测」
+    if (sys && dia) {
+      const alsoRemind = sys >= 140 || dia >= 90 || hasAny(["波动", "心慌", "偏高"]);
+      return {
+        reply: `收到您刚才报出的读数（血压 ${sys}/${dia} mmHg，心率 ${hr} 次/分）。点下面按钮可以直接记进「血压监测」，如果今天有还没打卡的测血压计划也会顺带完成打卡：`,
+        card: {
+          id,
+          badge: alsoRemind ? "血压监测 · 记录并加提醒" : "血压监测 · 记录血压",
+          title: `记入血压 ${sys}/${dia} mmHg · 心率 ${hr} 次/分`,
+          lines: [
+            `本次读数：高压 ${sys} / 低压 ${dia} mmHg，心率 ${hr} 次/分`,
+            alsoRemind
+              ? "顺带安排：完成今日测血压打卡，并开启每晚 20:00 测血压提醒"
+              : "顺带完成：若今日有未打卡的「测血压」计划，将自动完成打卡",
+          ],
+          primaryBtn: alsoRemind ? "记入读数并加晚间提醒" : "记入血压监测",
+          appliedBtn: "已记入血压监测",
+          secondaryBtn: "查看血压监测",
+          target: "vitals",
+          effect: { kind: "vitals", sys, dia, hr, alsoRemind },
+        },
+      };
+    }
+
+    // 6. 健康计划 · 修改计划（改已有吃药时间，或把已有散步改短） → 次按钮「查看健康计划」
+    if (hasAny(["反酸", "烧心", "阿司匹林", "改时间", "顺延", "餐后", "气喘", "走30分钟", "改短"])) {
+      const isExerciseModify = hasAny(["气喘", "走30分钟", "改短"]);
+      if (isExerciseModify) {
+        return {
+          reply: "走 20 分钟就气喘说明原来的运动量偏大了。建议把您现有的散步计划改到傍晚 17:30、缩短为慢走 15 分钟（以前的打卡记录照常保留，从今天起按新时间提醒）：",
+          card: {
+            id,
+            badge: "健康计划 · 修改计划",
+            title: "修改计划：晨间散步（改到 17:30 · 15 分钟）",
+            lines: [
+              "修改内容：提醒时间改到傍晚 17:30，时长缩短为慢走 15 分钟",
+              "记录保留：以前的打卡记录照常保留，从今天起按新时间提醒",
+            ],
+            primaryBtn: "确认修改计划",
+            appliedBtn: "已修改健康计划",
+            secondaryBtn: "查看健康计划",
+            target: "schedule",
+            effect: { kind: "plan", title: "晨间散步", cat: "exercise", h: 17, m: 30, rec: "每日", note: "慢走 15 分钟，保持微汗能说话节奏" },
+          },
+        };
+      }
+      return {
+        reply: "排除黑便与剧烈胃痛后，如果早上空腹吃阿司匹林反酸，建议把「服用阿司匹林肠溶片」改到早饭后半小时（08:30）温水送服：",
+        card: {
+          id,
+          badge: "健康计划 · 修改计划",
+          title: "修改计划：服用阿司匹林肠溶片（改到 08:30）",
+          lines: [
+            "修改内容：提醒时间从 07:30 改到 08:30（早饭后半小时）",
+            "记录保留：以前的打卡记录照常保留，从今天起按新时间提醒",
+          ],
+          primaryBtn: "确认修改计划",
+          appliedBtn: "已修改健康计划",
+          secondaryBtn: "查看健康计划",
+          target: "schedule",
+          effect: { kind: "plan", title: "服用阿司匹林肠溶片", cat: "medication", h: 8, m: 30, rec: "每日", note: "餐后 30 分钟温水送服，留意反酸是否好转" },
+        },
+      };
+    }
+
+    // 7. 身体报告 · 更新随访解读 → 次按钮「查看身体报告」
+    if (hasAny(["随访", "问卷", "51题", "心理", "half", "半夜醒", "支架移位"])) {
+      return {
+        reply: "结合您的基础心脏超声（LVEF 58%）与复查心电图（无心肌缺血），您的支架非常稳固，翻身绝不会移位！点下面按钮可以把这条说明补充进「身体报告」：",
+        card: {
+          id,
+          badge: "身体报告 · 更新随访解读",
+          title: "更新随访解读：支架安全说明与睡眠建议",
+          lines: [
+            "检查依据：心脏超声 LVEF 58% + 复查心电图正常，排除支架异常",
+            "更新位置：同步写入「身体报告·综合结论」与「问卷随访·AI 解读」",
+          ],
+          primaryBtn: "更新到身体报告",
+          appliedBtn: "已更新到身体报告",
+          secondaryBtn: "查看身体报告",
+          target: "report",
+          effect: {
+            kind: "report",
+            source: "followUp",
+            overall: "结合基础心脏超声 LVEF 58% 与复查心电图无心肌缺血，支架十分牢靠，翻身和散步不会移位；51 题问卷反映的半夜易醒属于术后常见担心反应。",
+            sub: "针对问卷反映的「入睡困难与术后担忧」，对照超声与心电图确认心脏供血稳定、支架稳固。",
+            place: "问卷随访",
+            act: "提交了问卷",
+            how: "补充随访问卷解读（确认心功能良好、支架稳固不移位）",
+          },
+        },
+      };
+    }
+
+    // 8. 默认按当前选中的三模块胶囊生成对应卡片
+    if (S.consultModule === "vitals") {
+      return {
+        reply: "结合您最近的血压和心率趋势，建议把安静重测的读数记下来，并开启每晚 20:00 的测血压提醒：",
+        card: {
+          id,
+          badge: "血压监测 · 记录并加提醒",
+          title: "记入读数并加每晚 20:00 测压提醒",
+          lines: [
+            "本次读数：血压 132/80 mmHg · 心率 66 次/分（安静重测）",
+            "顺带安排：写入「血压监测」并开启每晚 20:00 测血压提醒",
+          ],
+          primaryBtn: "记入读数并加晚间提醒",
+          appliedBtn: "已记入血压监测",
+          secondaryBtn: "查看血压监测",
+          target: "vitals",
+          effect: { kind: "vitals", sys: 132, dia: 80, hr: 66, alsoRemind: true },
+        },
+      };
+    }
+    if (S.consultModule === "report") {
+      return {
+        reply: "我已经结合您的基础报告、复查报告和随访问卷整理了最新解读，点下面按钮就能补充进「身体报告」：",
+        card: {
+          id,
+          badge: "身体报告 · 更新复查解读",
+          title: "更新解读到「身体报告」",
+          lines: [
+            "更新位置：身体报告「综合结论」与「复查报告·AI 解读」",
+            "重点结论：心功能与支架状态稳定，请坚持按时服药、少盐饮食与温和散步",
+          ],
+          primaryBtn: "更新到身体报告",
+          appliedBtn: "已更新到身体报告",
+          secondaryBtn: "查看身体报告",
+          target: "report",
+          effect: {
+            kind: "report",
+            source: "review",
+            overall: "哈宝医生问诊补充：结合基础报告与近期复查指标，当前心功能与冠脉供血稳定；请继续按时服药，按期复查血脂与肝肾功能。",
+            sub: "问诊复查对比：各项指标走势平稳，未见新的心肌缺血。",
+            place: "复查报告",
+            act: "更新了报告解读",
+            how: "补充复查报告对比解读",
+          },
+        },
+      };
+    }
+    return {
+      reply: "收到您的提问。结合您当前的健康计划，建议每晚 21:30 用温水泡脚 15 分钟帮助放松助眠，点下面按钮就能把这条新计划加进「健康计划」：",
+      card: {
+        id,
+        badge: "健康计划 · 新增计划",
+        title: "新增计划：睡前温水泡脚 15 分钟（每晚 21:30）",
+        lines: [
+          "提醒时间：每晚 21:30（作息 · 每天重复）",
+          "计划备注：40℃ 左右温水泡脚 15 分钟，放松助眠",
+        ],
+        primaryBtn: "一键加入健康计划",
+        appliedBtn: "已加入健康计划",
+        secondaryBtn: "查看健康计划",
+        target: "schedule",
+        effect: { kind: "plan", title: "睡前温水泡脚 15 分钟", cat: "rest", h: 21, m: 30, rec: "每日", note: "40℃ 左右温水泡脚 15 分钟，放松助眠" },
+      },
+    };
   }
 
   /// 向哈宝医生发一条并挂 AI 回复（快捷问 / 底坞三功能共用）
