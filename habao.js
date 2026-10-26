@@ -6791,7 +6791,10 @@
               </div>
             </div>
             <div class="frost"></div>
-            <div class="s22 fb">¥2400 <span class="s16" style="font-weight:600;opacity:.85">/ 年</span></div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap">
+              <div class="s22 fb">¥2400 <span class="s16" style="font-weight:600;opacity:.85">/ 年</span></div>
+              ${on ? `<span class="s13 fb" style="padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.18);color:rgba(255,255,255,.95)">已开通 · 有效期至 ${vipExpiryText()}</span>` : ""}
+            </div>
           </div>
           <div class="list-island mt16">
             ${benefits.map(([ico, t, s]) => `
@@ -6803,8 +6806,7 @@
         </div>
         <div class="px20" style="padding-bottom:28px">
           ${on
-            ? `<p class="s15 fb t ta-c" style="margin:0 0 10px">已开通 · 有效期至 ${vipExpiryText()}</p>
-               <button class="cta-ghost" data-act="askCancelVip" type="button">取消订阅</button>`
+            ? `<button class="cta-ghost" data-act="askCancelVip" type="button">取消订阅</button>`
             : `<button class="cta" data-act="askVip" type="button">立即开通</button>`}
         </div>
       </div>`;
