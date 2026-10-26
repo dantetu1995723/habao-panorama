@@ -1165,7 +1165,7 @@
     "onboard-login": { code: "OnboardingFlowView", note: "短信登录 Demo 不校验。11 位手机 + 6 位验证码后「登录」可点。聚焦后口号改「欢迎使用哈宝」。V0.0 只两步（登录 → 完善信息），身份固定患者本人；V0.1 才多一步身份。" },
     "onboard-role": { code: "OnboardingFlowView", note: "V0.1 专属（V0.0 不出现）。家属也是管理患者的成员，填写的都是患者信息。大卡单选。" },
     "onboard-profile": { code: "PatientProfileFormFields", note: "姓名必填；「进入哈宝」始终可点，空姓名顶部 toast「请填写姓名」。步骤点 V0.0 是 2/2，V0.1 是 3/3。" },
-    home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 196–206，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。每张计划卡展示标题、提醒时间（或已完成）及「开始日期 – 结束日期」起止区间。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页（横向时段泳道已不再作为首页）；底坞中圆哈宝问诊 V0.0 压暗点不开，V0.1 未开通 VIP 时同样压暗、点按进 VIP 页，开通后可进。打卡不再在卡片上盖家属章；谁打的记在 V0.1 个人中心「操作记录」，V0.0 没有这一页。" },
+    home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 196–206，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。每张计划卡展示标题、提醒时间（或已完成）及「开始日期 – 结束日期」起止区间。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页（横向时段泳道已不再作为首页）；底坞中圆哈宝问诊 V0.0 压暗点不开，V0.1 未开通 VIP 时同样压暗、点按进 VIP 页，开通后可进。打卡不再在卡片上盖家属章；谁打的记在 V0.1 个人中心「操作记录」，V0.0 没有这一页。V0.1 + VIP：哈宝医生圆钮在有待采纳的方案卡 / 调整卡（暂缓后 3 天内仍算）或本期已结束待交反馈时亮红点；由方案写入或改过的计划卡在时刻胶囊左侧多一枚「医嘱」小胶囊；一期 7 天过完后首次回到首页（或第 7 天最后一项方案计划打卡后）弹出期末反馈弹窗。" },
     schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行展示时刻与单日/循环/类别胶囊，下方展示「开始日期 – 结束日期」起止区间；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上更新才进编辑。切「已完成」整页绿白。" },
     vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。底栏进入哈宝医生带本周评估：V0.0 压暗点不开；V0.1 未开通 VIP 时压暗、点按进 VIP 页；开通后可进。" },
     report: { code: "FollowUpModuleView", note: "综合结论 + 三等分入口 + 底栏哈宝医生（V0.0 压暗点不开；V0.1 未开通 VIP 时压暗、点按进 VIP 页；开通后可进）。" },
@@ -1173,10 +1173,10 @@
     walk: { code: "WalkView", note: "大标题 + 44 回首页（dismiss cover，不压栈）。地图主卡底浮层：60 圆钮记录/分享 + 60 主胶囊。三态：开始运动 / 返回运动 / 保存并打卡。点「开始运动」、以及首页「进入运动，开始散步」，都先按出院诊断比对绝对禁忌症；命中弹「是否继续运动？」，写明疾病（演示病历含室颤），「暂不运动」留在地图，「继续运动」才开会话。返回运动不再问。保存归属：计划入口完成原任务，自由入口按开始时刻新建「自主散步」，不猜测也不占用存量计划。" },
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
-    stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。" },
-    consult: { code: "SmartConsultChatView", note: "V10.149：导航栏右上角并列「案例」与「对话」双胶囊。点「案例」展开「AI 问诊 · 联动案例库」浮层（三大模块分类：健康计划 / 指标检测 / 身体报告，共 6 套双向闭环案例），三大模块拥有各自正交不重叠的专属落点：健康计划落日程排程库（RehabPlanStore）、指标检测落体征测量库（VitalsStore）、身体报告落报告结论与随访评估库（ReviewConclusionText）。点选任一案例自动点亮底坞对应资料胶囊、展示顶部流程导览与数据摘要、还原 4 轮医患问答，并在末条 AI 回复下内嵌可执行闭环卡（支持一键新建/调整计划、记入复测读数、更新报告与随访结论，或直接跳转对应模块核对结果）。底坞随系统键盘同帧升降。" },
+    stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。V0.1 + VIP 且采纳过方案时，标题下方多一张「方案章卡」：7 个日格（🌸 满日 / ◐ 部分 / ○ 空或未到 / 休 = 当天没排方案计划，算满日；今天蓝描边，点日格换日）、右上「本期已集 X/Y 章」、鼓励语（再集满 N 天拿金章 / 银章，只奖不罚）与「本期计划 ›」展开清单（调整 / 新增 / 保留 + 医嘱标）。其它状态：待采纳「📮 去采纳」、本期结束待交反馈（七格定格 + 期章 + 蓝色「交反馈」开期末反馈弹窗）、已交反馈下一期待采纳（「下一期方案已送达 去看看 ›」）。章卡下一行「我的期章」横排期章（金 ≥6 满日 / 银 4–5 / 铜 ≤3 且打过卡），点开看该期小结。海报日期下加「第 N 期康复方案 · 第 D 天 · 满日 X/7」（已结束带期章）。只有方案里的计划计入章卡，家属代打卡同样点亮，海报不带操作人。V0.0 / V0.2 / 未开通 VIP 只显示日章。" },
+    consult: { code: "SmartConsultChatView", note: "V10.157 · V0.1：哈宝医生只做「问诊 + 计划制定」。去掉输入框上方三枚模块胶囊与顶部模块资料卡，导航下方是「置顶方案条」（进行中：第 N 期 · 第 D 天 + 满日 X/7 + 七颗小圆，点开看本期清单与今日打卡、「去看集章 ›」；待采纳：📮 去看看；待交反馈：🏅 说说这期感觉 → 期末反馈弹窗；没有方案：和哈宝医生聊聊）。聊天流里挂「方案卡」（开新一期：调整 / 新增 / 保留 / 停用条目 + 为什么这样调；采纳方案 / 问问医生 / 暂不采纳 → 收成一行可再展开）与「调整卡」（期内微调：调整 / 新增 / 暂停今天 / 停用，从今天起生效），采纳真实写入健康计划（带「医嘱」标）、开新一期（采纳当天 = 第 1 天，7 天一期）并记一条操作记录（采纳了方案 / 采纳了调整 / 提交了反馈，界面「哈宝医生」）。期末反馈提交后依次出现反馈卡（用户侧）→ 复盘回复 → 下一期方案卡。右上「案例」：横排 8 个场景胶囊 + 全部展现 / 模拟提问 + 收起；没有方案时面板顶部多一条「制定第 1 期康复方案」入口；案例 5 纯问诊、案例 7 不出卡并弹 120 确认；案例对话不写聊天历史，但点采纳同样真实生效。不再在聊天里记读数、改报告、存照片、打卡；从血压监测 / 身体报告进入时先归档旧对话，新对话首行灰字「已参考：本周血压评估 / 身体报告综合结论」。V0.2 保持 V10.149 原样：导航右上「案例」展开三大模块（健康计划 / 指标检测 / 身体报告）联动案例库，输入框上方三枚模块胶囊切换案例，末条回复内嵌一键落库卡（新建 / 调整计划、记入读数、更新报告、存照片）。底坞随系统键盘同帧升降。" },
     profile: { code: "ServiceView", note: "Hero 健康档案 + 打卡通知/协议。V0.0 不出现家属管理、操作记录、硬件管理、VIP，也没有右上身份胶囊，档案标「本人」。V0.1 在档案卡下加 VIP 卡（¥2400 / 年）；未开通时家属管理、操作记录、硬件管理仍在列表里，副说明「开通 VIP 后可用」，点按进 VIP 页。开通后这三行恢复进入，身份胶囊、通知家属和问诊一起放开。记录和绑定仍在，取消订阅只重新上锁、不删数据。身份胶囊仍决定写入归属，但不再在卡片上盖章。" },
-    vip: { code: "VIPView", note: "仅从 V0.1 入口进来。Hero 写哈宝 VIP 与 ¥2400 / 年，下面六项完整详情：家属管理、硬件管理、操作记录、哈宝医生问诊，以及两项专属服务权益（家庭医生专业团队、支架保险理赔服务）。底栏「立即开通」先确认，演示不扣款，开通后有效期一年；已开通可「取消订阅」，确认后四项功能重新上锁、两项服务权益同步终止，家属、记录和硬件绑定留在本机。注销清空开通状态，退出登录保留。" },
+    vip: { code: "VIPView", note: "仅从 V0.1 入口进来。Hero 写哈宝 VIP 与 ¥2400 / 年，下面五项完整详情：家属管理、硬件管理、操作记录、哈宝医生（AI+真人医生前端统一为哈宝医生主体），以及支架保险理赔服务。底栏「立即开通」先确认，演示不扣款，开通后有效期一年；已开通可「取消订阅」，确认后四项功能重新上锁、服务权益同步终止，家属、记录和硬件绑定留在本机。注销清空开通状态，退出登录保留。" },
     hardware: { code: "HardwareManageView", note: "仅 V0.1（V0.0 个人中心没有这一行）。两张设备模块卡：未绑定写「未绑定」、右端挂「扫码绑定」浅蓝胶囊；已绑定写绿色「已绑定 · 编号」、右端箭头。点未绑定卡进扫码页，点已绑定卡进设备页。副说明按已绑定的名字拼，两台齐了写「两台都已绑定」。绑定留在本机，切回 V0.0 只藏入口。" },
     "hardware-scan": { code: "HardwareScanView", note: "V10.128：深蓝黑底全屏扫码页——264pt 取景框 + 青色扫描线，约 1.5 秒识别到对应哈宝设备（血压计 3086 / 手表 1172），四角转绿、白卡上浮，「绑定这台」或「重新扫描」，绑定后回列表。已绑定页显示编号和绑定日，解除要确认、确认后回列表。不调用摄像头，测量不写进血压监测。退出保留，注销清空。" },
     activity: { code: "ActivityLogView", note: "仅 V0.1（V0.0 个人中心没有这一行）。一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内遵循 Who / Where / When / What / How 大一统规则字段：以 When（时刻 + 细分隔线）做块头，块内白卡只展示一句话 = [Who 人名浅蓝胶囊] + 在 + [Where 界面白底蓝框胶囊] + [What 粗体蓝字动作] + [How 浅蓝底圆角内容色块]，个人中心入口与记录页共用同一句式（入口处 How 单行省略）。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条 How；只补资料写「（计划本次未动）」。How 只读不跳模块；页顶搜索框搜记录内容；长按一条出「改归属 / 删除这条记录」，超 300 条丢过更早记录时最早那页页脚提示。" },
@@ -1368,6 +1368,64 @@
     // VIP（真机 VIPStore）：只在 V0.1 卖。未开通时家属管理、硬件管理、操作记录、问诊上锁。冷启动未开通。
     vip: false,
     vipUntil: null,
+    // V0.1 哈宝医生「问诊 + 计划制定」（只在设计版本 V0.1 生效；V0.2 仍是三模块联动案例）。
+    // Demo：第 1 期（9/1–9/7）已交反馈拿金章；第 2 期 9/8 采纳、今天 9/11 是第 4 天，前三天满日。
+    // 过去日的方案打卡按 marks 给演示数据（缺省 full），今天读真实打卡。
+    plan: {
+      seq: 2,
+      cur: {
+        no: 2, start: "2026-09-08", ids: ["t1", "t4", "t5", "t15", "t16"],
+        rows: [
+          { op: "adjust", id: "t1", cat: "monitoring", title: "起床测血压", change: "先静坐 5 分钟再测", time: "每日 06:30" },
+          { op: "keep", id: "t4", cat: "medication", title: "服用阿司匹林肠溶片", change: "", time: "每日 08:00" },
+          { op: "keep", id: "t5", cat: "medication", title: "服用美托洛尔缓释片", change: "", time: "每日 08:30" },
+          { op: "keep", id: "t15", cat: "exercise", title: "晚间散步", change: "", time: "每日 19:00" },
+          { op: "keep", id: "t16", cat: "medication", title: "服用阿托伐他汀钙片", change: "", time: "每日 21:00" },
+        ],
+        why: "上期满日 6/7、感觉刚好。病历里有室颤，运动量先不加；测血压前先静坐 5 分钟，读数更准。",
+        marks: { "2026-09-08": "full", "2026-09-09": "full", "2026-09-10": "full" },
+        addedOn: {}, selfEdited: {}, fbPrompted: false,
+      },
+      history: [{
+        no: 1, start: "2026-09-01", end: "2026-09-07", ids: ["t1", "t4", "t5", "t15", "t16"],
+        rows: [
+          { op: "adjust", id: "t15", cat: "exercise", title: "晚间散步", change: "改为饭后半小时慢走", time: "每日 19:00" },
+          { op: "keep", id: "t1", cat: "monitoring", title: "起床测血压", change: "", time: "每日 06:30" },
+          { op: "keep", id: "t4", cat: "medication", title: "服用阿司匹林肠溶片", change: "", time: "每日 08:00" },
+          { op: "keep", id: "t5", cat: "medication", title: "服用美托洛尔缓释片", change: "", time: "每日 08:30" },
+          { op: "keep", id: "t16", cat: "medication", title: "服用阿托伐他汀钙片", change: "", time: "每日 21:00" },
+        ],
+        why: "以你现在的计划为底，先把吃药、测血压稳住；散步放慢到饭后半小时慢走，更稳妥。",
+        marks: { "2026-09-04": "part" }, addedOn: {}, selfEdited: {}, fbPrompted: true,
+        stats: {
+          days: [
+            { ymd: "2026-09-01", state: "full", n: 5, d: 5 }, { ymd: "2026-09-02", state: "full", n: 5, d: 5 },
+            { ymd: "2026-09-03", state: "full", n: 5, d: 5 }, { ymd: "2026-09-04", state: "part", n: 5, d: 3 },
+            { ymd: "2026-09-05", state: "full", n: 5, d: 5 }, { ymd: "2026-09-06", state: "full", n: 5, d: 5 },
+            { ymd: "2026-09-07", state: "full", n: 5, d: 5 },
+          ],
+          full: 6, done: 33, total: 35, anyDone: true, medal: "gold",
+        },
+        feeling: "刚好",
+        review: "这一期集到金章，7 天里 6 天全部完成，一共集了 33/35 枚章，做得很好！",
+        at: 0,
+      }],
+    },
+    // 医嘱来源标：采纳写入或改过的计划（首页计划卡 / 计划详情显示「医嘱」小胶囊，仅 V0.1 + VIP）
+    rx: { t1: true, t15: true },
+    rxCards: {},
+    rxChat: [],
+    rxArchive: [],
+    rxCaseOn: true,
+    rxCaseId: "rx1",
+    rxCaseStep: null,
+    rxCaseMsgs: [],
+    rxCaseFold: false,
+    rxPinOpen: false,
+    rxStampPlanOpen: false,
+    rxScrollTo: null,
+    rxScrollBottom: false,
+    rxFocus: false,
   };
 
   // 冷启动快照：真机模拟靠它整体复位（S 只含 JSON 安全值，可安全深拷贝）
@@ -1528,15 +1586,25 @@
       { state: (s) => s.qDone, label: "最后一题提交 → 结果页" },
       { act: "qFinish", label: "返回身体报告", optional: true },
     ]},
-    { id: "consult", label: "已入组 · 哈宝医生（需 V0.1 且开通 VIP）", cold: "demo", steps: [
+    { id: "consult", label: "已入组 · 哈宝医生（需 V0.1 且开通 VIP；V0.2 仍为三模块联动案例）", cold: "demo", steps: [
       { act: "debugGen", label: "先在开发菜单切到 V0.1（V0.0 三个入口压暗点不开）" },
       { screen: "vip", optional: true, label: "未开通时点压暗的哈宝，进 VIP 页" },
       { act: "activateVip", optional: true, label: "确认开通（演示不扣款）" },
-      { screen: "consult", label: "开通后进哈宝医生：右上「案例」默认处于被点击激活态" },
-      { anyAct: ["consultPlan", "consultVitals", "consultReport", "toggleCaseStepMode"], label: "点输入框上方三枚模块 Tab 直接切换案例（或逐步模拟提问）", optional: true },
-      { anyAct: ["applyCaseAction", "sendChat"], label: "点击落点卡片主按钮一键落库（或发送提问推进闭环）" },
+      { screen: "consult", label: "开通后进哈宝医生：顶部置顶方案条；没有对话时默认打开案例 1（右上「案例」点亮）" },
+      { anyAct: ["rxLoadCase", "rxCaseMode", "consultPlan", "consultVitals", "consultReport", "toggleCaseStepMode"], label: "V0.1 案例面板横排 8 个场景胶囊、全部展现 / 模拟提问（V0.2 仍是输入框上方三枚模块 Tab）", optional: true },
+      { act: "rxPinToggle", label: "（V0.1）点置顶方案条展开本期计划清单与今日打卡", optional: true },
+      { anyAct: ["rxAdopt", "applyCaseAction", "sendChat"], label: "V0.1 点调整卡 / 方案卡「采纳」真实写入健康计划（医嘱标）并记操作记录；V0.2 点落点卡主按钮落库" },
       { act: "newChat", label: "新对话", optional: true },
       { screen: "consult-history", label: "「对话」→ 历史记录", optional: true },
+    ]},
+    { id: "rx-loop", label: "V0.1 · 康复方案闭环（采纳 → 集章 → 期末反馈 → 下一期）", cold: "demo", steps: [
+      { act: "openDebug", label: "首页右上「…」打开开发菜单" },
+      { screen: "stamps", optional: true, label: "（V0.1 + VIP）首页「分享」→ 今日集章顶部方案章卡（第 2 期 · 第 4 天）与「我的期章」" },
+      { act: "debugRxEnd", label: "开发菜单「方案：模拟一期结束」（自动切 V0.1 并开通 VIP）→ 回首页弹期末反馈弹窗" },
+      { act: "rxPickFeeling", label: "选一项感受（轻松 / 刚好 / 有点吃力）" },
+      { act: "rxSubmitFeedback", label: "「交给哈宝医生」→ 进哈宝医生：反馈卡 → 复盘回复 → 下一期方案卡（期章进期章墙）" },
+      { act: "rxAdopt", label: "「采纳方案」→ 写入健康计划（医嘱标）、今天起第 1 天、记操作记录" },
+      { screen: "stamps", optional: true, label: "「去看集章 ›」→ 新一期章卡从第 1 天开始" },
     ]},
     { id: "archive", label: "已入组 · 报告归档", cold: "demo", steps: [
       { screen: "health-record", label: "个人中心 → 健康档案" },
@@ -1550,6 +1618,7 @@
     { id: "stamps", label: "已入组 · 集章与分享", cold: "demo", steps: [
       { screen: "stamps", label: "底坞右「分享」→ 今日集章" },
       { act: "openCal", label: "换日", optional: true },
+      { anyAct: ["rxStampPlanToggle", "rxPeriodSummary", "rxOpenFeedback"], optional: true, label: "（V0.1 + VIP）方案章卡「本期计划 ›」/ 期章墙点期章看小结 / 期末「交反馈」" },
       { act: "shareStamp", label: "一键分享" },
       { act: "demoShare", label: "海报选渠道", optional: true },
     ]},
@@ -1994,6 +2063,8 @@
   // 编辑页草稿回写计划条目（真机 AddEditTaskView save → rehabPlanStore.update）
   function applyDraftToTask(id, d) {
     if (!d) return;
+    // V0.1：用户自己改过本期的医嘱计划，期末反馈里标「自行调整」
+    if (S.plan && S.plan.cur && (S.plan.cur.ids || []).includes(id)) (S.plan.cur.selfEdited = S.plan.cur.selfEdited || {})[id] = true;
     upsertTask(id, {
       title: d.title,
       cat: d.cat,
@@ -2630,6 +2701,8 @@
     return (map[id] || [...home, C(id)]).map((f) => ({ ...f }));
   }
   function ensureConsultCaseOnEnter(prevScreen) {
+    // V0.1：问诊 + 计划制定（无三模块胶囊），进页规则见 ensureRxOnEnter；V0.2 / V0.0 走下面原逻辑
+    if (genIsConsultV2()) { ensureRxOnEnter(prevScreen); return; }
     if (!S.caseMode) return;
     let targetCat = null;
     if (prevScreen === "vitals" || prevScreen === "vitals-detail") targetCat = "vitals";
@@ -2997,9 +3070,16 @@
     const scr = document.querySelector(".phone-screen");
     scr.querySelector(".toast")?.remove();
     scr.insertAdjacentHTML("beforeend", toastHTML());
+    // V0.1 期末反馈：一期过完后首次回到首页自动弹一次（点「稍后再说」后不再自动弹）
+    if (S.screen === "home" && !S.overlay && rxShouldPrompt(false)) {
+      S.plan.cur.fbPrompted = true;
+      S.overlay = "rxFeedback";
+      S.overlayData = {};
+    }
     overlay().className = "overlay-root" + (S.overlay ? " active" : "");
     overlay().innerHTML = S.overlay ? overlays[S.overlay]() : "";
     bind();
+    if (S.screen === "consult" && genIsConsultV2()) rxAfterRender();
     if (S.screen === "home") {
       drawDial();
       requestAnimationFrame(() => {
@@ -4386,6 +4466,8 @@
       // 查看计划 · 取消本次打卡：解禁提醒与删除（真机 store.toggleCompletion 的反向）
       undoCheckIn() { delete S.completed[S.taskId]; unmarkProxy(S.taskId); render(); },
       sendChat() {
+        // V0.1：问诊 + 计划制定（只答问题、必要时挂调整卡，不写回其它模块）
+        if (genIsConsultV2()) { rxSend(); return; }
         const v = (S.chatDraft || "").trim();
         if (!v && !S.pendingImage) return;
         S.consultOpen = true;
@@ -4798,7 +4880,7 @@
       askVip() {
         openOverlay("confirm", {
           title: "开通 VIP",
-          body: "费用 ¥2400 / 年。这是演示，不会真实扣款。开通后可以使用家属管理、硬件管理、操作记录、哈宝医生问诊，并享有家庭医生专业团队与支架保险理赔服务。",
+          body: "费用 ¥2400 / 年。这是演示，不会真实扣款。开通后可以使用家属管理、硬件管理、操作记录、哈宝医生专属服务，并享有支架保险理赔服务。",
           ok: "确认开通",
           action: "activateVip",
         });
@@ -4808,6 +4890,7 @@
         d.setFullYear(d.getFullYear() + 1);
         S.vip = true;
         S.vipUntil = d.getTime();
+        if (S.gen === "0.0") S.gen = "0.1";
         S.overlay = null;
         render();
         toast("已开通 VIP");
@@ -4815,7 +4898,7 @@
       askCancelVip() {
         openOverlay("confirm", {
           title: "取消订阅",
-          body: "取消后家属管理、硬件管理、操作记录和哈宝医生问诊会重新锁上，家庭医生专业团队与支架保险理赔服务同步终止。已经绑定的家属、记录和硬件还会留在手机里。",
+          body: "取消后家属管理、硬件管理、操作记录和哈宝医生服务会重新锁上，支架保险理赔服务同步终止。已经绑定的家属、记录和硬件还会留在手机里。",
           ok: "取消订阅",
           danger: true,
           action: "cancelVip",
@@ -4824,18 +4907,27 @@
       cancelVip() {
         S.vip = false;
         S.vipUntil = null;
+        if (S.gen !== "0.0") S.gen = "0.0";
         S.overlay = null;
         render();
         toast("已取消订阅");
       },
       roleSwitch() { S.role = S.role === "patient" ? "family" : "patient"; render(); },
       openDebug() { openOverlay("debugMenu"); },
-      // 设计版本（真机 DesignGenerationStore.select）：V0.0 家属、操作记录、硬件管理与哈宝问诊不开放，切 V0.1 / V0.2 才开；计划详情页「时刻 × 事项重点融合」无滚动舞台架构在 V0.0–V0.2 全代际统一同步。
-      // 真机落盘记住选择、正式包固定 V0.0；原型随冷启动回 V0.0。
+      // 设计版本（真机 DesignGenerationStore.select）：V0.0 对应非 VIP 状态，V0.1 对应已开通 VIP 状态，方便直接对比 UI。
       debugGen() {
         S.gen = el.dataset.gen;
+        if (S.gen === "0.0") {
+          S.vip = false;
+          S.vipUntil = null;
+        } else if (!S.vip) {
+          const d = new Date();
+          d.setFullYear(d.getFullYear() + 1);
+          S.vip = true;
+          S.vipUntil = d.getTime();
+        }
         closeOverlay();
-        toast(`设计版本 V${S.gen}｜${genIsV01() ? (S.vip ? "VIP 已开通，家属管理、操作记录、硬件管理与哈宝问诊可用" : "家属管理、操作记录、硬件管理与哈宝问诊需开通 VIP") : "家属管理、操作记录、硬件管理与哈宝问诊未开放"}`);
+        toast(`设计版本 V${S.gen}｜${genIsV01() && S.vip ? "VIP 已开通状态" : "非 VIP 状态（点按购买横幅或加锁项进入 VIP 购买界面）"}`);
       },
       // 真机 V10.52 起调试菜单不再切方案（TodaySchemeFourView 只留文件、不再是首页），
       // 本原型的入口已撤，渲染与状态留档——要临时预览方案四，把开发菜单那两行加回来即可。
@@ -4873,9 +4965,61 @@
         S.sys = null; S.dia = null; S.hr = null;
         WALK_RECORDS.forEach((d) => d.items.forEach((it) => { S.walkDeleted[it.key] = true; }));
         S.messages = [];
+        // V0.1 方案随计划一起清空（计划都没了，期与期章不再有意义）
+        S.plan = { seq: 0, cur: null, history: [] };
+        S.rx = {};
+        S.rxCards = {};
+        S.rxChat = [];
+        S.rxArchive = [];
         closeOverlay();
         go("home", "root");
         toast("已清空计划与记录（保留档案姓名）");
+      },
+      // ── V0.1 方案演示（开发菜单）：自动切到 V0.1 并开通 VIP ──
+      // 模拟一期结束：本期起始日挪到 7 天前（6 满日 1 部分 → 金章），回首页即弹期末反馈
+      debugRxEnd() {
+        rxEnsureVip();
+        if (!S.plan.cur) rxStartDemoPeriod();
+        const p = S.plan.cur;
+        p.start = addDaysYMD(rxToday(), -7);
+        p.addedOn = {};
+        p.fbPrompted = false;
+        p.marks = {};
+        ["full", "full", "part", "full", "full", "full", "full"].forEach((m, i) => { p.marks[addDaysYMD(p.start, i)] = m; });
+        S.overlay = null;
+        goHome();
+      },
+      // 推送新方案卡：同时最多一张；手上有一期时先把它定格进期章墙（演示用，正式只在没有进行中的一期时推）
+      debugRxPush() {
+        rxEnsureVip();
+        S.overlay = null;
+        const pend = rxPendingCard("plan");
+        if (pend) {
+          act("rxGoCard", { dataset: { card: pend.id } });
+          toast("已有一张待采纳的方案卡（同时最多一张）");
+          return;
+        }
+        const finalized = S.plan.cur ? S.plan.cur.no : null;
+        const prev = S.plan.cur ? rxFinalizeCur("", "") : (S.plan.history[0] || null);
+        const card = rxNewCard(rxBuildPlanCard(Math.max(S.plan.seq || 0, prev ? prev.no : 0) + 1, prev, prev ? prev.stats.full : 0, prev ? prev.feeling : ""));
+        S.plan.seq = card.no;
+        S.rxChat.push({
+          who: "ai",
+          t: prev ? `医生看了你最近的打卡、血压和复查，为你制定了第 ${card.no} 期康复方案，医生已审核：` : "你已开通 VIP，我以你现在的计划为底，制定了第 1 期康复方案，医生已审核：",
+          card: card.id,
+        });
+        act("rxGoCard", { dataset: { card: card.id } });
+        toast(finalized ? `已推送第 ${card.no} 期方案卡（第 ${finalized} 期先定格）` : `已推送第 ${card.no} 期方案卡`);
+      },
+      // 从第 1 期开始：清空方案与期章，推第 1 期方案卡（刚开通 VIP 的情形）
+      debugRxFresh() {
+        rxEnsureVip();
+        S.plan = { seq: 0, cur: null, history: [] };
+        S.rx = {};
+        S.rxCards = {};
+        S.rxChat = [];
+        S.rxArchive = [];
+        act("debugRxPush");
       },
       // 真机「测试登录步骤」：仅 accountStore.logout()——计划与记录全部保留
       debugTestLogin() {
@@ -4970,6 +5114,18 @@
       call120() { openOverlay("e120"); },
       dial120() { toast("Demo 演示，将拨打 120"); closeOverlay(); },
       newChat() {
+        if (genIsConsultV2()) {
+          // V0.1 单页连续对话：旧对话归档进历史，待采纳的卡跟着新对话走
+          const keep = S.rxChat.filter((m) => m.card && S.rxCards[m.card] && (S.rxCards[m.card].status === "pending" || S.rxCards[m.card].status === "deferred"));
+          if (S.rxChat.length) S.rxArchive.unshift({ at: Date.now(), msgs: S.rxChat.slice() });
+          S.rxChat = keep;
+          S.rxCaseOn = false;
+          S.rxCaseStep = null;
+          S.chatMenu = false;
+          S.chatDraft = "";
+          render();
+          return;
+        }
         S.messages = [];
         S.consultOpen = false;
         S.chatMenu = false;
@@ -5214,8 +5370,134 @@
         toast("已添加图片，补充一句再发送");
       },
       consultCall() { openOverlay("aiCall"); },
+      // ── V0.1 哈宝医生：案例面板 / 方案卡 / 调整卡 / 置顶方案条 / 期末反馈 ──
+      rxToggleCase() {
+        S.plusPanel = false;
+        S.consultKeyboard = false;
+        if (S.rxCaseOn) {
+          S.rxCaseOn = false;
+          S.rxCaseStep = null;
+          S.chatDraft = "";
+          render();
+          return;
+        }
+        if (applyRxCase(RX_CASES.find((c) => c.id === S.rxCaseId) || RX_CASES[0], false)) { openOverlay("e120"); return; }
+        render();
+      },
+      rxLoadCase() {
+        const item = RX_CASES.find((c) => c.id === el.dataset.case);
+        if (!item) return;
+        if (applyRxCase(item, S.rxCaseStep != null)) { openOverlay("e120"); return; }
+        render();
+      },
+      rxCaseMode() {
+        const item = RX_CASES.find((c) => c.id === S.rxCaseId) || RX_CASES[0];
+        if (applyRxCase(item, el.dataset.mode === "step")) { openOverlay("e120"); return; }
+        render();
+      },
+      rxCaseFold() { S.rxCaseFold = !S.rxCaseFold; render(); },
+      rxFirstPlan() {
+        if ((S.plan && S.plan.cur) || rxPendingCard("plan")) return;
+        const no = Math.max((S.plan && S.plan.seq) || 0, 0) + 1;
+        const rows = [];
+        if (!SEED.some((t) => t.title.includes("泡脚"))) rows.push(rxAddRow("soak"));
+        liveTasks().slice(0, 5).forEach((t) => rows.push(rxRowOf("keep", t)));
+        const c = rxNewCard({
+          kind: "plan", no, rows, demo: true,
+          why: "以你现在的计划为底，先把每天吃药、测血压稳住；7 天一期，做完我们一起复盘。",
+        });
+        S.rxCaseOn = true;
+        S.rxCaseId = "rx0";
+        S.rxCaseStep = null;
+        S.rxCaseMsgs = [
+          { who: "user", t: "帮我制定第 1 期康复方案" },
+          { who: "ai", t: "好，我先按你现在的吃药、测血压和日常安排起草第 1 期 7 天方案。医生审核后，你点下面的「采纳方案」就能开始，采纳当天算第 1 天：" },
+          { who: "ai", t: `第 ${no} 期康复方案已经制定好，医生已审核：`, card: c.id },
+        ];
+        S.chatDraft = "";
+        render();
+      },
+      // 采纳：整张一键采纳，真实写入健康计划（带医嘱标）并记 1 条操作记录；重复点不重复写
+      rxAdopt() {
+        const c = S.rxCards[el.dataset.card];
+        if (!c || c.status === "adopted" || c.status === "expired") return;
+        if (c.kind === "plan") {
+          rxAdoptPlan(c);
+          toast(`已采纳第 ${c.no} 期方案，今天是第 1 天`);
+        } else {
+          rxAdoptAdjust(c);
+          toast("已采纳调整，健康计划已更新");
+        }
+      },
+      rxAsk() {
+        S.chatDraft = "关于这份方案我想问：";
+        S.plusPanel = false;
+        S.rxFocus = true;
+        render();
+      },
+      rxDefer() {
+        const c = S.rxCards[el.dataset.card];
+        if (!c) return;
+        c.status = "deferred";
+        c.deferredOn = rxToday();
+        c.open = false;
+        render();
+      },
+      rxCardOpen() { const c = S.rxCards[el.dataset.card]; if (c) { c.open = true; render(); } },
+      rxCardClose() { const c = S.rxCards[el.dataset.card]; if (c) { c.open = false; render(); } },
+      rxKeepToggle() { const c = S.rxCards[el.dataset.card]; if (c) { c.keepOpen = !c.keepOpen; render(); } },
+      rxGoStamps() { S.stampSelYMD = rxToday(); go("stamps", "cover"); },
+      rxGoSchedule() { go("schedule", "cover"); },
+      rxPinToggle() { S.rxPinOpen = !S.rxPinOpen; render(); },
+      // 置顶条「去看看」/ 集章「去采纳」：进哈宝医生并滚到那张方案卡
+      rxGoCard() {
+        const id = el.dataset.card;
+        const c = S.rxCards[id];
+        if (!c) return;
+        if (!S.rxChat.some((m) => m.card === id)) S.rxChat.push({ who: "ai", t: `第 ${c.no} 期康复方案在这里：`, card: id });
+        if (c.status === "deferred") c.open = true;
+        S.rxCaseOn = false;
+        S.rxCaseStep = null;
+        S.rxScrollTo = id;
+        if (S.screen === "consult") render();
+        else go("consult", "cover");
+      },
+      rxFocusInput() {
+        S.rxCaseOn = false;
+        S.rxCaseStep = null;
+        S.rxFocus = true;
+        render();
+      },
+      rxOpenFeedback() {
+        if (!S.plan.cur || !rxCurEnded()) return;
+        S.plan.cur.fbPrompted = true;
+        openOverlay("rxFeedback", {});
+      },
+      rxPickFeeling() { S.overlayData.feeling = el.dataset.f; render(); },
+      rxSubmitFeedback() {
+        const f = S.overlayData.feeling;
+        if (!f) { toast("先选一项这一期的感受"); return; }
+        const next = rxDoSubmitFeedback(f);
+        S.overlay = null;
+        if (!next) { render(); return; }
+        if (S.screen === "consult") render();
+        else go("consult", "cover");
+        toast("已交给哈宝医生");
+      },
+      rxLater() { closeOverlay(); },
+      rxStampPlanToggle() { S.rxStampPlanOpen = !S.rxStampPlanOpen; render(); },
+      rxPeriodSummary() { openOverlay("rxPeriod", { no: el.dataset.no }); },
       hangUpCall() {
         closeOverlay();
+        if (genIsConsultV2()) {
+          S.rxCaseOn = false;
+          S.rxCaseStep = null;
+          S.rxChat.push({ who: "user", t: "（AI电话）走路有点喘" });
+          S.rxChat.push({ who: "ai", t: "已收到这段通话。走路有点喘的话先放慢速度、走走停停；如果休息后还喘、或者胸口发闷，请马上告诉我。你可以继续打字补充，我再一起看。" });
+          S.rxScrollBottom = true;
+          render();
+          return;
+        }
         S.messages.push({ who: "user", t: "（AI电话）走路有点喘" });
         S.messages.push({ who: "ai", t: "已记下这次通话。你可以继续打字补充，我再一起看。" });
         render();
@@ -5396,6 +5678,11 @@
       if (map[name]) map[name]();
     };
     run();
+    // V0.1 期末反馈：第 7 天当天最后一项方案计划打卡后立刻弹出（不用等到 24:00）
+    if (!S.overlay && rxShouldPrompt(true)) {
+      S.plan.cur.fbPrompted = true;
+      openOverlay("rxFeedback", {});
+    }
     // 首页打卡等路径走 refreshHomeSoft 局部重绘、不经过 render，这里补一次结算，
     // 否则真机模拟面板不会更新
     if (S.sim?.on) { simEval(); renderSpec(); }
@@ -6626,6 +6913,8 @@
     // 空态只有 Logo 问候。资料胶囊在上；下面一条输入框（点按打字，长按把语音流进框里）和一枚加号。
     // 右上角并列「案例」与「对话」双胶囊：「案例」默认处于被点击激活态（案例模式），点击输入框上方的「今日计划 / 本周指标 / 身体报告」直接切换对应模块的问诊案例。
     consult: () => {
+      // V0.1：问诊 + 计划制定（置顶方案条 + 方案卡 / 调整卡 / 期末反馈，无三模块胶囊）；V0.2 / V0.0 保持下面原样
+      if (genIsConsultV2()) return rxConsultHTML();
       const note = consultModuleNote();
       const activeCase = S.caseMode ? (CONSULT_CASES.find((x) => x.id === S.activeCaseId) || null) : null;
       const mod = (id, act, icon, label) => {
@@ -6692,7 +6981,7 @@
 
     // 历史记录：按日期归档、只读、不可删（真机 ConsultHistoryView）。V10.56 起不预置样例对话——
     // 只有本人问过的才出现在「今天」，没问过给空态。
-    "consult-history": () => `
+    "consult-history": () => (genIsConsultV2() ? rxHistoryHTML() : `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "历史记录")}
         ${S.messages.length ? `
@@ -6705,7 +6994,7 @@
           <div class="s21 fb t mt16">还没有历史记录</div>
           <p class="s16 t-sec ta-c mt8">问过的话会按日期自动出现在这里，一直保留</p>
         </div>`}
-      </div>`,
+      </div>`),
 
     stamps: () => {
       const todayYMD = toYMD(demoDate());
@@ -6747,6 +7036,7 @@
           <button class="circle-btn lg" data-act="openCal" type="button">${I.cal}</button>
         </div>
         <div class="scroll px24 grow" style="padding-top:20px">
+          ${rxStampSectionHTML(sel)}
           ${empty ? `<div class="stamp-empty">
             <div class="empty-hero"><img src="${A.stamp.bloom}" width="104" alt="" /></div>
             <div class="s18 fb t mt8">${isToday ? "今天还没有计划" : "这一天还没有计划"}</div>
@@ -6801,13 +7091,53 @@
 
     vip: () => {
       const on = !!S.vip;
-      const benefits = [
-        [I.two, "家属管理", "支持绑定最多5名家属参与管理，实时多端同步患者病情，支持代为打卡照护与到点提醒家属，医生、患者、家属三方共管，患者安心，家属放心。"],
-        [I.waves, "硬件管理", "配备并绑定可穿戴智能监测设备（血压计和手表），患者居家测量后实时上传管理中心，医生和家属均可远程实时监测数据（血压和心率），记录数据变化趋势，智能预警，及时干预异常指标，降低不良事件发生率。"],
-        [I.clock, "操作记录", "全程记录患者与家属在健康计划、血压监测、身体报告及问诊中的每一次操作，谁在什么时候做了什么一目了然，方便家属与医生随时核对。"],
-        [I.steth, "哈宝医生问诊", "提供全年不限次数的在线咨询与个性化康复随访管理，支持文字、图文、语音及AI电话咨询（400-1666199），覆盖检查报告解读、用药咨询、病情咨询、饮食与心理咨询；结合住院数据设定动态化危险因素管控目标（如低密度脂蛋白等），全程开展动态临床评估、主动症状管理、精准药物管理与生活方式干预。"],
-        [I.medCase, "家庭医生专业团队", "由心内科主诊医生团队联合哈瑞特医疗院外康复管理团队共同参与患者管理，将疾病康复从院内延伸至院外，哈瑞特医疗康复管理团队由专科医生、康复治疗师、健康管理师、营养师等多学科成员组成。"],
-        [I.shieldCheck, "支架保险理赔服务", "管理期间，若发生支架内（不含老支架）再狭窄需要介入治疗的，自费部分由中国人民保险予以报销，全年不限次数，单次最高可获得2万元再梗补助。住院期间，还可获得100元/天的住院津贴。（注：仅限购买哈瑞特医疗院外管理2400元/年服务包的支架术后客户，详见理赔须知）"],
+      const benefitSections = [
+        {
+          ico: I.steth,
+          title: "哈宝医生",
+          tag: "真人专家 + AI 协同",
+          subtitle: "采用真人医生团队与 AI 智能结合的服务方式，全天候守护您的院外康复",
+          subs: [
+            ["真人医生服务", "心内科主诊与多学科团队 · 个性化康复随访管理", "由心内科主诊医生团队联合哈瑞特医疗院外康复管理团队（专科医生、康复治疗师、健康管理师、营养师等多学科成员）共同参与患者管理，将疾病康复从院内延伸至院外；结合住院数据设定动态化危险因素管控目标（如低密度脂蛋白等），全程开展个性化康复随访、动态临床评估、主动症状管理、精准药物管理与生活方式干预。"],
+            ["AI 智能服务", "全年不限次在线问诊 · 康复计划制定与推送", "提供全年不限次数的在线问诊咨询，支持文字、图文、语音及 AI 电话咨询（400-1666199），覆盖检查报告解读、用药咨询、病情咨询、饮食与心理指导；并结合病历资料、体测评估与日常监测数据，为您智能制定、调整并按时推送每日康复计划。"],
+          ],
+        },
+        {
+          ico: I.shieldCheck,
+          title: "支架保险理赔服务",
+          tag: "中国人民保险承保",
+          subtitle: "术后再狭窄介入自费报销与住院津贴双重保障",
+          subs: [
+            ["专属理赔保障", "最高 2万元/次 再梗补助 · 100元/天 住院津贴", "管理期间，若发生支架内（不含老支架）再狭窄需要介入治疗的，自费部分由中国人民保险予以报销，全年不限次数，单次最高可获得2万元再梗补助。住院期间，还可获得100元/天的住院津贴。（注：仅限购买哈瑞特医疗院外管理2400元/年服务包的支架术后客户，详见理赔须知）"],
+          ],
+        },
+        {
+          ico: I.two,
+          title: "家属管理",
+          tag: "最多绑定 5 名家属",
+          subtitle: "医生、患者、家属三方共管，多端实时同步照护",
+          subs: [
+            ["多端协同照护", "病情实时同步 · 代为打卡与到点提醒", "支持绑定最多5名家属参与管理，实时多端同步患者病情，支持代为打卡照护与到点提醒家属，医生、患者、家属三方共管，患者安心，家属放心。"],
+          ],
+        },
+        {
+          ico: I.waves,
+          title: "硬件管理",
+          tag: "智能血压计 + 手表",
+          subtitle: "居家测量自动上传，异常指标智能预警与干预",
+          subs: [
+            ["远程实时监测", "数据趋势追踪 · 异常指标智能预警", "配备并绑定可穿戴智能监测设备（血压计和手表），患者居家测量后实时上传管理中心，医生和家属均可远程实时监测数据（血压和心率），记录数据变化趋势，智能预警，及时干预异常指标，降低不良事件发生率。"],
+          ],
+        },
+        {
+          ico: I.clock,
+          title: "操作记录",
+          tag: "全流程照护留痕",
+          subtitle: "患者与家属每一次操作清晰可查，随时核对",
+          subs: [
+            ["照护操作留痕", "健康计划、监测、报告与问诊全程记录", "全程记录患者与家属在健康计划、血压监测、身体报告及问诊中的每一次操作，谁在什么时候做了什么一目了然，方便家属与医生随时核对。"],
+          ],
+        },
       ];
       return `<div class="page">
         ${navBar(cap(I.chevL, "返回"), "VIP 会员")}
@@ -6817,7 +7147,7 @@
               <div class="avatar">${I.crown}</div>
               <div>
                 <div class="s18 fb">哈宝 VIP</div>
-                <div class="s13" style="opacity:.85">家属管理、硬件管理、操作记录、问诊及专属服务权益</div>
+                <div class="s13" style="opacity:.85">哈宝医生、支架保险理赔、家属共管、智能硬件及操作记录</div>
               </div>
             </div>
             <div class="frost"></div>
@@ -6826,12 +7156,29 @@
               ${on ? `<span class="s13 fb" style="padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.18);color:rgba(255,255,255,.95)">已开通 · 有效期至 ${vipExpiryText()}</span>` : ""}
             </div>
           </div>
-          <div class="list-island mt16">
-            ${benefits.map(([ico, t, s]) => `
-              <div class="list-row vip-benefit-row">
-                <div class="well">${ico}</div><div class="grow"><h4>${t}</h4><p>${s}</p></div>
-              </div>`).join("")}
-          </div>
+
+          ${benefitSections.map((sec) => `
+            <div class="vip-special-card mt16">
+              <div class="vip-special-head">
+                <div class="vip-special-icon">${sec.ico}</div>
+                <div class="grow">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <h4 class="s19 fb" style="color:var(--blue);margin:0">${sec.title}</h4>
+                    <span class="vip-badge-pill">${sec.tag}</span>
+                  </div>
+                  <p class="s13 fm t-sec" style="margin:3px 0 0">${sec.subtitle}</p>
+                </div>
+              </div>
+              ${sec.subs.map(([badge, subTitle, detail], idx) => `
+                <div class="vip-sub-block ${idx === 0 ? "mt12" : "mt10"}">
+                  <div><span class="vip-sub-tag">${badge}</span></div>
+                  <div class="s15 fb" style="color:var(--blue);margin-top:6px;line-height:1.4">${subTitle}</div>
+                  <p class="s14 fm t-sec" style="margin:6px 0 0;line-height:1.55">${detail}</p>
+                </div>
+              `).join("")}
+            </div>
+          `).join("")}
+
           <p class="s14 fm t-sec mt16 ta-c">本机演示开通，不会真实扣款。</p>
         </div>
         <div class="px20" style="padding-bottom:28px">
@@ -6842,8 +7189,9 @@
       </div>`;
     },
 
-    profile: () => `
-      <div class="page">
+    profile: () => {
+      const isVip = genIsV01() && !!S.vip;
+      return `<div class="page">
         ${navBar(cap(I.chevL, "返回"), "个人中心",
           genHasFamily() ? `<button class="cap" data-act="roleSwitch" type="button">${I.two}${S.role === "patient" ? "本人" : (((S.family || [])[0] && (S.family || [])[0].name) || "家属")}</button>` : "")}
         <div class="scroll px20" style="padding-top:8px">
@@ -6851,7 +7199,10 @@
             <div class="hero-top">
               <div class="avatar">${S.name.slice(0, 1)}</div>
               <div>
-                <div class="s18 fb">${S.name}</div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span class="s18 fb">${S.name}</span>
+                  ${isVip ? `<span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.crown} VIP</span>` : ""}
+                </div>
                 <div class="s13" style="opacity:.85">${shownRole() === "patient" ? "本人" : "守护中"}　${S.gender}</div>
               </div>
               <button class="view-cap" type="button">点击查看</button>
@@ -6863,22 +7214,57 @@
               <div><span>体重</span><b>${S.weight}</b></div>
               <div><span>BMI</span><b>${bmi()}</b></div>
             </div>
+            <div class="frost" style="margin-top:12px;margin-bottom:12px"></div>
+            <div class="hero-vip-row" data-go="vip" role="button" style="cursor:pointer">
+              <div class="hero-crown-circle">${I.crown}</div>
+              <div style="min-width:0;flex:1">
+                <div class="s18 fb" style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isVip ? "VIP 专属全维守护中" : "开通 VIP 享全维守护"}</div>
+                <div class="s14 fsb" style="color:${isVip ? "rgba(255,255,255,.88)" : "#FFE282"};margin-top:2px">${isVip ? `有效期至 ${vipExpiryText()}` : "¥2400 / 年"}</div>
+              </div>
+              <span class="view-cap ${isVip ? "vip-bought" : ""}">${isVip ? "已购买 ›" : "购买 ›"}</span>
+            </div>
+            ${isVip ? `
+            <div class="hero-capsules-grid">
+              ${[
+                [I.steth, "哈宝医生"],
+                [I.shieldCheck, "支架保险"],
+                [I.two, "家属共管"],
+                [I.waves, "智能硬件"],
+                [I.clock, "照护记录"],
+              ].map(([ico, txt]) => `
+                <button class="hero-benefit-capsule active" data-go="vip" type="button">
+                  ${ico}<span>${txt}</span>
+                </button>
+              `).join("")}
+            </div>` : ""}
           </div>
-          ${genIsV01() ? vipCardHTML() : ""}
           <div class="list-island mt16">
             ${[
-              ...(genIsV01() ? [["family", I.two, "家属管理", S.family.length ? `已绑定 ${S.family.length} 人` : "尚未绑定家属"]] : []),
-              ...(genIsV01() ? [["activity", I.clock, "操作记录", (S.ops && S.ops[0]) ? opHeadlineHTML(S.ops[0]) : "还没有记录"]] : []),
-              ["notify", I.bell, "打卡通知", notifyCaption()],
-              ...(genIsV01() ? [["hardware", I.waves, "硬件管理", hwCaption()]] : []),
-            ].map(([id, ico, t, s]) => profileFeatureRow(id, ico, t, s)).join("")}
-            <div class="list-row"><div class="well">${I.doc}</div><div class="grow"><h4>隐私协议</h4><p>了解数据如何被保护</p></div>${I.chevR}</div>
-            <div class="list-row"><div class="well">${I.doc}</div><div class="grow"><h4>服务协议</h4><p>使用条款与说明</p></div>${I.chevR}</div>
+              ["family", I.two, "家属管理", S.family.length ? `已绑定 ${S.family.length} 人` : "尚未绑定家属"],
+              ["hardware", I.waves, "硬件管理", hwCaption()],
+              ["activity", I.clock, "操作记录", (S.ops && S.ops[0]) ? opHeadlineHTML(S.ops[0]) : "还没有记录"],
+            ].map(([id, ico, t, s]) => vipFeatureRowHTML(id, ico, t, s)).join("")}
+            <button class="list-row base-feature-row" data-go="notify" type="button">
+              <div class="well neutral-well">${I.bell}</div>
+              <div class="grow"><h4 class="neutral-title">打卡通知</h4><p>${notifyCaption()}</p></div>
+              <span class="neutral-chev">${I.chevR}</span>
+            </button>
+            <div class="list-row base-feature-row">
+              <div class="well neutral-well">${I.doc}</div>
+              <div class="grow"><h4 class="neutral-title">隐私协议</h4><p>了解数据如何被保护</p></div>
+              <span class="neutral-chev">${I.chevR}</span>
+            </div>
+            <div class="list-row base-feature-row">
+              <div class="well neutral-well">${I.doc}</div>
+              <div class="grow"><h4 class="neutral-title">服务协议</h4><p>使用条款与说明</p></div>
+              <span class="neutral-chev">${I.chevR}</span>
+            </div>
           </div>
           <button class="cta-ghost mt16" data-act="logout" type="button">退出登录</button>
           <button class="w100" style="border:0;background:none;color:#828EA5;padding:12px;font-size:16px;cursor:pointer" data-act="unregister" type="button">注销账号</button>
         </div>
-      </div>`,
+      </div>`;
+    },
 
     hardware: () => `
       <div class="page">
@@ -8054,6 +8440,9 @@
     }
 
     // 2. 身体报告 · 保存报告照片 → 次按钮「查看身体报告」
+    if (!S.plan.cur && !rxPendingCard("plan") && has(["制定", "方案", "计划", "怎么安排", "安排一下"])) {
+      return { reply: "好，我先按你现在的吃药、测血压和日常安排，起草第 1 期 7 天康复方案。医生审核后，你点下面的「采纳方案」就能开始，采纳当天算第 1 天：", card: rxFirstPlanSpec() };
+    }
     if (hasImage) {
       const isBaseline = hasAny(["出院", "住院", "手术", "冠脉造影", "支架记录"]);
       return {
@@ -8307,6 +8696,910 @@
     render();
   }
 
+  /* ═════════════ V0.1 哈宝医生：问诊 + 计划制定（方案卡 / 调整卡 / 期末反馈 / 期章） ═════════════
+     只在设计版本 V0.1 生效（genIsConsultV2）；V0.2 / V0.0 仍走上面的三模块联动案例与落点卡，两套数据互不串。
+     数据全在 S（冷启动随 S0 复位）：
+       plan.cur      进行中（或已过第 7 天、待交反馈）的一期：{ no, start(采纳当天 = 第 1 天), ids, rows, why, marks, addedOn, selfEdited, fbPrompted }
+       plan.history  已定格的期（新的在前）：在 cur 基础上多 end / stats（定格那一刻）/ feeling / review
+       rxCards       方案卡 / 调整卡：{ kind: plan|adjust, status: pending|adopted|deferred|expired, rows, why, no, demo(案例演示卡) }
+       rx            医嘱来源标：任务 id → true（采纳写入或改过的计划）
+       rxChat        V0.1 真实对话（案例演示不写）；rxArchive = 归档的旧对话
+     过去日的方案打卡按 marks（full / part / none，缺省 full）给演示数据，今天读真实打卡 S.completed。
+     哈宝医生只读血压监测 / 身体报告，不再写回读数、报告结论、照片或打卡。 */
+  function genIsConsultV2() { return S.gen === "0.1"; }
+  function rxOn() { return genIsConsultV2() && !!S.vip; }
+  const RX_OP = { adjust: "调整", add: "新增", keep: "保留", stop: "停用", pause: "暂停今天" };
+  const RX_MEDAL = { gold: "金章", silver: "银章", bronze: "铜章", none: "" };
+  const RX_FEELINGS = [["轻松", "😊"], ["刚好", "🙂"], ["有点吃力", "😮‍💨"]];
+  const RX_DEFAULT_IDS = ["t1", "t4", "t5", "t15", "t16"];
+  const RX_CARD_STATE = { pending: "待采纳", adopted: "已采纳", deferred: "已暂缓", expired: "已替代" };
+  function rxToday() { return toYMD(demoDate()); }
+  function rxEnd(p) { return p.end || addDaysYMD(p.start, 6); }
+  function rxTask(id) { return SEED.find((t) => t.id === id) || null; }
+  function rxFind(kw) { return SEED.find((t) => t.title.includes(kw)) || null; }
+  function rxHM(h, m) { return `${pad(h)}:${pad(m)}`; }
+  function rxTimeText(t) { return t ? `每日 ${rxHM(t.h, t.m)}` : ""; }
+  function rxMD(ymd) { const d = parseYMD(ymd); return `${d.getMonth() + 1}月${d.getDate()}日`; }
+  function rxRangeText(start) { return `${rxMD(start)} – ${rxMD(addDaysYMD(start, 6))}`; }
+  function rxShort(title) { return String(title || "").replace(/^服用/, "").replace(/(肠溶片|缓释片|钙片)$/, ""); }
+  function rxDayIndex(p, ymd) { return Math.round((parseYMD(ymd) - parseYMD(p.start)) / 86400000) + 1; }
+  function rxEnsureVip() {
+    S.gen = "0.1";
+    if (S.vip) return;
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 1);
+    S.vip = true;
+    S.vipUntil = d.getTime();
+  }
+
+  /// 某天本期方案里排到的计划：仍在健康计划里、当天没被删本次 / 停用；期内经调整卡新增的从次日起计
+  function rxScheduled(p, ymd) {
+    const live = new Set(liveTasks(ymd).map((t) => t.id));
+    const added = p.addedOn || {};
+    return (p.ids || []).filter((id) => live.has(id) && !(added[id] && ymd <= added[id]));
+  }
+  function rxDoneIds(p, ymd, sched) {
+    const today = rxToday();
+    if (ymd > today) return [];
+    if (ymd === today) return sched.filter((id) => S.completed[id]);
+    const mark = (p.marks || {})[ymd] || "full";
+    if (mark === "full") return sched.slice();
+    if (mark === "part") return sched.slice(0, Math.min(sched.length - 1, Math.max(1, Math.ceil(sched.length * 0.6))));
+    return [];
+  }
+  function rxMedal(full, anyDone) { return full >= 6 ? "gold" : full >= 4 ? "silver" : anyDone ? "bronze" : "none"; }
+  /// 一期 7 格：满日（全部打卡）/ 部分 / 空 / 休（当天没排方案计划，算满日）/ 未到；本期已集 X/Y（未来日计入 Y）
+  function rxStats(p) {
+    if (p.stats) return p.stats;
+    const today = rxToday();
+    let full = 0; let done = 0; let total = 0; let anyDone = false;
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const ymd = addDaysYMD(p.start, i);
+      const sched = rxScheduled(p, ymd);
+      const ids = rxDoneIds(p, ymd, sched);
+      total += sched.length;
+      done += ids.length;
+      if (ids.length) anyDone = true;
+      let state;
+      if (!sched.length) state = "rest";
+      else if (ymd > today) state = "future";
+      else if (ids.length === sched.length) state = "full";
+      else state = ids.length ? "part" : "none";
+      if ((state === "full" || state === "rest") && ymd <= today) full += 1;
+      return { ymd, state, n: sched.length, d: ids.length };
+    });
+    return { days, full, done, total, anyDone, medal: rxMedal(full, anyDone) };
+  }
+  /// 本期已结束：第 7 天过完；或第 7 天当天方案计划已全部打卡（不用等到 24:00）
+  function rxCurEnded() {
+    const p = S.plan && S.plan.cur;
+    if (!p) return false;
+    const today = rxToday();
+    const end = rxEnd(p);
+    if (today > end) return true;
+    if (today < end) return false;
+    const s = rxScheduled(p, today);
+    return s.length > 0 && s.every((id) => S.completed[id]);
+  }
+  function rxCurActive() { return !!(S.plan && S.plan.cur) && !rxCurEnded(); }
+  /// 真实对话里还没采纳的卡（案例演示卡不算）
+  function rxPendingCard(kind) {
+    return Object.values(S.rxCards || {}).find((c) => !c.demo && (c.status === "pending" || c.status === "deferred") && (!kind || c.kind === kind)) || null;
+  }
+  /// 首页圆钮红点：有待采纳的卡（暂缓后 3 天内仍算），或本期已结束待交反馈
+  function rxNeedsDot() {
+    if (!rxOn() || !S.plan) return false;
+    if (S.plan.cur && rxCurEnded()) return true;
+    const today = rxToday();
+    return Object.values(S.rxCards || {}).some((c) => !c.demo && (c.status === "pending"
+      || (c.status === "deferred" && addDaysYMD(c.deferredOn || today, 3) > today)));
+  }
+  function rxPeriodOf(ymd) {
+    if (!S.plan) return null;
+    return [S.plan.cur, ...(S.plan.history || [])].filter(Boolean)
+      .find((p) => ymd >= p.start && ymd <= rxEnd(p)) || null;
+  }
+  /// 集章过去日：方案计划的打卡按本期演示数据覆盖采样，保证集章页、章卡、满日三处一致
+  function rxOverlayPastDone(ymd, base) {
+    if (!rxOn()) return base;
+    const p = rxPeriodOf(ymd);
+    if (!p) return base;
+    const sched = rxScheduled(p, ymd);
+    sched.forEach((id) => base.delete(id));
+    rxDoneIds(p, ymd, sched).forEach((id) => base.add(id));
+    return base;
+  }
+  function rxMostMissed(p) {
+    const today = rxToday();
+    const miss = {};
+    for (let i = 0; i < 7; i++) {
+      const ymd = addDaysYMD(p.start, i);
+      if (ymd > today) break;
+      const sched = rxScheduled(p, ymd);
+      const done = new Set(rxDoneIds(p, ymd, sched));
+      sched.forEach((id) => { if (!done.has(id)) miss[id] = (miss[id] || 0) + 1; });
+    }
+    const top = Object.keys(miss).sort((a, b) => miss[b] - miss[a])[0];
+    return top ? rxTask(top) : null;
+  }
+
+  /* ── 卡片条目 ── */
+  function rxRowOf(op, t, extra) { return { op, id: t.id, cat: t.cat, title: t.title, change: "", time: rxTimeText(t), ...(extra || {}) }; }
+  const RX_ADD = {
+    soak: { cat: "rest", title: "睡前温水泡脚", change: "15 分钟", h: 21, m: 30, note: "40℃ 左右温水泡脚 15 分钟，放下手机准备入睡", sum: "新增睡前温水泡脚" },
+    breath: { cat: "rest", title: "睡前腹式呼吸", change: "5 分钟", h: 21, m: 45, note: "躺平，鼻子慢慢吸气让肚子鼓起，再用嘴慢慢呼出，做 5 分钟", sum: "新增睡前腹式呼吸" },
+    nightBp: { cat: "monitoring", title: "晚上测血压", change: "血压 + 心率", h: 20, m: 0, note: "静坐 5 分钟后测血压和心率，复诊时带给医生看", sum: "新增每晚 20:00 测血压" },
+  };
+  function rxAddRow(key) {
+    const a = RX_ADD[key];
+    return {
+      op: "add", cat: a.cat, title: a.title, change: a.change, time: `每日 ${rxHM(a.h, a.m)}`, sum: a.sum,
+      task: { title: a.title, cat: a.cat, h: a.h, m: a.m, note: a.note },
+    };
+  }
+  function rxAspirinRow() {
+    const t = rxFind("阿司匹林");
+    if (!t) return null;
+    return rxRowOf("adjust", t, {
+      change: `${rxHM(t.h, t.m)} 空腹 → 08:30 早饭后`, time: "每日 08:30", sum: "阿司匹林改到 08:30",
+      patch: { h: 8, m: 30, note: "早饭后半小时温水送服，留意反酸是否好转" },
+    });
+  }
+  function rxPauseWalkRow() {
+    const t = rxFind("晚间散步") || liveTasks().find((x) => x.cat === "exercise");
+    if (!t) return null;
+    return rxRowOf("pause", t, { change: "只停今天这一次，明天照常", sum: `暂停今天${t.title}` });
+  }
+  function rxAdjustSpec(rows) {
+    const list = rows.filter(Boolean);
+    return list.length ? { kind: "adjust", rows: list } : null;
+  }
+  function rxNewCard(spec) {
+    if (!S.rxCards) S.rxCards = {};
+    const id = spec.id || `rxc${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+    if (S.rxCards[id]) return S.rxCards[id];
+    S.rxCards[id] = { status: "pending", ...spec, id };
+    return S.rxCards[id];
+  }
+  function rxBaseTasks(prev) {
+    const todayIds = new Set(liveTasks().map((t) => t.id));
+    const ids = prev && prev.ids && prev.ids.length ? prev.ids : RX_DEFAULT_IDS;
+    return ids.filter((id) => todayIds.has(id)).map(rxTask).filter(Boolean);
+  }
+  /// 下一期怎么调（AI 起草方向，医生审核）：满日 ≥6 且不吃力 → 适度加量（有运动禁忌不加运动）；4–5 或吃力 → 维持；≤3 → 减压
+  function rxBuildPlanCard(no, prev, full, feeling) {
+    const base = rxBaseTasks(prev);
+    const rows = [];
+    const has = (kw) => SEED.some((t) => t.title.includes(kw));
+    const hits = contraindicationHits();
+    const contraText = hits.length ? (hits.find((h) => h !== CONTRA_AGE_ITEM) ? `病历里有${hits.find((h) => h !== CONTRA_AGE_ITEM)}` : "年龄超过 70 岁") : "";
+    const relax = !has("泡脚") ? "soak" : !has("腹式呼吸") ? "breath" : null;
+    let why;
+    if (!prev) {
+      if (relax) rows.push(rxAddRow(relax));
+      why = `以你现在的计划为底，先把每天吃药、测血压稳住${relax ? "，再加一项睡前放松" : ""}；7 天一期，做完我们一起复盘。`;
+    } else if (full >= 6 && feeling !== "有点吃力") {
+      const walk = base.find((t) => t.cat === "exercise");
+      if (walk && !hits.length) {
+        rows.push(rxRowOf("adjust", walk, { change: "慢走 20 → 25 分钟", sum: `${walk.title}加到 25 分钟`, patch: { note: "饭后半小时慢走 25 分钟，微微出汗、还能说话的节奏" } }));
+        why = `上期满日 ${full}/7，感觉${feeling || "不错"}，散步后没有胸闷，可以加一点量。`;
+      } else {
+        if (relax) rows.push(rxAddRow(relax));
+        why = `上期满日 ${full}/7，感觉${feeling || "不错"}。${contraText ? `${contraText}，运动量先不加；` : ""}${relax ? "这一期加一项睡前放松，帮助睡得更稳。" : "这一期维持原样，继续保持。"}`;
+      }
+    } else if (full >= 4 || feeling === "有点吃力") {
+      why = `上期满日 ${full}/7${feeling === "有点吃力" ? "，你说有点吃力" : ""}，这一期先维持原量，把节奏稳住。`;
+    } else {
+      const miss = (prev && rxMostMissed(prev)) || base.find((t) => t.title.includes("阿托伐他汀"));
+      if (miss && !(miss.h === 20 && miss.m === 0)) {
+        rows.push(rxRowOf("adjust", miss, { change: `${rxHM(miss.h, miss.m)} → 20:00 晚饭后`, time: "每日 20:00", sum: `${rxShort(miss.title)}改到 20:00`, patch: { h: 20, m: 0 } }));
+      }
+      why = `上期满日 ${full}/7，这一期少一点压力：把最常漏的那项挪到更容易做到的时间。`;
+    }
+    const touched = new Set(rows.map((r) => r.id).filter(Boolean));
+    base.filter((t) => !touched.has(t.id)).forEach((t) => rows.push(rxRowOf("keep", t)));
+    return { kind: "plan", no, rows, why };
+  }
+
+  /* ── 采纳：与手动建计划走同一套健康计划数据，带「医嘱」来源标；只记 1 条操作记录 ── */
+  function rxApplyRow(r) {
+    const today = rxToday();
+    const t = r.id ? rxTask(r.id) : null;
+    if (r.op === "keep") return t ? t.id : null;
+    if (r.op === "adjust") {
+      if (!t) return null;
+      Object.assign(t, r.patch || {});
+      S.rx[t.id] = true;
+      sortSeed();
+      return t.id;
+    }
+    if (r.op === "add") {
+      const same = SEED.find((x) => x.title === r.task.title);
+      if (same) {
+        Object.assign(same, r.task);
+        S.rx[same.id] = true;
+        r.id = same.id;
+        sortSeed();
+        return same.id;
+      }
+      const id = nextTaskId();
+      SEED.push({ id, cycle: true, rule: "daily", duration: "oneYear", onceDate: today, ...r.task });
+      S.rx[id] = true;
+      r.id = id;
+      sortSeed();
+      return id;
+    }
+    if (!t) return null;
+    // 暂停今天 = 删除本次计划；停用 = 删除本次和后续（以前的打卡保留）
+    if (r.op === "pause") { addSkipped(today, t.id); delete S.completed[t.id]; delete S.completedBy[t.id]; return t.id; }
+    if (r.op === "stop") { t.endDate = addDaysYMD(today, -1); delete S.completed[t.id]; delete S.completedBy[t.id]; return t.id; }
+    return null;
+  }
+  function rxFinalizeCur(feeling, review) {
+    const p = S.plan.cur;
+    if (!p) return null;
+    const stats = JSON.parse(JSON.stringify(rxStats(p)));
+    const entry = { ...p, end: rxEnd(p), stats, feeling: feeling || "", review: review || "", at: Date.now() };
+    S.plan.history.unshift(entry);
+    S.plan.cur = null;
+    return entry;
+  }
+  function rxAdoptPlan(card) {
+    if (!card || card.status === "adopted") return;
+    const today = rxToday();
+    // 案例 8 / 开发菜单演示：新一期开始前把手上这一期定格进期章墙
+    if (S.plan.cur) rxFinalizeCur(card.carryFeeling || "", "");
+    const ids = [];
+    const cnt = { adjust: 0, add: 0, stop: 0 };
+    card.rows.forEach((r) => {
+      const id = rxApplyRow(r);
+      if (id && r.op !== "stop" && r.op !== "pause") ids.push(id);
+      if (cnt[r.op] != null) cnt[r.op] += 1;
+    });
+    S.plan.cur = {
+      no: card.no, start: today, ids: [...new Set(ids)],
+      rows: card.rows.filter((r) => r.op !== "stop" && r.op !== "pause").map((r) => ({ op: r.op, id: r.id, cat: r.cat, title: r.title, change: r.change || "", time: r.time || "" })),
+      why: card.why || "", marks: {}, addedOn: {}, selfEdited: {}, fbPrompted: false,
+    };
+    S.plan.seq = Math.max(S.plan.seq || 0, card.no);
+    card.status = "adopted";
+    card.start = today;
+    // 同时最多一张方案卡：其余没采纳的方案卡作废
+    Object.values(S.rxCards).forEach((c) => { if (c !== card && c.kind === "plan" && c.status !== "adopted") c.status = "expired"; });
+    const parts = [cnt.adjust && `调整 ${cnt.adjust}`, cnt.add && `新增 ${cnt.add}`, cnt.stop && `停用 ${cnt.stop}`].filter(Boolean);
+    logOp("采纳了方案", "哈宝医生", `第 ${card.no} 期康复方案${parts.length ? `（${parts.join("，")}）` : ""}`);
+  }
+  /// 调整卡：只改本期几项、不重新计期；新增并入本期从明天起计满日；没有进行中的一期时只改健康计划
+  function rxAdoptAdjust(card) {
+    if (!card || card.status === "adopted") return;
+    const p = S.plan.cur;
+    const active = rxCurActive();
+    const today = rxToday();
+    card.rows.forEach((r) => {
+      const id = rxApplyRow(r);
+      if (id && active && r.op === "add" && !p.ids.includes(id)) {
+        p.ids.push(id);
+        (p.addedOn = p.addedOn || {})[id] = today;
+      }
+    });
+    card.status = "adopted";
+    const first = card.rows[0];
+    logOp("采纳了调整", "哈宝医生", `${first.sum || first.title}${card.rows.length > 1 ? ` 等 ${card.rows.length} 项` : ""}`);
+  }
+  function rxReviewText(p, st, feeling) {
+    const miss = rxMostMissed(p);
+    const lead = st.medal === "none"
+      ? "这一期还没有集到章，没关系，身体要紧，下一期我们一起把节奏找回来。"
+      : `这一期集到${RX_MEDAL[st.medal]}，7 天里 ${st.full} 天全部完成，一共集了 ${st.done}/${st.total} 枚章，做得很好！`;
+    const mid = miss ? `「${miss.title}」漏得相对多一点，可以把到点提醒开着，或者请家人到点提醒一声。` : "每一项都做得很稳。";
+    const feel = feeling === "有点吃力" ? "你说有点吃力，下一期不加量。" : feeling ? `你说这期感觉${feeling}。` : "";
+    return `${lead}${mid}${feel}下一期怎么调，我写在下面的方案里了。`;
+  }
+  /// 期末反馈：期章进期章墙 → 聊天流依次出现反馈卡（用户侧）→ 复盘回复 → 下一期方案卡
+  function rxDoSubmitFeedback(feeling) {
+    const p = S.plan.cur;
+    if (!p) return null;
+    const st = rxStats(p);
+    const bp = vitalsWeekAvg();
+    const fb = {
+      no: p.no, medal: st.medal, full: st.full, done: st.done, total: st.total, feeling,
+      bp: bp && bp.sys ? `${bp.sys}/${bp.dia}` : "",
+      self: Object.keys(p.selfEdited || {}).map(rxTask).filter(Boolean).map((t) => t.title),
+    };
+    const review = rxReviewText(p, st, feeling);
+    const first = (review.match(/^[^。！]*[。！]/) || [review])[0];
+    const entry = rxFinalizeCur(feeling, first);
+    logOp("提交了反馈", "哈宝医生", `第 ${p.no} 期 · ${RX_MEDAL[st.medal] || "未集章"} · ${feeling}`);
+    const next = rxNewCard(rxBuildPlanCard(Math.max(S.plan.seq || 0, p.no) + 1, entry, st.full, feeling));
+    S.plan.seq = next.no;
+    S.rxChat.push({ who: "fb", fb });
+    S.rxChat.push({ who: "ai", t: review });
+    S.rxChat.push({ who: "ai", t: `第 ${next.no} 期康复方案已经制定好，医生已审核。采纳当天就是第 1 天：`, card: next.id });
+    S.rxCaseOn = false;
+    S.rxCaseStep = null;
+    S.rxScrollTo = next.id;
+    return next;
+  }
+  /// 演示：没有进行中的一期时起一期（有待采纳的方案卡就直接采纳它）
+  function rxStartDemoPeriod() {
+    const pend = rxPendingCard("plan");
+    if (pend) { rxAdoptPlan(pend); return; }
+    const prev = S.plan.history[0] || null;
+    const base = rxBaseTasks(prev);
+    const no = Math.max(S.plan.seq || 0, prev ? prev.no : 0) + 1;
+    S.plan.cur = {
+      no, start: rxToday(), ids: base.map((t) => t.id),
+      rows: base.map((t) => ({ op: "keep", id: t.id, cat: t.cat, title: t.title, change: "", time: rxTimeText(t) })),
+      why: "按上一期的节奏继续。", marks: {}, addedOn: {}, selfEdited: {}, fbPrompted: false,
+    };
+    S.plan.seq = no;
+  }
+  /// 期末反馈自动弹：第 7 天过完后首次回到首页；或第 7 天当天最后一项方案计划打卡后（dayEndOnly，act 尾部检查）
+  function rxShouldPrompt(dayEndOnly) {
+    if (!rxOn() || !S.enrolled || !S.loggedIn || !S.plan) return false;
+    const p = S.plan.cur;
+    if (!p || p.fbPrompted || !rxCurEnded()) return false;
+    return dayEndOnly ? rxToday() === rxEnd(p) : true;
+  }
+
+  /* ── 自由问诊（V0.1）：只答问题、必要时挂调整卡；不记读数、不改报告、不存照片、不打卡 ── */
+  function rxFirstPlanSpec() {
+    const no = Math.max((S.plan && S.plan.seq) || 0, 0) + 1;
+    const rows = [];
+    if (!SEED.some((t) => t.title.includes("泡脚"))) rows.push(rxAddRow("soak"));
+    liveTasks().slice(0, 5).forEach((t) => rows.push(rxRowOf("keep", t)));
+    return {
+      kind: "plan", no, rows, demo: false,
+      why: "以你现在的计划为底，先把每天吃药、测血压稳住；7 天一期，做完我们一起复盘。",
+    };
+  }
+  function rxRoute(text, hasImage) {
+    const q = String(text || "");
+    const has = (ws) => ws.some((w) => q.includes(w));
+    const bp = q.match(/(\d{2,3})\s*[/／]\s*(\d{2,3})/);
+    const sys = bp ? +bp[1] : null;
+    const dia = bp ? +bp[2] : null;
+    const hrM = q.match(/心率\s*(\d{2,3})|(\d{2,3})\s*(?:bpm|次\/分|次每分)/i);
+    const hr = hrM ? +(hrM[1] || hrM[2]) : null;
+    const critical = (sys && (sys >= 180 || sys < 90)) || (dia && dia >= 110) || (hr && (hr > 100 || hr < 50));
+    if (critical || has(["胸痛", "胸口压", "胸口疼", "冷汗", "晕厥", "眼前发黑", "呼吸困难", "喘不上气"])) {
+      return { e120: true, reply: "⚠️ 这很危险！请马上停止一切活动，靠坐休息，叫家人过来，不要自己开车去医院。我先帮你呼叫 120。这次说的读数不会记进血压监测，以测血压打卡或血压计上传为准。" };
+    }
+    if (q.startsWith("关于这份方案我想问")) {
+      return { reply: "方案里每一项都是按你上一期的打卡、血压和感受定的，医生已经审核过。哪一项觉得做不到、时间不顺手，直接告诉我，我帮你出一张调整卡。" };
+    }
+    if (hasImage) {
+      return { reply: "图片我看过了，已经对照着帮你理解上面的内容。这张图只用来回答问题，不会存进身体报告；想把这张单子存进报告，请到身体报告上传。" };
+    }
+    if (has(["反酸", "烧心", "胃不舒服", "阿司匹林"])) {
+      return { reply: "先排除黑便、呕血和剧烈胃痛——如果都没有，多半是空腹吃阿司匹林刺激了胃。建议改到早饭后半小时（08:30）温水送服：", card: rxAdjustSpec([rxAspirinRow()]) };
+    }
+    if (has(["睡不着", "失眠", "入睡", "睡不好"])) {
+      return { reply: "如果没有半夜憋醒、胸口发闷，可以先试试睡前放松：每晚 21:30 用 40℃ 左右的温水泡脚 15 分钟，放下手机准备入睡：", card: rxAdjustSpec([rxAddRow("soak")]) };
+    }
+    if (has(["感冒", "乏力", "没力气", "发烧"])) {
+      return { reply: "身体没力气时别勉强运动。没有胸闷、心跳不快的话，今天好好休息、多喝温水，只暂停今天这一次散步，明天照常：", card: rxAdjustSpec([rxPauseWalkRow()]) };
+    }
+    if (has(["心慌", "心悸", "晚上测", "倍他乐克", "美托洛尔"])) {
+      return { reply: "漏吃的美托洛尔（倍他乐克）不要补双倍，下一顿按时吃。只测早上看不到晚上的变化，建议每晚 20:00 再测一次血压和心率：", card: rxAdjustSpec([rxAddRow("nightBp")]) };
+    }
+    if (has(["停药", "血脂", "他汀", "低密度"])) {
+      return { reply: "装过支架的话，低密度脂蛋白要低于 1.4 mmol/L，没达标前他汀不能停，继续每晚按时吃；肝功能复查时一起看就行。计划不用改。" };
+    }
+    if (has(["支架", "移位", "问卷", "紧张", "焦虑"])) {
+      return { reply: "从你的身体报告看，心脏彩超和复查心电图都正常，支架早已贴牢血管壁，翻身、走路不会移位。紧张时可以试试睡前腹式呼吸：", card: rxAdjustSpec([rxAddRow("breath")]) };
+    }
+    if (sys && dia) {
+      return { reply: `${sys}/${dia} 这个读数我参考了。这里不会替你记进血压监测，请在首页测血压计划打卡时录入，或用绑定的血压计自动上传。` };
+    }
+    return { reply: "收到。我结合你的计划、打卡和最近的血压看了一下，目前不用改计划，照常打卡就好。哪里不舒服或哪一项做起来吃力，随时告诉我。" };
+  }
+
+  /* ── 案例演示（V0.1）：8 个场景；案例对话不写聊天历史，但点卡片「采纳」同样真实生效 ── */
+  const RX_CASES = [
+    {
+      id: "rx1", chip: "早起吃药反酸", out: "调整卡 · 阿司匹林改到早饭后",
+      turns: [
+        { who: "user", t: "哈宝医生，我每天早上空腹吃阿司匹林，最近一上午胃里都有点反酸烧心，这样要紧吗？" },
+        { who: "ai", t: "先确认几件事：最近大便颜色正常吗？有没有黑便、呕血，或者剧烈胃痛？" },
+        { who: "user", t: "都没有，就是刚起床空腹吃完有点反酸。" },
+        { who: "ai", t: "没有黑便、呕血和剧痛，可以先放心。阿司匹林空腹吃容易刺激胃，建议改到早饭后半小时（08:30）温水送服，下次复查再请医生看看要不要配护胃药。我把它整理成了一张调整卡：", card: true },
+      ],
+      card: () => rxAdjustSpec([rxAspirinRow()]),
+    },
+    {
+      id: "rx2", chip: "晚上睡不着", out: "调整卡 · 新增睡前温水泡脚",
+      turns: [
+        { who: "user", t: "最近晚上躺下总是翻来覆去睡不着，白天也没精神，有什么办法吗？" },
+        { who: "ai", t: "睡不好容易让血压波动。先问一下：半夜会不会喘不上气憋醒、胸口发闷，或者必须垫高枕头才能睡？" },
+        { who: "user", t: "那倒没有，呼吸挺顺的，就是脚凉、脑子静不下来。" },
+        { who: "ai", t: "没有夜里憋醒和胸闷，心脏这块是平稳的。建议每晚 21:30 用 40℃ 左右的温水泡脚 15 分钟，放下手机准备入睡。可以把它加进本期计划：", card: true },
+      ],
+      card: () => rxAdjustSpec([rxAddRow("soak")]),
+    },
+    {
+      id: "rx3", chip: "感冒浑身乏力", out: "调整卡 · 暂停今天散步",
+      turns: [
+        { who: "user", t: "昨晚着凉感冒了，浑身没力气，今天傍晚的散步还要去吗？" },
+        { who: "ai", t: "感冒乏力时别勉强运动。现在有没有发烧、胸闷，或者心跳明显变快？" },
+        { who: "user", t: "体温正常，也不胸闷，就是困乏，想在家歇一天。" },
+        { who: "ai", t: "普通感冒、没有胸闷，今天就好好休息，多喝温水。只暂停今天这一次散步，明天照常；今天的满日也不再要求这一项：", card: true },
+      ],
+      card: () => rxAdjustSpec([rxPauseWalkRow()]),
+    },
+    {
+      id: "rx4", chip: "下午心慌", out: "调整卡 · 新增每晚 20:00 测血压",
+      turns: [
+        { who: "user", t: "这两天下午有点心慌，我只在早上测血压，早上都挺正常。昨天早上还忘了吃倍他乐克。" },
+        { who: "ai", t: "漏吃的那次不要补双倍，下一顿按时吃就行。心慌一次持续多久？有没有胸痛、头晕或者眼前发黑？" },
+        { who: "user", t: "一阵一阵的，几分钟就好，没有胸痛也不头晕。" },
+        { who: "ai", t: "只测早上看不到下午和晚上的血压变化。建议每晚 20:00 再测一次血压和心率，下次复诊带给医生看：", card: true },
+      ],
+      card: () => rxAdjustSpec([rxAddRow("nightBp")]),
+    },
+    {
+      id: "rx5", chip: "血脂好转想停药", out: "纯问诊，不出卡",
+      turns: [
+        { who: "user", t: "上周复查血脂，低密度脂蛋白降到 1.7 了，比出院时好多了，阿托伐他汀能停了吗？" },
+        { who: "ai", t: "进步很明显！不过你装过支架，低密度脂蛋白的目标是低于 1.4 mmol/L，现在 1.7 还没达标。" },
+        { who: "user", t: "那我还要一直吃吗？会不会伤肝？" },
+        { who: "ai", t: "现在不能停，继续每晚按时吃。他汀的肝功能指标复查时一起查，有异常医生会调整。计划不用改，照常打卡就好。" },
+      ],
+    },
+    {
+      id: "rx6", chip: "担心支架移位", out: "调整卡 · 新增睡前腹式呼吸",
+      turns: [
+        { who: "user", t: "刚填完随访问卷，我最近半夜容易醒，总担心翻身会让支架移位。" },
+        { who: "ai", t: "我看了你的身体报告：心脏彩超射血分数 58%，复查心电图也正常。支架装好后早已贴牢血管壁，翻身、走路都不会移位。" },
+        { who: "user", t: "听你这么说放心多了，就是躺下还是有点紧张。" },
+        { who: "ai", t: "紧张时可以试试腹式呼吸：躺平，用鼻子慢慢吸气让肚子鼓起，再用嘴慢慢呼出，做 5 分钟。可以加进睡前计划：", card: true },
+      ],
+      card: () => rxAdjustSpec([rxAddRow("breath")]),
+    },
+    {
+      id: "rx7", chip: "血压飙升伴胸痛", out: "不出卡，弹 120 确认",
+      turns: [
+        { who: "user", t: "我刚量血压 186/112，胸口压着疼，还冒冷汗！" },
+        { who: "ai", t: "⚠️ 这很危险！请马上停止一切活动，靠坐休息，叫家人过来，不要自己开车去医院。我现在帮你呼叫 120。", e120: true },
+        { who: "user", t: "好，家里人在旁边。" },
+        { who: "ai", t: "等救护车时保持坐着、松开衣领，别再走动。这次的读数不会记进血压监测，到医院后以医生测量为准。" },
+      ],
+    },
+    {
+      id: "rx8", chip: "期末复盘", out: "期末反馈卡 → 复盘回复 → 下一期方案卡",
+      turns: () => {
+        const base = S.plan.cur || S.plan.history[0];
+        const no = base ? base.no : 1;
+        const bp = vitalsWeekAvg();
+        return [
+          { who: "fb", t: `交第 ${no} 期反馈`, fb: { no, medal: "gold", full: 6, done: 33, total: 35, feeling: "刚好", bp: bp && bp.sys ? `${bp.sys}/${bp.dia}` : "", self: [] } },
+          { who: "ai", t: "这一期集到金章，7 天里 6 天全部完成，一共集了 33/35 枚章，做得很好！只有一天晚上的他汀漏了，可以请家人到点提醒一声。散步后没有胸闷，血压也稳在目标里。下一期怎么调，我写在下面的方案里了。" },
+          { who: "ai", t: `第 ${no + 1} 期康复方案已经制定好，医生已审核：`, card: true },
+        ];
+      },
+      card: () => {
+        const base = S.plan.cur || S.plan.history[0] || null;
+        const no = (base ? base.no : 1) + 1;
+        return { ...rxBuildPlanCard(no, base || { ids: RX_DEFAULT_IDS }, 6, "刚好"), carryFeeling: "刚好" };
+      },
+    },
+  ];
+  function rxCaseTurns(item) {
+    const turns = typeof item.turns === "function" ? item.turns() : item.turns;
+    const cid = `case_${item.id}`;
+    return turns.map((t) => (t.card ? { ...t, card: S.rxCards[cid] ? cid : undefined } : { ...t }));
+  }
+  /// 载入案例：已采纳过的案例卡保持「已采纳」；没采纳的按当前计划重新起草。返回是否需要弹 120
+  function applyRxCase(item, stepByStep) {
+    if (!item) return false;
+    const cid = `case_${item.id}`;
+    if (item.card && (!S.rxCards[cid] || S.rxCards[cid].status !== "adopted")) {
+      delete S.rxCards[cid];
+      const spec = item.card();
+      if (spec) rxNewCard({ ...spec, id: cid, demo: true });
+    }
+    S.rxCaseOn = true;
+    S.rxCaseId = item.id;
+    S.plusPanel = false;
+    S.consultKeyboard = false;
+    S.pendingImage = false;
+    S.rxPinOpen = false;
+    const turns = rxCaseTurns(item);
+    if (stepByStep) {
+      S.rxCaseStep = 0;
+      S.rxCaseMsgs = [];
+      S.chatDraft = turns[0] ? turns[0].t : "";
+      return false;
+    }
+    S.rxCaseStep = null;
+    S.rxCaseMsgs = turns;
+    S.chatDraft = "";
+    return turns.some((t) => t.e120);
+  }
+  function rxSend() {
+    const v = (S.chatDraft || "").trim();
+    if (!v && !S.pendingImage) return;
+    S.consultOpen = true;
+    const item = S.rxCaseOn ? RX_CASES.find((c) => c.id === S.rxCaseId) : null;
+    if (item && S.rxCaseStep != null) {
+      // 模拟提问：每点一次「发送」走一轮（用户这句 + 其后哈宝医生的回复）
+      const turns = rxCaseTurns(item);
+      let i = S.rxCaseStep;
+      const u = turns[i];
+      if (u) S.rxCaseMsgs.push(u.who === "fb" ? u : { ...u, t: v || u.t });
+      i += 1;
+      let e120 = false;
+      while (i < turns.length && turns[i].who !== "user" && turns[i].who !== "fb") {
+        S.rxCaseMsgs.push(turns[i]);
+        if (turns[i].e120) e120 = true;
+        i += 1;
+      }
+      if (i < turns.length) { S.rxCaseStep = i; S.chatDraft = turns[i].t; } else { S.rxCaseStep = null; S.chatDraft = ""; }
+      S.pendingImage = false;
+      S.rxScrollBottom = true;
+      if (e120) openOverlay("e120"); else render();
+      return;
+    }
+    // 自由问诊：写进真实对话（离开案例演示）
+    S.rxCaseOn = false;
+    S.rxCaseStep = null;
+    const hadImage = !!S.pendingImage;
+    const text = v || "请帮我看看这些图片";
+    S.rxChat.push({ who: "user", t: `${hadImage ? "（图片）" : ""}${text}` });
+    const r = rxRoute(text, hadImage);
+    const card = r.card ? rxNewCard(r.card) : null;
+    S.rxChat.push({ who: "ai", t: r.reply, card: card ? card.id : undefined, e120: r.e120 || undefined });
+    S.chatDraft = "";
+    S.pendingImage = false;
+    S.rxScrollBottom = true;
+    if (r.e120) openOverlay("e120"); else render();
+  }
+  /// 进哈宝医生（V0.1）：从血压监测 / 身体报告进来先归档旧对话、新对话首行灰字「已参考：…」；
+  /// 已有真实对话 → 自由提问；没有对话 → 默认打开案例
+  function ensureRxOnEnter(prev) {
+    S.plusPanel = false;
+    S.consultKeyboard = false;
+    S.rxPinOpen = false;
+    const fromVitals = prev === "vitals" || prev === "vitals-detail";
+    const fromReport = ["report", "report-sub", "followup", "analysis"].includes(prev);
+    if (fromVitals || fromReport) {
+      const keep = S.rxChat.filter((m) => m.card && S.rxCards[m.card] && (S.rxCards[m.card].status === "pending" || S.rxCards[m.card].status === "deferred"));
+      if (S.rxChat.some((m) => m.who !== "ref")) S.rxArchive.unshift({ at: Date.now(), msgs: S.rxChat.slice() });
+      S.rxChat = [{ who: "ref", t: fromVitals ? "已参考：本周血压评估" : "已参考：身体报告综合结论" }, ...keep];
+      S.rxCaseOn = false;
+      S.rxCaseStep = null;
+      S.chatDraft = "";
+      return;
+    }
+    if (S.rxChat.length) { S.rxCaseOn = false; S.rxCaseStep = null; return; }
+    if (!S.rxCaseOn || (!S.rxCaseMsgs.length && S.rxCaseStep == null)) {
+      applyRxCase(RX_CASES.find((c) => c.id === S.rxCaseId) || RX_CASES[0], false);
+    }
+  }
+  function rxAfterRender() {
+    if (S.screen !== "consult") return;
+    const sc = app().querySelector(".rx-chat");
+    if (sc && S.rxScrollTo) {
+      const el = document.getElementById(`rxcard-${S.rxScrollTo}`);
+      if (el) {
+        const scale = sc.getBoundingClientRect().width / Math.max(sc.clientWidth, 1) || 1;
+        sc.scrollTop += (el.getBoundingClientRect().top - sc.getBoundingClientRect().top) / scale - 8;
+      }
+    } else if (sc && S.rxScrollBottom) {
+      sc.scrollTop = sc.scrollHeight;
+    }
+    S.rxScrollTo = null;
+    S.rxScrollBottom = false;
+    if (S.rxFocus) {
+      S.rxFocus = false;
+      const d = document.getElementById("chat-draft");
+      if (d) {
+        d.focus();
+        const n = d.value.length;
+        try { d.setSelectionRange(n, n); } catch (_) { /* 部分输入法不支持 */ }
+      }
+    }
+  }
+
+  /* ── 渲染（V0.1） ── */
+  function rxIco(cat) {
+    return `<span class="rx-ico${cat === "appointment" ? " appt" : ""}"><img src="${A.task[cat] || A.task.monitoring}" alt="" /></span>`;
+  }
+  function rxMedalHTML(medal, size) {
+    const s = size || 40;
+    const on = medal && medal !== "none";
+    return `<span class="rx-medal ${on ? medal : "none"}" style="width:${s}px;height:${s}px">${on ? `<img src="${A.stamp.bloom}" alt="${RX_MEDAL[medal]}" />` : ""}</span>`;
+  }
+  function rxRowHTML(r) {
+    return `<div class="rx-row">
+      <span class="rx-tag ${r.op}">${RX_OP[r.op]}</span>
+      ${rxIco(r.cat)}
+      <span class="rx-name"><b>${esc(r.title)}</b>${r.change ? `<em>${esc(r.change)}</em>` : ""}</span>
+      ${r.time ? `<span class="rx-time">${r.time}</span>` : ""}
+    </div>`;
+  }
+  function rxCardHTML(c) {
+    if (!c) return "";
+    const isPlan = c.kind === "plan";
+    const name = isPlan ? `第 ${c.no} 期康复方案` : "计划调整";
+    if (c.status === "expired") {
+      return `<div class="rx-card-fold" id="rxcard-${c.id}"><span class="grow">${name} · 已由新一期替代</span></div>`;
+    }
+    if (c.status === "deferred" && !c.open) {
+      return `<div class="rx-card-fold" id="rxcard-${c.id}"><span class="grow">${name} · 已暂缓</span><button class="rx-link" data-act="rxCardOpen" data-card="${c.id}" type="button">展开 ›</button></div>`;
+    }
+    const adopted = c.status === "adopted";
+    const changes = c.rows.filter((r) => r.op !== "keep");
+    const keeps = c.rows.filter((r) => r.op === "keep");
+    const keepNames = keeps.slice(0, 3).map((r) => rxShort(r.title)).join("、");
+    const keepHTML = !keeps.length ? "" : c.keepOpen
+      ? `${keeps.map(rxRowHTML).join("")}<button class="rx-link rx-keep-fold" data-act="rxKeepToggle" data-card="${c.id}" type="button">收起</button>`
+      : `<div class="rx-row keep"><span class="rx-tag keep">保留</span><span class="rx-name"><b>${esc(keepNames)}${keeps.length > 3 ? " 等" : " 共"} ${keeps.length} 项</b></span><button class="rx-link" data-act="rxKeepToggle" data-card="${c.id}" type="button">展开 ›</button></div>`;
+    const sub = isPlan ? `<div class="rx-card-sub">7 天 · ${rxRangeText(c.start || rxToday())} · 医生已审核</div>` : "";
+    const foot = isPlan
+      ? `<div class="rx-why"><b>为什么这样调：</b>${esc(c.why || "")}</div>`
+      : `<div class="rx-why plain">从今天起生效 · 以前的打卡记录不变</div>`;
+    const btns = adopted
+      ? `<div class="rx-btns"><button class="rx-pri done" type="button" disabled>${I.tick}已采纳</button><button class="rx-sec" data-act="${isPlan ? "rxGoStamps" : "rxGoSchedule"}" type="button">${isPlan ? "去看集章" : "去看计划"} ›</button></div>`
+      : `<div class="rx-btns"><button class="rx-pri" data-act="rxAdopt" data-card="${c.id}" type="button">${isPlan ? "采纳方案" : "采纳调整"}</button><button class="rx-sec" data-act="rxAsk" data-card="${c.id}" type="button">问问医生</button></div>
+        ${isPlan ? `<button class="rx-link rx-later-link" data-act="${c.status === "deferred" ? "rxCardClose" : "rxDefer"}" data-card="${c.id}" type="button">${c.status === "deferred" ? "收起" : "暂不采纳"}</button>` : ""}`;
+    return `<div class="rx-card${adopted ? " done" : ""}" id="rxcard-${c.id}">
+      <div class="rx-card-head"><img src="${A.logo}" width="24" height="24" alt="" /><span class="grow">哈宝医生 · ${name}</span><span class="rx-state ${c.status}">${RX_CARD_STATE[c.status] || ""}</span></div>
+      ${sub}
+      <div class="rx-rows">${changes.map(rxRowHTML).join("")}${keepHTML}</div>
+      ${foot}
+      ${btns}
+    </div>`;
+  }
+  function rxFbCardHTML(fb) {
+    if (!fb) return "";
+    const items = [
+      ["期章", fb.medal && fb.medal !== "none" ? RX_MEDAL[fb.medal] : "未集章"],
+      ["满日", `${fb.full}/7`],
+      ["打卡", `已集 ${fb.done}/${fb.total} 章`],
+      ["感受", fb.feeling || "未作答"],
+      fb.bp ? ["本期血压均值", `${fb.bp} mmHg`] : null,
+      fb.self && fb.self.length ? ["自行调整过", fb.self.join("、")] : null,
+    ].filter(Boolean);
+    return `<div class="rx-fb">
+      <div class="rx-fb-head">${rxMedalHTML(fb.medal, 34)}<b>第 ${fb.no} 期反馈</b></div>
+      <div class="rx-fb-list">${items.map(([k, v]) => `<div><span>${k}</span><b>${esc(v)}</b></div>`).join("")}</div>
+    </div>`;
+  }
+  function rxMsgHTML(m) {
+    if (m.who === "ref") return `<div class="rx-ref">${esc(m.t)}</div>`;
+    if (m.who === "fb") return rxFbCardHTML(m.fb);
+    if (m.who === "user") return `<div class="bubble user">${esc(m.t)}</div>`;
+    return `<div class="bubble ai">${esc(m.t)}</div>
+      ${m.e120 ? `<button class="rx-e120" data-act="call120" type="button">${I.phone}呼叫 120</button>` : ""}
+      ${m.card ? rxCardHTML(S.rxCards[m.card]) : ""}`;
+  }
+  /// 本期计划清单：withToday = 置顶条（带今日打卡态）；否则集章页（带医嘱标）
+  function rxPlanListHTML(p, withToday) {
+    const today = rxToday();
+    const sched = new Set(rxScheduled(p, today));
+    const rows = (p.rows || []).slice();
+    (p.ids || []).forEach((id) => {
+      if (rows.some((r) => r.id === id)) return;
+      const t = rxTask(id);
+      if (t) rows.push({ op: "add", id, cat: t.cat, title: t.title, time: rxTimeText(t) });
+    });
+    return rows.map((r) => {
+      const t = r.id ? rxTask(r.id) : null;
+      const title = t ? t.title : r.title;
+      const time = t ? rxTimeText(t) : r.time;
+      const tail = withToday
+        ? (!t || !sched.has(t.id) ? `<span class="rx-st off">今天不排</span>` : S.completed[t.id] ? `<span class="rx-st done">${I.tick}已打卡</span>` : `<span class="rx-st">未打卡</span>`)
+        : (t && S.rx && S.rx[t.id] ? `<span class="rx-chip">医嘱</span>` : "");
+      return `<div class="rx-plan-row"><span class="rx-tag ${r.op}">${RX_OP[r.op]}</span>${rxIco(r.cat)}<span class="rx-name"><b>${esc(title)}</b><em>${time || ""}</em></span>${tail}</div>`;
+    }).join("");
+  }
+  function rxPinHTML() {
+    const p = S.plan && S.plan.cur;
+    const today = rxToday();
+    if (p && rxCurEnded()) {
+      return `<div class="rx-pin-wrap"><button class="rx-pin" data-act="rxOpenFeedback" type="button"><span class="rx-pin-emo">🏅</span><b class="grow">第 ${p.no} 期已结束，说说这期感觉</b><span class="rx-pin-go">交反馈</span></button></div>`;
+    }
+    if (p) {
+      const st = rxStats(p);
+      const dots = st.days.map((d) => `<i class="${d.state}${d.ymd === today ? " today" : ""}"></i>`).join("");
+      return `<div class="rx-pin-wrap${S.rxPinOpen ? " open" : ""}">
+        <button class="rx-pin" data-act="rxPinToggle" type="button">
+          <span class="rx-pin-emo">🩺</span>
+          <span class="grow rx-pin-main"><b>第 ${p.no} 期康复方案 · 第 ${rxDayIndex(p, today)} 天</b><span class="rx-pin-sub">满日 ${st.full}/7<span class="rx-dots">${dots}</span></span></span>
+          <span class="rx-pin-chev">${S.rxPinOpen ? I.chevU : I.chevD}</span>
+        </button>
+        ${S.rxPinOpen ? `<div class="rx-pin-list">${rxPlanListHTML(p, true)}<button class="rx-link rx-pin-more" data-act="rxGoStamps" type="button">去看集章 ›</button></div>` : ""}
+      </div>`;
+    }
+    const pend = rxPendingCard("plan");
+    if (pend) {
+      return `<div class="rx-pin-wrap"><button class="rx-pin" data-act="rxGoCard" data-card="${pend.id}" type="button"><span class="rx-pin-emo">📮</span><b class="grow">第 ${pend.no} 期康复方案待采纳</b><span class="rx-pin-go">去看看</span></button></div>`;
+    }
+    return `<div class="rx-pin-wrap"><button class="rx-pin muted" data-act="rxFocusInput" type="button"><span class="rx-pin-emo">🩺</span><b class="grow">还没有康复方案 · 和哈宝医生聊聊</b></button></div>`;
+  }
+  function rxCasePanelHTML() {
+    const isFirst = S.rxCaseId === "rx0";
+    const item = isFirst
+      ? { id: "rx0", chip: "制定第 1 期", out: "方案卡 · 第 1 期康复方案" }
+      : (RX_CASES.find((c) => c.id === S.rxCaseId) || RX_CASES[0]);
+    const idx = RX_CASES.indexOf(item);
+    const curLabel = idx >= 0 ? `${idx + 1} · ${item.chip}` : item.chip;
+    const step = S.rxCaseStep != null;
+    const fold = !!S.rxCaseFold;
+    return `<div class="rx-case-panel${fold ? " fold" : ""}">
+      <div class="rx-case-head">
+        <b>问诊案例</b>
+        ${fold
+          ? `<span class="rx-case-cur grow">${curLabel}</span>`
+          : `<div class="rx-seg"><button class="${step ? "" : "on"}" data-act="rxCaseMode" data-mode="all" type="button">全部展现</button><button class="${step ? "on" : ""}" data-act="rxCaseMode" data-mode="step" type="button">模拟提问</button></div>`}
+        <button class="rx-fold" data-act="rxCaseFold" type="button" aria-label="${fold ? "展开案例" : "收起案例"}">${fold ? I.chevD : I.chevU}</button>
+      </div>
+      ${fold ? "" : `${!S.plan.cur && !rxPendingCard("plan") ? `<button class="rx-first-plan" data-act="rxFirstPlan" type="button">${I.docPlus || "＋"}<span>还没有方案 · 制定第 1 期康复方案</span><b>去制定 ›</b></button>` : ""}<div class="rx-case-chips">${RX_CASES.map((c, i) => `<button class="${c.id === item.id ? "on" : ""}" data-act="rxLoadCase" data-case="${c.id}" type="button"><i>${i + 1}</i>${c.chip}</button>`).join("")}</div>
+      <div class="rx-case-out">产出：${item.out}</div>`}
+    </div>`;
+  }
+  function rxConsultHTML() {
+    const caseOn = !!S.rxCaseOn;
+    const msgs = caseOn ? (S.rxCaseMsgs || []) : (S.rxChat || []);
+    const canSend = consultCanSend();
+    const plusItem = (act, icon, label) =>
+      `<button class="plus-item" type="button" data-act="${act}"><span>${icon}</span>${label}</button>`;
+    const rightCaps = `<div class="flex center gap6">
+      <button class="cap${caseOn ? " on-blue" : ""}" data-act="rxToggleCase" type="button" style="padding:0 11px;gap:4px">✦案例</button>
+    </div>`;
+    const empty = caseOn
+      ? `<div class="island-card ta-c" style="padding:14px 16px;margin-top:8px">
+          <div class="s15 fb t">已就绪：点输入框右侧「发送」开始第 1 轮提问</div>
+          <div class="s13 t-sec mt4">输入框里已预填患者的第 1 句话</div>
+        </div>`
+      : `<div class="island-card ta-c" style="padding:16px;margin-top:12px">
+          <img src="${A.logo}" width="64" height="64" alt="" />
+          <h2 class="s21 fb t mt8">你好，这里是哈宝医生</h2>
+          <p class="s16 t-sec">有不适、用药疑问，或想调整计划，都可以问我</p>
+        </div>`;
+    return `
+      <div class="page rel${S.consultKeyboard ? " consult-kb" : ""}${S.plusPanel ? " consult-panel" : ""}">
+        ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="24" height="24" alt="" />哈宝医生</span>`, rightCaps)}
+        ${rxPinHTML()}
+        ${caseOn ? rxCasePanelHTML() : ""}
+        <div class="scroll px20 grow rx-chat">
+          ${msgs.length ? msgs.map(rxMsgHTML).join("") : empty}
+        </div>
+        ${S.pendingImage ? `<div class="consult-pending">已选 1 张图片，补充一句再发送</div>` : ""}
+        <div class="listen-hint" id="listen-hint" hidden></div>
+        <div class="chat-row rx-chat-row">
+          <div class="chat-well">
+            <input class="chat-text" id="chat-draft" placeholder="按住说话，或点按输入" value="${S.chatDraft.replace(/"/g, "&quot;")}" />
+            <button class="chat-send" id="consult-send" type="button" data-act="sendChat"${canSend ? "" : " hidden"}>发送</button>
+          </div>
+          <button class="chat-plus" data-act="togglePlus" type="button" aria-label="${S.plusPanel ? "关闭功能" : "更多功能"}">${S.plusPanel ? I.x : I.plus}</button>
+        </div>
+        <div class="dock-slot">
+          <div class="fake-kb dock-face" aria-hidden="true">
+            ${[10, 9, 7].map((n) => `<div class="kb-row">${"<i></i>".repeat(n)}</div>`).join("")}
+            <div class="kb-row"><i class="wide"></i></div>
+          </div>
+          <div class="plus-panel dock-face">
+            ${plusItem("consultCamera", I.camLine, "拍照")}
+            ${plusItem("consultAlbum", I.folder, "相册")}
+            ${plusItem("consultCall", I.phone, "AI电话")}
+          </div>
+        </div>
+      </div>`;
+  }
+  function rxHistoryHTML() {
+    const all = [...(S.rxArchive || []).slice().reverse().flatMap((a) => a.msgs), ...(S.rxChat || [])].filter((m) => m.who !== "ref");
+    const text = (m) => (m.who === "fb" ? `【期末反馈】第 ${m.fb.no} 期 · ${RX_MEDAL[m.fb.medal] || "未集章"} · ${m.fb.feeling || "未作答"}` : m.t);
+    return `
+      <div class="page">
+        ${navBar(cap(I.chevL, "返回"), "历史记录")}
+        ${all.length ? `
+        <div class="scroll px20" style="padding-top:8px">
+          <div class="s18 fb t mb8">今天</div>
+          ${all.map((m) => {
+            const c = m.card && S.rxCards[m.card];
+            return `<div class="bubble ${m.who === "ai" ? "ai" : "user"}">${esc(text(m))}${c ? `<div class="s13 mt4">【${c.kind === "plan" ? `第 ${c.no} 期康复方案` : "计划调整"} · ${RX_CARD_STATE[c.status] || ""}】</div>` : ""}</div>`;
+          }).join("")}
+        </div>` : `
+        <div class="grow col center" style="padding:0 28px">
+          <div class="hist-empty-ico">${I.clock}</div>
+          <div class="s21 fb t mt16">还没有历史记录</div>
+          <p class="s16 t-sec ta-c mt8">问过的话会按日期自动出现在这里，一直保留</p>
+        </div>`}
+      </div>`;
+  }
+
+  /* ── 今日集章：方案章卡 / 期章墙 / 海报一行 ── */
+  function rxCheerText(st) {
+    const today = rxToday();
+    const open = st.days.filter((d) => d.ymd > today || (d.ymd === today && d.state !== "full" && d.state !== "rest")).length;
+    if (st.full >= 6) return "本期金章已到手，继续保持";
+    if (6 - st.full <= open) return `再集满 ${6 - st.full} 天，本期拿「金章」`;
+    if (st.full >= 4) return "本期银章已到手，继续保持";
+    if (4 - st.full <= open) return `再集满 ${4 - st.full} 天拿「银章」`;
+    return st.anyDone ? "本期铜章已到手，继续加油" : "今天打一次卡，本期就有「铜章」";
+  }
+  /// mode：live 进行中 / fb 已结束待交反馈 / next 已交反馈、下一期待采纳 / past 看历史日
+  function rxPeriodCardHTML(p, sel, mode, pend) {
+    const st = rxStats(p);
+    const today = rxToday();
+    const wk = "日一二三四五六";
+    const cells = st.days.map((d) => {
+      const dt = parseYMD(d.ymd);
+      const ico = d.state === "full" ? `<img src="${A.stamp.bloom}" alt="满日" />`
+        : d.state === "part" ? `<i class="rx-half"></i>`
+        : d.state === "rest" ? `<span class="rx-rest">休</span>`
+        : `<i class="rx-empty"></i>`;
+      const can = d.ymd <= today && d.ymd >= STAMP_FIRST_YMD;
+      return `<button class="rx-day${d.ymd === today ? " today" : ""}${d.ymd === sel ? " sel" : ""}" type="button"${can ? ` data-act="pickStampDay" data-ymd="${d.ymd}"` : " disabled"}>
+        <span class="wk">${wk[dt.getDay()]}</span><span class="ic">${ico}</span><span class="dt">${dt.getMonth() + 1}/${dt.getDate()}</span>
+      </button>`;
+    }).join("");
+    let foot;
+    if (mode === "live") {
+      foot = `<div class="rx-sc-foot">
+          <span class="grow rx-cheer">${rxCheerText(st)}</span>
+          <button class="rx-link" data-act="rxStampPlanToggle" type="button">本期计划 ${S.rxStampPlanOpen ? I.chevU : "›"}</button>
+        </div>
+        ${S.rxStampPlanOpen ? `<div class="rx-sc-plan">${rxPlanListHTML(p, false)}</div>` : ""}`;
+    } else {
+      const label = st.medal === "none" ? "这一期没有集到章" : `拿到「${RX_MEDAL[st.medal]}」`;
+      const sub = mode === "fb" ? "本期已结束，说说这期感觉" : `满日 ${st.full}/7${p.feeling ? ` · 感受：${esc(p.feeling)}` : ""}`;
+      foot = `<div class="rx-sc-foot">
+          ${rxMedalHTML(st.medal, 38)}
+          <span class="grow rx-sc-medal"><b>${label}</b><span>${sub}</span></span>
+          ${mode === "fb" ? `<button class="rx-pri sm" data-act="rxOpenFeedback" type="button">交反馈</button>` : ""}
+        </div>
+        ${mode === "next" && pend ? `<button class="rx-sc-next" data-act="rxGoCard" data-card="${pend.id}" type="button"><span class="grow">📮 下一期方案已送达</span><b>去看看 ›</b></button>` : ""}`;
+    }
+    return `<div class="rx-sc${mode === "live" ? "" : " frozen"}">
+      <div class="rx-sc-head"><span class="rx-pin-emo">🩺</span><b class="grow">第 ${p.no} 期康复方案</b><span class="rx-sc-count">本期已集 <b>${st.done}</b>/${st.total} 章</span></div>
+      <div class="rx-days">${cells}</div>
+      ${foot}
+    </div>`;
+  }
+  function rxWallHTML() {
+    const list = (S.plan && S.plan.history) || [];
+    if (!list.length) return "";
+    return `<div class="rx-wall">
+      <div class="rx-wall-title">我的期章</div>
+      <div class="rx-wall-row">${list.map((h) => `<button class="rx-wall-item" data-act="rxPeriodSummary" data-no="${h.no}" type="button">${rxMedalHTML(h.stats.medal, 46)}<span>第 ${h.no} 期</span></button>`).join("")}</div>
+    </div>`;
+  }
+  /// 集章页顶部（标题行下方、集章内容之上）：VIP 且有方案时出现；看历史日显示该日所在那一期
+  function rxStampSectionHTML(sel) {
+    if (!rxOn() || !S.plan) return "";
+    const today = rxToday();
+    const cur = S.plan.cur;
+    const inP = (p) => p && sel >= p.start && sel <= rxEnd(p);
+    let card = "";
+    if (cur && inP(cur) && sel <= today) {
+      card = rxPeriodCardHTML(cur, sel, rxCurEnded() ? "fb" : "live");
+    } else if (sel === today) {
+      const pend = rxPendingCard("plan");
+      if (cur && rxCurEnded()) card = rxPeriodCardHTML(cur, sel, "fb");
+      else if (pend) {
+        card = S.plan.history[0]
+          ? rxPeriodCardHTML(S.plan.history[0], sel, "next", pend)
+          : `<button class="rx-sc rx-invite" data-act="rxGoCard" data-card="${pend.id}" type="button"><span class="rx-pin-emo">📮</span><b class="grow">哈宝医生为你制定了第 ${pend.no} 期方案</b><span class="rx-link">去采纳 ›</span></button>`;
+      }
+    } else if (sel >= STAMP_FIRST_YMD) {
+      const h = (S.plan.history || []).find(inP);
+      if (h) card = rxPeriodCardHTML(h, sel, "past");
+    }
+    return card + rxWallHTML();
+  }
+  function rxPosterLine(sel) {
+    if (!rxOn()) return "";
+    const p = rxPeriodOf(sel);
+    if (!p || sel > rxToday() || sel < STAMP_FIRST_YMD) return "";
+    const st = rxStats(p);
+    const full = st.days.filter((d) => d.ymd <= sel && (d.state === "full" || d.state === "rest")).length;
+    const ended = !!p.stats || (p === S.plan.cur && rxCurEnded());
+    return `<div class="rx-poster-line">第 ${p.no} 期康复方案 · 第 ${rxDayIndex(p, sel)} 天 · 满日 ${full}/7${ended && st.medal !== "none" ? rxMedalHTML(st.medal, 22) : ""}</div>`;
+  }
+
   function notifySys(svg, onBlue) {
     return `<div class="notify-ico ${onBlue ? "on" : ""}">${svg}</div>`;
   }
@@ -8350,9 +9643,33 @@
     const sub = on ? `有效期至 ${vipExpiryText()}` : "¥2400 / 年";
     const cap = on ? "已开通" : "立即开通";
     return `<button class="vip-card" data-go="vip" type="button">
-      <div class="well">${I.crown}</div>
-      <div class="grow"><h4>VIP 会员</h4><p>${sub}</p></div>
+      <div class="well vip-head-well">${I.crown}</div>
+      <div class="grow">
+        <div style="display:flex;align-items:center;gap:6px">
+          <h4>VIP 会员</h4>
+          <span class="vip-badge-pill">VIP专享</span>
+        </div>
+        <p>${sub}</p>
+      </div>
       <span class="vip-cap${on ? " on" : ""}">${cap}</span>
+    </button>`;
+  }
+  /// VIP 专区功能行（家属管理 / 硬件管理 / 操作记录）：纯正蓝色视觉设计
+  function vipFeatureRowHTML(id, ico, title, caption) {
+    const locked = !(genIsV01() && S.vip);
+    const goId = locked ? "vip" : id;
+    const sub = locked ? "开通 VIP 后可用" : caption;
+    const tail = locked ? `<span class="vip-lock">${I.crown}</span>` : `<span class="vip-chev">${I.chevR}</span>`;
+    return `<button class="list-row vip-feature-row" data-go="${goId}" type="button">
+      <div class="well vip-well">${ico}</div>
+      <div class="grow">
+        <div style="display:flex;align-items:center;gap:6px">
+          <h4 class="vip-title">${title}</h4>
+          <span class="vip-badge-pill">VIP</span>
+        </div>
+        <p class="${locked ? "t-blue-muted" : ""}">${sub}</p>
+      </div>
+      ${tail}
     </button>`;
   }
   /// 家属管理 / 操作记录 / 硬件管理：未开通时这一行还在，点按去 VIP。
@@ -8366,7 +9683,8 @@
     </button>`;
   }
   function consultOrbHTML() {
-    if (genHasFamily()) return `<div class="orb ai" data-go="consult"><img src="${A.logo}" alt="哈宝医生" /></div>`;
+    // V0.1：有待采纳的方案卡 / 调整卡，或本期已结束待交反馈 → 右上角红点
+    if (genHasFamily()) return `<div class="orb ai" data-go="consult"><img src="${A.logo}" alt="哈宝医生" />${rxNeedsDot() ? `<i class="orb-dot" aria-label="有待处理的方案"></i>` : ""}</div>`;
     if (genIsV01()) return `<div class="orb ai locked" data-go="vip" role="button" aria-label="哈宝医生，开通 VIP 后可用"><img src="${A.logo}" alt="" /></div>`;
     return `<div class="orb ai off" aria-disabled="true"><img src="${A.logo}" alt="哈宝医生" /></div>`;
   }
@@ -8658,6 +9976,7 @@
       <div class="hug-inner">
         <div class="task-top">
           ${badge(t.cat, done)}
+          ${rxOn() && S.rx && S.rx[t.id] ? `<span class="rx-chip">医嘱</span>` : ""}
           <div class="task-status">${done ? `${I.check}<span>已完成</span>` : `${I.clock}<span>${spoken(t.h, t.m)}</span>`}</div>
         </div>
         <div class="task-body">
@@ -9252,7 +10571,7 @@
 
       const contentCard = `
         <div class="v02-editor-card">
-          ${modHead(I.doc, "事项内容")}
+          ${modHead(I.doc, mode !== "add" && rxOn() && S.rx && S.rx[t.id] ? `事项内容<span class="rx-chip" style="margin-left:8px">医嘱</span>` : "事项内容")}
           <div class="sec-label" style="margin-top:0">事项名称</div>
           ${editable
             ? `<input class="voice-box w100" name="taskTitle" style="color:${accent.fg};border:0;font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" ? "42px" : "46px"}" placeholder="填写事项名称" value="${String(d.title || "").replace(/"/g, "&quot;")}" />`
@@ -9553,7 +10872,7 @@
     if (ymd === toYMD(demoDate())) {
       return new Set(liveTasks(ymd).filter((t) => S.completed[t.id]).map((t) => t.id));
     }
-    return new Set(liveTasks(ymd).filter((t, i) => i % 3 !== 2).map((t) => t.id));
+    return rxOverlayPastDone(ymd, new Set(liveTasks(ymd).filter((t, i) => i % 3 !== 2).map((t) => t.id)));
   }
 
   function stampCalDays() {
@@ -9603,6 +10922,10 @@
               ${S.gen === v ? I.check : `<span style="width:19px;height:19px;flex:0 0 19px"></span>`}
               <span>设计版本 V${v}<em>${S.gen === v ? "当前" : ""}</em></span>
             </button>`).join("")}
+          <div class="dbg-sep"></div>
+          <button class="dbg-row" data-act="debugRxEnd" type="button">${I.cal}<span>方案：模拟一期结束<em>V0.1</em></span></button>
+          <button class="dbg-row" data-act="debugRxPush" type="button">${I.steth}<span>方案：推送新方案卡<em>V0.1</em></span></button>
+          <button class="dbg-row" data-act="debugRxFresh" type="button">${I.undo}<span>方案：从第 1 期开始<em>V0.1</em></span></button>
         </div>
       </div>`,
     // 指标 / 分析分享海报（真机 RecordsView 与 FollowUpAnalysisView 的分享出口）
@@ -9759,6 +11082,49 @@
           </div>
         </div>
       </div>`,
+    // V0.1 期末反馈弹窗（首页 / 集章章卡「交反馈」/ 哈宝医生置顶条三处可开）：期章 + 一题感受
+    rxFeedback: () => {
+      const p = S.plan && S.plan.cur;
+      if (!p) return "";
+      const st = rxStats(p);
+      const f = S.overlayData.feeling || "";
+      const got = st.medal !== "none";
+      return `
+      <div class="scrim center" data-act="close">
+        <div class="popup rx-fb-pop" onclick="event.stopPropagation()">
+          <div class="rx-fb-medal">${rxMedalHTML(st.medal, 104)}</div>
+          <h3>${got ? `第 ${p.no} 期 · 拿到「${RX_MEDAL[st.medal]}」` : "这一期没有集到章，下一期再一起加油"}</h3>
+          <p>满日 ${st.full}/7 · 本期已集 ${st.done}/${st.total} 章</p>
+          <div class="rx-fb-sep"></div>
+          <div class="rx-fb-q">这一期感觉怎么样？</div>
+          <div class="rx-feel">${RX_FEELINGS.map(([k, e]) => `<button class="${f === k ? "on" : ""}" data-act="rxPickFeeling" data-f="${k}" type="button"><i>${e}</i><span>${k}</span></button>`).join("")}</div>
+          <button class="cta mt16${f ? "" : " rx-dim"}" data-act="rxSubmitFeedback" type="button">交给哈宝医生</button>
+          <button class="rx-later" data-act="rxLater" type="button">稍后再说</button>
+        </div>
+      </div>`;
+    },
+    // V0.1 期章墙：点某枚期章看该期小结（只读）
+    rxPeriod: () => {
+      const h = ((S.plan && S.plan.history) || []).find((x) => String(x.no) === String(S.overlayData.no));
+      if (!h) return "";
+      const st = h.stats;
+      const rows = [
+        ["起止日期", `${rxMD(h.start)} – ${rxMD(rxEnd(h))}`],
+        ["满日", `${st.full}/7`],
+        ["本期已集", `${st.done}/${st.total} 章`],
+        ["当时的感受", h.feeling || "未作答"],
+        ["哈宝医生复盘", h.review || "—"],
+      ];
+      return `
+      <div class="scrim center" data-act="close">
+        <div class="popup rx-fb-pop" onclick="event.stopPropagation()">
+          <div class="rx-fb-medal still">${rxMedalHTML(st.medal, 80)}</div>
+          <h3>第 ${h.no} 期${st.medal !== "none" ? ` · ${RX_MEDAL[st.medal]}` : ""}</h3>
+          <div class="rx-sum">${rows.map(([k, v]) => `<div><span>${k}</span><b>${esc(v)}</b></div>`).join("")}</div>
+          <button class="cta-ghost w100 mt16" data-act="close" type="button">知道了</button>
+        </div>
+      </div>`;
+    },
     opCard: () => {
       const op = (S.ops || []).find((x) => x.id === S.overlayData.id) || {};
       return `
@@ -10156,6 +11522,7 @@
               <span>哈宝 · 康复打卡</span>
             </div>
             <div class="poster-title">${d.getMonth() + 1}月${d.getDate()}日集章</div>
+            ${rxPosterLine(sel)}
             <div class="poster-ring">
               <div class="stamp-ring ${allDone ? "done" : ""}" style="transform:scale(1.5)">
                 <svg viewBox="0 0 36 36">
