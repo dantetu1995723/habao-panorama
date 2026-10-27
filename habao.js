@@ -7035,7 +7035,7 @@
           </div>
           <button class="circle-btn lg" data-act="openCal" type="button">${I.cal}</button>
         </div>
-        <div class="scroll px24 grow" style="padding-top:20px">
+        <div class="scroll px24 grow" style="padding-top:16px">
           ${rxStampSectionHTML(sel)}
           ${empty ? `<div class="stamp-empty">
             <div class="empty-hero"><img src="${A.stamp.bloom}" width="104" alt="" /></div>
@@ -7045,9 +7045,16 @@
           </div>` : ""}
           ${empty ? "" : byP.filter((p) => p.items.length).map((p) => {
             const d = p.items.filter((t) => doneSet.has(t.id)).length;
-            return `<div class="flex center mb8 gap8"><div class="stamp-period">${I[p.icon] || ""}</div><div class="s17 fb t">${p.title}</div><div class="grow" style="height:1.5px;margin:0 8px;background:linear-gradient(90deg,rgba(16,84,224,.14),transparent)"></div><div class="s14 fb ${d === p.items.length ? "t-green" : "t"}">${d}/${p.items.length}</div></div>
-            <div class="stamp-grid mb16">${p.items.map((t) => `
-              <div><div class="stamp ${doneSet.has(t.id) ? "" : "ghost"}"><img src="${A.stamp[t.cat]}" alt="" /></div><div class="stamp-cap">${t.title}</div></div>`).join("")}</div>`;
+            const allP = d === p.items.length;
+            return `<div class="stamp-sec-card">
+              <div class="stamp-sec-head">
+                <div class="stamp-period">${I[p.icon] || ""}</div>
+                <div class="s17 fb t grow">${p.title}</div>
+                <span class="stamp-sec-pill${allP ? " done" : ""}">${allP ? "✓ " : ""}已集 ${d}/${p.items.length}</span>
+              </div>
+              <div class="stamp-grid">${p.items.map((t) => `
+                <div><div class="stamp ${doneSet.has(t.id) ? "" : "ghost"}"><img src="${A.stamp[t.cat]}" alt="" /></div><div class="stamp-cap">${t.title}</div></div>`).join("")}</div>
+            </div>`;
           }).join("")}
           ${doneN === dayTasks.length && dayTasks.length ? `<div class="bloom-badge">
             <img src="${A.stamp.bloom}" width="42" height="42" alt="" />
@@ -9563,8 +9570,23 @@
     const list = (S.plan && S.plan.history) || [];
     if (!list.length) return "";
     return `<div class="rx-wall">
-      <div class="rx-wall-title">我的期章</div>
-      <div class="rx-wall-row">${list.map((h) => `<button class="rx-wall-item" data-act="rxPeriodSummary" data-no="${h.no}" type="button">${rxMedalHTML(h.stats.medal, 46)}<span>第 ${h.no} 期</span></button>`).join("")}</div>
+      <div class="rx-wall-head">
+        <span class="stamp-period">🏅</span>
+        <div class="rx-wall-title grow">我的期章</div>
+        <span class="stamp-sec-pill">共 ${list.length} 期</span>
+      </div>
+      <div class="rx-wall-row">${list.map((h) => {
+        const mTitle = RX_MEDAL[h.stats.medal] || "未获章";
+        const feel = h.feeling ? ` · 感受：${esc(h.feeling)}` : "";
+        return `<button class="rx-wall-item" data-act="rxPeriodSummary" data-no="${h.no}" type="button">
+          ${rxMedalHTML(h.stats.medal, 40)}
+          <div class="rx-wall-meta">
+            <b>第 ${h.no} 期 · ${mTitle}</b>
+            <span>满日 ${h.stats.full}/7${feel}</span>
+          </div>
+          <i class="rx-wall-arr">›</i>
+        </button>`;
+      }).join("")}</div>
     </div>`;
   }
   /// 集章页顶部（标题行下方、集章内容之上）：VIP 且有方案时出现；看历史日显示该日所在那一期
