@@ -1229,7 +1229,7 @@
     // 确认计划页：计划 / 解析依据分页（默认落计划）
     confirmPane: "plan",
     // 健康档案：分区展开态 + 全屏预览页
-    hrExpanded: { baseline: true, review: false },
+    hrExpanded: { baseline: true, review: true },
     hrPreview: null,
     // 确认页草稿：首次入组带作息区，已入组重走用药复查只有用药 + 复查
     confirmDrafts: null,
@@ -3089,7 +3089,10 @@
   function bindClicks(root) {
     if (!root) return;
     root.querySelectorAll("[data-go]").forEach((el) => {
-      el.onclick = () => go(el.dataset.go, el.dataset.how);
+      el.onclick = (e) => {
+        e.stopPropagation();
+        go(el.dataset.go, el.dataset.how);
+      };
     });
     root.querySelectorAll("[data-act]").forEach((el) => {
       if (el.dataset.hold) return;
@@ -7138,10 +7141,10 @@
       ];
       return `<div class="page">
         ${navBar(cap(I.chevL, "返回"), "VIP 会员")}
-        <div class="scroll px20" style="padding-top:8px">
+        <div class="scroll px20" style="padding-top:8px;padding-bottom:16px">
           <div class="hero">
             <div class="hero-top">
-              <div class="avatar">${I.crown}</div>
+              <div class="hero-crown-circle">${I.crown}</div>
               <div>
                 <div class="s18 fb">哈宝 VIP</div>
                 <div class="s13" style="opacity:.85">哈宝医生、支架保险理赔、家属共管、智能硬件及操作记录</div>
@@ -7178,7 +7181,7 @@
 
           <p class="s14 fm t-sec mt16 ta-c">本机演示开通，不会真实扣款。</p>
         </div>
-        <div class="px20" style="padding-bottom:28px">
+        <div class="px20" style="padding-top:10px;padding-bottom:28px">
           ${on
             ? `<button class="cta-ghost" data-act="askCancelVip" type="button">取消订阅</button>`
             : `<button class="cta" data-act="askVip" type="button">立即开通</button>`}
@@ -7192,24 +7195,26 @@
         ${navBar(cap(I.chevL, "返回"), "个人中心",
           genHasFamily() ? `<button class="cap" data-act="roleSwitch" type="button">${I.two}${S.role === "patient" ? "本人" : (((S.family || [])[0] && (S.family || [])[0].name) || "家属")}</button>` : "")}
         <div class="scroll px20" style="padding-top:8px">
-          <div class="hero pointer" data-go="health-record">
-            <div class="hero-top">
-              <div class="avatar">${S.name.slice(0, 1)}</div>
-              <div>
-                <div style="display:flex;align-items:center;gap:6px">
-                  <span class="s18 fb">${S.name}</span>
-                  ${isVip ? `<span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.crown} VIP</span>` : ""}
+          <div class="hero">
+            <div class="pointer" data-go="health-record" role="button" style="cursor:pointer">
+              <div class="hero-top">
+                <div class="avatar">${S.name.slice(0, 1)}</div>
+                <div>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <span class="s18 fb">${S.name}</span>
+                    ${isVip ? `<span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.crown} VIP</span>` : ""}
+                  </div>
+                  <div class="s13" style="opacity:.85">${shownRole() === "patient" ? "本人" : "守护中"}　${S.gender}</div>
                 </div>
-                <div class="s13" style="opacity:.85">${shownRole() === "patient" ? "本人" : "守护中"}　${S.gender}</div>
+                <button class="view-cap" data-go="health-record" type="button">点击查看</button>
               </div>
-              <button class="view-cap" type="button">点击查看</button>
-            </div>
-            <div class="frost"></div>
-            <div class="metrics">
-              <div><span>年龄</span><b>58</b></div>
-              <div><span>身高</span><b>${S.height}</b></div>
-              <div><span>体重</span><b>${S.weight}</b></div>
-              <div><span>BMI</span><b>${bmi()}</b></div>
+              <div class="frost"></div>
+              <div class="metrics">
+                <div><span>年龄</span><b>58</b></div>
+                <div><span>身高</span><b>${S.height}</b></div>
+                <div><span>体重</span><b>${S.weight}</b></div>
+                <div><span>BMI</span><b>${bmi()}</b></div>
+              </div>
             </div>
             <div class="frost" style="margin-top:12px;margin-bottom:12px"></div>
             <div class="hero-vip-row" data-go="vip" role="button" style="cursor:pointer">
@@ -7218,7 +7223,7 @@
                 <div class="s18 fb" style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isVip ? "VIP 专属全维守护中" : "开通 VIP 享全维守护"}</div>
                 <div class="s14 fsb" style="color:${isVip ? "rgba(255,255,255,.88)" : "#FFE282"};margin-top:2px">${isVip ? `有效期至 ${vipExpiryText()}` : "¥2400 / 年"}</div>
               </div>
-              <span class="view-cap ${isVip ? "vip-bought" : ""}">${isVip ? "已购买 ›" : "购买 ›"}</span>
+              <button class="view-cap ${isVip ? "vip-bought" : ""}" data-go="vip" type="button">${isVip ? "已购买 ›" : "购买 ›"}</button>
             </div>
             ${isVip ? `
             <div class="hero-capsules-grid">
@@ -7324,7 +7329,7 @@
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "健康档案", `<button class="cap" data-go="patient-edit" type="button">${I.pencil}编辑</button>`)}
         <div class="scroll px20" style="padding-top:8px;padding-bottom:110px">
-          <div class="hero">
+          <div class="hero" style="border-radius:22px 22px 0 0">
             <div class="hero-top">
               <div class="avatar lg">${S.name.slice(0, 1)}</div>
               <div><div class="s24 fb">${S.name}</div><div class="s13" style="opacity:.85">${shownRole() === "patient" ? "本人" : "守护中"}　${S.gender}</div></div>
@@ -7337,7 +7342,7 @@
               <div><span>BMI</span><b class="${bmiOk ? "" : "t-amber"}">${bmiVal.toFixed(1)}<i>${bmiWord}</i></b></div>
             </div>
           </div>
-          <div class="island-card" style="margin-top:-8px;border-radius:0 0 22px 22px;padding:18px">
+          <div class="island-card" style="margin-top:0;border-radius:0 0 22px 22px;padding:18px;box-shadow:0 12px 20px rgba(16,84,224,.08)">
             ${section("baseline")}
             <div style="height:14px"></div>
             ${section("review")}
