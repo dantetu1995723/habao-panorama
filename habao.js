@@ -1165,16 +1165,16 @@
     "onboard-login": { code: "OnboardingFlowView", note: "短信登录 Demo 不校验。11 位手机 + 6 位验证码后「登录」可点。聚焦后口号改「欢迎使用哈宝」。V0.0 只两步（登录 → 完善信息），身份固定患者本人；V0.1 才多一步身份。" },
     "onboard-role": { code: "OnboardingFlowView", note: "V0.1 专属（V0.0 不出现）。家属也是管理患者的成员，填写的都是患者信息。大卡单选。" },
     "onboard-profile": { code: "PatientProfileFormFields", note: "姓名必填；「进入哈宝」始终可点，空姓名顶部 toast「请填写姓名」。步骤点 V0.0 是 2/2，V0.1 是 3/3。" },
-    home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 196–206，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。每张计划卡展示标题、提醒时间（或已完成）及「开始日期 – 结束日期」起止区间。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页（横向时段泳道已不再作为首页）；底坞中圆哈宝问诊 V0.0 压暗点不开，V0.1 未开通 VIP 时同样压暗、点按进 VIP 页，开通后可进。打卡不再在卡片上盖家属章；谁打的记在 V0.1 个人中心「操作记录」，V0.0 没有这一页。V0.1 + VIP：哈宝医生圆钮在有待采纳的方案卡 / 调整卡（暂缓后 3 天内仍算）或本期已结束待交反馈时亮红点；由方案写入或改过的计划卡在时刻胶囊左侧多一枚「医嘱」小胶囊；一期 7 天过完后首次回到首页（或第 7 天最后一项方案计划打卡后）弹出期末反馈弹窗。" },
+    home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 196–206，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。每张计划卡展示标题、提醒时间（或已完成）及「开始日期 – 结束日期」起止区间。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页；底坞中圆哈宝医生始终常亮可点击进入问诊页（非 VIP 发送消息后在聊天流内弹出 VIP 购买提示对话卡）。打卡不再在卡片上盖家属章；谁打的记在 V0.1 个人中心「操作记录」，V0.0 没有这一页。" },
     schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行展示时刻与单日/循环/类别胶囊，下方展示「开始日期 – 结束日期」起止区间；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上更新才进编辑。切「已完成」整页绿白。" },
-    vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。底栏进入哈宝医生带本周评估：V0.0 压暗点不开；V0.1 未开通 VIP 时压暗、点按进 VIP 页；开通后可进。" },
-    report: { code: "FollowUpModuleView", note: "综合结论 + 三等分入口 + 底栏哈宝医生（V0.0 压暗点不开；V0.1 未开通 VIP 时压暗、点按进 VIP 页；开通后可进）。" },
+    vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。底栏「进入哈宝医生」始终可点击进入问诊页（非 VIP 发送消息后弹出 VIP 购买提示对话卡）。" },
+    report: { code: "FollowUpModuleView", note: "综合结论 + 三等分入口 + 底栏「进入哈宝医生」始终可点击进入问诊页（非 VIP 发送消息后弹出 VIP 购买提示对话卡）。" },
     "report-sub": { code: "BodyReportSubReportView", note: "V10.61：顶栏两枚 Tab「AI 解读 / 资料合集」，默认落 AI 解读；资料合集只读。底栏「新增报告资料」不论有无存量都直接进拍摄页（不再先落资料详情）。拍完提交：基础按类别追加、复查新开一次。复诊打卡形态在主钮下多一颗「返回首页」。" },
     walk: { code: "WalkView", note: "大标题 + 44 回首页（dismiss cover，不压栈）。地图主卡底浮层：60 圆钮记录/分享 + 60 主胶囊。三态：开始运动 / 返回运动 / 保存并打卡。点「开始运动」、以及首页「进入运动，开始散步」，都先按出院诊断比对绝对禁忌症；命中弹「是否继续运动？」，写明疾病（演示病历含室颤），「暂不运动」留在地图，「继续运动」才开会话。返回运动不再问。保存归属：计划入口完成原任务，自由入口按开始时刻新建「自主散步」，不猜测也不占用存量计划。" },
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。V0.1 + VIP 且采纳过方案时，标题下方多一张「方案章卡」：7 个日格（🌸 满日 / ◐ 部分 / ○ 空或未到 / 休 = 当天没排方案计划，算满日；今天蓝描边，点日格换日）、右上「本期已集 X/Y 章」、鼓励语（再集满 N 天拿金章 / 银章，只奖不罚）与「本期计划 ›」展开清单（调整 / 新增 / 保留 + 医嘱标）。其它状态：待采纳「📮 去采纳」、本期结束待交反馈（七格定格 + 期章 + 蓝色「交反馈」开期末反馈弹窗）、已交反馈下一期待采纳（「下一期方案已送达 去看看 ›」）。章卡下一行「我的期章」横排期章（金 ≥6 满日 / 银 4–5 / 铜 ≤3 且打过卡），点开看该期小结。海报日期下加「第 N 期康复方案 · 第 D 天 · 满日 X/7」（已结束带期章）。只有方案里的计划计入章卡，家属代打卡同样点亮，海报不带操作人。V0.0 / V0.2 / 未开通 VIP 只显示日章。" },
-    consult: { code: "SmartConsultChatView", note: "纯粹的 AI 问诊对话界面：顶部导航左「返回」、居中「哈宝医生」；中间消息区在未发消息时展示问候卡（你好，这里是哈宝医生 / 有不适或用药疑问，都可以问我），发送消息后以左右纯文本/图片气泡进行问答交流；底部主输入框默认为「长按说话」按钮（按住说话、上滑取消、松开发送），左侧为键盘切换按钮（点击切换为文字输入框），右侧为「+」号功能面板（仅保留拍照、相册，已移除 AI 电话）。" },
+    consult: { code: "SmartConsultChatView", note: "纯粹的 AI 问诊对话界面（所有入口始终可点击进入）：顶部导航左「返回」、居中「哈宝医生」；中间消息区在未发消息时展示问候卡（你好，这里是哈宝医生 / 有不适或用药疑问，都可以问我）；VIP 用户发送消息后以左右纯文本/图片气泡进行问答交流，非 VIP 用户发送消息后弹出「需购买 VIP 才能使用哈宝问诊」提示对话卡（可一键跳转 VIP 会员页开通）；底部主输入框默认为「长按说话」按钮（按住说话、上滑取消、松开发送），左侧为键盘切换按钮（点击切换为文字输入框），右侧为「+」号功能面板（仅保留拍照、相册，已移除 AI 电话）。" },
     profile: { code: "ServiceView", note: "Hero 健康档案 + 打卡通知/协议。V0.0 不出现家属管理、操作记录、硬件管理、VIP，也没有右上身份胶囊，档案标「本人」。V0.1 在档案卡下加 VIP 卡（¥2400 / 年）；未开通时家属管理、操作记录、硬件管理仍在列表里，副说明「开通 VIP 后可用」，点按进 VIP 页。开通后这三行恢复进入，身份胶囊、通知家属和问诊一起放开。记录和绑定仍在，取消订阅只重新上锁、不删数据。身份胶囊仍决定写入归属，但不再在卡片上盖章。" },
     vip: { code: "VIPView", note: "仅从 V0.1 入口进来。Hero 写哈宝 VIP 与 ¥2400 / 年，下面五项完整详情：家属管理、硬件管理、操作记录、哈宝医生（AI+真人医生前端统一为哈宝医生主体），以及支架保险理赔服务。底栏「立即开通」先确认，演示不扣款，开通后有效期一年；已开通可「取消订阅」，确认后四项功能重新上锁、服务权益同步终止，家属、记录和硬件绑定留在本机。注销清空开通状态，退出登录保留。" },
     hardware: { code: "HardwareManageView", note: "仅 V0.1（V0.0 个人中心没有这一行）。两张设备模块卡：未绑定写「未绑定」、右端挂「扫码绑定」浅蓝胶囊；已绑定写绿色「已绑定 · 编号」、右端箭头。点未绑定卡进扫码页，点已绑定卡进设备页。副说明按已绑定的名字拼，两台齐了写「两台都已绑定」。绑定留在本机，切回 V0.0 只藏入口。" },
@@ -4499,8 +4499,12 @@
         const hadImage = !!S.pendingImage;
         const userText = `${photo}${v || "请帮我看看这张图片"}`;
         S.messages.push({ who: "user", t: userText });
-        const routed = routeFreeConsultTurn(v || "请帮我看看这张图片", hadImage);
-        S.messages.push({ who: "ai", t: routed.reply });
+        if (!genHasFamily()) {
+          S.messages.push({ who: "vip", t: "需购买 VIP 才能使用哈宝问诊" });
+        } else {
+          const routed = routeFreeConsultTurn(v || "请帮我看看这张图片", hadImage);
+          S.messages.push({ who: "ai", t: routed.reply });
+        }
         S.chatDraft = "";
         S.pendingImage = false;
         S.inputMode = "voice";
@@ -6934,9 +6938,9 @@
       <div class="page rel${S.consultKeyboard ? " consult-kb" : ""}${S.plusPanel ? " consult-panel" : ""}">
         ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="24" height="24" alt="" />哈宝医生</span>`)}
         <div class="scroll px20 grow">
-          ${S.messages.length ? S.messages.map((m) => `
+          ${S.messages.length ? S.messages.map((m) => (m.who === "vip" ? consultVipCardHTML() : `
             <div class="bubble ${m.who}">${m.t}</div>
-          `).join("") : `
+          `)).join("") : `
             <div class="island-card ta-c" style="padding:16px;margin-top:12px">
               <img src="${A.logo}" width="64" height="64" alt="" />
               <h2 class="s21 fb t mt8">你好，这里是哈宝医生</h2>
@@ -9699,20 +9703,25 @@
     </button>`;
   }
   function consultOrbHTML() {
-    // V0.1：有待采纳的方案卡 / 调整卡，或本期已结束待交反馈 → 右上角红点
-    if (genHasFamily()) return `<div class="orb ai" data-go="consult"><img src="${A.logo}" alt="哈宝医生" />${rxNeedsDot() ? `<i class="orb-dot" aria-label="有待处理的方案"></i>` : ""}</div>`;
-    if (genIsV01()) return `<div class="orb ai locked" data-go="vip" role="button" aria-label="哈宝医生，开通 VIP 后可用"><img src="${A.logo}" alt="" /></div>`;
-    return `<div class="orb ai off" aria-disabled="true"><img src="${A.logo}" alt="哈宝医生" /></div>`;
+    return `<div class="orb ai" data-go="consult"><img src="${A.logo}" alt="哈宝医生" /></div>`;
   }
   function consultCtaHTML(extraStyle) {
     const style = extraStyle ? `${extraStyle};` : "";
-    if (genHasFamily()) {
-      return `<button class="cta" style="${style}" data-go="consult" type="button"><img src="${A.logo}" width="30" height="30" alt="" />进入哈宝医生</button>`;
-    }
-    if (genIsV01()) {
-      return `<button class="cta" style="${style}opacity:.4" data-go="vip" type="button"><img src="${A.logo}" width="30" height="30" alt="" />进入哈宝医生</button>`;
-    }
-    return `<button class="cta" aria-disabled="true" type="button" style="${style}opacity:.4"><img src="${A.logo}" width="30" height="30" alt="" />进入哈宝医生</button>`;
+    return `<button class="cta" style="${style}" data-go="consult" type="button"><img src="${A.logo}" width="30" height="30" alt="" />进入哈宝医生</button>`;
+  }
+  function consultVipCardHTML() {
+    const isVip = genHasFamily();
+    return `
+      <div class="consult-vip-card">
+        <div class="consult-vip-head">
+          <span class="consult-vip-ico">${I.crown}</span>
+          <span class="consult-vip-tag">哈宝 VIP 专属服务</span>
+          <span class="consult-vip-state${isVip ? " on" : ""}">${isVip ? "已开通" : "未开通"}</span>
+        </div>
+        <div class="consult-vip-title">需购买 VIP 才能使用哈宝问诊</div>
+        <div class="consult-vip-desc">哈宝医生提供全年不限次数的在线问诊、用药与不适解答及报告解读服务。请先购买 VIP 会员（¥2400 / 年）后再使用哈宝问诊。</div>
+        <button class="consult-vip-btn${isVip ? " on" : ""}" data-go="vip" type="button">${I.crown}<span>${isVip ? "已开通 VIP · 查看权益 ›" : "去购买 VIP 会员 ›"}</span></button>
+      </div>`;
   }
   /* ── 家属代操作归属（V10.57）─────────────────────────────
      写入那一刻的身份 = 这条记录的操作人；只有 V0.1 有家属身份，故标记只在这一代际成立。
