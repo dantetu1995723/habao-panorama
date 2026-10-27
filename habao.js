@@ -1590,21 +1590,11 @@
       { act: "debugGen", label: "先在开发菜单切到 V0.1（V0.0 三个入口压暗点不开）" },
       { screen: "vip", optional: true, label: "未开通时点压暗的哈宝，进 VIP 页" },
       { act: "activateVip", optional: true, label: "确认开通（演示不扣款）" },
-      { screen: "consult", label: "开通后进哈宝医生：顶部置顶方案条；没有对话时默认打开案例 1（右上「案例」点亮）" },
-      { anyAct: ["rxLoadCase", "rxCaseMode", "consultPlan", "consultVitals", "consultReport", "toggleCaseStepMode"], label: "V0.1 案例面板横排 8 个场景胶囊、全部展现 / 模拟提问（V0.2 仍是输入框上方三枚模块 Tab）", optional: true },
-      { act: "rxPinToggle", label: "（V0.1）点置顶方案条展开本期计划清单与今日打卡", optional: true },
-      { anyAct: ["rxAdopt", "applyCaseAction", "sendChat"], label: "V0.1 点调整卡 / 方案卡「采纳」真实写入健康计划（医嘱标）并记操作记录；V0.2 点落点卡主按钮落库" },
+      { screen: "consult", label: "开通后进哈宝医生：默认展示三大模块（健康计划 / 血压监测 / 身体报告）案例" },
+      { anyAct: ["consultPlan", "consultVitals", "consultReport", "toggleCaseStepMode"], label: "输入框上方三枚模块按钮切换案例或带入模块资料；支持全部展现 / 模拟提问", optional: true },
+      { anyAct: ["applyCaseAction", "sendChat"], label: "点操作卡主按钮一键保存结果并写入操作记录，点次按钮回对应模块查看" },
       { act: "newChat", label: "新对话", optional: true },
-      { screen: "consult-history", label: "「对话」→ 历史记录", optional: true },
-    ]},
-    { id: "rx-loop", label: "V0.1 · 康复方案闭环（采纳 → 集章 → 期末反馈 → 下一期）", cold: "demo", steps: [
-      { act: "openDebug", label: "首页右上「…」打开开发菜单" },
-      { screen: "stamps", optional: true, label: "（V0.1 + VIP）首页「分享」→ 今日集章顶部方案章卡（第 2 期 · 第 4 天）与「我的期章」" },
-      { act: "debugRxEnd", label: "开发菜单「方案：模拟一期结束」（自动切 V0.1 并开通 VIP）→ 回首页弹期末反馈弹窗" },
-      { act: "rxPickFeeling", label: "选一项感受（轻松 / 刚好 / 有点吃力）" },
-      { act: "rxSubmitFeedback", label: "「交给哈宝医生」→ 进哈宝医生：反馈卡 → 复盘回复 → 下一期方案卡（期章进期章墙）" },
-      { act: "rxAdopt", label: "「采纳方案」→ 写入健康计划（医嘱标）、今天起第 1 天、记操作记录" },
-      { screen: "stamps", optional: true, label: "「去看集章 ›」→ 新一期章卡从第 1 天开始" },
+      { screen: "consult-history", label: "历史记录", optional: true },
     ]},
     { id: "archive", label: "已入组 · 报告归档", cold: "demo", steps: [
       { screen: "health-record", label: "个人中心 → 健康档案" },
@@ -8713,7 +8703,7 @@
        rxChat        V0.1 真实对话（案例演示不写）；rxArchive = 归档的旧对话
      过去日的方案打卡按 marks（full / part / none，缺省 full）给演示数据，今天读真实打卡 S.completed。
      哈宝医生只读血压监测 / 身体报告，不再写回读数、报告结论、照片或打卡。 */
-  function genIsConsultV2() { return S.gen === "0.1"; }
+  function genIsConsultV2() { return false; }
   function rxOn() { return genIsConsultV2() && !!S.vip; }
   const RX_OP = { adjust: "调整", add: "新增", keep: "保留", stop: "停用", pause: "暂停今天" };
   const RX_MEDAL = { gold: "金章", silver: "银章", bronze: "铜章", none: "" };
@@ -10944,10 +10934,6 @@
               ${S.gen === v ? I.check : `<span style="width:19px;height:19px;flex:0 0 19px"></span>`}
               <span>设计版本 V${v}<em>${S.gen === v ? "当前" : ""}</em></span>
             </button>`).join("")}
-          <div class="dbg-sep"></div>
-          <button class="dbg-row" data-act="debugRxEnd" type="button">${I.cal}<span>方案：模拟一期结束<em>V0.1</em></span></button>
-          <button class="dbg-row" data-act="debugRxPush" type="button">${I.steth}<span>方案：推送新方案卡<em>V0.1</em></span></button>
-          <button class="dbg-row" data-act="debugRxFresh" type="button">${I.undo}<span>方案：从第 1 期开始<em>V0.1</em></span></button>
         </div>
       </div>`,
     // 指标 / 分析分享海报（真机 RecordsView 与 FollowUpAnalysisView 的分享出口）
