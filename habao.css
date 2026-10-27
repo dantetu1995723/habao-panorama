@@ -1858,14 +1858,46 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   background: rgba(26,166,74,.10); color: var(--green-deep);
   border-color: rgba(26,166,74,.25);
 }
-.bubble {
-  max-width: 75%; padding: 12px 14px; border-radius: 18px;
-  font-size: calc(17px * var(--fs)); line-height: 1.45; margin-bottom: 8px;
+.chat-msg-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-bottom: 14px;
 }
-.bubble.user { background: var(--blue); color: #fff; margin-left: auto; }
-.bubble.ai { background: rgba(255,255,255,.9); color: var(--blue); border: 1px solid rgba(16,84,224,.08); }
+.chat-msg-row.user { justify-content: flex-end; }
+.chat-msg-row.ai { justify-content: flex-start; }
+.chat-avatar {
+  width: 36px; height: 36px; flex: 0 0 36px; border-radius: 50%;
+  background: #fff; border: 1.2px solid rgba(16,84,224,.16);
+  box-shadow: 0 2px 6px rgba(16,84,224,.08);
+  display: grid; place-items: center; overflow: hidden;
+  box-sizing: border-box;
+}
+.chat-avatar.ai img {
+  width: 30px; height: 30px; object-fit: contain; display: block;
+}
+.chat-avatar.user {
+  background: linear-gradient(180deg, #EBF2FF 0%, #D9E7FF 100%);
+  border-color: rgba(16,84,224,.22); color: var(--blue);
+}
+.chat-avatar.user svg { width: 19px; height: 19px; }
+.bubble {
+  max-width: calc(100% - 48px); width: fit-content;
+  padding: 12px 15px; border-radius: 20px;
+  font-size: calc(17px * var(--fs)); line-height: 1.45; margin-bottom: 0;
+  word-break: break-word;
+}
+.bubble.user {
+  background: var(--blue); color: #fff; margin-left: 0;
+  border-top-right-radius: 6px;
+}
+.bubble.ai {
+  background: rgba(255,255,255,.94); color: var(--blue);
+  border: 1px solid rgba(16,84,224,.10);
+  box-shadow: 0 2px 8px rgba(16,84,224,.05);
+  border-top-left-radius: 6px;
+}
 .consult-vip-card {
-  margin: 10px 24px 0 0; padding: 16px; border-radius: 20px;
+  flex: 1; min-width: 0; margin: 0; padding: 16px;
+  border-radius: 20px; border-top-left-radius: 6px;
   background: rgba(255,255,255,.96);
   border: 1.2px solid rgba(16,84,224,.16);
   box-shadow: 0 4px 12px rgba(16,84,224,.08);
@@ -1899,7 +1931,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .consult-vip-desc {
   margin-top: 6px;
   font-size: calc(15px * var(--fs)); font-weight: 500; line-height: 1.48;
-  color: var(--sec);
+  color: rgba(16,84,224,.74);
 }
 .consult-vip-btn {
   margin-top: 14px; width: 100%; height: 44px;

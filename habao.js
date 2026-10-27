@@ -6938,8 +6938,21 @@
       <div class="page rel${S.consultKeyboard ? " consult-kb" : ""}${S.plusPanel ? " consult-panel" : ""}">
         ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="24" height="24" alt="" />哈宝医生</span>`)}
         <div class="scroll px20 grow">
-          ${S.messages.length ? S.messages.map((m) => (m.who === "vip" ? consultVipCardHTML() : `
-            <div class="bubble ${m.who}">${m.t}</div>
+          ${S.messages.length ? S.messages.map((m) => (m.who === "vip" ? `
+            <div class="chat-msg-row ai">
+              <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
+              ${consultVipCardHTML()}
+            </div>
+          ` : m.who === "user" ? `
+            <div class="chat-msg-row user">
+              <div class="bubble user">${m.t}</div>
+              <div class="chat-avatar user" aria-label="我的头像">${I.person}</div>
+            </div>
+          ` : `
+            <div class="chat-msg-row ai">
+              <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
+              <div class="bubble ai">${m.t}</div>
+            </div>
           `)).join("") : `
             <div class="island-card ta-c" style="padding:16px;margin-top:12px">
               <img src="${A.logo}" width="64" height="64" alt="" />
