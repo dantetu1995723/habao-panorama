@@ -1174,7 +1174,7 @@
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。V0.1 + VIP 且采纳过方案时，标题下方多一张「方案章卡」：7 个日格（🌸 满日 / ◐ 部分 / ○ 空或未到 / 休 = 当天没排方案计划，算满日；今天蓝描边，点日格换日）、右上「本期已集 X/Y 章」、鼓励语（再集满 N 天拿金章 / 银章，只奖不罚）与「本期计划 ›」展开清单（调整 / 新增 / 保留 + 医嘱标）。其它状态：待采纳「📮 去采纳」、本期结束待交反馈（七格定格 + 期章 + 蓝色「交反馈」开期末反馈弹窗）、已交反馈下一期待采纳（「下一期方案已送达 去看看 ›」）。章卡下一行「我的期章」横排期章（金 ≥6 满日 / 银 4–5 / 铜 ≤3 且打过卡），点开看该期小结。海报日期下加「第 N 期康复方案 · 第 D 天 · 满日 X/7」（已结束带期章）。只有方案里的计划计入章卡，家属代打卡同样点亮，海报不带操作人。V0.0 / V0.2 / 未开通 VIP 只显示日章。" },
-    consult: { code: "SmartConsultChatView", note: "V10.157 · V0.1：哈宝医生只做「问诊 + 计划制定」。去掉输入框上方三枚模块胶囊与顶部模块资料卡，导航下方是「置顶方案条」（进行中：第 N 期 · 第 D 天 + 满日 X/7 + 七颗小圆，点开看本期清单与今日打卡、「去看集章 ›」；待采纳：📮 去看看；待交反馈：🏅 说说这期感觉 → 期末反馈弹窗；没有方案：和哈宝医生聊聊）。聊天流里挂「方案卡」（开新一期：调整 / 新增 / 保留 / 停用条目 + 为什么这样调；采纳方案 / 问问医生 / 暂不采纳 → 收成一行可再展开）与「调整卡」（期内微调：调整 / 新增 / 暂停今天 / 停用，从今天起生效），采纳真实写入健康计划（带「医嘱」标）、开新一期（采纳当天 = 第 1 天，7 天一期）并记一条操作记录（采纳了方案 / 采纳了调整 / 提交了反馈，界面「哈宝医生」）。期末反馈提交后依次出现反馈卡（用户侧）→ 复盘回复 → 下一期方案卡。右上「案例」：横排 8 个场景胶囊 + 全部展现 / 模拟提问 + 收起；没有方案时面板顶部多一条「制定第 1 期康复方案」入口；案例 5 纯问诊、案例 7 不出卡并弹 120 确认；案例对话不写聊天历史，但点采纳同样真实生效。不再在聊天里记读数、改报告、存照片、打卡；从血压监测 / 身体报告进入时先归档旧对话，新对话首行灰字「已参考：本周血压评估 / 身体报告综合结论」。V0.2 保持 V10.149 原样：导航右上「案例」展开三大模块（健康计划 / 指标检测 / 身体报告）联动案例库，输入框上方三枚模块胶囊切换案例，末条回复内嵌一键落库卡（新建 / 调整计划、记入读数、更新报告、存照片）。底坞随系统键盘同帧升降。" },
+    consult: { code: "SmartConsultChatView", note: "纯粹的 AI 问诊对话界面：顶部导航左「返回」、居中「哈宝医生」；中间消息区在未发消息时展示问候卡（你好，这里是哈宝医生 / 有不适或用药疑问，都可以问我），发送消息后以左右纯文本/图片气泡进行问答交流，不叠加案例面板、模块带入卡或一键落库操作卡；底部为纯粹的聊天输入条（点按打字、长按语音听写、发送按钮）与右侧「+」号功能面板（拍照 / 相册 / AI电话）。" },
     profile: { code: "ServiceView", note: "Hero 健康档案 + 打卡通知/协议。V0.0 不出现家属管理、操作记录、硬件管理、VIP，也没有右上身份胶囊，档案标「本人」。V0.1 在档案卡下加 VIP 卡（¥2400 / 年）；未开通时家属管理、操作记录、硬件管理仍在列表里，副说明「开通 VIP 后可用」，点按进 VIP 页。开通后这三行恢复进入，身份胶囊、通知家属和问诊一起放开。记录和绑定仍在，取消订阅只重新上锁、不删数据。身份胶囊仍决定写入归属，但不再在卡片上盖章。" },
     vip: { code: "VIPView", note: "仅从 V0.1 入口进来。Hero 写哈宝 VIP 与 ¥2400 / 年，下面五项完整详情：家属管理、硬件管理、操作记录、哈宝医生（AI+真人医生前端统一为哈宝医生主体），以及支架保险理赔服务。底栏「立即开通」先确认，演示不扣款，开通后有效期一年；已开通可「取消订阅」，确认后四项功能重新上锁、服务权益同步终止，家属、记录和硬件绑定留在本机。注销清空开通状态，退出登录保留。" },
     hardware: { code: "HardwareManageView", note: "仅 V0.1（V0.0 个人中心没有这一行）。两张设备模块卡：未绑定写「未绑定」、右端挂「扫码绑定」浅蓝胶囊；已绑定写绿色「已绑定 · 编号」、右端箭头。点未绑定卡进扫码页，点已绑定卡进设备页。副说明按已绑定的名字拼，两台齐了写「两台都已绑定」。绑定留在本机，切回 V0.0 只藏入口。" },
@@ -1260,11 +1260,11 @@
     inputMode: "voice",
     plusPanel: false,
     consultKeyboard: false,
-    consultModule: "plan",
-    caseMode: true,
+    consultModule: null,
+    caseMode: false,
     caseMenu: false,
     caseCat: "plan",
-    activeCaseId: "plan_medication",
+    activeCaseId: null,
     caseStep: null,
     appliedCaseActions: {},
     consultReportOverall: "",
@@ -1586,13 +1586,12 @@
       { state: (s) => s.qDone, label: "最后一题提交 → 结果页" },
       { act: "qFinish", label: "返回身体报告", optional: true },
     ]},
-    { id: "consult", label: "已入组 · 哈宝医生（需 V0.1 且开通 VIP；V0.2 仍为三模块联动案例）", cold: "demo", steps: [
+    { id: "consult", label: "已入组 · 哈宝医生（需 V0.1 且开通 VIP）", cold: "demo", steps: [
       { act: "debugGen", label: "先在开发菜单切到 V0.1（V0.0 三个入口压暗点不开）" },
       { screen: "vip", optional: true, label: "未开通时点压暗的哈宝，进 VIP 页" },
       { act: "activateVip", optional: true, label: "确认开通（演示不扣款）" },
-      { screen: "consult", label: "开通后进哈宝医生：默认展示三大模块（健康计划 / 血压监测 / 身体报告）案例" },
-      { anyAct: ["consultPlan", "consultVitals", "consultReport", "toggleCaseStepMode"], label: "输入框上方三枚模块按钮切换案例或带入模块资料；支持全部展现 / 模拟提问", optional: true },
-      { anyAct: ["applyCaseAction", "sendChat"], label: "点操作卡主按钮一键保存结果并写入操作记录，点次按钮回对应模块查看" },
+      { screen: "consult", label: "开通后进哈宝医生：纯粹的对话问答界面" },
+      { act: "sendChat", label: "输入问题并发送，收到哈宝医生回复" },
       { act: "newChat", label: "新对话", optional: true },
       { screen: "consult-history", label: "历史记录", optional: true },
     ]},
@@ -2690,22 +2689,8 @@
     };
     return (map[id] || [...home, C(id)]).map((f) => ({ ...f }));
   }
-  function ensureConsultCaseOnEnter(prevScreen) {
-    // V0.1：问诊 + 计划制定（无三模块胶囊），进页规则见 ensureRxOnEnter；V0.2 / V0.0 走下面原逻辑
-    if (genIsConsultV2()) { ensureRxOnEnter(prevScreen); return; }
-    if (!S.caseMode) return;
-    let targetCat = null;
-    if (prevScreen === "vitals" || prevScreen === "vitals-detail") targetCat = "vitals";
-    else if (prevScreen === "report" || prevScreen === "report-sub" || prevScreen === "followup" || prevScreen === "analysis") targetCat = "report";
-    else if (prevScreen === "schedule") targetCat = "plan";
-    if (targetCat) {
-      const hit = CONSULT_CASES.find((c) => c.cat === targetCat);
-      if (hit) { applyConsultCase(hit, false); return; }
-    }
-    if (!S.activeCaseId || (!S.messages.length && S.caseStep == null)) {
-      const fallback = CONSULT_CASES.find((c) => c.id === S.activeCaseId) || CONSULT_CASES[0];
-      if (fallback) applyConsultCase(fallback, false);
-    }
+  function ensureConsultCaseOnEnter() {
+    // 哈宝医生保持最单纯的对话形态，进入时不自动加载案例或带入模块卡片
   }
   function present(id, how) {
     const prevScreen = S.screen;
@@ -4459,40 +4444,15 @@
       // 查看计划 · 取消本次打卡：解禁提醒与删除（真机 store.toggleCompletion 的反向）
       undoCheckIn() { delete S.completed[S.taskId]; unmarkProxy(S.taskId); render(); },
       sendChat() {
-        // V0.1：问诊 + 计划制定（只答问题、必要时挂调整卡，不写回其它模块）
-        if (genIsConsultV2()) { rxSend(); return; }
         const v = (S.chatDraft || "").trim();
         if (!v && !S.pendingImage) return;
         S.consultOpen = true;
-        const activeCase = S.caseMode ? CONSULT_CASES.find((x) => x.id === S.activeCaseId) : null;
-        if (activeCase && S.caseStep != null && S.caseStep < activeCase.turns.length) {
-          const userTurn = activeCase.turns[S.caseStep];
-          const aiTurn = activeCase.turns[S.caseStep + 1];
-          S.messages.push({ who: "user", t: v || (userTurn ? userTurn.t : "") });
-          if (aiTurn) S.messages.push({ ...aiTurn });
-          S.caseStep += 2;
-          if (S.caseStep < activeCase.turns.length) {
-            S.chatDraft = activeCase.turns[S.caseStep].t;
-          } else {
-            S.chatDraft = "";
-            S.caseStep = null;
-          }
-          S.pendingImage = false;
-          render();
-          return;
-        }
         const photo = S.pendingImage ? "（图片）" : "";
         const hadImage = !!S.pendingImage;
         const userText = `${photo}${v || "请帮我看看这张图片"}`;
         S.messages.push({ who: "user", t: userText });
         const routed = routeFreeConsultTurn(v || "请帮我看看这张图片", hadImage);
-        if (routed.card) {
-          if (!S.freeCards) S.freeCards = {};
-          S.freeCards[routed.card.id] = routed.card;
-          S.messages.push({ who: "ai", t: routed.reply, caseId: routed.card.id });
-        } else {
-          S.messages.push({ who: "ai", t: routed.reply });
-        }
+        S.messages.push({ who: "ai", t: routed.reply });
         S.chatDraft = "";
         S.pendingImage = false;
         render();
@@ -6903,51 +6863,24 @@
       </div>`;
     },
 
-    // 空态只有 Logo 问候。资料胶囊在上；下面一条输入框（点按打字，长按把语音流进框里）和一枚加号。
-    // 右上角并列「案例」与「对话」双胶囊：「案例」默认处于被点击激活态（案例模式），点击输入框上方的「今日计划 / 本周指标 / 身体报告」直接切换对应模块的问诊案例。
+    // 纯粹的对话问诊页：空态只有 Logo 问候，下方一条输入框（点按打字，长按把语音流进框里）和一枚加号（拍照 / 相册 / AI电话）。
     consult: () => {
-      // V0.1：问诊 + 计划制定（置顶方案条 + 方案卡 / 调整卡 / 期末反馈，无三模块胶囊）；V0.2 / V0.0 保持下面原样
-      if (genIsConsultV2()) return rxConsultHTML();
-      const note = consultModuleNote();
-      const activeCase = S.caseMode ? (CONSULT_CASES.find((x) => x.id === S.activeCaseId) || null) : null;
-      const mod = (id, act, icon, label) => {
-        const on = S.consultModule === id;
-        return `<button class="consult-mod${on ? " on" : ""}" type="button" data-act="${act}">${on ? I.tick : icon}<span>${label}</span></button>`;
-      };
       const canSend = consultCanSend();
       const plusItem = (act, icon, label) =>
         `<button class="plus-item" type="button" data-act="${act}"><span>${icon}</span>${label}</button>`;
-      const rightCaps = `<div class="flex center gap6">
-        <button class="cap${S.caseMode ? " on-blue" : ""}" data-act="toggleCaseMode" type="button" style="padding:0 11px;gap:4px">${I.sparkle || "✦"}案例</button>
-      </div>`;
       return `
       <div class="page rel${S.consultKeyboard ? " consult-kb" : ""}${S.plusPanel ? " consult-panel" : ""}">
-        ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="24" height="24" alt="" />哈宝医生</span>`, rightCaps)}
-        ${S.chatMenu ? `<div class="consult-pop-mask" data-act="closeCaseMenu"></div>` : ""}
-        ${S.chatMenu ? `<div class="menu-pop"><button data-go="consult-history" type="button">历史</button><button data-act="newChat" type="button">新对话</button></div>` : ""}
+        ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="24" height="24" alt="" />哈宝医生</span>`)}
         <div class="scroll px20 grow">
-          ${activeCase ? consultCaseFlowBannerHTML(activeCase) : ""}
-          ${note ? consultContextCardHTML(note) : ""}
           ${S.messages.length ? S.messages.map((m) => `
             <div class="bubble ${m.who}">${m.t}</div>
-            ${m.caseId ? consultCaseActionHTML(m.caseId) : ""}
-          `).join("") : activeCase ? `
-            <div class="island-card ta-c" style="padding:14px 16px;margin-top:8px">
-              <div class="s15 fb t">已就绪：点击下方输入框右侧「发送」开始第 1 轮提问</div>
-              <div class="s13 t-sec mt4">系统已自动带入「${activeCase.catTitle}」存量数据并在输入框预填患者首轮话术</div>
-            </div>
-          ` : !note ? `
+          `).join("") : `
             <div class="island-card ta-c" style="padding:16px;margin-top:12px">
               <img src="${A.logo}" width="64" height="64" alt="" />
               <h2 class="s21 fb t mt8">你好，这里是哈宝医生</h2>
               <p class="s16 t-sec">有不适或用药疑问，都可以问我</p>
             </div>
-            ` : ""}
-        </div>
-        <div class="consult-mods">
-          ${mod("plan", "consultPlan", I.cal, "健康计划")}
-          ${mod("vitals", "consultVitals", I.ecg, "血压监测")}
-          ${mod("report", "consultReport", I.doc, "身体报告")}
+          `}
         </div>
         ${S.pendingImage ? `<div class="consult-pending">已选 1 张图片，补充一句再发送</div>` : ""}
         <div class="listen-hint" id="listen-hint" hidden></div>
