@@ -3943,3 +3943,95 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .rx-first-plan span { flex: 1; min-width: 0; }
 .rx-first-plan b { font-weight: 700; white-space: nowrap; }
+
+/* V10.177 · 手机系统通知横幅 + App 居中通知弹窗联动 */
+.sys-push-banner {
+  position: absolute;
+  top: 52px;
+  left: 14px;
+  right: 14px;
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 14px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(16, 84, 224, 0.16);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.16);
+  cursor: pointer;
+  animation: sysBannerDrop 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+@keyframes sysBannerDrop {
+  from { opacity: 0; transform: translateY(-18px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.sys-push-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.sys-push-body {
+  min-width: 0;
+  flex: 1;
+}
+.sys-push-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sys-push-head b {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue);
+}
+.sys-push-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--blue);
+  padding: 1.5px 6px;
+  border-radius: 999px;
+}
+.sys-push-head small {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--sec);
+}
+.sys-push-title {
+  margin-top: 3px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1E293B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sys-push-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--sec);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.care-notice-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  background: rgba(15, 23, 42, 0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.care-notice-dialog {
+  width: 100%;
+  max-width: 342px;
+  background: #fff;
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.22);
+  animation: rxStampIn 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}

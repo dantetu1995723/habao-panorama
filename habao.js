@@ -1304,6 +1304,9 @@
     ],
     activePatientId: "p1",
     consultUnread: 2,
+    consultUnreadByRole: { patient: 1, family: 1 },
+    careNoticePopup: null,
+    sysPushBanner: null,
     seededCareNotices: false,
     famRel: "配偶",
     notifySelf: true,
@@ -1967,6 +1970,118 @@
   function toastHTML() {
     if (!S.toast) return "";
     return `<div class="toast">${I.warn}${S.toast}</div>`;
+  }
+  function noticeRecipientRole(n) {
+    if (!n) return "patient";
+    return n.kind === "familyRemindPlan" || n.kind === "familyRemindExercise" ? "patient" : "family";
+  }
+  function consultUnreadFor(role) {
+    const r = role || shownRole();
+    if (!S.consultUnreadByRole) S.consultUnreadByRole = { patient: 1, family: 1 };
+    return S.consultUnreadByRole[r] || 0;
+  }
+  let sysBannerTimer = null;
+  function presentCareNotice(notice) {
+    if (!notice || !genIsV01()) return;
+    S.careNoticePopup = notice;
+    S.sysPushBanner = notice;
+    if (sysBannerTimer) clearTimeout(sysBannerTimer);
+    sysBannerTimer = setTimeout(() => {
+      if (S.sysPushBanner === notice) {
+        S.sysPushBanner = null;
+        document.querySelector(".phone-screen .sys-push-banner")?.remove();
+      }
+    }, 4500);
+  }
+  function ensureSeededCareNotices() {
+    if (!genIsV01() || S.seededCareNotices) return;
+    S.seededCareNotices = true;
+    const pName = S.name || "李建国";
+    const fam = activeFamMember();
+    const fLabel = `${fam.name}（${fam.rel || "家属"}）`;
+    if (!S.messages.some((m) => m.who === "notice")) {
+      S.messages.unshift(
+        {
+          who: "notice",
+          notice: {
+            kind: "patientActionDone",
+            badgeText: "患者康复动态",
+            receiverLabel: "通知家属",
+            title: `${pName}已完成「起床」打卡`,
+            detail: `患者${pName}已在首页完成今日计划「06:00 起床」打卡，同步通知守护家属。`,
+            target: "schedule",
+            time: "06:05",
+          },
+        },
+        {
+          who: "notice",
+          notice: {
+            kind: "familyRemindPlan",
+            badgeText: "家属打卡提醒",
+            receiverLabel: `通知患者：${pName}`,
+            title: `${fLabel}提醒你按时完成「阿司匹林肠溶片」`,
+            detail: `家属${fLabel}通过哈宝医生提醒${pName}：今日计划「08:00 阿司匹林肠溶片」待完成，服药后记得打卡，让家人放心。`,
+            target: "schedule",
+            time: "08:15",
+          },
+        }
+      );
+    }
+  }
+  function presentUnreadCareNoticeForRole(role) {
+    if (!genIsV01()) return;
+    ensureSeededCareNotices();
+    if (consultUnreadFor(role) <= 0) return;
+    const list = (S.messages || []).filter((m) => m.who === "notice" && noticeRecipientRole(m.notice) === role);
+    const latest = list.length ? list[list.length - 1].notice : null;
+    if (latest) presentCareNotice(latest);
+  }
+  function sysPushBannerHTML() {
+    const n = S.sysPushBanner;
+    if (!n || !genIsV01()) return "";
+    return `
+      <div class="sys-push-banner" data-act="openCareNoticeConsult">
+        <img class="sys-push-logo" src="${A.logo}" alt="哈宝" />
+        <div class="sys-push-body">
+          <div class="sys-push-head">
+            <b>哈宝 · ${esc(n.badgeText || "康复通知")}</b>
+            <span class="sys-push-tag">手机系统通知</span>
+            <small>现在</small>
+          </div>
+          <div class="sys-push-title">${esc(n.title || "")}</div>
+          <div class="sys-push-sub">${esc(n.detail || "")}</div>
+        </div>
+      </div>`;
+  }
+  function careNoticeModalHTML() {
+    const n = S.careNoticePopup;
+    if (!n || !genIsV01()) return "";
+    const isRemind = n.kind === "familyRemindPlan" || n.kind === "familyRemindExercise";
+    const accent = isRemind ? "#D97706" : "#1AA64A";
+    const softBg = isRemind ? "rgba(245,158,11,.13)" : "rgba(26,166,74,.12)";
+    const ico = isRemind ? "🔔" : "✅";
+    const ruleHint = isRemind ? "患者在哈宝医生接收提醒通知" : "家属在哈宝医生接收完成通知";
+    return `
+      <div class="care-notice-modal" data-act="closeCareNotice">
+        <div class="care-notice-dialog" onclick="event.stopPropagation()">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:700;color:${accent};background:${softBg};padding:4px 10px;border-radius:999px">${ico} ${esc(n.badgeText || "康复通知")}</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--blue);background:rgba(16,84,224,.08);padding:3.5px 8px;border-radius:999px">📱 已同步手机系统通知</span>
+          </div>
+          <div class="s19 fb t" style="margin-top:12px;line-height:1.35">${esc(n.title || "")}</div>
+          <div style="margin-top:10px;padding:12px 13px;border-radius:14px;background:rgba(16,84,224,.05)">
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:6px">
+              <b style="color:${accent}">${esc(n.receiverLabel || "")}</b>
+              <span style="color:var(--sec)">· ${ruleHint}</span>
+            </div>
+            <div class="s14 fm" style="color:rgba(16,84,224,.86);line-height:1.45">${esc(n.detail || "")}</div>
+          </div>
+          <div class="duo" style="margin-top:15px;gap:10px">
+            <button type="button" data-act="closeCareNotice" style="border:0;height:46px;border-radius:14px;background:rgba(16,84,224,.09);color:var(--blue);font-size:15.5px;font-weight:700;cursor:pointer;font-family:inherit">知道了</button>
+            <button type="button" data-act="openCareNoticeConsult" style="border:0;height:46px;border-radius:14px;background:var(--blue);color:#fff;font-size:15.5px;font-weight:700;cursor:pointer;font-family:inherit">去哈宝医生查看 ›</button>
+          </div>
+        </div>
+      </div>`;
   }
 
   const L = {
@@ -2701,42 +2816,11 @@
     return (map[id] || [...home, C(id)]).map((f) => ({ ...f }));
   }
   function ensureConsultCaseOnEnter() {
-    // V0.1+ 哈宝医生统一承载医患家协同通知（家属提醒患者 + 患者动态通知家属）
-    if (genIsV01() && !S.seededCareNotices) {
-      S.seededCareNotices = true;
-      const pName = S.name || "李建国";
-      const fam = activeFamMember();
-      const fLabel = `${fam.name}（${fam.rel || "家属"}）`;
-      if (!S.messages.some((m) => m.who === "notice")) {
-        S.messages.unshift(
-          {
-            who: "notice",
-            notice: {
-              kind: "patientActionDone",
-              badgeText: "患者康复动态",
-              receiverLabel: "通知家属",
-              title: `${pName}已完成「起床」打卡`,
-              detail: `患者${pName}已在首页完成今日计划「06:00 起床」打卡，同步通知守护家属。`,
-              target: "schedule",
-              time: "06:05",
-            },
-          },
-          {
-            who: "notice",
-            notice: {
-              kind: "familyRemindPlan",
-              badgeText: "家属打卡提醒",
-              receiverLabel: `通知患者：${pName}`,
-              title: `${fLabel}提醒你按时完成「阿司匹林肠溶片」`,
-              detail: `家属${fLabel}通过哈宝医生提醒${pName}：今日计划「08:00 阿司匹林肠溶片」待完成，服药后记得打卡，让家人放心。`,
-              target: "schedule",
-              time: "08:15",
-            },
-          }
-        );
-      }
-    }
-    S.consultUnread = 0;
+    // V0.1+ 哈宝医生统一承载医患家协同通知（患者接收家属的提醒通知，家属接收患者的完成通知）
+    ensureSeededCareNotices();
+    if (!S.consultUnreadByRole) S.consultUnreadByRole = { patient: 0, family: 0 };
+    S.consultUnreadByRole[shownRole()] = 0;
+    S.consultUnread = (S.consultUnreadByRole.patient || 0) + (S.consultUnreadByRole.family || 0);
   }
   function present(id, how) {
     const prevScreen = S.screen;
@@ -3086,11 +3170,12 @@
       const pg = app().querySelector(".page");
       if (pg) pg.classList.add("enter");
     }
-    // toast 挂在 .phone-screen 而非 #app：`#app > *` 会覆盖 position/z-index，
-    // 挂里面就浮不起来、还会被弹层（z-index 50）盖住
+    // toast 与通知弹窗/顶部系统通知横幅挂在 .phone-screen 而非 #app：`#app > *` 会覆盖 position/z-index
     const scr = document.querySelector(".phone-screen");
     scr.querySelector(".toast")?.remove();
-    scr.insertAdjacentHTML("beforeend", toastHTML());
+    scr.querySelector(".sys-push-banner")?.remove();
+    scr.querySelector(".care-notice-modal")?.remove();
+    scr.insertAdjacentHTML("beforeend", toastHTML() + sysPushBannerHTML() + careNoticeModalHTML());
     // V0.1 期末反馈：一期过完后首次回到首页自动弹一次（点「稍后再说」后不再自动弹）
     if (S.screen === "home" && !S.overlay && rxShouldPrompt(false)) {
       S.plan.cur.fbPrompted = true;
@@ -5082,13 +5167,40 @@
             openOverlay("familyInvite", { memberId: cur.id });
             return;
           }
+          presentUnreadCareNoticeForRole("family");
         } else {
           S.role = "patient";
           S.actorId = null;
           S.myFamNameDraft = undefined;
           S.myFamRelDraft = undefined;
+          presentUnreadCareNoticeForRole("patient");
         }
         render();
+      },
+      closeCareNotice() {
+        S.careNoticePopup = null;
+        S.sysPushBanner = null;
+        render();
+      },
+      openCareNoticeConsult() {
+        const n = S.careNoticePopup || S.sysPushBanner;
+        S.careNoticePopup = null;
+        S.sysPushBanner = null;
+        if (n) {
+          const targetRole = noticeRecipientRole(n);
+          if (S.role !== targetRole) {
+            S.role = targetRole;
+            if (targetRole === "family") {
+              if (!S.family || !S.family.length) {
+                S.family = [{ id: "f1", name: "王芳", rel: "配偶", phone: "139****2210", phoneRaw: "13900132210", confirmed: true }];
+              }
+              S.actorId = activeFamMember().id;
+            } else {
+              S.actorId = null;
+            }
+          }
+        }
+        go("consult", "cover");
       },
       openDebug() { openOverlay("debugMenu"); },
       // 设计版本（真机 DesignGenerationStore.select）：V0.0 对应非 VIP 状态，V0.1 对应已开通 VIP 状态，方便直接对比 UI。
@@ -5346,6 +5458,8 @@
         const target = (S.family || []).find((x) => String(x.id) === String(mid)) || activeFamMember();
         if (target) target.confirmed = true;
         closeOverlay();
+        presentUnreadCareNoticeForRole("family");
+        render();
         toast(`已开启对${S.name}的康复守护`);
       },
       rejectFamInvite() {
@@ -7352,20 +7466,22 @@
     consult: () => {
       const canSend = consultCanSend();
       const inText = S.inputMode === "text";
+      const curRole = shownRole();
+      const visibleMessages = S.messages.filter((m) => m.who !== "notice" || noticeRecipientRole(m.notice) === curRole);
       const plusItem = (act, icon, label) =>
         `<button class="plus-item" type="button" data-act="${act}"><span>${icon}</span>${label}</button>`;
       return `
       <div class="page rel${S.consultKeyboard ? " consult-kb" : ""}${S.plusPanel ? " consult-panel" : ""}">
         ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="24" height="24" alt="" />哈宝医生</span>`)}
         <div class="scroll px20 grow">
-          ${!S.messages.some((m) => m.who !== "notice") ? `
+          ${!visibleMessages.some((m) => m.who !== "notice") ? `
             <div class="island-card ta-c" style="padding:16px;margin-top:12px;margin-bottom:10px">
               <img src="${A.logo}" width="64" height="64" alt="" />
               <h2 class="s21 fb t mt8">你好，这里是哈宝医生</h2>
               <p class="s16 t-sec">有不适或用药疑问，都可以问我</p>
             </div>
           ` : ""}
-          ${S.messages.map((m) => (m.who === "notice" ? consultCareNoticeHTML(m.notice) : m.who === "vip" ? `
+          ${visibleMessages.map((m) => (m.who === "notice" ? consultCareNoticeHTML(m.notice) : m.who === "vip" ? `
             <div class="chat-msg-row ai">
               <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
               ${genHasFamily() ? `<div class="bubble ai">${CONSULT_VIP_GREETING}</div>` : consultVipCardHTML()}
@@ -7635,26 +7751,28 @@
       const isVip = genHasFamily();
       const fam = activeFamMember();
       const heroTopHTML = isFam ? `
-        <div class="pointer" data-go="family" role="button" style="cursor:pointer">
+        <div class="pointer" data-go="health-record" role="button" style="cursor:pointer">
           <div class="hero-top">
-            <div class="avatar">${fam.name.slice(0, 1)}</div>
+            <div class="avatar">${S.name.slice(0, 1)}</div>
             <div style="min-width:0">
               <div style="display:flex;align-items:center;gap:6px;white-space:nowrap">
-                <span class="s18 fb">${fam.name}</span>
-                <span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.two} 家属</span>
+                <span class="s18 fb">${S.name}</span>
+                ${isVip ? `<span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.crown} VIP</span>` : ""}
               </div>
-              <div class="s13 fsb" style="opacity:.88;margin-top:4px;white-space:nowrap;font-variant-numeric:tabular-nums">${fam.rel} · ${fam.phone}</div>
+              <div style="display:flex;align-items:center;gap:5px;margin-top:5px;white-space:nowrap">
+                <span style="font-size:12px;font-weight:700;color:#fff;background:rgba(255,255,255,.24);padding:2.5px 8px;border-radius:999px">守护患者 · ${S.gender}</span>
+                <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.16);padding:2.5px 8px;border-radius:999px">我是${fam.rel}（${fam.name}）</span>
+              </div>
             </div>
-            <button class="view-cap" data-go="family" type="button">我的身份</button>
+            <button class="view-cap" data-go="health-record" type="button">患者档案</button>
           </div>
-        </div>
-        <div class="frost"></div>
-        <div class="pointer" data-go="health-record" role="button" style="cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap">
-          <span style="color:#FFDC6E;display:inline-flex;flex-shrink:0;width:16px;height:16px">${I.heartSq.replace('width="20" height="20"', 'width="16" height="16"')}</span>
-          <span class="s15 fb" style="color:#fff">守护患者：${S.name}</span>
-          <span class="s13 fsb" style="color:rgba(255,255,255,.85)">${S.gender} · 58岁</span>
-          <span class="grow"></span>
-          <span class="s13 fb" style="color:rgba(255,255,255,.95)">患者档案 ›</span>
+          <div class="frost"></div>
+          <div class="metrics">
+            <div><span>年龄</span><b>58</b></div>
+            <div><span>身高</span><b>${S.height}</b></div>
+            <div><span>体重</span><b>${S.weight}</b></div>
+            <div><span>BMI</span><b>${bmi()}</b></div>
+          </div>
         </div>
       ` : `
         <div class="pointer" data-go="health-record" role="button" style="cursor:pointer">
@@ -10274,7 +10392,7 @@
     </button>`;
   }
   function consultOrbHTML() {
-    const hasUnread = genIsV01() && (S.consultUnread || 0) > 0;
+    const hasUnread = genIsV01() && consultUnreadFor(shownRole()) > 0;
     const notifyHTML = hasUnread
       ? `<span class="orb-notify-bell">${I.bell}</span><span class="orb-notify-pill">${I.bell}新提醒</span>`
       : "";
@@ -10459,9 +10577,13 @@
     }
     if (notice) {
       S.messages.push({ who: "notice", notice });
-      if (S.screen !== "consult") {
-        S.consultUnread = (S.consultUnread || 0) + 1;
+      const targetRole = noticeRecipientRole(notice);
+      if (!S.consultUnreadByRole) S.consultUnreadByRole = { patient: 0, family: 0 };
+      if (S.screen !== "consult" || shownRole() !== targetRole) {
+        S.consultUnreadByRole[targetRole] = (S.consultUnreadByRole[targetRole] || 0) + 1;
+        S.consultUnread = (S.consultUnreadByRole.patient || 0) + (S.consultUnreadByRole.family || 0);
       }
+      presentCareNotice(notice);
     }
   }
   /// 操作记录换日（V10.109）：在「今天 → 最早一条记录那天」之间移动，真机同日翻页手势
