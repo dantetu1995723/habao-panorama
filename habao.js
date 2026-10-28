@@ -3728,6 +3728,11 @@
           if (S.screen === "home") refreshHomeSoft(); else render();
           return;
         }
+        if (shownRole() === "family") {
+          const place = S.screen === "schedule" ? "健康计划" : "首页";
+          openOverlay("familyCheckin", { id, place });
+          return;
+        }
         if (t.cat === "exercise") { openOverlay("exercise", { id }); return; }
         if (t.cat === "appointment") { openOverlay("appointment", { id }); return; }
         if (t.cat === "monitoring" && t.title !== "测心率") {
@@ -3794,9 +3799,52 @@
         else go("walk", "cover");
       },
       walkShare() {
-        // 散步分享 = 路径海报（不是集章名信片）
-        if (S.walking || S.walkSaved) openOverlay("walkPoster", { date: "2026年9月11日" });
+        // 散步分享 = 路径海报（不是集章名信片）；家属视角直接分享患者最近一次散步轨迹
+        if (S.walking || S.walkSaved || shownRole() === "family") openOverlay("walkPoster", { date: "2026年9月11日" });
         else toast("还没有散步路径，先出门走一段吧");
+      },
+      familyConfirmDone() {
+        const id = S.overlayData.id;
+        const place = S.overlayData.place || "首页";
+        const t = SEED.find((x) => x.id === id);
+        if (!t) { closeOverlay(); return; }
+        if (t.cat === "monitoring" && t.title !== "测心率") {
+          openOverlay("vitals", { id, place });
+          if (hasBoundBPMonitor()) startSheetHwSync();
+          return;
+        }
+        S.completed[id] = true;
+        markProxy(id, place);
+        closeOverlay();
+        toast(`已代${S.name}完成「${t.title}」打卡`);
+      },
+      familyRemindTask() {
+        const id = S.overlayData.id;
+        const place = S.overlayData.place || "首页";
+        const title = taskTitle(id);
+        S.remindedTasks = S.remindedTasks || {};
+        S.remindedTasks[id] = true;
+        logOp("提醒了患者", place, [["计划", title]]);
+        closeOverlay();
+        toast(`已向${S.name}发送「${title}」提醒`);
+      },
+      familyWalkRemind() {
+        const pending = liveTasks().filter((t) => t.cat === "exercise" && !S.completed[t.id]);
+        S.remindedTasks = S.remindedTasks || {};
+        pending.forEach((t) => { S.remindedTasks[t.id] = true; });
+        S.remindedWalkToday = true;
+        const exTitle = pending[0] ? pending[0].title : (liveTasks().find((t) => t.cat === "exercise")?.title || "户外散步");
+        logOp("提醒了患者", "运动", [["计划", exTitle]]);
+        toast(`已向${S.name}发送「${exTitle}」运动提醒`);
+        render();
+      },
+      familyWalkProxyDone() {
+        const id = el.dataset.id;
+        if (!id) return;
+        S.completed[id] = true;
+        markProxy(id, "运动");
+        toast(`已代${S.name}完成「${taskTitle(id)}」打卡`);
+        render();
       },
       shareWalk() {
         openOverlay("walkPoster", {
@@ -7144,7 +7192,62 @@
         </div>
       </div>`,
 
-    walk: () => `
+    walk: () => {
+      const isFam = shownRole() === "family";
+      if (isFam) {
+        const exTasks = liveTasks().filter((t) => t.cat === "exercise");
+        const pendingEx = exTasks.filter((t) => !S.completed[t.id]);
+        const allExDone = exTasks.length > 0 && pendingEx.length === 0;
+        const isReminded = !!(S.remindedWalkToday || exTasks.some((t) => S.remindedTasks && S.remindedTasks[t.id]));
+        const nextTask = pendingEx[0];
+        const doneTask = exTasks[0];
+        const statusBadge = allExDone
+          ? `<span style="font-size:12px;font-weight:700;color:#1AA64A;background:rgba(26,166,74,.12);padding:4px 9px;border-radius:999px;white-space:nowrap">✓ 今日已完成</span>`
+          : isReminded
+            ? `<span style="font-size:12px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:4px 9px;border-radius:999px;white-space:nowrap">🔔 已提醒患者</span>`
+            : pendingEx.length
+              ? `<span style="font-size:12px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:4px 9px;border-radius:999px;white-space:nowrap">待运动 ${pendingEx.length} 项</span>`
+              : "";
+        const taskRowHTML = nextTask
+          ? `<div style="display:flex;align-items:center;gap:8px;padding:10px;border-radius:12px;background:rgba(16,84,224,.06);margin-top:10px">
+               <div style="min-width:0;flex:1">
+                 <div class="s14 fb" style="color:#1E293B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">今日计划：${pad(nextTask.h)}:${pad(nextTask.m)} ${nextTask.title}</div>
+                 <div class="s12 t-sec" style="margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">患者完成后可代为打卡，或点底部按钮提醒患者运动</div>
+               </div>
+               <button data-act="familyWalkProxyDone" data-id="${nextTask.id}" type="button" style="border:0;background:var(--blue);color:#fff;font-size:13px;font-weight:700;padding:7px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;flex-shrink:0">✓ 代为打卡</button>
+             </div>`
+          : doneTask
+            ? `<div style="display:flex;align-items:center;gap:6px;padding:8px 10px;border-radius:10px;background:rgba(26,166,74,.08);margin-top:10px;color:#1AA64A;font-size:13.5px;font-weight:700">✓ 今日「${doneTask.title}」已完成打卡</div>`
+            : "";
+        return `
+        <div class="page" style="padding-top:0">
+          <div class="welcome">
+            <div class="titles"><h2>散散步，散散心</h2></div>
+            <button class="circle-btn lg" data-act="goHome" type="button">${I.house}</button>
+          </div>
+          <div class="map walk-map" style="position:relative">
+            ${mapArt({ route: true })}
+            <div style="position:absolute;top:14px;left:14px;right:14px;padding:14px;border-radius:18px;background:rgba(255,255,255,.95);border:1px solid rgba(16,84,224,.12);box-shadow:0 6px 18px rgba(16,84,224,.12);z-index:5">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="color:var(--blue);display:inline-flex">${I.walk}</span>
+                <span class="s16 fb" style="color:var(--blue);white-space:nowrap">守护患者：${S.name}</span>
+                <span class="grow"></span>
+                ${statusBadge}
+              </div>
+              ${taskRowHTML}
+              <div class="s12 fsb t-sec" style="margin-top:9px;display:flex;align-items:center;gap:6px;white-space:nowrap">
+                <span style="color:var(--blue)">●</span>最近散步：0.68 公里 · 12 分钟 · 920 步
+              </div>
+            </div>
+            <div class="walk-dock">
+              <button class="walk-side" data-go="walk-records" type="button">${I.hist}<span>记录</span></button>
+              <button class="walk-main" data-act="familyWalkRemind" type="button">${I.bell}${isReminded ? "再次提醒患者运动" : "提醒患者运动"}</button>
+              <button class="walk-side" data-act="walkShare" type="button">${I.share}<span>分享</span></button>
+            </div>
+          </div>
+        </div>`;
+      }
+      return `
       <div class="page" style="padding-top:0">
         <div class="welcome">
           <div class="titles"><h2>散散步，散散心</h2></div>
@@ -7158,7 +7261,8 @@
             <button class="walk-side" data-act="walkShare" type="button">${I.share}<span>分享</span></button>
           </div>
         </div>
-      </div>`,
+      </div>`;
+    },
 
     "walk-session": () => walkSessionHTML(),
 
@@ -10406,6 +10510,7 @@
 
   function taskCard(t, focus) {
     const done = !!S.completed[t.id];
+    const reminded = !done && !!(S.remindedTasks && S.remindedTasks[t.id]);
     const appt = t.cat === "appointment" && !done;
     const stroke = done ? "#1AA64A" : "rgba(16,84,224,.10)";
     const sw = done ? 1.2 : 0.8;
@@ -10419,6 +10524,7 @@
           ${badge(t.cat, done)}
           ${rxOn() && S.rx && S.rx[t.id] ? `<span class="rx-chip">医嘱</span>` : ""}
           <div class="task-status">${done ? `${I.check}<span>已完成</span>` : `${I.clock}<span>${spoken(t.h, t.m)}</span>`}</div>
+          ${reminded ? `<span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:3px 7px;border-radius:999px;white-space:nowrap">🔔 已提醒</span>` : ""}
         </div>
         <div class="task-body">
           <h3 class="task-title">${t.title}</h3>
@@ -10702,12 +10808,16 @@
       : "";
     const seedTask = id ? SEED.find((x) => x.id === id) : null;
     const rangeText = seedTask ? taskDateRangeLabel(seedTask) : taskDateRangeLabel({ cycle: isCycle });
+    const reminded = !done && id && S.remindedTasks && S.remindedTasks[id];
+    const remindedChip = reminded
+      ? `<span class="act-chip" style="color:#D97706;background:rgba(245,158,11,.14);font-weight:700">🔔 已提醒患者</span>`
+      : "";
     return `<div class="act-card ${cls}">
       <div class="act-card-main">
         <div class="badge b40 ${cls}"><img src="${A.task[kind]}" alt="" /></div>
         <div class="grow">
           <div class="s15 fb ${done ? "t-green" : kind === "appointment" ? "t-appt" : "t"}">${title}</div>
-          <div class="act-info"><span class="tm">${time}</span>${dose ? `<span class="act-chip">${dose}</span>` : ""}<span class="act-chip">${isCycle ? "循环" : "单日"}</span><span class="act-chip">${chip}</span></div>
+          <div class="act-info"><span class="tm">${time}</span>${dose ? `<span class="act-chip">${dose}</span>` : ""}<span class="act-chip">${isCycle ? "循环" : "单日"}</span><span class="act-chip">${chip}</span>${remindedChip}</div>
           <div class="act-dates">${rangeText}</div>
         </div>
         ${check}
@@ -11407,6 +11517,34 @@
           </div>
         </div>
       </div>`,
+    familyCheckin: () => {
+      const t = SEED.find((x) => x.id === S.overlayData.id) || {};
+      const isAppt = t.cat === "appointment";
+      const isVitals = t.cat === "monitoring" && t.title !== "测心率";
+      const isEx = t.cat === "exercise";
+      const primaryLabel = isVitals
+        ? "患者已测血压，代为录入"
+        : isEx
+          ? "患者已完成散步，代为打卡"
+          : isAppt
+            ? "患者已完成复查，代为打卡"
+            : "患者已完成，代为打卡";
+      const primaryIco = isVitals ? I.ecg : I.check;
+      const alreadyReminded = !!(S.remindedTasks && S.remindedTasks[t.id]);
+      const remindLabel = alreadyReminded ? "未完成，再次提醒患者" : "未完成，提醒患者";
+      return `
+      <div class="scrim bottom" data-act="close">
+        <div class="sheet" style="min-height:400px" onclick="event.stopPropagation()">
+          <div class="grab"></div>
+          <div class="s18 fsb ${isAppt ? "t-appt" : "t"} ta-c" style="padding:6px 8px 8px">${t.title || "康复计划"}</div>
+          <div class="col gap16" style="margin-top:12px;padding:16px 6px 24px">
+            <button class="ex-choice ${isAppt ? "appt" : "primary"}" data-act="familyConfirmDone" type="button"><span class="ico">${primaryIco}</span>${primaryLabel}</button>
+            <button class="ex-choice secondary ${isAppt ? "appt-sec" : ""}" data-act="familyRemindTask" type="button"><span class="ico">${I.bell}</span>${remindLabel}</button>
+            <button class="ex-choice secondary ${isAppt ? "appt-sec" : ""}" data-act="close" type="button"><span class="ico">${I.x}</span>暂不打卡</button>
+          </div>
+        </div>
+      </div>`;
+    },
     appointment: () => `
       <div class="scrim bottom" data-act="close">
         <div class="sheet" style="min-height:400px" onclick="event.stopPropagation()">
