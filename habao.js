@@ -7475,45 +7475,34 @@
         <div class="pointer" data-go="family" role="button" style="cursor:pointer">
           <div class="hero-top">
             <div class="avatar">${fam.name.slice(0, 1)}</div>
-            <div>
-              <div style="display:flex;align-items:center;gap:6px">
+            <div style="min-width:0">
+              <div style="display:flex;align-items:center;gap:6px;white-space:nowrap">
                 <span class="s18 fb">${fam.name}</span>
-                <span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.two} 家属账号</span>
+                <span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.two} 家属</span>
               </div>
-              <div class="s13" style="opacity:.9;display:flex;align-items:center;gap:6px;margin-top:4px">
-                <span style="padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.24);font-weight:700">${fam.rel} · 守护中</span>
-                <span style="padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.16);font-variant-numeric:tabular-nums">${fam.phone}</span>
-              </div>
+              <div class="s13 fsb" style="opacity:.88;margin-top:4px;white-space:nowrap;font-variant-numeric:tabular-nums">${fam.rel} · ${fam.phone}</div>
             </div>
             <button class="view-cap" data-go="family" type="button">我的身份</button>
           </div>
         </div>
-        <div class="pointer" data-go="health-record" role="button" style="cursor:pointer;margin-top:12px;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24)">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="color:#FFDC6E;display:inline-flex">${I.heartSq}</span>
-            <span class="s15 fb" style="color:#fff">守护患者：${S.name}</span>
-            <span style="font-size:12px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.18);color:#fff;font-weight:600">${S.gender} · 58岁</span>
-            <span class="grow"></span>
-            <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.95)">患者档案 ›</span>
-          </div>
-          <div class="frost" style="margin:8px 0"></div>
-          <div class="metrics">
-            <div><span>年龄</span><b>58</b></div>
-            <div><span>身高</span><b>${S.height}</b></div>
-            <div><span>体重</span><b>${S.weight}</b></div>
-            <div><span>BMI</span><b>${bmi()}</b></div>
-          </div>
+        <div class="frost"></div>
+        <div class="pointer" data-go="health-record" role="button" style="cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap">
+          <span style="color:#FFDC6E;display:inline-flex;flex-shrink:0;width:16px;height:16px">${I.heartSq.replace('width="20" height="20"', 'width="16" height="16"')}</span>
+          <span class="s15 fb" style="color:#fff">守护患者：${S.name}</span>
+          <span class="s13 fsb" style="color:rgba(255,255,255,.85)">${S.gender} · 58岁</span>
+          <span class="grow"></span>
+          <span class="s13 fb" style="color:rgba(255,255,255,.95)">患者档案 ›</span>
         </div>
       ` : `
         <div class="pointer" data-go="health-record" role="button" style="cursor:pointer">
           <div class="hero-top">
             <div class="avatar">${S.name.slice(0, 1)}</div>
-            <div>
-              <div style="display:flex;align-items:center;gap:6px">
+            <div style="min-width:0">
+              <div style="display:flex;align-items:center;gap:6px;white-space:nowrap">
                 <span class="s18 fb">${S.name}</span>
                 ${isVip ? `<span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.crown} VIP</span>` : ""}
               </div>
-              <div class="s13" style="opacity:.85">本人　${S.gender}</div>
+              <div class="s13" style="opacity:.85;white-space:nowrap">本人　${S.gender}</div>
             </div>
             <button class="view-cap" data-go="health-record" type="button">点击查看</button>
           </div>
@@ -7529,9 +7518,9 @@
       const vipTitle = isFam
         ? (isVip ? "家庭共享 VIP 生效中" : "开通家庭共享 VIP")
         : (isVip ? "VIP 专属全维守护中" : "开通 VIP 享全维守护");
-      const vipSub = isFam
-        ? (isVip ? `主账号已开通 · 有效期至 ${vipExpiryText()}` : "一人开通全家同享 · ¥2400 / 年")
-        : (isVip ? `有效期至 ${vipExpiryText()}` : "¥2400 / 年");
+      const vipSub = isVip
+        ? `有效期至 ${vipExpiryText()}`
+        : (isFam ? "¥2400 / 年 · 全家同享" : "¥2400 / 年");
       const vipBtn = isFam
         ? (isVip ? "共享中 ›" : "去开通 ›")
         : (isVip ? "已购买 ›" : "购买 ›");

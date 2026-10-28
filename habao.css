@@ -1448,6 +1448,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   margin-left: auto; background: #fff; color: var(--blue);
   border-radius: 999px; padding: 9px 16px;
   font-size: calc(15px * var(--fs)); font-weight: 700; border: 0; cursor: pointer;
+  white-space: nowrap; flex-shrink: 0;
 }
 .list-island { background: #fff; border-radius: 22px; padding: 6px 16px; }
 .list-row {
@@ -1608,9 +1609,14 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .vip-head-well { background: var(--blue) !important; color: #fff !important; }
 .vip-title { font-size: calc(17px * var(--fs)); font-weight: 700; color: var(--blue); margin: 0; }
 .vip-badge-pill {
-  font-size: calc(10px * var(--fs)); font-weight: 700;
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: calc(11px * var(--fs)); font-weight: 700;
   background: rgba(16,84,224,.12); color: var(--blue);
-  padding: 2px 6px; border-radius: 999px; line-height: 1.2;
+  padding: 2.5px 7px; border-radius: 999px; line-height: 1.2;
+  white-space: nowrap; flex-shrink: 0;
+}
+.vip-badge-pill svg {
+  width: 11px; height: 11px; flex: 0 0 11px;
 }
 .vip-chev svg { opacity: .45; color: var(--blue); }
 .t-blue-muted { color: rgba(16,84,224,.70) !important; }
