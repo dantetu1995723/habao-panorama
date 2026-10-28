@@ -3686,20 +3686,22 @@
         // 真机 loginReady = 手机号 11 位 && 验证码 6 位；这里点按给具体原因，别静默
         if (phone.length !== 11) { toast(phone ? "请输入 11 位手机号" : "请填写手机号"); return; }
         if (code.length !== 6) { toast(code ? "请输入 6 位验证码" : "请填写验证码"); return; }
-        // 若输入的是已绑定家属手机号，后端直接匹配进入患者档案首页（无需选身份、无需重复填患者信息）
+        // 若输入的是已绑定家属手机号，后端直接匹配进入患者档案首页，并弹出「收到康复守护邀请」强确认通知弹窗
         const matchedFam = genHasFamily() && (S.family || []).find((f) => f.phoneRaw === phone);
         if (matchedFam) {
           S.role = "family";
           S.actorId = matchedFam.id;
           S.loggedIn = true;
+          S.pureFamilyLogin = true;
           go("home", "root");
-          toast(`已识别家属账号（${matchedFam.name}），进入${S.name}的康复档案`);
+          openOverlay("familyInvite", { memberId: matchedFam.id });
           return;
         }
         // 新注册建档默认是免费用户（患者本人主账号），直接进入第 2 步「完善你的信息」
         S.phone = phone;
         S.role = "patient";
         S.actorId = null;
+        S.pureFamilyLogin = false;
         go("onboard-profile", "push");
       },
       sendCode() { toast("验证码已发送（Demo）"); },
@@ -4964,17 +4966,26 @@
       roleSwitch() {
         if (S.role === "patient") {
           S.role = "family";
+          S.pureFamilyLogin = false;
           if (!S.family || !S.family.length) {
-            S.family = [{ id: "f1", name: "王芳", rel: "配偶", phone: "139****2210", phoneRaw: "13900132210" }];
+            S.family = [{ id: "f1", name: "王芳", rel: "配偶", phone: "139****2210", phoneRaw: "13900132210", confirmed: true }];
           }
-          const cur = activeFamMember();
+          const unconfirmed = (S.family || []).find((f) => f.confirmed === false);
+          const cur = unconfirmed || activeFamMember();
           S.actorId = cur.id;
+          S.myFamNameDraft = undefined;
+          S.myFamRelDraft = undefined;
+          if (unconfirmed || !S.demoInviteShown) {
+            S.demoInviteShown = true;
+            openOverlay("familyInvite", { memberId: cur.id });
+            return;
+          }
         } else {
           S.role = "patient";
           S.actorId = null;
+          S.myFamNameDraft = undefined;
+          S.myFamRelDraft = undefined;
         }
-        S.myFamNameDraft = undefined;
-        S.myFamRelDraft = undefined;
         render();
       },
       openDebug() { openOverlay("debugMenu"); },
@@ -5223,8 +5234,39 @@
           rel: S.famRel || "配偶",
           phone: phone.replace(/^(\d{3})\d{4}(\d{4})$/, "$1****$2"),
           phoneRaw: phone,
+          confirmed: false,
         });
         render();
+        toast(`已绑定${name}，已向该手机号发送守护通知`);
+      },
+      acceptFamInvite() {
+        const mid = S.overlayData && S.overlayData.memberId;
+        const target = (S.family || []).find((x) => String(x.id) === String(mid)) || activeFamMember();
+        if (target) target.confirmed = true;
+        closeOverlay();
+        toast(`已开启对${S.name}的康复守护`);
+      },
+      rejectFamInvite() {
+        const mid = S.overlayData && S.overlayData.memberId;
+        const target = (S.family || []).find((x) => String(x.id) === String(mid)) || activeFamMember();
+        if (target) {
+          S.family = (S.family || []).filter((x) => String(x.id) !== String(target.id));
+        }
+        S.overlay = null;
+        if (S.pureFamilyLogin) {
+          S.pureFamilyLogin = false;
+          S.loggedIn = false;
+          S.role = "patient";
+          S.actorId = null;
+          S.frames = [{ id: "onboard-login", how: "root" }];
+          S.screen = "onboard-login";
+          render();
+        } else {
+          S.role = "patient";
+          S.actorId = null;
+          render();
+        }
+        toast("已拒绝守护并解除绑定");
       },
       call120() { openOverlay("e120"); },
       dial120() { toast("Demo 演示，将拨打 120"); closeOverlay(); },
@@ -7739,11 +7781,23 @@
           <div class="chips">${["配偶", "子女", "父母", "其他"].map((r) => `<button class="chip ${(S.famRel || "配偶") === r ? "on" : ""}" data-act="pickRel" data-r="${r}" type="button">${r}</button>`).join("")}</div>
           <div class="field-label mt16">手机号</div>
           <input class="field" name="fphone" maxlength="11" placeholder="11 位手机号" />
-          ${S.family.map((f) => `
+          ${S.family.map((f) => {
+            const isConfirmed = f.confirmed !== false;
+            const badgeText = isConfirmed ? "守护中" : "待家属确认";
+            const badgeFg = isConfirmed ? "#1AA64A" : "#D97706";
+            const badgeBg = isConfirmed ? "rgba(26,166,74,.12)" : "rgba(245,158,11,.14)";
+            return `
             <div class="plan-row mt16">
-              <div class="grow"><div class="s18 fb t">${f.name}</div><div class="s14 t-sec">${f.rel}　${f.phone}</div></div>
+              <div class="grow">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span class="s18 fb t">${f.name}</span>
+                  <span style="font-size:11px;font-weight:700;color:${badgeFg};background:${badgeBg};padding:2px 8px;border-radius:999px">${badgeText}</span>
+                </div>
+                <div class="s14 t-sec" style="margin-top:2px">${f.rel}　${f.phone}</div>
+              </div>
               <button class="cap blue" data-act="unbind" data-id="${f.id}" type="button">解除</button>
-            </div>`).join("")}
+            </div>`;
+          }).join("")}
         </div>
         <div class="px24 flex gap8" style="padding-bottom:28px">
           <button class="cta grow" data-act="bindFam" type="button">点击绑定</button>
@@ -11483,6 +11537,46 @@
           <div class="duo">
             <button class="cancel" data-act="close" type="button">${S.overlayData.cancel || "取消"}</button>
             <button class="${S.overlayData.danger ? "danger" : "ok"}" data-act="confirmOk" type="button">${S.overlayData.ok || "确定"}</button>
+          </div>
+        </div>
+      </div>`;
+    },
+    familyInvite: () => {
+      const mid = S.overlayData && S.overlayData.memberId;
+      const fam = (S.family || []).find((x) => String(x.id) === String(mid)) || activeFamMember();
+      const patientName = S.name || "李建国";
+      return `
+      <div class="scrim center" style="background:rgba(0,0,0,.45)">
+        <div class="popup" style="max-width:342px;border-radius:26px;padding:22px;text-align:left" onclick="event.stopPropagation()">
+          <div style="display:flex;justify-content:center;margin-bottom:12px">
+            <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:rgba(16,84,224,.10);color:var(--blue);font-size:12px;font-weight:700">
+              ${I.two}<span>家属守护绑定通知</span>
+            </span>
+          </div>
+          <h3 style="text-align:center;font-size:21px;margin:0 0 6px;color:var(--blue)">收到康复守护邀请</h3>
+          <div style="text-align:center;font-size:13.5px;color:var(--sec);margin-bottom:14px">患者 ${esc(patientName)} 将你的手机号添加为共管家属</div>
+          <div style="background:rgba(16,84,224,.05);border-radius:16px;padding:13px 14px;display:flex;flex-direction:column;gap:9px">
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <span style="width:56px;flex-shrink:0;font-size:12.5px;font-weight:600;color:var(--sec)">守护患者</span>
+              <span style="font-size:13.5px;font-weight:700;color:var(--blue)">${esc(patientName)}（${S.gender || "男"} · 58岁 · 主账号）</span>
+            </div>
+            <div style="height:1px;background:rgba(16,84,224,.08)"></div>
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <span style="width:56px;flex-shrink:0;font-size:12.5px;font-weight:600;color:var(--sec)">你的身份</span>
+              <span style="font-size:13.5px;font-weight:700;color:var(--blue)">${esc(fam.name)}（${esc(fam.rel || "配偶")} · ${esc(fam.phone)}）</span>
+            </div>
+            <div style="height:1px;background:rgba(16,84,224,.08)"></div>
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <span style="width:56px;flex-shrink:0;font-size:12.5px;font-weight:600;color:var(--sec)">共享权益</span>
+              <span style="font-size:13px;font-weight:700;color:var(--blue);line-height:1.4">家庭共享 VIP 已生效 · 同步康复计划与打卡、查看血压与报告、共用哈宝医生问诊、接收打卡提醒</span>
+            </div>
+          </div>
+          <div style="font-size:11.5px;color:var(--sec);line-height:1.45;margin-top:12px">
+            确认后，当前账号将挂载至${esc(patientName)}的康复档案（若本手机号原有免费空档将自动封存保留）；如拒绝则立即解除绑定。
+          </div>
+          <div class="duo" style="margin-top:16px;gap:10px">
+            <button type="button" data-act="rejectFamInvite" style="border:0;height:46px;border-radius:14px;background:rgba(220,72,72,.10);color:#DC4848;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">拒绝并解绑</button>
+            <button type="button" data-act="acceptFamInvite" style="border:0;height:46px;border-radius:14px;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">确认开启守护</button>
           </div>
         </div>
       </div>`;
