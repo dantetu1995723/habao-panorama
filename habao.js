@@ -1214,6 +1214,17 @@
     hw: {},
     hwKind: "bloodPressure",
     hwPhase: "idle",
+    vitalsFromHw: false,
+    vitalsSyncPhase: "idle",
+    vitalsSyncStep: 0,
+    monitorHwPhase: "idle",
+    monitorHwStep: 0,
+    monitorHwDetail: "",
+    taskVitalsHw: { t1: true },
+    vitalsLog: [
+      { time: "07:12", sys: 126, dia: 78, hr: 72, hw: true },
+      { time: "19:40", sys: 132, dia: 82, hr: 76, hw: true },
+    ],
     block: 1,
     liveFace: null,
     syncDriver: "idle",
@@ -3705,6 +3716,7 @@
         if (!t) return;
         if (S.completed[id]) {
           delete S.completed[id];
+          if (S.taskVitalsHw) delete S.taskVitalsHw[id];
           unmarkProxy(id);
           if (S.screen === "home") refreshHomeSoft(); else render();
           return;
@@ -3712,9 +3724,9 @@
         if (t.cat === "exercise") { openOverlay("exercise", { id }); return; }
         if (t.cat === "appointment") { openOverlay("appointment", { id }); return; }
         if (t.cat === "monitoring" && t.title !== "测心率") {
-          // 不预填全局 S.sys/dia/hr：那会把「面板展示值」写成真值，污染编辑页与下次录入
-          // （录入面板 overlays.vitals 自带「未预填时回落最近读数」）
-          openOverlay("vitals", { id });
+          const place = S.screen === "schedule" ? "健康计划" : "首页";
+          openOverlay("vitals", { id, place });
+          if (hasBoundBPMonitor()) startSheetHwSync();
           return;
         }
         S.completed[id] = true;
@@ -3876,17 +3888,33 @@
         closeOverlay();
       },
       vitalsSave() {
+        if (S.vitalsSyncPhase === "syncing") return;
         // 三个读数缺一不可：未录入就打卡会把「—」当成一次测量记进去
         if (S.sys == null || S.dia == null || S.hr == null) {
           toast("请填写收缩压、舒张压与心率");
           return;
         }
         const vid = S.overlayData.id;
+        const place = S.overlayData.place || "首页";
+        const isHw = !!(hasBoundBPMonitor() && S.vitalsFromHw && S.vitalsSyncPhase === "synced");
         S.completed[vid] = true;
+        S.taskVitalsHw = S.taskVitalsHw || {};
+        S.taskVitalsHw[vid] = isHw;
+        S.vitalsLog = S.vitalsLog || [];
+        S.vitalsLog.unshift({ time: demoNowHMText(), sys: S.sys, dia: S.dia, hr: S.hr, hw: isHw });
+        if (VITALS_WEEK.length) {
+          VITALS_WEEK[VITALS_WEEK.length - 1] = { day: "日", sys: S.sys, dia: S.dia, hr: S.hr };
+        }
         // 填读数 + 打卡合成一条
         markProxy(vid, null, true);
-        logOp("打卡了", "首页", [["计划", taskTitle(vid)], ["读数", `血压 ${S.sys}/${S.dia}，心率 ${S.hr} bpm`]]);
+        logOp("打卡了", place, [["计划", taskTitle(vid)], ["读数", `${isHw ? "哈宝血压计，" : ""}血压 ${S.sys}/${S.dia}，心率 ${S.hr} bpm`]]);
         closeOverlay();
+      },
+      sheetHwResync() {
+        startSheetHwSync();
+      },
+      monitorHwSync() {
+        startMonitorHwSync();
       },
       // 确认页：计划 / 解析依据分页 / 改备注 / 字段点选修正
       setConfirmPane() { S.confirmPane = el.dataset.p === "basis" ? "basis" : "plan"; render(); },
@@ -5676,9 +5704,9 @@
         const high = S.borg > 7 || S.symptoms.some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x));
         go(high ? "risk-result" : "confirm-exercise", "push");
       },
-      sys(d) { S.sys = stepOrSeed(S.sys, d, 120, 70, 220); render(); },
-      dia(d) { S.dia = stepOrSeed(S.dia, d, 78, 40, 140); render(); },
-      hr(d) { S.hr = stepOrSeed(S.hr, d, 72, 40, 180); render(); },
+      sys(d) { markManualVitalsStep(); S.sys = stepOrSeed(S.sys, d, 120, 70, 220); render(); },
+      dia(d) { markManualVitalsStep(); S.dia = stepOrSeed(S.dia, d, 78, 40, 140); render(); },
+      hr(d) { markManualVitalsStep(); S.hr = stepOrSeed(S.hr, d, 72, 40, 180); render(); },
       confirmOk() {
         const a = S.overlayData.action;
         if (a && map[a]) map[a]();
@@ -6099,6 +6127,138 @@
     { k: "watch", title: "手表", name: "哈宝手表", serial: "1172", qrTip: "二维码在表盒背面或包装上。", icon: "watch" },
   ];
   var hwTimer = null;
+  var sheetHwTimer = null;
+  var monitorHwTimer = null;
+  const BP_HW_PRESETS = [
+    { sys: 122, dia: 76, hr: 68 },
+    { sys: 124, dia: 78, hr: 70 },
+    { sys: 120, dia: 74, hr: 66 },
+    { sys: 126, dia: 78, hr: 71 },
+    { sys: 118, dia: 74, hr: 67 },
+  ];
+  function simulatedBPReading(step = 0) {
+    return BP_HW_PRESETS[Math.abs(step) % BP_HW_PRESETS.length];
+  }
+  function hasBoundBPMonitor() {
+    return genIsV01() && S.vip && !!(S.hw && S.hw.bloodPressure);
+  }
+  function demoNowHMText() {
+    const hm = demoNowHM();
+    return `${pad(hm.h)}:${pad(hm.m)}`;
+  }
+  function markManualVitalsStep() {
+    if (sheetHwTimer) { clearTimeout(sheetHwTimer); sheetHwTimer = null; }
+    S.vitalsFromHw = false;
+    if (S.overlay === "vitals" && hasBoundBPMonitor()) {
+      S.vitalsSyncPhase = "manualAdjusted";
+    }
+    if (S.screen === "task-edit" && S.taskId && S.taskVitalsHw) {
+      S.taskVitalsHw[S.taskId] = false;
+    }
+  }
+  function startSheetHwSync() {
+    if (sheetHwTimer) { clearTimeout(sheetHwTimer); sheetHwTimer = null; }
+    S.vitalsSyncPhase = "syncing";
+    S.vitalsFromHw = false;
+    const step = S.vitalsSyncStep || 0;
+    S.vitalsSyncStep = step + 1;
+    render();
+    sheetHwTimer = setTimeout(() => {
+      sheetHwTimer = null;
+      if (S.overlay !== "vitals") return;
+      const r = simulatedBPReading(step);
+      S.sys = r.sys;
+      S.dia = r.dia;
+      S.hr = r.hr;
+      S.vitalsFromHw = true;
+      S.vitalsSyncPhase = "synced";
+      render();
+    }, 1200);
+  }
+  function startMonitorHwSync() {
+    if (monitorHwTimer) { clearTimeout(monitorHwTimer); monitorHwTimer = null; }
+    S.monitorHwPhase = "syncing";
+    const step = S.monitorHwStep || 0;
+    S.monitorHwStep = step + 1;
+    render();
+    monitorHwTimer = setTimeout(() => {
+      monitorHwTimer = null;
+      const r = simulatedBPReading(step);
+      S.sys = r.sys;
+      S.dia = r.dia;
+      S.hr = r.hr;
+      S.vitalsOffset = 0;
+      if (VITALS_WEEK.length) {
+        VITALS_WEEK[VITALS_WEEK.length - 1] = { day: "日", sys: r.sys, dia: r.dia, hr: r.hr };
+      }
+      S.vitalsLog = S.vitalsLog || [];
+      S.vitalsLog.unshift({ time: demoNowHMText(), sys: r.sys, dia: r.dia, hr: r.hr, hw: true });
+      const pendingTask = SEED.find((t) => t.cat === "monitoring" && t.title !== "测心率" && !S.completed[t.id]);
+      if (pendingTask) {
+        S.completed[pendingTask.id] = true;
+        S.taskVitalsHw = S.taskVitalsHw || {};
+        S.taskVitalsHw[pendingTask.id] = true;
+        markProxy(pendingTask.id, null, true);
+        S.monitorHwDetail = `刚刚 · 血压 ${r.sys}/${r.dia} mmHg，心率 ${r.hr} bpm · 已完成「${pendingTask.title}」打卡`;
+        logOp("打卡了", "血压监测", [["计划", pendingTask.title], ["读数", `哈宝血压计，血压 ${r.sys}/${r.dia}，心率 ${r.hr} bpm`]]);
+      } else {
+        S.monitorHwDetail = `刚刚 · 血压 ${r.sys}/${r.dia} mmHg，心率 ${r.hr} bpm · 已更新本周评估与曲线`;
+        logOp("同步了血压", "血压监测", [["读数", `哈宝血压计（血压 ${r.sys}/${r.dia}，心率 ${r.hr} bpm）`]]);
+      }
+      S.monitorHwPhase = "synced";
+      render();
+    }, 1200);
+  }
+  function vitalsHardwareCardHTML() {
+    const dev = hwBound("bloodPressure");
+    if (!dev) {
+      return `<div class="island-card mb12" style="padding:16px">
+        <div class="flex between gap12">
+          <div class="flex gap12" style="min-width:0">
+            <div style="width:44px;height:44px;border-radius:50%;background:rgba(16,84,224,.10);color:#1054E0;display:grid;place-items:center;flex-shrink:0">${I.ecg}</div>
+            <div style="min-width:0">
+              <div class="flex gap6" style="align-items:center">
+                <span class="s16 fb t">哈宝血压计</span>
+                <span style="font-size:11px;font-weight:700;color:#62708A;background:rgba(16,84,224,.08);padding:2px 7px;border-radius:99px">未绑定</span>
+              </div>
+              <div class="s13 t-sec mt4">绑定血压计后，测完自动同步读数并完成今日打卡</div>
+            </div>
+          </div>
+          <button class="cap" data-go="hardware" type="button" style="flex-shrink:0">去绑定 ›</button>
+        </div>
+      </div>`;
+    }
+    const phase = S.monitorHwPhase || "idle";
+    const isSyncing = phase === "syncing";
+    const isSynced = phase === "synced";
+    const tint = isSynced ? "#1AA64A" : "#1054E0";
+    const latestHw = (S.vitalsLog || []).find((x) => x.hw);
+    const subText = isSyncing
+      ? "正在接收哈宝血压计测完上传的血压与心率数据"
+      : isSynced
+        ? S.monitorHwDetail
+        : latestHw
+          ? `最近同步：今天 ${latestHw.time} · 血压 ${latestHw.sys}/${latestHw.dia} mmHg`
+          : "设备已就绪 · 血压计测完后数据自动同步至此";
+    return `<div class="island-card mb12" style="padding:16px;${isSynced ? "border:1.5px solid rgba(26,166,74,.28)" : ""}">
+      <div class="flex between gap10">
+        <div class="flex gap12" style="min-width:0;flex:1">
+          <div style="position:relative;width:44px;height:44px;border-radius:50%;background:${isSynced ? "rgba(26,166,74,.12)" : "rgba(16,84,224,.12)"};color:${tint};display:grid;place-items:center;flex-shrink:0">
+            ${isSyncing ? I.waves : isSynced ? I.check : I.ecg}
+            ${isSyncing ? "" : `<i style="position:absolute;right:0;bottom:0;width:11px;height:11px;border-radius:50%;background:#1AA64A;border:2px solid #fff"></i>`}
+          </div>
+          <div style="min-width:0;flex:1">
+            <div class="flex gap6" style="align-items:center;flex-wrap:wrap">
+              <span class="s16 fb" style="color:${tint}">${isSyncing ? "正在同步血压计数据…" : isSynced ? "已同步最新血压计读数" : `${dev.name} · ${dev.serial}`}</span>
+              ${isSyncing ? "" : `<span style="font-size:11px;font-weight:700;color:#1AA64A;background:rgba(26,166,74,.12);padding:2px 7px;border-radius:99px">${isSynced ? `${dev.name} · ${dev.serial}` : "已连接"}</span>`}
+            </div>
+            <div class="s13 t-sec mt4" style="line-height:1.4">${subText}</div>
+          </div>
+        </div>
+        ${isSyncing ? "" : `<button data-act="monitorHwSync" type="button" style="border:0;cursor:pointer;flex-shrink:0;padding:8px 12px;border-radius:99px;font-size:13px;font-weight:700;background:${isSynced ? "rgba(26,166,74,.14)" : "#1054E0"};color:${isSynced ? "#1AA64A" : "#fff"}">${isSynced ? "再次同步" : "同步数据"}</button>`}
+      </div>
+    </div>`;
+  }
   function hwSpec(k) {
     return HW_KINDS.find((x) => x.k === k) || HW_KINDS[0];
   }
@@ -6691,6 +6851,7 @@
           <button class="cal-nav ${S.vitalsOffset >= 0 ? "off" : ""}" data-act="vitalsNext" type="button">${I.chevR}</button>
         </div>
         <div class="scroll px20">
+          ${genIsV01() && S.vip ? vitalsHardwareCardHTML() : ""}
           <div class="island-card" style="padding:18px">
             <div class="flex between"><div class="s19 fb t">整体AI评估</div><span class="cap">${vitalsSummary().badge}</span></div>
             <p class="s16 t mt12">${vitalsSummary().text}</p>
@@ -6725,16 +6886,29 @@
       </div>`;
     },
 
-    "vitals-detail": () => `
+    "vitals-detail": () => {
+      const rows = S.vitalsLog || [
+        { time: "07:12", sys: 126, dia: 78, hr: 72, hw: true },
+        { time: "19:40", sys: 132, dia: 82, hr: 76, hw: true },
+      ];
+      const showHwTag = genIsV01() && S.vip;
+      return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "指标明细", `<button class="cap" data-act="shareVitals" type="button">分享${I.share}</button>`)}
         <div class="px20 s17 fb t" style="padding:8px 20px">‹　本周　›</div>
         <div class="scroll px20">
           <div class="s15 fb t mb8">今天</div>
-          ${[["07:12", "126/78", "72"], ["19:40", "132/82", "76"]].map((r) => `
-            <div class="plan-row mb8"><div class="grow"><div class="s15 fb t">${r[0]}</div><div class="s13 t-sec">血压 ${r[1]} mmHg　心率 ${r[2]} bpm</div></div></div>`).join("")}
+          ${rows.map((r) => `
+            <div class="plan-row mb8 flex between" style="align-items:center">
+              <div class="grow">
+                <div class="s15 fb t mono">${r.time}</div>
+                <div class="s13 t-sec">血压 ${r.sys}/${r.dia} mmHg　心率 ${r.hr} bpm</div>
+              </div>
+              ${showHwTag && r.hw ? `<span style="font-size:12px;font-weight:700;color:#1054E0;background:rgba(16,84,224,.10);padding:4px 9px;border-radius:99px;flex-shrink:0">📡 哈宝血压计</span>` : ""}
+            </div>`).join("")}
         </div>
-      </div>`,
+      </div>`;
+    },
 
     report: () => `
       <div class="page">
@@ -7207,7 +7381,7 @@
       const isVip = genIsV01() && !!S.vip;
       return `<div class="page">
         ${navBar(cap(I.chevL, "返回"), "个人中心",
-          genHasFamily() ? `<button class="cap" data-act="roleSwitch" type="button">${I.two}${S.role === "patient" ? "本人" : (((S.family || [])[0] && (S.family || [])[0].name) || "家属")}</button>` : "")}
+          genHasFamily() ? `<button class="cap" data-act="roleSwitch" type="button">${I.two}${S.role === "patient" ? "本人" : "家属"}</button>` : "")}
         <div class="scroll px20" style="padding-top:8px">
           <div class="hero">
             <div class="pointer" data-go="health-record" role="button" style="cursor:pointer">
@@ -7277,7 +7451,7 @@
             </div>
           </div>
           <button class="cta-ghost mt16" data-act="logout" type="button">退出登录</button>
-          <button class="w100" style="border:0;background:none;color:#828EA5;padding:12px;font-size:16px;cursor:pointer" data-act="unregister" type="button">注销账号</button>
+          ${shownRole() === "patient" ? `<button class="w100" style="border:0;background:none;color:#828EA5;padding:12px;font-size:16px;cursor:pointer" data-act="unregister" type="button">注销账号</button>` : ""}
         </div>
       </div>`;
     },
@@ -10331,8 +10505,13 @@
     const sys = done ? S.sys : null;
     const dia = done ? S.dia : null;
     const hr = done ? S.hr : null;
-    return `<div class="sec-label">今日血压</div>
-      <div class="vitals-island flex" style="background:${accent.muted}">
+    const isHw = !!(done && genIsV01() && S.vip && S.taskVitalsHw && S.taskVitalsHw[S.taskId]);
+    const hwBadgeColor = done ? "#1AA64A" : "#1054E0";
+    return `<div class="flex between" style="align-items:center">
+        <div class="sec-label" style="margin-bottom:0">今日血压</div>
+        ${isHw ? `<span style="font-size:12px;font-weight:700;color:${hwBadgeColor};background:${done ? "rgba(26,166,74,.12)" : "rgba(16,84,224,.12)"};padding:3px 8px;border-radius:99px">📡 哈宝血压计同步</span>` : ""}
+      </div>
+      <div class="vitals-island flex mt8" style="background:${accent.muted}">
         ${editorVitCol("收缩压", "mmHg", sys, "sys", done ? "#1AA64A" : "#1054E0", canStep)}
         <div class="vitals-div"></div>
         ${editorVitCol("舒张压", "mmHg", dia, "dia", done ? "#1AA64A" : "#1EBED6", canStep)}
@@ -11022,15 +11201,54 @@
     vitals: () => {
       // 有上次读数就预填、没有就空态（真机 VitalsInputSheet 预填最近读数）
       const vSys = S.sys; const vDia = S.dia; const vHr = S.hr;
+      const tTitle = (SEED.find((t) => t.id === S.overlayData.id) || {}).title || "起床测血压";
+      const bpDev = hasBoundBPMonitor() ? hwBound("bloodPressure") : null;
+      const syncPhase = S.vitalsSyncPhase || "idle";
+      const isSyncing = bpDev && syncPhase === "syncing";
+      const isSynced = bpDev && syncPhase === "synced" && S.vitalsFromHw;
+      const bannerTint = isSynced ? "#1AA64A" : "#1054E0";
+      const bannerBg = isSynced ? "rgba(26,166,74,.08)" : "rgba(16,84,224,.08)";
+      const bannerBorder = isSynced ? "rgba(26,166,74,.20)" : "rgba(16,84,224,.18)";
+      const bannerTitle = isSyncing
+        ? "正在同步血压计数据…"
+        : isSynced
+          ? "已同步血压计读数"
+          : "已手动微调读数";
+      const bannerSub = isSyncing
+        ? "正在接收哈宝血压计最新测量结果，请稍候"
+        : isSynced
+          ? `刚刚测量 · 血压 ${vSys}/${vDia} mmHg，心率 ${vHr} bpm`
+          : "当前为手动修改值，点右侧可重新恢复血压计读数";
+      const hwSyncBadge = isSynced
+        ? `<span style="font-size:12px;font-weight:700;color:#1AA64A;background:rgba(26,166,74,.12);padding:3px 8px;border-radius:99px">📡 硬件已同步</span>`
+        : `<div class="s12 t-sec">康复目标 ${VITAL.bpTargetText(VIT_AGE)}</div>`;
+      const hrSyncBadge = isSynced
+        ? `<span style="font-size:12px;font-weight:700;color:#1AA64A;background:rgba(26,166,74,.12);padding:3px 8px;border-radius:99px">📡 硬件已同步</span>`
+        : `<div class="s12 t-sec">目标 55–60</div>`;
       return `
       <div class="scrim bottom" data-act="close">
         <div class="sheet" style="max-height:90%" onclick="event.stopPropagation()">
           <div class="grab"></div>
-          <div class="flex between"><button class="nav-text" data-act="close" type="button">取消</button><h3 class="s17">起床测血压</h3><span style="width:48px"></span></div>
+          <div class="flex between"><button class="nav-text" data-act="close" type="button">取消</button><h3 class="s17">${tTitle}</h3><span style="width:48px"></span></div>
+          ${bpDev ? `<div class="mt12 flex between gap10" style="padding:12px 14px;border-radius:18px;background:${bannerBg};border:1px solid ${bannerBorder}">
+            <div class="flex gap10" style="min-width:0;flex:1">
+              <div style="width:38px;height:38px;border-radius:50%;background:${isSynced ? "rgba(26,166,74,.14)" : "rgba(16,84,224,.14)"};color:${bannerTint};display:grid;place-items:center;flex-shrink:0">
+                ${isSyncing ? I.waves : isSynced ? I.check : I.ecg}
+              </div>
+              <div style="min-width:0;flex:1">
+                <div class="flex gap6" style="align-items:center;flex-wrap:wrap">
+                  <span class="s15 fb" style="color:${bannerTint}">${bannerTitle}</span>
+                  <span style="font-size:11px;font-weight:700;color:${bannerTint};background:${isSynced ? "rgba(26,166,74,.12)" : "rgba(16,84,224,.12)"};padding:2px 7px;border-radius:99px">${bpDev.name} · ${bpDev.serial}</span>
+                </div>
+                <div class="s12 t-sec mt4" style="line-height:1.35">${bannerSub}</div>
+              </div>
+            </div>
+            ${isSyncing ? "" : `<button data-act="sheetHwResync" type="button" style="border:0;cursor:pointer;flex-shrink:0;padding:6px 10px;border-radius:99px;font-size:12px;font-weight:700;background:#fff;color:#1054E0;box-shadow:0 2px 4px rgba(16,84,224,.10)">重新同步</button>`}
+          </div>` : ""}
           <div class="island-card" style="padding:18px;margin-top:12px">
             <div class="flex between">
               <div class="s15 fb t sheet-sec">${I.heartSq}血压</div>
-              <div class="s12 t-sec">康复目标 ${VITAL.bpTargetText(VIT_AGE)}</div>
+              ${hwSyncBadge}
             </div>
             <div class="flex gap16 mt12">
               ${vitCol("收缩压", vSys, "sys", "#1054E0", "mmHg", [VITAL.systolicLower, VITAL.bpTarget(VIT_AGE).sys - 1], [70, 220], VITAL.bpStatus(vSys, vDia, VIT_AGE))}
@@ -11040,7 +11258,7 @@
           <div class="island-card" style="padding:16px;margin-top:12px">
             <div class="flex between">
               <div class="s15 fb t-heart sheet-sec">${I.ecg}心率</div>
-              <div class="s12 t-sec">目标 55–60</div>
+              ${hrSyncBadge}
             </div>
             <div class="ecg-strip"><svg viewBox="0 0 300 40" preserveAspectRatio="none" height="30"><path class="line-path" d="M0 24h34l6-14 6 26 6-12h40l6-14 6 26 6-12h40l6-14 6 26 6-12h40l6-14 6 26 6-12h40"/></svg></div>
             <div class="flex gap16 mt12">
@@ -11052,7 +11270,7 @@
             if (s.level === "none") return "color:var(--secondary)";
             return VITAL_RANK[s.level] === 0 ? "" : `background:${VITAL_COLOR[s.level]}1a;color:${VITAL_COLOR[s.level]}`;
           })()}">${vitalsStatus().level === "none" ? I.scope : I.check}${vitalsStatus().text}</div>
-          <button class="cta mt16" data-act="vitalsSave" type="button">保存并打卡</button>
+          <button class="cta mt16 ${isSyncing ? "off" : ""}" data-act="vitalsSave" type="button">${isSyncing ? "正在同步血压计…" : "保存并打卡"}</button>
         </div>
       </div>`;
     },
