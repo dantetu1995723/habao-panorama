@@ -2159,7 +2159,7 @@
             receiverLabel: "通知守护人：王芳",
             recipientPerson: "王芳",
             title: "李建国已完成「起床」打卡",
-            detail: "被守护人李建国已在首页完成今日计划「06:00 起床」打卡，同步通知守护人王芳。",
+            detail: "今日计划「06:00 起床」已完成打卡。",
             target: "schedule",
             time: "06:05",
           },
@@ -2172,7 +2172,7 @@
             receiverLabel: "通知被守护人：李建国",
             recipientPerson: "李建国",
             title: "王芳（配偶）提醒你按时完成「阿司匹林肠溶片」",
-            detail: "守护人王芳（配偶）通过哈宝医生提醒李建国：今日计划「08:00 阿司匹林肠溶片」待完成，服药后记得打卡，让家人放心。",
+            detail: "今日计划「08:00 阿司匹林肠溶片」待完成，服药后记得打卡。",
             target: "schedule",
             time: "08:15",
           },
@@ -2209,7 +2209,6 @@
         <div class="sys-push-body">
           <div class="sys-push-head">
             <b>哈宝 · ${esc(n.badgeText || "康复通知")}</b>
-            <span class="sys-push-tag">手机系统通知</span>
             <small>现在</small>
           </div>
           <div class="sys-push-title">${esc(n.title || "")}</div>
@@ -2220,18 +2219,18 @@
   function careNoticeStyleMeta(n) {
     const k = n ? n.kind : "";
     if (k === "familyRemindPlan" || k === "familyRemindExercise") {
-      return { accent: "#D97706", softBg: "rgba(245,158,11,.13)", ico: "🔔", ruleHint: "被守护人在哈宝医生接收提醒通知" };
+      return { accent: "#D97706", softBg: "rgba(245,158,11,.13)", ico: "🔔" };
     }
     if (k === "patientActionDone" || k === "bindConfirmed") {
-      return { accent: "#1AA64A", softBg: "rgba(26,166,74,.12)", ico: "✅", ruleHint: k === "bindConfirmed" ? "双向守护关系已确认生效" : "守护人在哈宝医生接收完成通知" };
+      return { accent: "#1AA64A", softBg: "rgba(26,166,74,.12)", ico: "✅" };
     }
     if (k === "bindRejected" || k === "bindRemoved") {
-      return { accent: "#DC4848", softBg: "rgba(220,72,72,.12)", ico: "⚠️", ruleHint: "双向守护关系变动实时通知" };
+      return { accent: "#DC4848", softBg: "rgba(220,72,72,.12)", ico: "⚠️" };
     }
     if (k === "bindRequest") {
-      return { accent: "#1054E0", softBg: "rgba(16,84,224,.10)", ico: "🤝", ruleHint: "守护绑定申请实时通知" };
+      return { accent: "#1054E0", softBg: "rgba(16,84,224,.10)", ico: "🤝" };
     }
-    return { accent: "#1054E0", softBg: "rgba(16,84,224,.10)", ico: "👥", ruleHint: "医患家协同通知" };
+    return { accent: "#1054E0", softBg: "rgba(16,84,224,.10)", ico: "👥" };
   }
   function careNoticeModalHTML() {
     const n = S.careNoticePopup;
@@ -2240,19 +2239,12 @@
     return `
       <div class="care-notice-modal" data-act="closeCareNotice">
         <div class="care-notice-dialog" onclick="event.stopPropagation()">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+          <div style="display:flex;align-items:center;gap:6px">
             <span style="display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:700;color:${meta.accent};background:${meta.softBg};padding:4px 10px;border-radius:999px">${meta.ico} ${esc(n.badgeText || "康复通知")}</span>
-            <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--blue);background:rgba(16,84,224,.08);padding:3.5px 8px;border-radius:999px">📱 已同步手机系统通知</span>
           </div>
           <div class="s19 fb t" style="margin-top:12px;line-height:1.35">${esc(n.title || "")}</div>
-          <div style="margin-top:10px;padding:12px 13px;border-radius:14px;background:rgba(16,84,224,.05)">
-            <div style="display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:6px">
-              <b style="color:${meta.accent}">${esc(n.receiverLabel || "")}</b>
-              <span style="color:var(--sec)">· ${meta.ruleHint}</span>
-            </div>
-            <div class="s14 fm" style="color:rgba(16,84,224,.86);line-height:1.45">${esc(n.detail || "")}</div>
-          </div>
-          <div class="duo" style="margin-top:15px;gap:10px">
+          <div class="s15 fm" style="margin-top:8px;color:var(--sec);line-height:1.45">${esc(n.detail || "")}</div>
+          <div class="duo" style="margin-top:16px;gap:10px">
             <button type="button" data-act="closeCareNotice" style="border:0;height:46px;border-radius:14px;background:rgba(16,84,224,.09);color:var(--blue);font-size:15.5px;font-weight:700;cursor:pointer;font-family:inherit">知道了</button>
             <button type="button" data-act="openCareNoticeConsult" style="border:0;height:46px;border-radius:14px;background:var(--blue);color:#fff;font-size:15.5px;font-weight:700;cursor:pointer;font-family:inherit">去哈宝医生查看 ›</button>
           </div>
@@ -5416,7 +5408,7 @@
           receiverLabel: `通知守护人：${name}`,
           recipientPerson: name,
           title: `${me.name}邀请你成为康复守护人`,
-          detail: `${me.name}在个人中心将你（${rel} · ${masked}）添加为守护人。请在个人中心或弹窗中点击「同意绑定」开启守护，可切换到「${name}」演示查看。`,
+          detail: `${me.name}（${rel}）邀请你成为TA的守护人，同意后可互相查看康复进展。`,
           target: null,
         });
         toast(`已向${name}发送守护邀请通知（可右上角切换「${name}」体验确认）`);
@@ -5460,7 +5452,7 @@
           receiverLabel: `通知被守护人：${name}`,
           recipientPerson: name,
           title: `${me.name}申请成为你的康复守护人`,
-          detail: `${me.name}（${rel} · ${me.phone}）申请守护你的康复档案。请在个人中心或弹窗中点击「同意绑定」后生效，可切换到「${name}」演示查看。`,
+          detail: `${me.name}（${rel}）申请守护你的康复档案，同意后对方可查看康复进展并提醒打卡。`,
           target: null,
         });
         toast(`已向${name}发送守护申请通知（可右上角切换「${name}」体验确认）`);
@@ -5482,7 +5474,7 @@
           receiverLabel: `通知：${initiator}`,
           recipientPerson: initiator,
           title: `${confirmer}已同意与你建立康复守护关系`,
-          detail: `守护人「${bond.guardianName}」与被守护人「${bond.wardName}」（${bond.relation}）的双向守护已正式生效，现可同步查看康复计划、接收提醒与完成通知。`,
+          detail: `${confirmer}已同意守护绑定，双方可互相查看康复进展。`,
           target: "schedule",
         });
         toast(`已同意绑定，与${initiator}的守护关系已生效`);
@@ -5509,7 +5501,7 @@
           receiverLabel: `通知：${initiator}`,
           recipientPerson: initiator,
           title: `${rejecter}拒绝了本次康复守护绑定`,
-          detail: `${rejecter}未同意本次守护绑定申请，该待确认记录已自动移除。`,
+          detail: `${rejecter}未同意本次守护绑定申请。`,
           target: null,
         });
         toast("已拒绝并移除该守护绑定申请");
@@ -5523,7 +5515,7 @@
         const other = bond.guardianName === S.currentPersonName ? bond.wardName : bond.guardianName;
         openOverlay("confirm", {
           title: "解除守护关系",
-          body: `确定解除与「${other}」的守护关系吗？解除后双方名单将同步移除，并向${other}发送解绑通知。`,
+          body: `确定解除与「${other}」的守护关系吗？解除后双方不再互相查看康复进展。`,
           ok: "确认解除",
           danger: true,
           action: "doRemoveCareBond",
@@ -5557,10 +5549,10 @@
           receiverLabel: `通知：${other}`,
           recipientPerson: other,
           title: `${actor}已解除与你的康复守护关系`,
-          detail: `${actor}在个人中心解除了「${bond.guardianName} 守护 ${bond.wardName}」的绑定关系，后续将不再互发打卡提醒与完成动态通知。`,
+          detail: `${actor}已解除守护关系，双方不再互相查看进展。`,
           target: null,
         });
-        toast(`已解除与${other}的守护关系，已向对方发送解绑通知`);
+        toast(`已解除与${other}的守护关系`);
         render();
       },
       toggleWatchWard() {
@@ -11037,8 +11029,8 @@
         recipientPerson: pName,
         title: isEx ? `${guardianSender}提醒你今天出门散步运动` : `${guardianSender}提醒你按时完成「${subject}」`,
         detail: isEx
-          ? `守护人${guardianSender}在${place}发起提醒：今日运动计划（${subject}）尚未完成，提醒你循序渐进出门散散步，完成后记得打卡。`
-          : `守护人${guardianSender}在${place}发起提醒：今日计划「${subject}」尚未打卡，请按时完成后打卡，让家人放心。`,
+          ? `今日运动计划（${subject}）尚未完成，记得去散步并打卡。`
+          : `今日计划「${subject}」尚未打卡，请记得完成。`,
         target: "schedule",
         time: timeStr,
       });
@@ -11055,7 +11047,7 @@
           kind: "patientActionDone",
           badgeText: "患者康复动态",
           title: `${wardSender}已完成「${subject}」打卡`,
-          detail: `被守护人${wardSender}刚在${place}完成了今日计划「${subject}」打卡，同步通知守护人，请放心。`,
+          detail: `今日计划「${subject}」已完成打卡。`,
           target: isBP ? "vitals" : "schedule",
           time: timeStr,
         };
@@ -11064,7 +11056,7 @@
           kind: "patientActionDone",
           badgeText: "患者康复动态",
           title: `${wardSender}已同步最新血压读数`,
-          detail: `被守护人${wardSender}刚在${place}更新了血压读数：${subject}，守护人可随时查看最新血压趋势。`,
+          detail: `最新血压读数：${subject}。`,
           target: "vitals",
           time: timeStr,
         };
@@ -11073,7 +11065,7 @@
           kind: "patientActionDone",
           badgeText: "患者康复动态",
           title: `${wardSender}已完成户外散步运动`,
-          detail: `被守护人${wardSender}刚完成户外散步并打卡：${subject}，运动轨迹已同步更新。`,
+          detail: `户外散步已完成：${subject}。`,
           target: "schedule",
           time: timeStr,
         };
@@ -11082,7 +11074,7 @@
           kind: "patientActionDone",
           badgeText: "患者康复动态",
           title: `${wardSender}${action}（${subject}）`,
-          detail: `被守护人${wardSender}刚在${place}${action}：${subject}，守护人可前往身体报告查看详情。`,
+          detail: `已更新身体报告（${subject}）。`,
           target: "report",
           time: timeStr,
         };
@@ -11105,7 +11097,7 @@
         receiverLabel: `通知被守护人：${pName}`,
         recipientPerson: pName,
         title: `${guardianSender}已代为完成「${subject}」打卡`,
-        detail: `守护人${guardianSender}在${place}确认${pName}已完成「${subject}」并代为打卡，全端进度已实时同步。`,
+        detail: `${guardianSender}已代为完成「${subject}」打卡。`,
         target: "schedule",
         time: timeStr,
       });
@@ -12658,35 +12650,14 @@
       const initiator = bond ? (invitedAsGuardian ? bond.wardName : bond.guardianName) : "李建国";
       const receiver = bond ? (invitedAsGuardian ? bond.guardianName : bond.wardName) : S.currentPersonName;
       const rel = bond ? bond.relation : "配偶";
-      const gName = bond ? bond.guardianName : receiver;
-      const wName = bond ? bond.wardName : initiator;
       return `
       <div class="scrim center" style="background:rgba(0,0,0,.45)">
-        <div class="popup" style="max-width:342px;border-radius:26px;padding:22px;text-align:left" onclick="event.stopPropagation()">
-          <div style="display:flex;justify-content:center;margin-bottom:12px">
-            <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:rgba(16,84,224,.10);color:var(--blue);font-size:12px;font-weight:700">
-              ${I.two}<span>双向守护绑定确认</span>
-            </span>
-          </div>
-          <h3 style="text-align:center;font-size:21px;margin:0 0 6px;color:var(--blue)">${invitedAsGuardian ? "收到康复守护邀请" : "收到康复守护申请"}</h3>
-          <div style="text-align:center;font-size:13.5px;color:var(--sec);margin-bottom:14px">${invitedAsGuardian ? `${esc(initiator)}邀请你成为其康复守护人` : `${esc(initiator)}申请成为你的康复守护人`}</div>
-          <div style="background:rgba(16,84,224,.05);border-radius:16px;padding:13px 14px;display:flex;flex-direction:column;gap:9px">
-            <div style="display:flex;align-items:flex-start;gap:10px">
-              <span style="width:56px;flex-shrink:0;font-size:12.5px;font-weight:600;color:var(--sec)">守护人</span>
-              <span style="font-size:13.5px;font-weight:700;color:var(--blue)">${esc(gName)}（守护方）</span>
-            </div>
-            <div style="height:1px;background:rgba(16,84,224,.08)"></div>
-            <div style="display:flex;align-items:flex-start;gap:10px">
-              <span style="width:56px;flex-shrink:0;font-size:12.5px;font-weight:600;color:var(--sec)">被守护人</span>
-              <span style="font-size:13.5px;font-weight:700;color:var(--blue)">${esc(wName)}（被守护方 · ${esc(rel)}）</span>
-            </div>
-            <div style="height:1px;background:rgba(16,84,224,.08)"></div>
-            <div style="display:flex;align-items:flex-start;gap:10px">
-              <span style="width:56px;flex-shrink:0;font-size:12.5px;font-weight:600;color:var(--sec)">通知规则</span>
-              <span style="font-size:13px;font-weight:700;color:var(--blue);line-height:1.4">被守护人接收守护人的提醒通知，守护人接收被守护人的完成动态通知，均通过弹窗 + 手机系统通知触达</span>
-            </div>
-          </div>
-          <div class="duo" style="margin-top:16px;gap:10px">
+        <div class="popup" style="max-width:336px;border-radius:26px;padding:24px 22px;text-align:center" onclick="event.stopPropagation()">
+          <div style="font-size:34px;line-height:1;margin-bottom:12px">🤝</div>
+          <h3 style="font-size:20px;margin:0 0 8px;color:var(--blue)">${invitedAsGuardian ? "收到康复守护邀请" : "收到康复守护申请"}</h3>
+          <div style="font-size:15px;color:var(--blue);font-weight:600;margin-bottom:6px">${invitedAsGuardian ? `${esc(initiator)}（${esc(rel)}）邀请你成为TA的守护人` : `${esc(initiator)}（${esc(rel)}）申请成为你的守护人`}</div>
+          <div style="font-size:13.5px;color:var(--sec);line-height:1.45;margin-bottom:18px">绑定后双方可互相查看康复进展并提醒打卡。</div>
+          <div class="duo" style="gap:10px">
             <button type="button" data-act="rejectCareBond" data-id="${bond ? bond.id : ""}" style="border:0;height:46px;border-radius:14px;background:rgba(220,72,72,.10);color:#DC4848;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">拒绝</button>
             <button type="button" data-act="acceptCareBond" data-id="${bond ? bond.id : ""}" style="border:0;height:46px;border-radius:14px;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">同意绑定</button>
           </div>
