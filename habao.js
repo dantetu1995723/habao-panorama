@@ -1303,7 +1303,7 @@
       { id: "p2", name: "张桂兰", gender: "女", age: 56, height: 160, weight: 61 },
     ],
     activePatientId: "p1",
-    consultUnread: 0,
+    consultUnread: 2,
     seededCareNotices: false,
     famRel: "配偶",
     notifySelf: true,
@@ -7257,11 +7257,9 @@
         const doneTask = exTasks[0];
         const statusBadge = allExDone
           ? `<span style="font-size:12px;font-weight:700;color:#1AA64A;background:rgba(26,166,74,.12);padding:4px 9px;border-radius:999px;white-space:nowrap">✓ 今日已完成</span>`
-          : isReminded
-            ? `<span style="font-size:12px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:4px 9px;border-radius:999px;white-space:nowrap">🔔 已提醒患者</span>`
-            : pendingEx.length
-              ? `<span style="font-size:12px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:4px 9px;border-radius:999px;white-space:nowrap">待运动 ${pendingEx.length} 项</span>`
-              : "";
+          : pendingEx.length
+            ? `<span style="font-size:12px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:4px 9px;border-radius:999px;white-space:nowrap">待运动 ${pendingEx.length} 项</span>`
+            : "";
         const taskRowHTML = nextTask
           ? `<div style="display:flex;align-items:center;gap:8px;padding:10px;border-radius:12px;background:rgba(16,84,224,.06);margin-top:10px">
                <div style="min-width:0;flex:1">
@@ -10277,10 +10275,10 @@
   }
   function consultOrbHTML() {
     const hasUnread = genIsV01() && (S.consultUnread || 0) > 0;
-    const dotHTML = hasUnread
-      ? `<span style="position:absolute;top:6px;right:6px;width:11px;height:11px;border-radius:999px;background:#EF4444;border:2px solid #fff;box-shadow:0 2px 6px rgba(239,68,68,.35)"></span>`
+    const notifyHTML = hasUnread
+      ? `<span class="orb-notify-bell">${I.bell}</span><span class="orb-notify-pill">${I.bell}新提醒</span>`
       : "";
-    return `<div class="orb ai" data-go="consult" style="position:relative"><img src="${A.logo}" alt="哈宝医生" />${dotHTML}</div>`;
+    return `<div class="orb ai${hasUnread ? " notify" : ""}" data-go="consult" style="position:relative"><img src="${A.logo}" alt="哈宝医生" />${notifyHTML}</div>`;
   }
   function consultCareNoticeHTML(n) {
     if (!n) return "";
@@ -10682,7 +10680,6 @@
 
   function taskCard(t, focus) {
     const done = !!S.completed[t.id];
-    const reminded = !done && !!(S.remindedTasks && S.remindedTasks[t.id]);
     const appt = t.cat === "appointment" && !done;
     const stroke = done ? "#1AA64A" : "rgba(16,84,224,.10)";
     const sw = done ? 1.2 : 0.8;
@@ -10696,7 +10693,6 @@
           ${badge(t.cat, done)}
           ${rxOn() && S.rx && S.rx[t.id] ? `<span class="rx-chip">医嘱</span>` : ""}
           <div class="task-status">${done ? `${I.check}<span>已完成</span>` : `${I.clock}<span>${spoken(t.h, t.m)}</span>`}</div>
-          ${reminded ? `<span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:3px 7px;border-radius:999px;white-space:nowrap">🔔 已提醒</span>` : ""}
         </div>
         <div class="task-body">
           <h3 class="task-title">${t.title}</h3>
@@ -10980,16 +10976,12 @@
       : "";
     const seedTask = id ? SEED.find((x) => x.id === id) : null;
     const rangeText = seedTask ? taskDateRangeLabel(seedTask) : taskDateRangeLabel({ cycle: isCycle });
-    const reminded = !done && id && S.remindedTasks && S.remindedTasks[id];
-    const remindedChip = reminded
-      ? `<span class="act-chip" style="color:#D97706;background:rgba(245,158,11,.14);font-weight:700">🔔 已提醒患者</span>`
-      : "";
     return `<div class="act-card ${cls}">
       <div class="act-card-main">
         <div class="badge b40 ${cls}"><img src="${A.task[kind]}" alt="" /></div>
         <div class="grow">
           <div class="s15 fb ${done ? "t-green" : kind === "appointment" ? "t-appt" : "t"}">${title}</div>
-          <div class="act-info"><span class="tm">${time}</span>${dose ? `<span class="act-chip">${dose}</span>` : ""}<span class="act-chip">${isCycle ? "循环" : "单日"}</span><span class="act-chip">${chip}</span>${remindedChip}</div>
+          <div class="act-info"><span class="tm">${time}</span>${dose ? `<span class="act-chip">${dose}</span>` : ""}<span class="act-chip">${isCycle ? "循环" : "单日"}</span><span class="act-chip">${chip}</span></div>
           <div class="act-dates">${rangeText}</div>
         </div>
         ${check}

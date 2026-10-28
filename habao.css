@@ -694,9 +694,42 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
     radial-gradient(circle at 32% 26%, rgba(30,190,214,.22), transparent 52%),
     radial-gradient(circle at 50% 42%, #fff 8%, #F8FBFF 40%, rgba(16,84,224,.16) 100%);
   box-shadow: 0 4px 14px rgba(16,84,224,.18);
+  transition: background .28s ease, box-shadow .28s ease, transform .28s ease;
 }
 .orb.ai::after { border-width: 1.2px; }
-.orb.ai img { width: 68px; height: 68px; object-fit: contain; position: relative; z-index: 1; }
+.orb.ai img { width: 68px; height: 68px; object-fit: contain; position: relative; z-index: 1; transition: transform .25s ease; }
+.orb.ai.notify {
+  background:
+    radial-gradient(circle at 50% 46%, rgba(255,255,255,.94), transparent 38%),
+    radial-gradient(circle at 32% 26%, rgba(245,158,11,.36), transparent 54%),
+    radial-gradient(circle at 50% 42%, #fff 8%, #FFFBEB 42%, rgba(245,158,11,.30) 100%);
+  box-shadow: 0 6px 18px rgba(217,119,6,.32);
+}
+.orb.ai.notify::after {
+  border-width: 2.2px;
+  background: linear-gradient(135deg, rgba(245,158,11,.88), rgba(217,119,6,.68), rgba(245,158,11,.38)) border-box;
+}
+.orb.ai.notify img { transform: translateY(-3px); }
+.orb-notify-bell {
+  position: absolute; top: -2px; right: -2px; z-index: 3;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(217,119,6,.36);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+}
+.orb-notify-bell svg { width: 12px; height: 12px; }
+.orb-notify-pill {
+  position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); z-index: 3;
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2.5px 9px; border-radius: 999px;
+  background: linear-gradient(90deg, #F59E0B, #D97706);
+  border: 1.5px solid #fff;
+  box-shadow: 0 2px 6px rgba(217,119,6,.32);
+  color: #fff; font-size: 11px; font-weight: 700; line-height: 1.1; white-space: nowrap;
+}
+.orb-notify-pill svg { width: 10px; height: 10px; }
 
 /* 设计版本 V0.0：底坞中圆「哈宝医生」未开放（真机 UnifiedNavOrbs：0.4 压暗 + 不响应点按） */
 .orb.ai.off { opacity: .4; cursor: default; pointer-events: none; }
