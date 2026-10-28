@@ -1204,8 +1204,10 @@
     role: "patient",
     name: "李建国",
     gender: "男",
+    age: 58,
     height: 170,
     weight: 75,
+    selfProfile: { name: "李建国", gender: "男", age: 58, height: 170, weight: 75 },
     phone: "13800138013",
     birthday: "1968年3月12日",
     hw: {},
@@ -1299,10 +1301,10 @@
     restRows: REST_PRESET.map((x) => ({ ...x })),
     family: [{ id: "f1", name: "王芳", rel: "配偶", phone: "139****2210", phoneRaw: "13900132210" }],
     guardedPatients: [
-      { id: "p1", name: "李建国", gender: "男", age: 58, height: 170, weight: 75 },
-      { id: "p2", name: "张桂兰", gender: "女", age: 56, height: 160, weight: 61 },
+      { id: "p1", name: "李建国", gender: "男", age: 58, height: 170, weight: 75, rel: "配偶", phone: "138****5678", phoneRaw: "13800135678" },
+      { id: "p2", name: "张桂兰", gender: "女", age: 56, height: 160, weight: 61, rel: "配偶", phone: "137****9021", phoneRaw: "13700139021" },
     ],
-    activePatientId: "p1",
+    activePatientId: "p2",
     consultUnread: 2,
     consultUnreadByRole: { patient: 1, family: 1 },
     careNoticePopup: null,
@@ -3972,9 +3974,10 @@
         S.activePatientId = p.id;
         S.name = p.name;
         S.gender = p.gender;
+        S.age = p.age || 58;
         S.height = p.height;
         S.weight = p.weight;
-        toast(`已切换为守护患者「${p.name}」`);
+        toast(`已切换守护患者「${p.name}」`);
         render();
       },
       familyWalkProxyDone() {
@@ -5152,16 +5155,23 @@
       },
       roleSwitch() {
         if (S.role === "patient") {
+          S.selfProfile = {
+            name: S.name || "李建国",
+            gender: S.gender || "男",
+            age: S.age || 58,
+            height: S.height || 170,
+            weight: S.weight || 75,
+          };
           S.role = "family";
           S.pureFamilyLogin = false;
+          syncProfileForRole("family");
+          const myNm = mySelfName();
           if (!S.family || !S.family.length) {
-            S.family = [{ id: "f1", name: "王芳", rel: "配偶", phone: "139****2210", phoneRaw: "13900132210", confirmed: true }];
+            S.family = [{ id: "f1", name: myNm, rel: "配偶", phone: "139****2210", phoneRaw: "13900132210", confirmed: true }];
           }
           const unconfirmed = (S.family || []).find((f) => f.confirmed === false);
           const cur = unconfirmed || activeFamMember();
           S.actorId = cur.id;
-          S.myFamNameDraft = undefined;
-          S.myFamRelDraft = undefined;
           if (unconfirmed || !S.demoInviteShown) {
             S.demoInviteShown = true;
             openOverlay("familyInvite", { memberId: cur.id });
@@ -5171,8 +5181,7 @@
         } else {
           S.role = "patient";
           S.actorId = null;
-          S.myFamNameDraft = undefined;
-          S.myFamRelDraft = undefined;
+          syncProfileForRole("patient");
           presentUnreadCareNoticeForRole("patient");
         }
         render();
@@ -5189,10 +5198,20 @@
         if (n) {
           const targetRole = noticeRecipientRole(n);
           if (S.role !== targetRole) {
+            if (S.role === "patient") {
+              S.selfProfile = {
+                name: S.name || "李建国",
+                gender: S.gender || "男",
+                age: S.age || 58,
+                height: S.height || 170,
+                weight: S.weight || 75,
+              };
+            }
             S.role = targetRole;
+            syncProfileForRole(targetRole);
             if (targetRole === "family") {
               if (!S.family || !S.family.length) {
-                S.family = [{ id: "f1", name: "王芳", rel: "配偶", phone: "139****2210", phoneRaw: "13900132210", confirmed: true }];
+                S.family = [{ id: "f1", name: mySelfName(), rel: "配偶", phone: "139****2210", phoneRaw: "13900132210", confirmed: true }];
               }
               S.actorId = activeFamMember().id;
             } else {
@@ -5336,6 +5355,21 @@
         if (prev.name !== name) changed.push(`姓名 ${prev.name}→${name}`);
         if (prev.gender !== S.gender) changed.push(`性别 ${prev.gender}→${S.gender}`);
         S.name = name;
+        if (shownRole() === "patient") {
+          S.selfProfile = {
+            name: S.name,
+            gender: S.gender,
+            age: S.age || 58,
+            height: S.height,
+            weight: S.weight,
+          };
+        } else {
+          const gp = (S.guardedPatients || []).find((p) => String(p.id) === String(S.activePatientId));
+          if (gp) {
+            gp.name = S.name;
+            gp.gender = S.gender;
+          }
+        }
         S.origPatient = null;
         logOp("修改了患者信息", "健康档案", [["改动", changed.length ? changed.join("、") : "本次未动"]]);
         back();
@@ -5433,6 +5467,67 @@
         }
         toast("已退出守护");
       },
+      unbindPatient() {
+        const id = el.dataset.id;
+        const p = (S.guardedPatients || []).find((x) => String(x.id) === String(id));
+        openOverlay("confirm", {
+          title: "取消绑定",
+          body: `取消后将不再守护${p ? p.name : "该患者"}的康复档案。`,
+          ok: "取消绑定",
+          danger: true,
+          action: "doUnbindPatient",
+          patientId: id,
+        });
+      },
+      doUnbindPatient() {
+        const id = S.overlayData.patientId;
+        S.guardedPatients = (S.guardedPatients || []).filter((x) => String(x.id) !== String(id));
+        closeOverlay();
+        if (S.guardedPatients.length) {
+          syncProfileForRole("family");
+          render();
+        } else {
+          S.role = "patient";
+          S.actorId = null;
+          syncProfileForRole("patient");
+          if (S.screen === "family") dismissCover();
+          else render();
+        }
+        toast("已取消绑定");
+      },
+      bindPatient() {
+        const name = $("input[name=fname]")?.value?.trim();
+        const phone = $("input[name=fphone]")?.value?.trim();
+        if (!name) { toast("请填写患者姓名"); return; }
+        if (!phone || phone.length !== 11) { toast("请填写手机号"); return; }
+        if (phone === S.phone) { toast("不能绑定自己的手机号"); return; }
+        if (!S.guardedPatients) S.guardedPatients = [];
+        if (S.guardedPatients.some((p) => p.phoneRaw === phone)) { toast("该手机号已绑定"); return; }
+        if (S.guardedPatients.length >= 5) { toast("最多绑定 5 位患者"); return; }
+        const preset = name === "李建国"
+          ? { gender: "男", age: 58, height: 170, weight: 75 }
+          : (name === "张桂兰" ? { gender: "女", age: 56, height: 160, weight: 61 } : { gender: "男", age: 60, height: 168, weight: 68 });
+        const newP = {
+          id: `p${Date.now()}`,
+          name,
+          gender: preset.gender,
+          age: preset.age,
+          height: preset.height,
+          weight: preset.weight,
+          rel: S.famRel || "配偶",
+          phone: phone.replace(/^(\d{3})\d{4}(\d{4})$/, "$1****$2"),
+          phoneRaw: phone,
+        };
+        S.guardedPatients.unshift(newP);
+        S.activePatientId = newP.id;
+        S.name = newP.name;
+        S.gender = newP.gender;
+        S.age = newP.age;
+        S.height = newP.height;
+        S.weight = newP.weight;
+        render();
+        toast(`已绑定患者${name}，当前正在守护`);
+      },
       // 绑定校验：姓名 / 手机号 / 不能绑自己 / 已绑定 / 最多 5 位（真机 FamilyMemberStore）
       bindFam() {
         const name = $("input[name=fname]")?.value?.trim();
@@ -5480,6 +5575,7 @@
         } else {
           S.role = "patient";
           S.actorId = null;
+          syncProfileForRole("patient");
           render();
         }
         toast("已拒绝守护并解除绑定");
@@ -7749,9 +7845,15 @@
     profile: () => {
       const isFam = shownRole() === "family";
       const isVip = genHasFamily();
-      const fam = activeFamMember();
+      const myName = mySelfName();
+      const curAge = S.age || 58;
+      const gList = S.guardedPatients || [];
       const heroTopHTML = isFam ? `
         <div class="pointer" data-go="health-record" role="button" style="cursor:pointer">
+          <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:10px;background:rgba(255,255,255,.16);margin-bottom:12px">
+            <span style="color:#FFDC6E;display:inline-flex">${I.two}</span>
+            <span style="font-size:14px;font-weight:700;color:#fff;white-space:nowrap">${esc(myName)}（我）守护中</span>
+          </div>
           <div class="hero-top">
             <div class="avatar">${S.name.slice(0, 1)}</div>
             <div style="min-width:0">
@@ -7759,16 +7861,16 @@
                 <span class="s18 fb">${S.name}</span>
                 ${isVip ? `<span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.crown} VIP</span>` : ""}
               </div>
-              <div style="display:flex;align-items:center;gap:5px;margin-top:5px;white-space:nowrap">
-                <span style="font-size:12px;font-weight:700;color:#fff;background:rgba(255,255,255,.24);padding:2.5px 8px;border-radius:999px">守护患者 · ${S.gender}</span>
-                <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.16);padding:2.5px 8px;border-radius:999px">我是${fam.rel}（${fam.name}）</span>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:5px;white-space:nowrap">
+                <span style="font-size:12px;font-weight:700;color:#fff;background:rgba(255,255,255,.24);padding:2.5px 8px;border-radius:999px">被守护患者</span>
+                <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.16);padding:2.5px 8px;border-radius:999px">${S.gender}</span>
               </div>
             </div>
-            <button class="view-cap" data-go="health-record" type="button">患者档案</button>
+            <button class="view-cap" data-go="health-record" type="button">点击查看</button>
           </div>
           <div class="frost"></div>
           <div class="metrics">
-            <div><span>年龄</span><b>58</b></div>
+            <div><span>年龄</span><b>${curAge}</b></div>
             <div><span>身高</span><b>${S.height}</b></div>
             <div><span>体重</span><b>${S.weight}</b></div>
             <div><span>BMI</span><b>${bmi()}</b></div>
@@ -7789,7 +7891,7 @@
           </div>
           <div class="frost"></div>
           <div class="metrics">
-            <div><span>年龄</span><b>58</b></div>
+            <div><span>年龄</span><b>${curAge}</b></div>
             <div><span>身高</span><b>${S.height}</b></div>
             <div><span>体重</span><b>${S.weight}</b></div>
             <div><span>BMI</span><b>${bmi()}</b></div>
@@ -7806,9 +7908,7 @@
         ? (isVip ? "共享中 ›" : "去开通 ›")
         : (isVip ? "已购买 ›" : "购买 ›");
       const famRowSub = isFam
-        ? ((S.guardedPatients && S.guardedPatients.length > 1)
-          ? `我是${fam.rel}（${fam.name}）· 守护${S.name}等 ${S.guardedPatients.length} 人`
-          : `我是${fam.rel}（${fam.name}）· 守护${S.name}`)
+        ? (gList.length ? `已绑定 ${gList.length} 位患者 · 当前守护${S.name}` : "尚未绑定守护患者")
         : (S.family.length ? `已绑定 ${S.family.length} 人` : "尚未绑定家属");
       return `<div class="page">
         ${navBar(cap(I.chevL, "返回"), "个人中心",
@@ -7893,7 +7993,7 @@
     "hardware-scan": () => hwScanHTML(),
 
     "health-record": () => {
-      const age = 58;
+      const age = S.age || 58;
       // 注意 bmi() 返回的是已格式化字符串，这里要数值做分档
       const bmiVal = S.weight / ((S.height / 100) ** 2);
       const bmiWord = bmiVal < 18.5 ? "偏瘦" : bmiVal < 24 ? "正常" : bmiVal < 28 ? "偏胖" : "肥胖";
@@ -7976,62 +8076,45 @@
 
     family: () => {
       if (shownRole() === "family") {
-        const fam = activeFamMember();
-        const curName = S.myFamNameDraft !== undefined ? S.myFamNameDraft : fam.name;
-        const curRel = S.myFamRelDraft || fam.rel || "配偶";
-        const gPatients = S.guardedPatients || [{ id: "p1", name: S.name, gender: S.gender, age: 58, height: S.height, weight: S.weight }];
+        const gPatients = S.guardedPatients || [];
         return `
         <div class="page">
           ${navBar(cap(I.chevL, "返回", "", "backFamily"), "家属管理")}
-          <div class="scroll px20" style="padding-top:16px;padding-bottom:32px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-              <div class="field-label" style="font-size:16px;margin:0">我守护的患者（点击可切换）</div>
-              <span class="s13 fsb t-sec">已关联 ${gPatients.length}/5 人</span>
-            </div>
-            <div style="background:#fff;border-radius:18px;padding:16px;box-shadow:0 6px 16px rgba(16,84,224,.06)">
-              ${gPatients.map((p, idx) => {
-                const isSel = p.name === S.name || String(p.id) === String(S.activePatientId);
-                return `
-                <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:${isSel ? "rgba(16,84,224,.05)" : "#fff"};border:1px solid ${isSel ? "rgba(16,84,224,.22)" : "rgba(16,84,224,.08)"};${idx > 0 ? "margin-top:10px" : ""}">
-                  <div class="avatar" style="width:44px;height:44px;font-size:18px;background:rgba(16,84,224,.10);color:var(--blue)">${p.name.slice(0, 1)}</div>
-                  <div class="grow" style="min-width:0">
-                    <div style="display:flex;align-items:center;gap:6px">
-                      <span class="s18 fb t">${p.name}</span>
-                      <span style="font-size:11px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 7px;border-radius:999px">VIP 共享</span>
-                    </div>
-                    <div class="s13 fm t-sec" style="margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.gender} · ${p.age}岁 · 身高${p.height}cm · 体重${p.weight}kg</div>
-                  </div>
-                  ${isSel
-                    ? `<span style="font-size:12.5px;font-weight:700;color:#1AA64A;background:rgba(26,166,74,.12);padding:6px 10px;border-radius:999px;flex-shrink:0">当前守护中</span>`
-                    : `<button data-act="switchGuardedPatient" data-id="${p.id}" type="button" style="border:0;background:var(--blue);color:#fff;font-size:13px;font-weight:700;padding:7px 12px;border-radius:999px;cursor:pointer;flex-shrink:0;font-family:inherit">切换守护</button>`}
-                </div>`;
-              }).join("")}
-              <div style="display:flex;align-items:flex-start;gap:8px;color:var(--sec);font-size:13px;line-height:1.45;margin-top:12px">
-                <span style="color:var(--blue);display:inline-flex;margin-top:1px">${I.shieldCheck}</span>
-                <span>同一账号支持「本人 / 家属」双身份切换；作为家属最多可同时守护 5 位已开通 VIP 的患者，所有提醒与打卡通知统一汇入「哈宝医生」。</span>
-              </div>
-            </div>
-
-            <div class="field-label mt16" style="font-size:16px;margin-bottom:8px">我的守护身份（当前登录账号）</div>
-            <div style="background:#fff;border-radius:18px;padding:16px;box-shadow:0 6px 16px rgba(16,84,224,.06)">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-                <div>
+          <div class="scroll px24" style="padding-top:20px">
+            ${gPatients.length < 5 ? `
+              <div class="field-label">患者姓名</div>
+              <input class="field" name="fname" placeholder="患者姓名" />
+              <div class="field-label mt16">关系</div>
+              <div class="chips">${["配偶", "子女", "父母", "其他"].map((r) => `<button class="chip ${(S.famRel || "配偶") === r ? "on" : ""}" data-act="pickRel" data-r="${r}" type="button">${r}</button>`).join("")}</div>
+              <div class="field-label mt16">患者手机号</div>
+              <input class="field" name="fphone" maxlength="11" placeholder="11 位手机号" />
+            ` : ""}
+            ${gPatients.map((p) => {
+              const isCur = p.name === S.name || String(p.id) === String(S.activePatientId);
+              const badgeText = isCur ? "当前守护中" : "已绑定";
+              const badgeFg = isCur ? "#1AA64A" : "var(--blue)";
+              const badgeBg = isCur ? "rgba(26,166,74,.12)" : "rgba(16,84,224,.10)";
+              return `
+              <div class="plan-row mt16">
+                <div class="grow">
                   <div style="display:flex;align-items:center;gap:8px">
-                    <span class="s14 fsb t-sec">登录手机号</span>
-                    <span style="font-size:11px;font-weight:700;color:#1AA64A;background:rgba(26,166,74,.12);padding:2px 8px;border-radius:999px">当前登录</span>
+                    <span class="s18 fb t">${p.name}</span>
+                    <span style="font-size:11px;font-weight:700;color:${badgeFg};background:${badgeBg};padding:2px 8px;border-radius:999px">${badgeText}</span>
                   </div>
-                  <div class="s19 fb t mono" style="margin-top:4px">${fam.phone}</div>
+                  <div class="s14 t-sec" style="margin-top:2px">${p.rel || "配偶"}　${p.phone || "138****5678"}</div>
                 </div>
-                <button data-act="quitGuard" type="button" style="border:0;background:rgba(220,72,72,.10);color:#DC4848;font-size:14px;font-weight:600;padding:8px 14px;border-radius:999px;cursor:pointer;font-family:inherit">退出守护</button>
-              </div>
-              <div style="height:1px;background:rgba(16,84,224,.08);margin:14px 0"></div>
-              <div class="s15 fsb t" style="margin-bottom:8px">我的姓名 / 称呼</div>
-              <input class="field" name="myFamName" value="${escAttr(curName)}" placeholder="输入你的姓名或称呼" style="background:rgba(16,84,224,.05)" />
-              <div class="s15 fsb t mt16" style="margin-bottom:8px">我与患者的关系</div>
-              <div class="chips">${["配偶", "子女", "父母", "其他"].map((r) => `<button class="chip ${curRel === r ? "on" : ""}" data-act="pickMyFamRel" data-r="${r}" type="button">${r}</button>`).join("")}</div>
-              <button class="cta w100 mt16" data-act="saveMyFamIdentity" type="button" style="height:48px;font-size:17px">保存身份信息</button>
-            </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  ${!isCur ? `<button class="cap" data-act="switchGuardedPatient" data-id="${p.id}" type="button" style="background:var(--blue);color:#fff;border:0">切换</button>` : ""}
+                  <button class="cap blue" data-act="unbindPatient" data-id="${p.id}" type="button">解除</button>
+                </div>
+              </div>`;
+            }).join("")}
           </div>
+          ${gPatients.length < 5 ? `
+            <div class="px24 flex gap8" style="padding-bottom:28px">
+              <button class="cta grow" data-act="bindPatient" type="button">点击绑定</button>
+            </div>
+          ` : ""}
         </div>`;
       }
       return `
@@ -10725,12 +10808,68 @@
   }
   /// 身份展示：V0.0 一律按患者本人；V0.1+ 下同一个账号 ID 始终支持在「本人」与「家属」间切换（真机 ServiceView.displayedRole）
   function shownRole() { return genIsV01() ? S.role : "patient"; }
+  /// 当前登录账号「本人」姓名（用于切换为家属身份时展示「{本人}（我）守护中」）
+  function mySelfName() {
+    if (!S.selfProfile) {
+      S.selfProfile = {
+        name: S.name || "李建国",
+        gender: S.gender || "男",
+        age: S.age || 58,
+        height: S.height || 170,
+        weight: S.weight || 75,
+      };
+    }
+    return S.selfProfile.name || "李建国";
+  }
+  /// 根据身份同步当前展示的档案：本人视角展示 selfProfile，家属视角展示被守护的患者档案（若当前选中患者与本人同名，自动切换到另一位被守护患者）
+  function syncProfileForRole(targetRole) {
+    if (!S.selfProfile) {
+      S.selfProfile = {
+        name: S.name || "李建国",
+        gender: S.gender || "男",
+        age: S.age || 58,
+        height: S.height || 170,
+        weight: S.weight || 75,
+      };
+    }
+    if (targetRole === "patient") {
+      S.name = S.selfProfile.name;
+      S.gender = S.selfProfile.gender;
+      S.age = S.selfProfile.age || 58;
+      S.height = S.selfProfile.height;
+      S.weight = S.selfProfile.weight;
+      return;
+    }
+    if (!S.guardedPatients || !S.guardedPatients.length) {
+      S.guardedPatients = [
+        { id: "p1", name: "李建国", gender: "男", age: 58, height: 170, weight: 75, rel: "配偶", phone: "138****5678", phoneRaw: "13800135678" },
+        { id: "p2", name: "张桂兰", gender: "女", age: 56, height: 160, weight: 61, rel: "配偶", phone: "137****9021", phoneRaw: "13700139021" },
+      ];
+    }
+    const selfNm = S.selfProfile.name;
+    let cur = S.guardedPatients.find((p) => String(p.id) === String(S.activePatientId));
+    if (!cur || cur.name === selfNm) {
+      cur = S.guardedPatients.find((p) => p.name !== selfNm) || S.guardedPatients[0];
+    }
+    if (cur) {
+      S.activePatientId = cur.id;
+      S.name = cur.name;
+      S.gender = cur.gender;
+      S.age = cur.age || 58;
+      S.height = cur.height;
+      S.weight = cur.weight;
+    }
+  }
   /// 当前家属登录视角对应的家属成员（与真机 ServiceView.activeFamilyMember 同源）
   function activeFamMember() {
     const list = S.family || [];
-    return list.find((m) => String(m.id) === String(S.actorId))
+    const found = list.find((m) => String(m.id) === String(S.actorId))
       || list[0]
-      || { id: "f1", name: "王芳", rel: "配偶", phone: "139****2210", phoneRaw: "13900132210" };
+      || { id: "f1", name: mySelfName(), rel: "配偶", phone: "139****2210", phoneRaw: "13900132210" };
+    if (shownRole() === "family" && !S.pureFamilyLogin) {
+      return { ...found, name: mySelfName() };
+    }
+    return found;
   }
   /// 首次进入步骤点：固定两步（短信登录 → 完善你的信息）
   function dotsHTML(active) {
@@ -11957,7 +12096,9 @@
     familyInvite: () => {
       const mid = S.overlayData && S.overlayData.memberId;
       const fam = (S.family || []).find((x) => String(x.id) === String(mid)) || activeFamMember();
+      const myName = S.pureFamilyLogin ? fam.name : mySelfName();
       const patientName = S.name || "李建国";
+      const patientAge = S.age || 58;
       return `
       <div class="scrim center" style="background:rgba(0,0,0,.45)">
         <div class="popup" style="max-width:342px;border-radius:26px;padding:22px;text-align:left" onclick="event.stopPropagation()">
@@ -11971,12 +12112,12 @@
           <div style="background:rgba(16,84,224,.05);border-radius:16px;padding:13px 14px;display:flex;flex-direction:column;gap:9px">
             <div style="display:flex;align-items:flex-start;gap:10px">
               <span style="width:56px;flex-shrink:0;font-size:12.5px;font-weight:600;color:var(--sec)">守护患者</span>
-              <span style="font-size:13.5px;font-weight:700;color:var(--blue)">${esc(patientName)}（${S.gender || "男"} · 58岁 · 主账号）</span>
+              <span style="font-size:13.5px;font-weight:700;color:var(--blue)">${esc(patientName)}（${S.gender || "男"} · ${patientAge}岁 · 主账号）</span>
             </div>
             <div style="height:1px;background:rgba(16,84,224,.08)"></div>
             <div style="display:flex;align-items:flex-start;gap:10px">
               <span style="width:56px;flex-shrink:0;font-size:12.5px;font-weight:600;color:var(--sec)">你的身份</span>
-              <span style="font-size:13.5px;font-weight:700;color:var(--blue)">${esc(fam.name)}（${esc(fam.rel || "配偶")} · ${esc(fam.phone)}）</span>
+              <span style="font-size:13.5px;font-weight:700;color:var(--blue)">${esc(myName)}（我 · ${esc(fam.rel || "配偶")}）</span>
             </div>
             <div style="height:1px;background:rgba(16,84,224,.08)"></div>
             <div style="display:flex;align-items:flex-start;gap:10px">
