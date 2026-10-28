@@ -7863,7 +7863,6 @@
         const fam = activeFamMember();
         const curName = S.myFamNameDraft !== undefined ? S.myFamNameDraft : fam.name;
         const curRel = S.myFamRelDraft || fam.rel || "配偶";
-        const others = (S.family || []).filter((x) => String(x.id) !== String(fam.id));
         const gPatients = S.guardedPatients || [{ id: "p1", name: S.name, gender: S.gender, age: 58, height: S.height, weight: S.weight }];
         return `
         <div class="page">
@@ -7916,24 +7915,6 @@
               <div class="chips">${["配偶", "子女", "父母", "其他"].map((r) => `<button class="chip ${curRel === r ? "on" : ""}" data-act="pickMyFamRel" data-r="${r}" type="button">${r}</button>`).join("")}</div>
               <button class="cta w100 mt16" data-act="saveMyFamIdentity" type="button" style="height:48px;font-size:17px">保存身份信息</button>
             </div>
-
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px;margin-bottom:8px">
-              <div class="field-label" style="font-size:16px;margin:0">其他共管家属</div>
-              <span class="s13 fsb t-sec">共 ${others.length} 人</span>
-            </div>
-            ${others.length ? `
-              ${others.map((f) => `
-                <div class="plan-row" style="margin-top:10px">
-                  <div class="grow"><div class="s17 fb t">${f.name}</div><div class="s14 t-sec">${f.rel}　${f.phone}</div></div>
-                  <span style="font-size:13px;font-weight:600;color:var(--blue);background:rgba(16,84,224,.08);padding:6px 12px;border-radius:999px">共同守护中</span>
-                </div>`).join("")}
-              <div class="s13 fm t-sec" style="margin-top:8px;padding:0 4px">仅患者主账号可添加或移除其他共管家属。</div>
-            ` : `
-              <div style="background:#fff;border-radius:16px;padding:16px;box-shadow:0 4px 12px rgba(16,84,224,.05)">
-                <div class="s16 fb t">暂无其他共管家属</div>
-                <div class="s13 fm t-sec" style="margin-top:6px;line-height:1.45">如需新增或移除其他共管家属，请由患者主账号在「家属管理」中操作。</div>
-              </div>
-            `}
           </div>
         </div>`;
       }
