@@ -2008,6 +2008,234 @@
     ensureCareGraph();
     return S.demoPeople.find((p) => p.name === S.currentPersonName) || S.demoPeople[0];
   }
+  function activePersonName() {
+    ensureCareGraph();
+    return S.watchingWardName || S.currentPersonName || "李建国";
+  }
+  function activeDemoPerson() {
+    ensureCareGraph();
+    const nm = activePersonName();
+    return S.demoPeople.find((p) => p.name === nm) || currentDemoPerson();
+  }
+  function homeHeaderTitle() {
+    if (!genIsV01()) return `${S.name}的一天`;
+    ensureCareGraph();
+    if (S.watchingWardName) {
+      return `${S.watchingWardName}（我看护的人）的一天`;
+    }
+    return `${currentDemoPerson().name}（我）的一天`;
+  }
+  function buildPresetDataForPerson(personName) {
+    const baseHour = Date.now();
+    if (personName === "张桂兰") {
+      return {
+        tasks: [
+          { id: "zgl_t1", title: "晨起测血压与心率", h: 6, m: 45, cat: "monitoring", note: "高血压伴房颤随访，晨起静坐5分钟后测量" },
+          { id: "zgl_t2", title: "温水润燥", h: 7, m: 15, cat: "diet", note: "晨起饮温开水 200 ml" },
+          { id: "zgl_t3", title: "燕麦低脂早餐", h: 7, m: 45, cat: "diet", note: "燕麦粥配水煮蛋，清淡少盐" },
+          { id: "zgl_t4", title: "服用苯磺酸氨氯地平片", h: 8, m: 15, cat: "medication", note: "5mg · 每日1次，控制晨峰血压" },
+          { id: "zgl_t5", title: "服用利伐沙班片", h: 8, m: 30, cat: "medication", note: "15mg · 随餐服用，预防房颤血栓" },
+          { id: "zgl_t6", title: "公园太极慢走", h: 9, m: 30, cat: "exercise", note: "柔和慢走30分钟，心率 ≤ 105 bpm" },
+          { id: "zgl_t7", title: "午间低盐控油餐", h: 12, m: 0, cat: "diet", note: "多深色蔬菜与鱼肉，少盐少油" },
+          { id: "zgl_t8", title: "午间安神小憩", h: 13, m: 0, cat: "rest", note: "静卧休息 30 分钟" },
+          { id: "zgl_t9", title: "肩颈柔韧拉伸", h: 15, m: 30, cat: "exercise", note: "八段锦上肢舒展 · 15 分钟" },
+          { id: "zgl_t10", title: "傍晚复测血压", h: 17, m: 30, cat: "monitoring", note: "记录傍晚血压与心率波动" },
+          { id: "zgl_t11", title: "清淡杂粮晚餐", h: 18, m: 15, cat: "diet", note: "七分饱，避免浓茶与咖啡" },
+          { id: "zgl_t12", title: "睡前温水泡脚", h: 20, m: 30, cat: "rest", note: "40℃温水泡脚15分钟，促睡眠" },
+          { id: "zgl_t13", title: "规律入睡", h: 21, m: 30, cat: "rest", note: "调暗卧室灯光，保持情绪平稳" },
+          { id: "zgl_t14", title: "心内科房颤专病复查", h: 9, m: 30, cat: "appointment", note: "每月复查凝血功能与动态心电图" },
+        ],
+        completed: { zgl_t1: true, zgl_t2: true, zgl_t4: true },
+        completedBy: {},
+        remindedTasks: {},
+        vitalsWeek: [
+          { day: "一", sys: 136, dia: 84, hr: 78 },
+          { day: "二", sys: 138, dia: 85, hr: 80 },
+          { day: "三", sys: 134, dia: 82, hr: 76 },
+          { day: "四", sys: 132, dia: 80, hr: 75 },
+          { day: "五", sys: 135, dia: 83, hr: 77 },
+          { day: "六", sys: 133, dia: 81, hr: 74 },
+          { day: "日", sys: 134, dia: 82, hr: 76 },
+        ],
+        vitalsLog: [
+          { time: "06:50", sys: 134, dia: 82, hr: 76, hw: true },
+          { time: "17:35", sys: 138, dia: 84, hr: 79, hw: false },
+        ],
+        walkRecords: [
+          { ymd: "2026-09-11", label: "今天", items: [
+            { key: "zgl_0.82|09:32 – 09:56", card: ["0.82", "1180", "09:32 – 09:56", 1] },
+          ] },
+          { ymd: "2026-09-10", label: "昨天", items: [
+            { key: "zgl_1.18|16:10 – 16:40", card: ["1.18", "1620", "16:10 – 16:40", 3] },
+          ] },
+        ],
+        recentWalkText: "0.82 公里 · 24 分钟 · 1180 步",
+        report: {
+          overall: "张桂兰出院后抗凝与降压用药总体规律，近两周晨峰血压控制在 132–138 / 80–85 mmHg 区间，偶有阵发性心悸但无黑曚晕厥。建议继续每日晨起静坐后测血压、坚持柔和太极慢走，按期复查凝血功能与动态心电图。",
+          baseline: "张桂兰既往诊断为高血压2级伴阵发性心房颤动。超声心动图提示左房轻度增大、LVEF 约 58%，动态心电图示偶发房早及短阵房颤。当前长期规律服用苯磺酸氨氯地平片与利伐沙班片。",
+          visit: "最近一次心内科房颤专病复查：凝血功能 INR 及肾功能平稳，动态心电图未见长间歇，维持当前抗凝与降压方案。",
+          followupDate: "2026年8月18日",
+          followupPrevDate: "2026年7月15日",
+          followupPrevSummary: "睡眠偶有浅眠，太极慢走耐量稳定，无胸痛黑曚。",
+          analysisBaseline: "高血压伴房颤专病基线已归档（共 4 张）。",
+          analysisVisit: "已完成 3 次心内科房颤专病复查记录。",
+          analysisFollowup: "最近一次随访提示睡眠浅眠，慢走耐量良好。",
+        },
+        archiveBaseline: [
+          { title: "出院记录", pages: 2 },
+          { title: "心电图", pages: 1 },
+          { title: "超声检查", pages: 1 },
+        ],
+        archiveReview: [
+          { title: "第一次复查", pages: 2 },
+          { title: "第二次复查", pages: 1 },
+        ],
+        ops: [
+          { id: "op_zgl_1", who: "patient", actorName: "张桂兰", kind: "测血压打卡", place: "首页", at: baseHour - 1800000, lines: [["计划", "晨起测血压与心率"], ["读数", "血压 134/82，心率 76 bpm"]] },
+          { id: "op_zgl_2", who: "family", actorName: "李建国", kind: "提醒患者", place: "健康计划", at: baseHour - 5400000, lines: [["提醒", "傍晚复测血压"]] },
+        ],
+      };
+    }
+    if (personName === "王芳") {
+      return {
+        tasks: [
+          { id: "wf_t1", title: "晨起测静息心率", h: 7, m: 15, cat: "monitoring", note: "记录晨起血压与静息心率" },
+          { id: "wf_t2", title: "高蛋白营养早餐", h: 7, m: 45, cat: "diet", note: "全麦面包 + 牛奶 + 蓝莓" },
+          { id: "wf_t3", title: "服用辅酶Q10胶囊", h: 8, m: 15, cat: "medication", note: "1粒 · 随早餐后温水送服" },
+          { id: "wf_t4", title: "工间颈肩舒展操", h: 10, m: 30, cat: "exercise", note: "久坐活动肩颈 · 10 分钟" },
+          { id: "wf_t5", title: "轻食少油午餐", h: 12, m: 15, cat: "diet", note: "杂粮饭 + 鸡胸肉 + 西兰花" },
+          { id: "wf_t6", title: "午间呼吸冥想", h: 13, m: 15, cat: "rest", note: "正念呼吸放松 15 分钟" },
+          { id: "wf_t7", title: "下午饮水达标", h: 15, m: 30, cat: "diet", note: "补充温水 500 ml，少喝含糖饮料" },
+          { id: "wf_t8", title: "傍晚有氧健步走", h: 18, m: 30, cat: "exercise", note: "快走 35 分钟，目标心率 115–125 bpm" },
+          { id: "wf_t9", title: "规律早睡打卡", h: 22, m: 30, cat: "rest", note: "放下手机，保证 7.5 小时睡眠" },
+        ],
+        completed: { wf_t1: true, wf_t2: true, wf_t3: true, wf_t4: true },
+        completedBy: {},
+        remindedTasks: {},
+        vitalsWeek: [
+          { day: "一", sys: 114, dia: 72, hr: 66 },
+          { day: "二", sys: 116, dia: 74, hr: 68 },
+          { day: "三", sys: 112, dia: 70, hr: 65 },
+          { day: "四", sys: 115, dia: 73, hr: 67 },
+          { day: "五", sys: 113, dia: 71, hr: 66 },
+          { day: "六", sys: 114, dia: 72, hr: 65 },
+          { day: "日", sys: 114, dia: 72, hr: 67 },
+        ],
+        vitalsLog: [
+          { time: "07:18", sys: 114, dia: 72, hr: 66, hw: false },
+        ],
+        walkRecords: [
+          { ymd: "2026-09-11", label: "今天", items: [
+            { key: "wf_2.86|18:32 – 19:04", card: ["2.86", "3820", "18:32 – 19:04", 2] },
+          ] },
+          { ymd: "2026-09-10", label: "昨天", items: [
+            { key: "wf_2.40|18:40 – 19:08", card: ["2.40", "3210", "18:40 – 19:08", 0] },
+          ] },
+        ],
+        recentWalkText: "2.86 公里 · 32 分钟 · 3820 步",
+        report: {
+          overall: "王芳各项体征处于理想健康范围，平均血压 114/72 mmHg、静息心率 66 bpm，有氧健步走执行率高。建议继续保持规律作息、颈肩舒展操与充足饮水。",
+          baseline: "王芳年度心肺健康评估基线：静息心电图正常窦性心律，血脂及血糖指标均在理想区间，心肺运动耐量优良。",
+          visit: "最近一次年度心血管健康复查：颈动脉超声及血脂四项均正常，建议每年定期复查。",
+          followupDate: "2026年8月20日",
+          followupPrevDate: "2026年6月10日",
+          followupPrevSummary: "日常精力充沛，有氧健步走耐量良好，睡眠质量高。",
+          analysisBaseline: "年度体检心电图与化验单已归档（共 2 张）。",
+          analysisVisit: "已完成 1 次年度心血管健康复查。",
+          analysisFollowup: "最近一次随访提示身心状态优良。",
+        },
+        archiveBaseline: [
+          { title: "化验单", pages: 1 },
+          { title: "心电图", pages: 1 },
+        ],
+        archiveReview: [
+          { title: "第一次复查", pages: 1 },
+        ],
+        ops: [
+          { id: "op_wf_1", who: "patient", actorName: "王芳", kind: "完成了散步", place: "运动", at: baseHour - 2400000, lines: [["散步", "2.86 公里 · 32 分钟"], ["打卡", "傍晚有氧健步走 已完成"]] },
+          { id: "op_wf_2", who: "patient", actorName: "王芳", kind: "完成打卡", place: "首页", at: baseHour - 7200000, lines: [["计划", "服用辅酶Q10胶囊"]] },
+        ],
+      };
+    }
+    return {
+      tasks: SEED0.map((t) => ({ ...t })),
+      completed: { t1: true, t2: true },
+      completedBy: {},
+      remindedTasks: {},
+      vitalsWeek: VITALS_WEEK.map((d) => ({ ...d })),
+      vitalsLog: [
+        { time: "07:12", sys: 126, dia: 78, hr: 72, hw: true },
+        { time: "19:40", sys: 132, dia: 82, hr: 76, hw: true },
+      ],
+      walkRecords: WALK_RECORDS.map((d) => ({ ...d, items: d.items.map((it) => ({ ...it, card: it.card.slice() })) })),
+      recentWalkText: "0.68 公里 · 12 分钟 · 920 步",
+      report: {
+        overall: "出院后用药规律，血压总体平稳。复查未见新发缺血改变。随访问卷提示日常活动轻度受限，建议保持散步节奏、低盐饮食，复查按每月 6 日执行。",
+        baseline: "出院诊断为急性前壁心梗 PCI 术后。EF 约 52%。用药含抗血小板、他汀与β阻滞剂，与当前计划一致。",
+        visit: "尚无复查批次。上传复查资料后，会按批次更新这段解读。",
+        followupDate: "2026年7月28日",
+        followupPrevDate: "2026年6月25日",
+        followupPrevSummary: "总体健康尚可，轻度活动受限，建议继续规律散步。",
+        analysisBaseline: "出院小结已解析，用药与诊断齐全。",
+        analysisVisit: "尚无复查批次。",
+        analysisFollowup: "最近一次随访提示轻度活动受限。",
+      },
+      archiveBaseline: [
+        { title: "出院记录", pages: 3 },
+        { title: "检查报告", pages: 2 },
+      ],
+      archiveReview: [],
+      ops: [
+        { id: "op_ljg_1", who: "patient", actorName: "李建国", kind: "测血压打卡", place: "首页", at: baseHour - 1200000, lines: [["计划", "起床测血压"], ["读数", "血压 126/78，心率 72 bpm"]] },
+        { id: "op_ljg_2", who: "family", actorName: "王芳", kind: "完成打卡", place: "健康计划", at: baseHour - 3600000, lines: [["计划", "晨起温水"]] },
+      ],
+    };
+  }
+  function ensurePersonStore(personName) {
+    if (!S.personStoreMap) S.personStoreMap = {};
+    const nm = personName || "李建国";
+    if (!S.personStoreMap[nm]) {
+      S.personStoreMap[nm] = buildPresetDataForPerson(nm);
+    }
+    return S.personStoreMap[nm];
+  }
+  function activePersonStore() {
+    return ensurePersonStore(activePersonName());
+  }
+  function syncActivePersonContext(nextActivePersonName) {
+    ensureCareGraph();
+    if (!S.personStoreMap) S.personStoreMap = {};
+    const prevKey = S.boundPersonKey || "李建国";
+    if (S.personStoreMap[prevKey]) {
+      S.personStoreMap[prevKey].tasks = SEED.map((t) => ({ ...t }));
+      S.personStoreMap[prevKey].completed = { ...(S.completed || {}) };
+      S.personStoreMap[prevKey].completedBy = { ...(S.completedBy || {}) };
+      S.personStoreMap[prevKey].remindedTasks = { ...(S.remindedTasks || {}) };
+      S.personStoreMap[prevKey].vitalsLog = (S.vitalsLog || []).map((r) => ({ ...r }));
+      S.personStoreMap[prevKey].archiveBaseline = (ARCHIVE_DEMO.baseline.groups || []).map((g) => ({ ...g }));
+      S.personStoreMap[prevKey].archiveReview = (ARCHIVE_DEMO.review.groups || []).map((g) => ({ ...g }));
+      S.personStoreMap[prevKey].ops = (S.ops || []).map((o) => ({ ...o }));
+    }
+    const targetKey = nextActivePersonName || activePersonName();
+    const bucket = ensurePersonStore(targetKey);
+    S.boundPersonKey = targetKey;
+    SEED.length = 0;
+    bucket.tasks.forEach((t) => SEED.push({ ...t }));
+    S.completed = { ...(bucket.completed || {}) };
+    S.completedBy = { ...(bucket.completedBy || {}) };
+    S.remindedTasks = { ...(bucket.remindedTasks || {}) };
+    S.vitalsLog = (bucket.vitalsLog || []).map((r) => ({ ...r }));
+    ARCHIVE_DEMO.baseline.groups = (bucket.archiveBaseline || []).map((g) => ({ ...g }));
+    ARCHIVE_DEMO.review.groups = (bucket.archiveReview || []).map((g) => ({ ...g }));
+    S.ops = (bucket.ops || []).map((o) => ({ ...o }));
+    S.opDay = "";
+    const p = S.demoPeople.find((x) => x.name === targetKey) || currentDemoPerson();
+    S.name = p.name;
+    S.gender = p.gender;
+    S.age = p.age || 58;
+    S.height = p.height;
+    S.weight = p.weight;
+  }
   function ensureDemoPersonExists(name, phoneRaw, fallbackGender, fallbackAge) {
     ensureCareGraph();
     let found = S.demoPeople.find((p) => p.name === name);
@@ -5323,6 +5551,41 @@
         ensureCareGraph();
         openOverlay("demoPersonSheet");
       },
+      openHomeTargetSheet() {
+        ensureCareGraph();
+        openOverlay("homeTargetSheet");
+      },
+      goProfileFromTargetSheet() {
+        closeOverlay();
+        go("profile", "cover");
+      },
+      selectHomeTarget() {
+        ensureCareGraph();
+        const wardNm = (el.dataset.ward || "").trim();
+        const me = currentDemoPerson();
+        if (!wardNm) {
+          S.watchingWardName = null;
+          S.role = "patient";
+          S.actorId = null;
+          syncLegacyListsFromBonds();
+          syncActivePersonContext(me.name);
+          closeOverlay();
+          toast(`已切换至「${me.name}（我）的一天」`);
+          render();
+          return;
+        }
+        const ward = S.demoPeople.find((p) => p.name === wardNm);
+        if (!ward) return;
+        S.watchingWardName = ward.name;
+        S.role = "family";
+        syncLegacyListsFromBonds();
+        const famEntry = (S.family || [])[0] || { id: "f1", name: me.name, rel: "家属", phone: me.phone, phoneRaw: me.phoneRaw };
+        S.actorId = famEntry.id;
+        syncActivePersonContext(ward.name);
+        closeOverlay();
+        toast(`已切换至「${ward.name}（我看护的人）的一天」`);
+        render();
+      },
       switchDemoPerson() {
         ensureCareGraph();
         const nm = el.dataset.name;
@@ -5332,11 +5595,6 @@
         S.watchingWardName = null;
         S.role = "patient";
         S.actorId = null;
-        S.name = p.name;
-        S.gender = p.gender;
-        S.age = p.age || 58;
-        S.height = p.height;
-        S.weight = p.weight;
         S.phone = p.phoneRaw;
         S.selfProfile = {
           name: p.name,
@@ -5346,6 +5604,7 @@
           weight: p.weight,
         };
         syncLegacyListsFromBonds();
+        syncActivePersonContext(p.name);
         closeOverlay();
         toast(`已切换演示人名：${p.name}`);
         presentUnreadCareNoticeForPerson(p.name);
@@ -5492,6 +5751,7 @@
           S.watchingWardName = null;
           S.role = "patient";
           S.actorId = null;
+          syncActivePersonContext(S.currentPersonName);
         }
         syncLegacyListsFromBonds();
         if (S.overlay === "familyInvite") S.overlay = null;
@@ -5535,11 +5795,7 @@
           S.watchingWardName = null;
           S.role = "patient";
           S.actorId = null;
-          S.name = me.name;
-          S.gender = me.gender;
-          S.age = me.age || 58;
-          S.height = me.height;
-          S.weight = me.weight;
+          syncActivePersonContext(me.name);
         }
         syncLegacyListsFromBonds();
         S.overlay = null;
@@ -5563,12 +5819,8 @@
           S.watchingWardName = null;
           S.role = "patient";
           S.actorId = null;
-          S.name = me.name;
-          S.gender = me.gender;
-          S.age = me.age || 58;
-          S.height = me.height;
-          S.weight = me.weight;
-          toast(`已切回「${me.name}」本人康复视图`);
+          syncActivePersonContext(me.name);
+          toast(`已切回「${me.name}（我）的一天」`);
           render();
           return;
         }
@@ -5579,12 +5831,8 @@
         syncLegacyListsFromBonds();
         const famEntry = (S.family || [])[0] || { id: "f1", name: me.name, rel: "家属", phone: me.phone, phoneRaw: me.phoneRaw };
         S.actorId = famEntry.id;
-        S.name = ward.name;
-        S.gender = ward.gender;
-        S.age = ward.age || 58;
-        S.height = ward.height;
-        S.weight = ward.weight;
-        toast(`正在以守护人「${me.name}」视角看护被守护人「${ward.name}」`);
+        syncActivePersonContext(ward.name);
+        toast(`已切换至「${ward.name}（我看护的人）的一天」`);
         render();
       },
       roleSwitch() {
@@ -5607,14 +5855,10 @@
             S.watchingWardName = null;
             S.role = "patient";
             S.actorId = null;
-            S.name = p.name;
-            S.gender = p.gender;
-            S.age = p.age || 58;
-            S.height = p.height;
-            S.weight = p.weight;
             S.phone = p.phoneRaw;
             S.selfProfile = { name: p.name, gender: p.gender, age: p.age || 58, height: p.height, weight: p.weight };
             syncLegacyListsFromBonds();
+            syncActivePersonContext(p.name);
           }
         }
         go("consult", "cover");
@@ -5752,6 +5996,13 @@
         const changed = [];
         if (prev.name !== name) changed.push(`姓名 ${prev.name}→${name}`);
         if (prev.gender !== S.gender) changed.push(`性别 ${prev.gender}→${S.gender}`);
+        const actName = activePersonName();
+        const dp = (S.demoPeople || []).find((p) => p.name === actName);
+        if (dp) {
+          dp.gender = S.gender;
+          dp.height = S.height;
+          dp.weight = S.weight;
+        }
         S.name = name;
         if (shownRole() === "patient") {
           S.selfProfile = {
@@ -7201,11 +7452,17 @@
     home: () => {
       if (S.scheme === 3) return scheme4Home(); // 方案四：时段泳道 + 底部扇形拨盘
       const mh = homeModuleHeight(S.enrolled);
+      const headerTitleHTML = genIsV01()
+        ? `<button type="button" data-act="openHomeTargetSheet" style="display:inline-flex;align-items:center;gap:8px;padding:6px 10px 6px 12px;border-radius:999px;background:rgba(255,255,255,.94);border:1px solid rgba(16,84,224,.18);box-shadow:0 3px 10px rgba(16,84,224,.09);cursor:pointer;font-family:inherit;max-width:100%">
+             <span style="font-size:calc(19px * var(--fs));font-weight:800;color:#0F172A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(homeHeaderTitle())}</span>
+             <span style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:999px;background:rgba(16,84,224,.10);color:var(--blue);font-size:12px;font-weight:700;flex-shrink:0">切换 ▾</span>
+           </button>`
+        : `<h2>${esc(homeHeaderTitle())}</h2>`;
       return `
         <div class="page home-page">
           <div class="welcome">
-            <div class="titles">
-              <h2>${S.name}的一天</h2>
+            <div class="titles" style="min-width:0;flex:1;margin-right:8px">
+              ${headerTitleHTML}
               <p>${greeting()}</p>
             </div>
             <div class="flex gap10 center">
@@ -7710,13 +7967,15 @@
       </div>`;
     },
 
-    report: () => `
+    report: () => {
+      const rep = activePersonStore().report;
+      return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "身体报告", `<button class="cap" data-go="analysis" type="button">${I.list}明细</button>`)}
         <div class="px20 grow col" style="padding-top:16px">
           <div class="island-card grow" style="padding:18px;display:flex;flex-direction:column">
             <div class="flex gap10 s19 fb t report-h">${I.doc}综合结论</div>
-            <div class="scroll grow mt12 s21 fm t" style="line-height:1.45">出院后用药规律，血压总体平稳。复查未见新发缺血改变。随访问卷提示日常活动轻度受限，建议保持散步节奏、低盐饮食，复查按每月 6 日执行。${S.consultReportOverall ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生问诊补充结论】${S.consultReportOverall}</div>` : ""}</div>
+            <div class="scroll grow mt12 s21 fm t" style="line-height:1.45">${esc(rep.overall)}${S.consultReportOverall ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生问诊补充结论】${S.consultReportOverall}</div>` : ""}</div>
           </div>
           <div class="island-card flex" style="margin:12px 0 4px;padding:8px;border-radius:18px">
             ${[
@@ -7731,9 +7990,12 @@
           </div>
           ${consultCtaHTML("margin-bottom:20px")}
         </div>
-      </div>`,
+      </div>`;
+    },
 
-    "report-sub": () => `
+    "report-sub": () => {
+      const rep = activePersonStore().report;
+      return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回", "", S.reportReturnHome ? "reportBack" : "back"), S.reportKind === "visit" ? "复查报告" : "基础报告")}
         <div class="px20" style="padding-top:12px; flex:1; min-height:0; display:flex">
@@ -7741,7 +8003,7 @@
             ${reportPaneTabs()}
             <div class="scroll" style="margin-top:14px">
               ${S.reportPane === "archive" ? reportArchivePane() : `
-                <p class="s21 fm t">${S.reportKind === "visit" ? "尚无复查批次。上传复查资料后，会按批次更新这段解读。" : "出院诊断为急性前壁心梗 PCI 术后。EF 约 52%。用药含抗血小板、他汀与β阻滞剂，与当前计划一致。"}</p>
+                <p class="s21 fm t">${esc(S.reportKind === "visit" ? rep.visit : rep.baseline)}</p>
                 ${S.reportKind === "visit" && S.consultReportSub?.review ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生跨期对照解读】${S.consultReportSub.review}</div>` : ""}
                 ${S.reportKind === "baseline" && S.consultReportSub?.baseline ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生基线报告解读】${S.consultReportSub.baseline}</div>` : ""}`}
             </div>
@@ -7751,20 +8013,23 @@
           <button class="cta" data-act="addArchive" type="button">${I.cam}新增报告资料</button>
           ${S.reportReturnHome ? `<button class="cta white" data-act="reportHome" type="button">${I.house}返回首页</button>` : ""}
         </div>
-      </div>`,
+      </div>`;
+    },
 
-    followup: () => `
+    followup: () => {
+      const rep = activePersonStore().report;
+      return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "问卷随访")}
         <div class="scroll px20" style="padding-top:12px">
           <div class="island-card" style="padding:18px">
             <div class="s13 t-sec">上次填写时间</div>
-            <div class="s18 fb t">2026年7月28日　${S.qDone ? "已完成" : "草稿"}</div>
+            <div class="s18 fb t">${esc(rep.followupDate)}　${S.qDone ? "已完成" : "草稿"}</div>
             <div class="s14 t-sec mt8">已答 ${Object.keys(S.answers).length} / ${QUESTIONS.length} 题</div>
           </div>
           <div class="island-card mt12" style="padding:18px">
-            <div class="s18 fb t">2026年6月25日</div>
-            <p class="s15 t-sec mt8">总体健康尚可，轻度活动受限，建议继续规律散步。</p>
+            <div class="s18 fb t">${esc(rep.followupPrevDate)}</div>
+            <p class="s15 t-sec mt8">${esc(rep.followupPrevSummary)}</p>
             ${S.consultReportSub?.followUp ? `<div class="mt12 s15 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生随访身心复评】${S.consultReportSub.followUp}</div>` : ""}
           </div>
         </div>
@@ -7772,7 +8037,8 @@
           <button class="cta" data-go="questionnaire" type="button">继续填写问卷</button>
           <button class="cta-line" data-act="restartFollowup" type="button">重新开始随访</button>
         </div>
-      </div>`,
+      </div>`;
+    },
 
     questionnaire: () => {
       if (S.qDone) {
@@ -7837,25 +8103,29 @@
       </div>`;
     },
 
-    analysis: () => `
+    analysis: () => {
+      const rep = activePersonStore().report;
+      return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "明细分析", `<button class="cap" data-act="shareAnalysis" type="button">分享${I.share}</button>`)}
         <div class="scroll px20" style="padding-top:8px">
           ${[
-            ["基础报告", "出院小结已解析，用药与诊断齐全。", "去上传", "archiveFromAnalysis", "baseline"],
-            ["复查报告", "尚无复查批次。", "去上传", "archiveFromAnalysis", "visit"],
-            ["问卷随访", "最近一次随访提示轻度活动受限。", "去填写", "go", "followup"],
+            ["基础报告", rep.analysisBaseline, "去上传", "archiveFromAnalysis", "baseline"],
+            ["复查报告", rep.analysisVisit, "去上传", "archiveFromAnalysis", "visit"],
+            ["问卷随访", rep.analysisFollowup, "去填写", "go", "followup"],
           ].map(([t, d, b, actName, extra]) => `
             <div class="island-card mb16" style="padding:18px">
               <div class="flex between"><div class="flex gap8 s19 fb t"><div class="well" style="width:36px;height:36px">${I.doc}</div>${t}</div>
                 <button class="cap" ${actName === "go" ? `data-go="${extra}"` : `data-act="${actName}" data-kind="${extra}"`} type="button">${b}</button></div>
-              <p class="s16 t mt12">${d}</p>
+              <p class="s16 t mt12">${esc(d)}</p>
             </div>`).join("")}
         </div>
-      </div>`,
+      </div>`;
+    },
 
     walk: () => {
       const isFam = shownRole() === "family";
+      const recentWalk = activePersonStore().recentWalkText || "0.68 公里 · 12 分钟 · 920 步";
       if (isFam) {
         const exTasks = liveTasks().filter((t) => t.cat === "exercise");
         const pendingEx = exTasks.filter((t) => !S.completed[t.id]);
@@ -7896,7 +8166,7 @@
               </div>
               ${taskRowHTML}
               <div class="s12 fsb t-sec" style="margin-top:9px;display:flex;align-items:center;gap:6px;white-space:nowrap">
-                <span style="color:var(--blue)">●</span>最近散步：0.68 公里 · 12 分钟 · 920 步
+                <span style="color:var(--blue)">●</span>最近散步：${esc(recentWalk)}
               </div>
             </div>
             <div class="walk-dock">
@@ -7928,7 +8198,8 @@
 
     "walk-records": () => {
       const f = S.walkFilter;
-      const days = WALK_RECORDS
+      const personWalkRecords = activePersonStore().walkRecords || WALK_RECORDS;
+      const days = personWalkRecords
         .map((d) => ({
           ...d,
           items: d.items.filter((it) => !(S.walkDeleted || {})[it.key])
@@ -8243,17 +8514,12 @@
       ensureCareGraph();
       const isVip = genHasFamily();
       const curPerson = currentDemoPerson();
+      const activeP = activeDemoPerson();
+      const isWatchingWard = !!(S.watchingWardName && S.watchingWardName !== curPerson.name);
       const myGuardians = myGuardiansList(curPerson.name);
       const myWards = myWardsList(curPerson.name);
-      const curBmi = ((curPerson.weight || 70) / Math.pow((curPerson.height || 170) / 100, 2)).toFixed(1);
+      const curBmi = ((activeP.weight || 70) / Math.pow((activeP.height || 170) / 100, 2)).toFixed(1);
       const otherUnread = otherPeopleUnreadTotal();
-      const watchingBannerHTML = S.watchingWardName ? `
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 11px;border-radius:10px;background:rgba(255,220,110,.20);margin-bottom:12px">
-          <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:#FFDC6E;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-            ${I.two}<span>当前首页看护被守护人：${esc(S.watchingWardName)}</span>
-          </span>
-          <button type="button" data-act="toggleWatchWard" data-ward="${esc(S.watchingWardName)}" style="border:0;background:rgba(255,255,255,.22);color:#fff;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;cursor:pointer;flex-shrink:0;font-family:inherit">切回自己</button>
-        </div>` : "";
       const guardianRowsHTML = myGuardians.length ? myGuardians.map((b) => {
         const needsMyConfirm = !b.confirmed && b.initiatedBy === "guardian";
         const badgeText = b.confirmed ? "" : (needsMyConfirm ? "待我确认" : "待对方确认");
@@ -8278,10 +8544,9 @@
       }).join("") : "";
       const wardRowsHTML = myWards.length ? myWards.map((b) => {
         const needsMyConfirm = !b.confirmed && b.initiatedBy === "ward";
-        const isWatching = S.watchingWardName === b.wardName;
-        const badgeText = !b.confirmed ? (needsMyConfirm ? "待我确认" : "待对方确认") : (isWatching ? "首页看护中" : "");
-        const badgeBg = !b.confirmed ? (needsMyConfirm ? "rgba(255,220,110,.28)" : "rgba(251,146,60,.32)") : "rgba(255,220,110,.26)";
-        const badgeColor = !b.confirmed ? (needsMyConfirm ? "#FFDC6E" : "#FED7AA") : "#FFDC6E";
+        const badgeText = !b.confirmed ? (needsMyConfirm ? "待我确认" : "待对方确认") : "";
+        const badgeBg = needsMyConfirm ? "rgba(255,220,110,.28)" : "rgba(251,146,60,.32)";
+        const badgeColor = needsMyConfirm ? "#FFDC6E" : "#FED7AA";
         return `
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:10px;background:rgba(255,255,255,.08);margin-top:5px">
             <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">
@@ -8294,7 +8559,6 @@
                 <button type="button" data-act="acceptCareBond" data-id="${b.id}" style="border:0;background:#fff;color:var(--blue);font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;cursor:pointer;font-family:inherit">同意</button>
                 <button type="button" data-act="rejectCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.18);color:#fff;font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;cursor:pointer;font-family:inherit">拒绝</button>
               ` : `
-                ${b.confirmed ? `<button type="button" data-act="toggleWatchWard" data-ward="${esc(b.wardName)}" style="border:0;background:${isWatching ? "rgba(255,220,110,.26)" : "#fff"};color:${isWatching ? "#FFDC6E" : "var(--blue)"};font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;cursor:pointer;font-family:inherit">${isWatching ? "切回自己" : "去看护"}</button>` : ""}
                 <button type="button" data-act="askRemoveCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.15);color:rgba(255,255,255,.88);font-size:11px;font-weight:600;padding:4px 8px;border-radius:999px;cursor:pointer;font-family:inherit">解除</button>
               `}
             </div>
@@ -8325,26 +8589,26 @@
           genIsV01() ? `<button class="cap" data-act="openDemoPersonSheet" type="button" title="切换演示人名（仅 Demo 演示用）">${I.person}${esc(curPerson.name)} ▾${otherUnread > 0 ? `<span style="margin-left:3px;padding:0 5px;border-radius:999px;background:#EF4444;color:#fff;font-size:10px;font-weight:800">${otherUnread}</span>` : ""}</button>` : "")}
         <div class="scroll px20" style="padding-top:8px">
           <div class="hero">
-            ${watchingBannerHTML}
             <div class="pointer" data-go="health-record" role="button" style="cursor:pointer">
               <div class="hero-top">
-                <div class="avatar">${esc(curPerson.name.slice(0, 1))}</div>
+                <div class="avatar">${esc(activeP.name.slice(0, 1))}</div>
                 <div style="min-width:0">
                   <div style="display:flex;align-items:center;gap:6px;white-space:nowrap">
-                    <span class="s18 fb">${esc(curPerson.name)}</span>
+                    <span class="s18 fb">${esc(activeP.name)}</span>
                     ${isVip ? `<span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.crown} VIP</span>` : ""}
                   </div>
                   <div style="display:flex;align-items:center;gap:6px;margin-top:5px;white-space:nowrap">
-                    <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.18);padding:2.5px 8px;border-radius:999px">${esc(curPerson.gender)}</span>
+                    <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.18);padding:2.5px 8px;border-radius:999px">${isWatchingWard ? "我看护的人" : "我"}</span>
+                    <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.18);padding:2.5px 8px;border-radius:999px">${esc(activeP.gender)}</span>
                   </div>
                 </div>
                 <button class="view-cap" data-go="health-record" type="button">点击查看</button>
               </div>
               <div class="frost"></div>
               <div class="metrics">
-                <div><span>年龄</span><b>${curPerson.age || 58}</b></div>
-                <div><span>身高</span><b>${curPerson.height || 170}</b></div>
-                <div><span>体重</span><b>${curPerson.weight || 70}</b></div>
+                <div><span>年龄</span><b>${activeP.age || 58}</b></div>
+                <div><span>身高</span><b>${activeP.height || 170}</b></div>
+                <div><span>体重</span><b>${activeP.weight || 70}</b></div>
                 <div><span>BMI</span><b>${curBmi}</b></div>
               </div>
             </div>
@@ -8629,10 +8893,11 @@
   /// 按周偏移生成该周读数：本周为基线，往期整体略高（康复向好）+ 逐日确定性波动
   /// （只叠波动的话七天均值恰好抵消，翻页看不出变化，所以要有 drift）
   function vitalsWeekData() {
+    const baseWeek = (activePersonStore().vitalsWeek || VITALS_WEEK);
     const o = S.vitalsOffset || 0;
-    if (!o) return VITALS_WEEK;
+    if (!o) return baseWeek;
     const drift = -o * 1.9;
-    return VITALS_WEEK.map((d, i) => {
+    return baseWeek.map((d, i) => {
       const w = Math.sin((i + 1) * (o * 1.7)) * 6 + Math.cos(o * 2.3 + i) * 3;
       return {
         day: d.day,
@@ -8857,18 +9122,20 @@
 
   /// 本周评估卡：按均值判档出一句结论（真机 RecordsView 空 / 稳 / 关注三级）
   function vitalsSummary() {
-    const avgSys = 126; const avgDia = 78; const avgHr = 72;
-    const bp = VITAL.bpStatus(avgSys, avgDia, 58);
+    const avg = vitalsWeekAvg();
+    const avgSys = avg.sys; const avgDia = avg.dia; const avgHr = avg.hr;
+    const age = S.age || 58;
+    const bp = VITAL.bpStatus(avgSys, avgDia, age);
     const hr = VITAL.hrStatus(avgHr);
     const bpOk = bp === "inTarget";
     const hrOk = hr === "inTarget";
     if (bpOk && hrOk) {
-      return { badge: "整体平稳", text: `本周血压与静息心率均值都落在康复目标内（血压 ${VITAL.bpTargetText(58)}，心率 55–60），建议继续保持。` };
+      return { badge: "整体平稳", text: `本周血压与静息心率均值都落在康复目标内（血压 ${VITAL.bpTargetText(age)}，心率 55–60），建议继续保持。` };
     }
     const bits = [];
     bits.push(bpOk
-      ? `血压均值 ${avgSys}/${avgDia} 在目标 ${VITAL.bpTargetText(58)} 内`
-      : `血压均值 ${avgSys}/${avgDia} ${VITAL_LAB[bp]}（目标 ${VITAL.bpTargetText(58)}）`);
+      ? `血压均值 ${avgSys}/${avgDia} 在目标 ${VITAL.bpTargetText(age)} 内`
+      : `血压均值 ${avgSys}/${avgDia} ${VITAL_LAB[bp]}（目标 ${VITAL.bpTargetText(age)}）`);
     bits.push(hrOk
       ? `静息心率均值 ${avgHr} 落在目标 55–60`
       : `静息心率均值 ${avgHr} ${VITAL_LAB[hr]}（目标 55–60）`);
@@ -12527,6 +12794,60 @@
         </div>
       </div>`;
     },
+    homeTargetSheet: () => {
+      ensureCareGraph();
+      const me = currentDemoPerson();
+      const isSelf = !S.watchingWardName;
+      const confirmedWards = myWardsList(me.name).filter((b) => b.confirmed);
+      return `
+      <div class="scrim bottom" data-act="close">
+        <div class="sheet" onclick="event.stopPropagation()">
+          <div class="grab"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div class="s20 fb t">切换查看对象</div>
+              <div class="s13 t-sec" style="margin-top:2px">切换后，首页及所有健康模块将同步为所选对象的专属档案</div>
+            </div>
+            <button class="cap" data-act="close" type="button">关闭</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
+            <button type="button" data-act="selectHomeTarget" data-ward="" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;border:${isSelf ? "1.5px solid rgba(16,84,224,.32)" : "1px solid transparent"};background:${isSelf ? "rgba(16,84,224,.10)" : "#F5F8FF"};cursor:pointer;text-align:left;font-family:inherit;width:100%">
+              <div style="width:42px;height:42px;border-radius:999px;background:${isSelf ? "var(--blue)" : "rgba(16,84,224,.12)"};color:${isSelf ? "#fff" : "var(--blue)"};font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(me.name.slice(0, 1))}</div>
+              <div style="min-width:0;flex:1">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span class="s17 fb t">${esc(me.name)}（我）的一天</span>
+                  <span style="font-size:11.5px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 7px;border-radius:999px">本人</span>
+                </div>
+                <div style="font-size:12.5px;font-weight:500;color:var(--sec);margin-top:3px">查看与管理我自己的康复计划、血压、运动与身体报告</div>
+              </div>
+              ${isSelf ? `<span style="color:var(--blue);font-weight:800;font-size:16px">✓</span>` : `<span class="neutral-chev">${I.chevR}</span>`}
+            </button>
+            ${confirmedWards.map((b) => {
+              const isWatching = S.watchingWardName === b.wardName;
+              return `
+                <button type="button" data-act="selectHomeTarget" data-ward="${esc(b.wardName)}" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;border:${isWatching ? "1.5px solid rgba(16,84,224,.32)" : "1px solid transparent"};background:${isWatching ? "rgba(16,84,224,.10)" : "#F5F8FF"};cursor:pointer;text-align:left;font-family:inherit;width:100%">
+                  <div style="width:42px;height:42px;border-radius:999px;background:${isWatching ? "var(--blue)" : "rgba(16,84,224,.12)"};color:${isWatching ? "#fff" : "var(--blue)"};font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(b.wardName.slice(0, 1))}</div>
+                  <div style="min-width:0;flex:1">
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <span class="s17 fb t">${esc(b.wardName)}（我看护的人）的一天</span>
+                      <span style="font-size:11.5px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 7px;border-radius:999px">${esc(b.relation)}</span>
+                    </div>
+                    <div style="font-size:12.5px;font-weight:500;color:var(--sec);margin-top:3px">查看与协助看护${esc(b.wardName)}的康复计划、血压、运动与身体报告</div>
+                  </div>
+                  ${isWatching ? `<span style="color:var(--blue);font-weight:800;font-size:16px">✓</span>` : `<span class="neutral-chev">${I.chevR}</span>`}
+                </button>`;
+            }).join("")}
+            ${!confirmedWards.length ? `
+              <button type="button" data-act="goProfileFromTargetSheet" style="display:flex;align-items:center;gap:10px;padding:13px 14px;border-radius:14px;border:0;background:#F5F8FF;cursor:pointer;text-align:left;font-family:inherit;width:100%">
+                <span style="color:var(--blue);display:inline-flex">${I.plus}</span>
+                <span class="s15 fb t" style="flex:1">还没有被守护人，去个人中心添加</span>
+                <span class="neutral-chev">${I.chevR}</span>
+              </button>
+            ` : ""}
+          </div>
+        </div>
+      </div>`;
+    },
     demoPersonSheet: () => {
       ensureCareGraph();
       return `
@@ -13053,7 +13374,8 @@
         const future = ymd > todayYMD;
         const inRange = from && to && ymd >= from && ymd <= to;
         const edge = ymd === from || ymd === to;
-        const has = WALK_RECORDS.some((d) => d.ymd === ymd && d.items.some((it) => !(S.walkDeleted || {})[it.key]));
+        const personWalkRecords = activePersonStore().walkRecords || WALK_RECORDS;
+        const has = personWalkRecords.some((d) => d.ymd === ymd && d.items.some((it) => !(S.walkDeleted || {})[it.key]));
         cells.push(`<div class="day-cell" ${future ? "" : `data-act="${!from || (from && to) ? "pickWalkFrom" : "pickWalkTo"}" data-ymd="${ymd}"`}>
           <div class="day-num ${edge ? "on" : inRange ? "range" : ""} ${future ? "dim" : ""}">${day}</div>
           <div class="day-dot ${has ? "done" : ""}"></div>
