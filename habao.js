@@ -1174,7 +1174,7 @@
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。V0.1 + VIP 且采纳过方案时，标题下方多一张「方案章卡」：7 个日格（🌸 满日 / ◐ 部分 / ○ 空或未到 / 休 = 当天没排方案计划，算满日；今天蓝描边，点日格换日）、右上「本期已集 X/Y 章」、鼓励语（再集满 N 天拿金章 / 银章，只奖不罚）与「本期计划 ›」展开清单（调整 / 新增 / 保留 + 医嘱标）。其它状态：待采纳「📮 去采纳」、本期结束待交反馈（七格定格 + 期章 + 蓝色「交反馈」开期末反馈弹窗）、已交反馈下一期待采纳（「下一期方案已送达 去看看 ›」）。章卡下一行「我的期章」横排期章（金 ≥6 满日 / 银 4–5 / 铜 ≤3 且打过卡），点开看该期小结。海报日期下加「第 N 期康复方案 · 第 D 天 · 满日 X/7」（已结束带期章）。只有方案里的计划计入章卡，家属代打卡同样点亮，海报不带操作人。V0.0 / V0.2 / 未开通 VIP 只显示日章。" },
-    consult: { code: "SmartConsultChatView", note: "纯粹的 AI 问诊对话界面（所有入口始终可点击进入）：顶部导航左「返回」、居中「哈宝医生」；中间消息区在未发消息时展示问候卡（你好，这里是哈宝医生 / 有不适或用药疑问，都可以问我）；VIP 用户发送消息后以左右纯文本/图片气泡进行问答交流，非 VIP 用户发送消息后弹出「需购买 VIP 才能使用哈宝问诊」提示对话卡（可一键跳转 VIP 会员页开通）；底部主输入框默认为「长按说话」按钮（按住说话、上滑取消、松开发送），左侧为键盘切换按钮（点击切换为文字输入框），右侧为「+」号功能面板（仅保留拍照、相册，已移除 AI 电话）。" },
+    consult: { code: "SmartConsultChatView", note: "纯粹的 AI 问诊对话界面（所有入口始终可点击进入）：顶部导航左「返回」、居中「哈宝医生」；中间消息区在未发消息时展示问候卡（你好，这里是哈宝医生 / 有不适或用药疑问，都可以问我）；VIP 用户发送消息后以左右纯文本/图片气泡进行问答交流，非 VIP 用户发送消息后弹出「需购买 VIP 才能使用哈宝问诊」提示对话卡（可一键跳转 VIP 会员页开通，已购买 VIP 后自动转为哈宝医生打招呼气泡以便正式聊天问诊）；底部主输入框默认为「长按说话」按钮（按住说话、上滑取消、松开发送），左侧为键盘切换按钮（点击切换为文字输入框），右侧为「+」号功能面板（仅保留拍照、相册，已移除 AI 电话）。" },
     profile: { code: "ServiceView", note: "Hero 健康档案 + 打卡通知/协议。V0.0 不出现家属管理、操作记录、硬件管理、VIP，也没有右上身份胶囊，档案标「本人」。V0.1 在档案卡下加 VIP 控制区（¥2400 / 年）；未开通时家属管理、操作记录、硬件管理仍在列表里，副说明「开通 VIP 后可用」、右侧皇冠图标，整行不可点击（开通 VIP 通过上方蓝色 Hero 卡的「购买 ›」进入）。开通后这三行恢复可点击进入，身份胶囊、通知家属和问诊一起放开。记录和绑定仍在，取消订阅只重新上锁、不删数据。身份胶囊仍决定写入归属，但不再在卡片上盖章。" },
     vip: { code: "VIPView", note: "仅从 V0.1 入口进来。Hero 写哈宝 VIP 与 ¥2400 / 年，下面五项完整详情：家属管理、硬件管理、操作记录、哈宝医生（AI+真人医生前端统一为哈宝医生主体），以及支架保险理赔服务。底栏「立即开通」先确认，演示不扣款，开通后有效期一年；已开通可「取消订阅」，确认后四项功能重新上锁、服务权益同步终止，家属、记录和硬件绑定留在本机。注销清空开通状态，退出登录保留。" },
     hardware: { code: "HardwareManageView", note: "仅 V0.1（V0.0 个人中心没有这一行）。两张设备模块卡：未绑定写「未绑定」、右端挂「扫码绑定」浅蓝胶囊；已绑定写绿色「已绑定 · 编号」、右端箭头。点未绑定卡进扫码页，点已绑定卡进设备页。副说明按已绑定的名字拼，两台齐了写「两台都已绑定」。绑定留在本机，切回 V0.0 只藏入口。" },
@@ -6941,7 +6941,7 @@
           ${S.messages.length ? S.messages.map((m) => (m.who === "vip" ? `
             <div class="chat-msg-row ai">
               <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
-              ${consultVipCardHTML()}
+              ${genHasFamily() ? `<div class="bubble ai">${CONSULT_VIP_GREETING}</div>` : consultVipCardHTML()}
             </div>
           ` : m.who === "user" ? `
             <div class="chat-msg-row user">
@@ -6994,7 +6994,7 @@
         ${S.messages.length ? `
         <div class="scroll px20" style="padding-top:8px">
           <div class="s18 fb t mb8">今天</div>
-          ${S.messages.map((m) => `<div class="bubble ${m.who}">${m.t}</div>`).join("")}
+          ${S.messages.map((m) => `<div class="bubble ${m.who === "vip" ? "ai" : m.who}">${m.who === "vip" && genHasFamily() ? CONSULT_VIP_GREETING : m.t}</div>`).join("")}
         </div>` : `
         <div class="grow col center" style="padding:0 28px">
           <div class="hist-empty-ico">${I.clock}</div>
@@ -9729,6 +9729,7 @@
     const style = extraStyle ? `${extraStyle};` : "";
     return `<button class="cta" style="${style}" data-go="consult" type="button"><img src="${A.logo}" width="30" height="30" alt="" />进入哈宝医生</button>`;
   }
+  const CONSULT_VIP_GREETING = "你好，我是哈宝医生！有身体不适、用药疑问或检查报告需要解读，现在都可以直接发消息问我，请问有什么可以帮您？";
   function consultVipCardHTML() {
     const isVip = genHasFamily();
     return `
