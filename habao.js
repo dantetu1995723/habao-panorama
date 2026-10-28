@@ -1305,6 +1305,19 @@
       { id: "p2", name: "张桂兰", gender: "女", age: 56, height: 160, weight: 61, rel: "配偶", phone: "137****9021", phoneRaw: "13700139021" },
     ],
     activePatientId: "p2",
+    currentPersonName: "李建国",
+    watchingWardName: null,
+    demoPeople: [
+      { name: "李建国", gender: "男", age: 58, height: 170, weight: 75, phone: "138****5678", phoneRaw: "13800135678" },
+      { name: "王芳", gender: "女", age: 55, height: 162, weight: 58, phone: "139****2210", phoneRaw: "13900132210" },
+      { name: "张桂兰", gender: "女", age: 56, height: 160, weight: 61, phone: "137****9021", phoneRaw: "13700139021" },
+    ],
+    careBonds: [
+      { id: "b1", guardianName: "王芳", guardianPhone: "139****2210", guardianPhoneRaw: "13900132210", wardName: "李建国", wardPhone: "138****5678", wardPhoneRaw: "13800135678", relation: "配偶", confirmed: true, initiatedBy: "ward" },
+      { id: "b2", guardianName: "李建国", guardianPhone: "138****5678", guardianPhoneRaw: "13800135678", wardName: "张桂兰", wardPhone: "137****9021", wardPhoneRaw: "13700139021", relation: "父母", confirmed: true, initiatedBy: "guardian" },
+    ],
+    pendingPersonPopups: {},
+    careSheetDraft: { name: "", phone: "", rel: "配偶" },
     consultUnread: 2,
     consultUnreadByRole: { patient: 1, family: 1 },
     careNoticePopup: null,
@@ -1973,14 +1986,118 @@
     if (!S.toast) return "";
     return `<div class="toast">${I.warn}${S.toast}</div>`;
   }
+  function ensureCareGraph() {
+    if (!S.demoPeople || !S.demoPeople.length) {
+      S.demoPeople = [
+        { name: "李建国", gender: "男", age: 58, height: 170, weight: 75, phone: "138****5678", phoneRaw: "13800135678" },
+        { name: "王芳", gender: "女", age: 55, height: 162, weight: 58, phone: "139****2210", phoneRaw: "13900132210" },
+        { name: "张桂兰", gender: "女", age: 56, height: 160, weight: 61, phone: "137****9021", phoneRaw: "13700139021" },
+      ];
+    }
+    if (!S.careBonds) {
+      S.careBonds = [
+        { id: "b1", guardianName: "王芳", guardianPhone: "139****2210", guardianPhoneRaw: "13900132210", wardName: "李建国", wardPhone: "138****5678", wardPhoneRaw: "13800135678", relation: "配偶", confirmed: true, initiatedBy: "ward" },
+        { id: "b2", guardianName: "李建国", guardianPhone: "138****5678", guardianPhoneRaw: "13800135678", wardName: "张桂兰", wardPhone: "137****9021", wardPhoneRaw: "13700139021", relation: "父母", confirmed: true, initiatedBy: "guardian" },
+      ];
+    }
+    if (!S.currentPersonName) S.currentPersonName = "李建国";
+    if (!S.pendingPersonPopups) S.pendingPersonPopups = {};
+    if (!S.careSheetDraft) S.careSheetDraft = { name: "", phone: "", rel: "配偶" };
+  }
+  function currentDemoPerson() {
+    ensureCareGraph();
+    return S.demoPeople.find((p) => p.name === S.currentPersonName) || S.demoPeople[0];
+  }
+  function ensureDemoPersonExists(name, phoneRaw, fallbackGender, fallbackAge) {
+    ensureCareGraph();
+    let found = S.demoPeople.find((p) => p.name === name);
+    if (!found) {
+      const masked = String(phoneRaw || "13900130000").replace(/^(\d{3})\d{4}(\d{4})$/, "$1****$2");
+      found = {
+        name,
+        gender: fallbackGender || "男",
+        age: fallbackAge || 58,
+        height: (fallbackGender === "女") ? 160 : 170,
+        weight: (fallbackGender === "女") ? 58 : 70,
+        phone: masked,
+        phoneRaw: phoneRaw || "13900130000",
+      };
+      S.demoPeople.push(found);
+    }
+    return found;
+  }
+  function myGuardiansList(personName) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName;
+    return S.careBonds.filter((b) => b.wardName === nm);
+  }
+  function myWardsList(personName) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName;
+    return S.careBonds.filter((b) => b.guardianName === nm);
+  }
+  function pendingIncomingBondFor(personName) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName;
+    return S.careBonds.find((b) => !b.confirmed && (
+      (b.initiatedBy === "ward" && b.guardianName === nm) ||
+      (b.initiatedBy === "guardian" && b.wardName === nm)
+    )) || null;
+  }
+  function unreadPopupCountForPerson(personName) {
+    ensureCareGraph();
+    const q = (S.pendingPersonPopups[personName] || []).length;
+    const inv = pendingIncomingBondFor(personName) ? 1 : 0;
+    return q + inv;
+  }
+  function otherPeopleUnreadTotal() {
+    ensureCareGraph();
+    return S.demoPeople
+      .filter((p) => p.name !== S.currentPersonName)
+      .reduce((acc, p) => acc + unreadPopupCountForPerson(p.name), 0);
+  }
+  function syncLegacyListsFromBonds() {
+    ensureCareGraph();
+    const cur = S.currentPersonName;
+    S.family = myGuardiansList(cur).map((b) => ({
+      id: b.id,
+      name: b.guardianName,
+      rel: b.relation,
+      phone: b.guardianPhone,
+      phoneRaw: b.guardianPhoneRaw,
+      confirmed: b.confirmed,
+    }));
+    S.guardedPatients = myWardsList(cur).map((b) => {
+      const p = S.demoPeople.find((x) => x.name === b.wardName) || { gender: "女", age: 56, height: 160, weight: 61 };
+      return {
+        id: b.id,
+        name: b.wardName,
+        gender: p.gender,
+        age: p.age,
+        height: p.height,
+        weight: p.weight,
+        rel: b.relation,
+        phone: b.wardPhone,
+        phoneRaw: b.wardPhoneRaw,
+        confirmed: b.confirmed,
+      };
+    });
+  }
   function noticeRecipientRole(n) {
     if (!n) return "patient";
     return n.kind === "familyRemindPlan" || n.kind === "familyRemindExercise" ? "patient" : "family";
   }
+  function noticeMatchesCurrentPerson(n) {
+    if (!n) return false;
+    ensureCareGraph();
+    if (n.recipientPerson) return n.recipientPerson === S.currentPersonName;
+    return noticeRecipientRole(n) === shownRole();
+  }
   function consultUnreadFor(role) {
     const r = role || shownRole();
     if (!S.consultUnreadByRole) S.consultUnreadByRole = { patient: 1, family: 1 };
-    return S.consultUnreadByRole[r] || 0;
+    const pendingForMe = (S.pendingPersonPopups && S.pendingPersonPopups[S.currentPersonName]) ? S.pendingPersonPopups[S.currentPersonName].length : 0;
+    return (S.consultUnreadByRole[r] || 0) + pendingForMe;
   }
   let sysBannerTimer = null;
   function presentCareNotice(notice) {
@@ -1995,12 +2112,43 @@
       }
     }, 4500);
   }
+  function deliverCareNotice(notice) {
+    if (!notice || !genIsV01()) return;
+    ensureCareGraph();
+    const now = new Date();
+    if (!notice.time) {
+      notice.time = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    }
+    S.messages.push({ who: "notice", notice });
+    if (notice.recipientPerson) {
+      if (notice.recipientPerson === S.currentPersonName) {
+        presentCareNotice(notice);
+      } else {
+        if (!S.pendingPersonPopups[notice.recipientPerson]) S.pendingPersonPopups[notice.recipientPerson] = [];
+        S.pendingPersonPopups[notice.recipientPerson].push(notice);
+        // 同步展示手机系统顶部横幅，提示对方手机号已收到系统推送；切换到该演示人名时立即弹出弹窗
+        S.sysPushBanner = notice;
+        if (sysBannerTimer) clearTimeout(sysBannerTimer);
+        sysBannerTimer = setTimeout(() => {
+          if (S.sysPushBanner === notice) {
+            S.sysPushBanner = null;
+            document.querySelector(".phone-screen .sys-push-banner")?.remove();
+          }
+        }, 4500);
+      }
+      return;
+    }
+    const targetRole = noticeRecipientRole(notice);
+    if (!S.consultUnreadByRole) S.consultUnreadByRole = { patient: 0, family: 0 };
+    if (S.screen !== "consult" || shownRole() !== targetRole) {
+      S.consultUnreadByRole[targetRole] = (S.consultUnreadByRole[targetRole] || 0) + 1;
+      S.consultUnread = (S.consultUnreadByRole.patient || 0) + (S.consultUnreadByRole.family || 0);
+    }
+    presentCareNotice(notice);
+  }
   function ensureSeededCareNotices() {
     if (!genIsV01() || S.seededCareNotices) return;
     S.seededCareNotices = true;
-    const pName = S.name || "李建国";
-    const fam = activeFamMember();
-    const fLabel = `${fam.name}（${fam.rel || "家属"}）`;
     if (!S.messages.some((m) => m.who === "notice")) {
       S.messages.unshift(
         {
@@ -2008,9 +2156,10 @@
           notice: {
             kind: "patientActionDone",
             badgeText: "患者康复动态",
-            receiverLabel: "通知家属",
-            title: `${pName}已完成「起床」打卡`,
-            detail: `患者${pName}已在首页完成今日计划「06:00 起床」打卡，同步通知守护家属。`,
+            receiverLabel: "通知守护人：王芳",
+            recipientPerson: "王芳",
+            title: "李建国已完成「起床」打卡",
+            detail: "被守护人李建国已在首页完成今日计划「06:00 起床」打卡，同步通知守护人王芳。",
             target: "schedule",
             time: "06:05",
           },
@@ -2020,9 +2169,10 @@
           notice: {
             kind: "familyRemindPlan",
             badgeText: "家属打卡提醒",
-            receiverLabel: `通知患者：${pName}`,
-            title: `${fLabel}提醒你按时完成「阿司匹林肠溶片」`,
-            detail: `家属${fLabel}通过哈宝医生提醒${pName}：今日计划「08:00 阿司匹林肠溶片」待完成，服药后记得打卡，让家人放心。`,
+            receiverLabel: "通知被守护人：李建国",
+            recipientPerson: "李建国",
+            title: "王芳（配偶）提醒你按时完成「阿司匹林肠溶片」",
+            detail: "守护人王芳（配偶）通过哈宝医生提醒李建国：今日计划「08:00 阿司匹林肠溶片」待完成，服药后记得打卡，让家人放心。",
             target: "schedule",
             time: "08:15",
           },
@@ -2030,13 +2180,25 @@
       );
     }
   }
-  function presentUnreadCareNoticeForRole(role) {
+  function presentUnreadCareNoticeForPerson(personName) {
     if (!genIsV01()) return;
+    ensureCareGraph();
     ensureSeededCareNotices();
-    if (consultUnreadFor(role) <= 0) return;
-    const list = (S.messages || []).filter((m) => m.who === "notice" && noticeRecipientRole(m.notice) === role);
-    const latest = list.length ? list[list.length - 1].notice : null;
-    if (latest) presentCareNotice(latest);
+    const nm = personName || S.currentPersonName;
+    const incoming = pendingIncomingBondFor(nm);
+    if (incoming) {
+      openOverlay("familyInvite", { bondId: incoming.id });
+      return;
+    }
+    const queue = S.pendingPersonPopups[nm] || [];
+    if (queue.length > 0) {
+      const latest = queue[queue.length - 1];
+      S.pendingPersonPopups[nm] = [];
+      presentCareNotice(latest);
+    }
+  }
+  function presentUnreadCareNoticeForRole(role) {
+    presentUnreadCareNoticeForPerson(S.currentPersonName);
   }
   function sysPushBannerHTML() {
     const n = S.sysPushBanner;
@@ -2055,26 +2217,38 @@
         </div>
       </div>`;
   }
+  function careNoticeStyleMeta(n) {
+    const k = n ? n.kind : "";
+    if (k === "familyRemindPlan" || k === "familyRemindExercise") {
+      return { accent: "#D97706", softBg: "rgba(245,158,11,.13)", ico: "🔔", ruleHint: "被守护人在哈宝医生接收提醒通知" };
+    }
+    if (k === "patientActionDone" || k === "bindConfirmed") {
+      return { accent: "#1AA64A", softBg: "rgba(26,166,74,.12)", ico: "✅", ruleHint: k === "bindConfirmed" ? "双向守护关系已确认生效" : "守护人在哈宝医生接收完成通知" };
+    }
+    if (k === "bindRejected" || k === "bindRemoved") {
+      return { accent: "#DC4848", softBg: "rgba(220,72,72,.12)", ico: "⚠️", ruleHint: "双向守护关系变动实时通知" };
+    }
+    if (k === "bindRequest") {
+      return { accent: "#1054E0", softBg: "rgba(16,84,224,.10)", ico: "🤝", ruleHint: "守护绑定申请实时通知" };
+    }
+    return { accent: "#1054E0", softBg: "rgba(16,84,224,.10)", ico: "👥", ruleHint: "医患家协同通知" };
+  }
   function careNoticeModalHTML() {
     const n = S.careNoticePopup;
     if (!n || !genIsV01()) return "";
-    const isRemind = n.kind === "familyRemindPlan" || n.kind === "familyRemindExercise";
-    const accent = isRemind ? "#D97706" : "#1AA64A";
-    const softBg = isRemind ? "rgba(245,158,11,.13)" : "rgba(26,166,74,.12)";
-    const ico = isRemind ? "🔔" : "✅";
-    const ruleHint = isRemind ? "患者在哈宝医生接收提醒通知" : "家属在哈宝医生接收完成通知";
+    const meta = careNoticeStyleMeta(n);
     return `
       <div class="care-notice-modal" data-act="closeCareNotice">
         <div class="care-notice-dialog" onclick="event.stopPropagation()">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-            <span style="display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:700;color:${accent};background:${softBg};padding:4px 10px;border-radius:999px">${ico} ${esc(n.badgeText || "康复通知")}</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:700;color:${meta.accent};background:${meta.softBg};padding:4px 10px;border-radius:999px">${meta.ico} ${esc(n.badgeText || "康复通知")}</span>
             <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--blue);background:rgba(16,84,224,.08);padding:3.5px 8px;border-radius:999px">📱 已同步手机系统通知</span>
           </div>
           <div class="s19 fb t" style="margin-top:12px;line-height:1.35">${esc(n.title || "")}</div>
           <div style="margin-top:10px;padding:12px 13px;border-radius:14px;background:rgba(16,84,224,.05)">
             <div style="display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:6px">
-              <b style="color:${accent}">${esc(n.receiverLabel || "")}</b>
-              <span style="color:var(--sec)">· ${ruleHint}</span>
+              <b style="color:${meta.accent}">${esc(n.receiverLabel || "")}</b>
+              <span style="color:var(--sec)">· ${meta.ruleHint}</span>
             </div>
             <div class="s14 fm" style="color:rgba(16,84,224,.86);line-height:1.45">${esc(n.detail || "")}</div>
           </div>
@@ -5153,38 +5327,277 @@
         render();
         toast("已取消订阅");
       },
-      roleSwitch() {
-        if (S.role === "patient") {
-          S.selfProfile = {
-            name: S.name || "李建国",
-            gender: S.gender || "男",
-            age: S.age || 58,
-            height: S.height || 170,
-            weight: S.weight || 75,
-          };
-          S.role = "family";
-          S.pureFamilyLogin = false;
-          syncProfileForRole("family");
-          const myNm = mySelfName();
-          if (!S.family || !S.family.length) {
-            S.family = [{ id: "f1", name: myNm, rel: "配偶", phone: "139****2210", phoneRaw: "13900132210", confirmed: true }];
-          }
-          const unconfirmed = (S.family || []).find((f) => f.confirmed === false);
-          const cur = unconfirmed || activeFamMember();
-          S.actorId = cur.id;
-          if (unconfirmed || !S.demoInviteShown) {
-            S.demoInviteShown = true;
-            openOverlay("familyInvite", { memberId: cur.id });
-            return;
-          }
-          presentUnreadCareNoticeForRole("family");
-        } else {
+      openDemoPersonSheet() {
+        ensureCareGraph();
+        openOverlay("demoPersonSheet");
+      },
+      switchDemoPerson() {
+        ensureCareGraph();
+        const nm = el.dataset.name;
+        const p = S.demoPeople.find((x) => x.name === nm);
+        if (!p) return;
+        S.currentPersonName = p.name;
+        S.watchingWardName = null;
+        S.role = "patient";
+        S.actorId = null;
+        S.name = p.name;
+        S.gender = p.gender;
+        S.age = p.age || 58;
+        S.height = p.height;
+        S.weight = p.weight;
+        S.phone = p.phoneRaw;
+        S.selfProfile = {
+          name: p.name,
+          gender: p.gender,
+          age: p.age || 58,
+          height: p.height,
+          weight: p.weight,
+        };
+        syncLegacyListsFromBonds();
+        closeOverlay();
+        toast(`已切换演示人名：${p.name}`);
+        presentUnreadCareNoticeForPerson(p.name);
+        render();
+      },
+      openAddGuardianSheet() {
+        ensureCareGraph();
+        S.careSheetDraft = { name: "", phone: "", rel: "配偶" };
+        openOverlay("addGuardianSheet");
+      },
+      openAddWardSheet() {
+        ensureCareGraph();
+        S.careSheetDraft = { name: "", phone: "", rel: "配偶" };
+        openOverlay("addWardSheet");
+      },
+      pickCareRel() {
+        if (!S.careSheetDraft) S.careSheetDraft = { name: "", phone: "", rel: "配偶" };
+        const nInp = $("input[name=cg_name]");
+        const pInp = $("input[name=cg_phone]");
+        if (nInp) S.careSheetDraft.name = nInp.value;
+        if (pInp) S.careSheetDraft.phone = pInp.value;
+        S.careSheetDraft.rel = el.dataset.r || "配偶";
+        render();
+      },
+      submitAddGuardian() {
+        ensureCareGraph();
+        const name = ($("input[name=cg_name]")?.value ?? S.careSheetDraft?.name ?? "").trim();
+        const phone = ($("input[name=cg_phone]")?.value ?? S.careSheetDraft?.phone ?? "").replace(/\D/g, "");
+        const rel = S.careSheetDraft?.rel || "配偶";
+        const me = currentDemoPerson();
+        if (!name) { toast("请填写守护人姓名"); return; }
+        if (phone.length !== 11) { toast("请填写 11 位手机号"); return; }
+        if (name === me.name || phone === me.phoneRaw) { toast("不能添加自己为守护人"); return; }
+        const myG = myGuardiansList(me.name);
+        if (myG.length >= 5) { toast("最多添加 5 位守护人"); return; }
+        if (myG.some((b) => b.guardianName === name || b.guardianPhoneRaw === phone)) {
+          toast("该守护人已在名单中");
+          return;
+        }
+        ensureDemoPersonExists(name, phone, rel === "配偶" && me.gender === "男" ? "女" : "男", 55);
+        const masked = phone.replace(/^(\d{3})\d{4}(\d{4})$/, "$1****$2");
+        const bond = {
+          id: `b${Date.now()}`,
+          guardianName: name,
+          guardianPhone: masked,
+          guardianPhoneRaw: phone,
+          wardName: me.name,
+          wardPhone: me.phone,
+          wardPhoneRaw: me.phoneRaw,
+          relation: rel,
+          confirmed: false,
+          initiatedBy: "ward",
+        };
+        S.careBonds.push(bond);
+        syncLegacyListsFromBonds();
+        closeOverlay();
+        deliverCareNotice({
+          kind: "bindRequest",
+          badgeText: "收到康复守护邀请",
+          receiverLabel: `通知守护人：${name}`,
+          recipientPerson: name,
+          title: `${me.name}邀请你成为康复守护人`,
+          detail: `${me.name}在个人中心将你（${rel} · ${masked}）添加为守护人。请在个人中心或弹窗中点击「同意绑定」开启守护，可切换到「${name}」演示查看。`,
+          target: null,
+        });
+        toast(`已向${name}发送守护邀请通知（可右上角切换「${name}」体验确认）`);
+        render();
+      },
+      submitAddWard() {
+        ensureCareGraph();
+        const name = ($("input[name=cg_name]")?.value ?? S.careSheetDraft?.name ?? "").trim();
+        const phone = ($("input[name=cg_phone]")?.value ?? S.careSheetDraft?.phone ?? "").replace(/\D/g, "");
+        const rel = S.careSheetDraft?.rel || "配偶";
+        const me = currentDemoPerson();
+        if (!name) { toast("请填写被守护人姓名"); return; }
+        if (phone.length !== 11) { toast("请填写 11 位手机号"); return; }
+        if (name === me.name || phone === me.phoneRaw) { toast("不能添加自己为被守护人"); return; }
+        const myW = myWardsList(me.name);
+        if (myW.length >= 5) { toast("最多添加 5 位被守护人"); return; }
+        if (myW.some((b) => b.wardName === name || b.wardPhoneRaw === phone)) {
+          toast("该被守护人已在名单中");
+          return;
+        }
+        ensureDemoPersonExists(name, phone, rel === "配偶" && me.gender === "男" ? "女" : "女", 58);
+        const masked = phone.replace(/^(\d{3})\d{4}(\d{4})$/, "$1****$2");
+        const bond = {
+          id: `b${Date.now()}`,
+          guardianName: me.name,
+          guardianPhone: me.phone,
+          guardianPhoneRaw: me.phoneRaw,
+          wardName: name,
+          wardPhone: masked,
+          wardPhoneRaw: phone,
+          relation: rel,
+          confirmed: false,
+          initiatedBy: "guardian",
+        };
+        S.careBonds.push(bond);
+        syncLegacyListsFromBonds();
+        closeOverlay();
+        deliverCareNotice({
+          kind: "bindRequest",
+          badgeText: "收到守护申请",
+          receiverLabel: `通知被守护人：${name}`,
+          recipientPerson: name,
+          title: `${me.name}申请成为你的康复守护人`,
+          detail: `${me.name}（${rel} · ${me.phone}）申请守护你的康复档案。请在个人中心或弹窗中点击「同意绑定」后生效，可切换到「${name}」演示查看。`,
+          target: null,
+        });
+        toast(`已向${name}发送守护申请通知（可右上角切换「${name}」体验确认）`);
+        render();
+      },
+      acceptCareBond() {
+        ensureCareGraph();
+        const bid = el.dataset.id || (S.overlayData && S.overlayData.bondId);
+        const bond = S.careBonds.find((b) => String(b.id) === String(bid)) || pendingIncomingBondFor(S.currentPersonName);
+        if (!bond) { closeOverlay(); return; }
+        bond.confirmed = true;
+        syncLegacyListsFromBonds();
+        const initiator = bond.initiatedBy === "ward" ? bond.wardName : bond.guardianName;
+        const confirmer = bond.initiatedBy === "ward" ? bond.guardianName : bond.wardName;
+        if (S.overlay === "familyInvite") S.overlay = null;
+        deliverCareNotice({
+          kind: "bindConfirmed",
+          badgeText: "守护绑定已生效",
+          receiverLabel: `通知：${initiator}`,
+          recipientPerson: initiator,
+          title: `${confirmer}已同意与你建立康复守护关系`,
+          detail: `守护人「${bond.guardianName}」与被守护人「${bond.wardName}」（${bond.relation}）的双向守护已正式生效，现可同步查看康复计划、接收提醒与完成通知。`,
+          target: "schedule",
+        });
+        toast(`已同意绑定，与${initiator}的守护关系已生效`);
+        render();
+      },
+      rejectCareBond() {
+        ensureCareGraph();
+        const bid = el.dataset.id || (S.overlayData && S.overlayData.bondId);
+        const bond = S.careBonds.find((b) => String(b.id) === String(bid)) || pendingIncomingBondFor(S.currentPersonName);
+        if (!bond) { closeOverlay(); return; }
+        const initiator = bond.initiatedBy === "ward" ? bond.wardName : bond.guardianName;
+        const rejecter = bond.initiatedBy === "ward" ? bond.guardianName : bond.wardName;
+        S.careBonds = S.careBonds.filter((b) => String(b.id) !== String(bond.id));
+        if (S.watchingWardName === bond.wardName) {
+          S.watchingWardName = null;
           S.role = "patient";
           S.actorId = null;
-          syncProfileForRole("patient");
-          presentUnreadCareNoticeForRole("patient");
         }
+        syncLegacyListsFromBonds();
+        if (S.overlay === "familyInvite") S.overlay = null;
+        deliverCareNotice({
+          kind: "bindRejected",
+          badgeText: "守护绑定未通过",
+          receiverLabel: `通知：${initiator}`,
+          recipientPerson: initiator,
+          title: `${rejecter}拒绝了本次康复守护绑定`,
+          detail: `${rejecter}未同意本次守护绑定申请，该待确认记录已自动移除。`,
+          target: null,
+        });
+        toast("已拒绝并移除该守护绑定申请");
         render();
+      },
+      askRemoveCareBond() {
+        ensureCareGraph();
+        const bid = el.dataset.id;
+        const bond = S.careBonds.find((b) => String(b.id) === String(bid));
+        if (!bond) return;
+        const other = bond.guardianName === S.currentPersonName ? bond.wardName : bond.guardianName;
+        openOverlay("confirm", {
+          title: "解除守护关系",
+          body: `确定解除与「${other}」的守护关系吗？解除后双方名单将同步移除，并向${other}发送解绑通知。`,
+          ok: "确认解除",
+          danger: true,
+          action: "doRemoveCareBond",
+          bondId: bond.id,
+        });
+      },
+      doRemoveCareBond() {
+        ensureCareGraph();
+        const bid = S.overlayData && S.overlayData.bondId;
+        const bond = S.careBonds.find((b) => String(b.id) === String(bid));
+        if (!bond) { closeOverlay(); return; }
+        const actor = S.currentPersonName;
+        const other = bond.guardianName === actor ? bond.wardName : bond.guardianName;
+        S.careBonds = S.careBonds.filter((b) => String(b.id) !== String(bond.id));
+        if (S.watchingWardName === bond.wardName) {
+          const me = currentDemoPerson();
+          S.watchingWardName = null;
+          S.role = "patient";
+          S.actorId = null;
+          S.name = me.name;
+          S.gender = me.gender;
+          S.age = me.age || 58;
+          S.height = me.height;
+          S.weight = me.weight;
+        }
+        syncLegacyListsFromBonds();
+        S.overlay = null;
+        deliverCareNotice({
+          kind: "bindRemoved",
+          badgeText: "守护关系已解除",
+          receiverLabel: `通知：${other}`,
+          recipientPerson: other,
+          title: `${actor}已解除与你的康复守护关系`,
+          detail: `${actor}在个人中心解除了「${bond.guardianName} 守护 ${bond.wardName}」的绑定关系，后续将不再互发打卡提醒与完成动态通知。`,
+          target: null,
+        });
+        toast(`已解除与${other}的守护关系，已向对方发送解绑通知`);
+        render();
+      },
+      toggleWatchWard() {
+        ensureCareGraph();
+        const wardNm = el.dataset.ward;
+        const me = currentDemoPerson();
+        if (!wardNm || S.watchingWardName === wardNm) {
+          S.watchingWardName = null;
+          S.role = "patient";
+          S.actorId = null;
+          S.name = me.name;
+          S.gender = me.gender;
+          S.age = me.age || 58;
+          S.height = me.height;
+          S.weight = me.weight;
+          toast(`已切回「${me.name}」本人康复视图`);
+          render();
+          return;
+        }
+        const ward = S.demoPeople.find((p) => p.name === wardNm);
+        if (!ward) return;
+        S.watchingWardName = ward.name;
+        S.role = "family";
+        syncLegacyListsFromBonds();
+        const famEntry = (S.family || [])[0] || { id: "f1", name: me.name, rel: "家属", phone: me.phone, phoneRaw: me.phoneRaw };
+        S.actorId = famEntry.id;
+        S.name = ward.name;
+        S.gender = ward.gender;
+        S.age = ward.age || 58;
+        S.height = ward.height;
+        S.weight = ward.weight;
+        toast(`正在以守护人「${me.name}」视角看护被守护人「${ward.name}」`);
+        render();
+      },
+      roleSwitch() {
+        ensureCareGraph();
+        openOverlay("demoPersonSheet");
       },
       closeCareNotice() {
         S.careNoticePopup = null;
@@ -5195,28 +5608,21 @@
         const n = S.careNoticePopup || S.sysPushBanner;
         S.careNoticePopup = null;
         S.sysPushBanner = null;
-        if (n) {
-          const targetRole = noticeRecipientRole(n);
-          if (S.role !== targetRole) {
-            if (S.role === "patient") {
-              S.selfProfile = {
-                name: S.name || "李建国",
-                gender: S.gender || "男",
-                age: S.age || 58,
-                height: S.height || 170,
-                weight: S.weight || 75,
-              };
-            }
-            S.role = targetRole;
-            syncProfileForRole(targetRole);
-            if (targetRole === "family") {
-              if (!S.family || !S.family.length) {
-                S.family = [{ id: "f1", name: mySelfName(), rel: "配偶", phone: "139****2210", phoneRaw: "13900132210", confirmed: true }];
-              }
-              S.actorId = activeFamMember().id;
-            } else {
-              S.actorId = null;
-            }
+        if (n && n.recipientPerson && n.recipientPerson !== S.currentPersonName) {
+          const p = (S.demoPeople || []).find((x) => x.name === n.recipientPerson);
+          if (p) {
+            S.currentPersonName = p.name;
+            S.watchingWardName = null;
+            S.role = "patient";
+            S.actorId = null;
+            S.name = p.name;
+            S.gender = p.gender;
+            S.age = p.age || 58;
+            S.height = p.height;
+            S.weight = p.weight;
+            S.phone = p.phoneRaw;
+            S.selfProfile = { name: p.name, gender: p.gender, age: p.age || 58, height: p.height, weight: p.weight };
+            syncLegacyListsFromBonds();
           }
         }
         go("consult", "cover");
@@ -7562,8 +7968,7 @@
     consult: () => {
       const canSend = consultCanSend();
       const inText = S.inputMode === "text";
-      const curRole = shownRole();
-      const visibleMessages = S.messages.filter((m) => m.who !== "notice" || noticeRecipientRole(m.notice) === curRole);
+      const visibleMessages = S.messages.filter((m) => m.who !== "notice" || noticeMatchesCurrentPerson(m.notice));
       const plusItem = (act, icon, label) =>
         `<button class="plus-item" type="button" data-act="${act}"><span>${icon}</span>${label}</button>`;
       return `
@@ -7843,79 +8248,118 @@
     },
 
     profile: () => {
-      const isFam = shownRole() === "family";
+      ensureCareGraph();
       const isVip = genHasFamily();
-      const myName = mySelfName();
-      const curAge = S.age || 58;
-      const gList = S.guardedPatients || [];
-      const heroTopHTML = isFam ? `
-        <div class="pointer" data-go="health-record" role="button" style="cursor:pointer">
-          <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:10px;background:rgba(255,255,255,.16);margin-bottom:12px">
-            <span style="color:#FFDC6E;display:inline-flex">${I.two}</span>
-            <span style="font-size:14px;font-weight:700;color:#fff;white-space:nowrap">${esc(myName)}（我）守护中</span>
-          </div>
-          <div class="hero-top">
-            <div class="avatar">${S.name.slice(0, 1)}</div>
-            <div style="min-width:0">
-              <div style="display:flex;align-items:center;gap:6px;white-space:nowrap">
-                <span class="s18 fb">${S.name}</span>
-                ${isVip ? `<span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.crown} VIP</span>` : ""}
+      const curPerson = currentDemoPerson();
+      const myGuardians = myGuardiansList(curPerson.name);
+      const myWards = myWardsList(curPerson.name);
+      const curBmi = ((curPerson.weight || 70) / Math.pow((curPerson.height || 170) / 100, 2)).toFixed(1);
+      const otherUnread = otherPeopleUnreadTotal();
+      const watchingBannerHTML = S.watchingWardName ? `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 11px;border-radius:10px;background:rgba(255,220,110,.20);margin-bottom:12px">
+          <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:#FFDC6E;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+            ${I.two}<span>当前首页看护被守护人：${esc(S.watchingWardName)}</span>
+          </span>
+          <button type="button" data-act="toggleWatchWard" data-ward="${esc(S.watchingWardName)}" style="border:0;background:rgba(255,255,255,.22);color:#fff;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;cursor:pointer;flex-shrink:0;font-family:inherit">切回自己</button>
+        </div>` : "";
+      const guardianRowsHTML = myGuardians.length ? myGuardians.map((b) => {
+        const needsMyConfirm = !b.confirmed && b.initiatedBy === "guardian";
+        const badgeText = b.confirmed ? "守护中" : (needsMyConfirm ? "待我确认" : "待对方确认");
+        const badgeBg = b.confirmed ? "rgba(74,222,128,.28)" : (needsMyConfirm ? "rgba(255,220,110,.28)" : "rgba(251,146,60,.32)");
+        const badgeColor = b.confirmed ? "#BBF7D0" : (needsMyConfirm ? "#FFDC6E" : "#FED7AA");
+        return `
+          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:11px;background:rgba(255,255,255,.10);margin-top:6px">
+            <div style="width:28px;height:28px;border-radius:999px;background:rgba(255,255,255,.20);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(b.guardianName.slice(0, 1))}</div>
+            <div style="min-width:0;flex:1">
+              <div style="display:flex;align-items:center;gap:5px;white-space:nowrap">
+                <span style="font-size:14.5px;font-weight:700;color:#fff">${esc(b.guardianName)}</span>
+                <span style="font-size:10.5px;font-weight:700;color:${badgeColor};background:${badgeBg};padding:1.5px 6px;border-radius:999px">${badgeText}</span>
               </div>
-              <div style="display:flex;align-items:center;gap:6px;margin-top:5px;white-space:nowrap">
-                <span style="font-size:12px;font-weight:700;color:#fff;background:rgba(255,255,255,.24);padding:2.5px 8px;border-radius:999px">被守护患者</span>
-                <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.16);padding:2.5px 8px;border-radius:999px">${S.gender}</span>
-              </div>
+              <div style="font-size:11.5px;color:rgba(255,255,255,.78);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">我是被守护人 · 对方是我的${esc(b.relation)} · ${esc(b.guardianPhone)}</div>
             </div>
-            <button class="view-cap" data-go="health-record" type="button">点击查看</button>
-          </div>
-          <div class="frost"></div>
-          <div class="metrics">
-            <div><span>年龄</span><b>${curAge}</b></div>
-            <div><span>身高</span><b>${S.height}</b></div>
-            <div><span>体重</span><b>${S.weight}</b></div>
-            <div><span>BMI</span><b>${bmi()}</b></div>
-          </div>
-        </div>
-      ` : `
-        <div class="pointer" data-go="health-record" role="button" style="cursor:pointer">
-          <div class="hero-top">
-            <div class="avatar">${S.name.slice(0, 1)}</div>
-            <div style="min-width:0">
-              <div style="display:flex;align-items:center;gap:6px;white-space:nowrap">
-                <span class="s18 fb">${S.name}</span>
-                ${isVip ? `<span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.crown} VIP</span>` : ""}
+            ${needsMyConfirm ? `
+              <button type="button" data-act="acceptCareBond" data-id="${b.id}" style="border:0;background:#fff;color:var(--blue);font-size:11.5px;font-weight:700;padding:4.5px 9px;border-radius:999px;cursor:pointer;font-family:inherit">同意</button>
+              <button type="button" data-act="rejectCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.16);color:#fff;font-size:11.5px;font-weight:700;padding:4.5px 9px;border-radius:999px;cursor:pointer;font-family:inherit">拒绝</button>
+            ` : `
+              <button type="button" data-act="askRemoveCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.15);color:rgba(255,255,255,.92);font-size:11.5px;font-weight:700;padding:4.5px 9px;border-radius:999px;cursor:pointer;font-family:inherit">解除</button>
+            `}
+          </div>`;
+      }).join("") : `<div style="font-size:12px;color:rgba(255,255,255,.72);padding:4px 2px">暂无守护你的人，点击右上角「+ 添加守护人」邀请家人共同看护</div>`;
+      const wardRowsHTML = myWards.length ? myWards.map((b) => {
+        const needsMyConfirm = !b.confirmed && b.initiatedBy === "ward";
+        const isWatching = S.watchingWardName === b.wardName;
+        const badgeText = !b.confirmed ? (needsMyConfirm ? "待我确认" : "待对方确认") : (isWatching ? "首页看护中" : "守护中");
+        const badgeBg = !b.confirmed ? (needsMyConfirm ? "rgba(255,220,110,.28)" : "rgba(251,146,60,.32)") : (isWatching ? "rgba(255,220,110,.30)" : "rgba(74,222,128,.28)");
+        const badgeColor = !b.confirmed ? (needsMyConfirm ? "#FFDC6E" : "#FED7AA") : (isWatching ? "#FFDC6E" : "#BBF7D0");
+        return `
+          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:11px;background:rgba(255,255,255,.10);margin-top:6px">
+            <div style="width:28px;height:28px;border-radius:999px;background:rgba(255,255,255,.20);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(b.wardName.slice(0, 1))}</div>
+            <div style="min-width:0;flex:1">
+              <div style="display:flex;align-items:center;gap:5px;white-space:nowrap">
+                <span style="font-size:14.5px;font-weight:700;color:#fff">${esc(b.wardName)}</span>
+                <span style="font-size:10.5px;font-weight:700;color:${badgeColor};background:${badgeBg};padding:1.5px 6px;border-radius:999px">${badgeText}</span>
               </div>
-              <div class="s13" style="opacity:.85;white-space:nowrap">本人　${S.gender}</div>
+              <div style="font-size:11.5px;color:rgba(255,255,255,.78);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">我守护对方 · 对方是我的${esc(b.relation)} · ${esc(b.wardPhone)}</div>
             </div>
-            <button class="view-cap" data-go="health-record" type="button">点击查看</button>
+            ${needsMyConfirm ? `
+              <button type="button" data-act="acceptCareBond" data-id="${b.id}" style="border:0;background:#fff;color:var(--blue);font-size:11.5px;font-weight:700;padding:4.5px 9px;border-radius:999px;cursor:pointer;font-family:inherit">同意</button>
+              <button type="button" data-act="rejectCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.16);color:#fff;font-size:11.5px;font-weight:700;padding:4.5px 9px;border-radius:999px;cursor:pointer;font-family:inherit">拒绝</button>
+            ` : `
+              ${b.confirmed ? `<button type="button" data-act="toggleWatchWard" data-ward="${esc(b.wardName)}" style="border:0;background:${isWatching ? "rgba(255,220,110,.28)" : "#fff"};color:${isWatching ? "#FFDC6E" : "var(--blue)"};font-size:11.5px;font-weight:700;padding:4.5px 9px;border-radius:999px;cursor:pointer;font-family:inherit">${isWatching ? "切回自己" : "去看护"}</button>` : ""}
+              <button type="button" data-act="askRemoveCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.15);color:rgba(255,255,255,.92);font-size:11.5px;font-weight:700;padding:4.5px 9px;border-radius:999px;cursor:pointer;font-family:inherit">解除</button>
+            `}
+          </div>`;
+      }).join("") : `<div style="font-size:12px;color:rgba(255,255,255,.72);padding:4px 2px">暂无被守护人，点击右上角「+ 添加被守护人」守护家人康复</div>`;
+      const embeddedCareSectionHTML = genIsV01() ? `
+        <div class="frost" style="margin-top:12px;margin-bottom:12px"></div>
+        <div style="background:rgba(255,255,255,.10);border-radius:14px;padding:10px 11px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px">
+            <span style="display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#fff">🛡️ 守护人（守护我的人 · ${myGuardians.length}/5）</span>
+            ${myGuardians.length < 5 ? `<button type="button" data-act="openAddGuardianSheet" style="border:0;background:rgba(255,255,255,.22);color:#fff;font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;cursor:pointer;font-family:inherit">+ 添加守护人</button>` : ""}
           </div>
-          <div class="frost"></div>
-          <div class="metrics">
-            <div><span>年龄</span><b>${curAge}</b></div>
-            <div><span>身高</span><b>${S.height}</b></div>
-            <div><span>体重</span><b>${S.weight}</b></div>
-            <div><span>BMI</span><b>${bmi()}</b></div>
-          </div>
+          ${guardianRowsHTML}
         </div>
-      `;
-      const vipTitle = isFam
-        ? (isVip ? "家庭共享 VIP 生效中" : "开通家庭共享 VIP")
-        : (isVip ? "VIP 专属全维守护中" : "开通 VIP 享全维守护");
-      const vipSub = isVip
-        ? `有效期至 ${vipExpiryText()}`
-        : (isFam ? "¥2400 / 年 · 全家同享" : "¥2400 / 年");
-      const vipBtn = isFam
-        ? (isVip ? "共享中 ›" : "去开通 ›")
-        : (isVip ? "已购买 ›" : "购买 ›");
-      const famRowSub = isFam
-        ? (gList.length ? `已绑定 ${gList.length} 位患者 · 当前守护${S.name}` : "尚未绑定守护患者")
-        : (S.family.length ? `已绑定 ${S.family.length} 人` : "尚未绑定家属");
+        <div style="background:rgba(255,255,255,.10);border-radius:14px;padding:10px 11px;margin-top:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px">
+            <span style="display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#fff">❤️ 被守护人（我守护的人 · ${myWards.length}/5）</span>
+            ${myWards.length < 5 ? `<button type="button" data-act="openAddWardSheet" style="border:0;background:rgba(255,255,255,.22);color:#fff;font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;cursor:pointer;font-family:inherit">+ 添加被守护人</button>` : ""}
+          </div>
+          ${wardRowsHTML}
+        </div>
+      ` : "";
+      const vipTitle = isVip ? "VIP 专属全维守护中" : "开通 VIP 享全维守护";
+      const vipSub = isVip ? `有效期至 ${vipExpiryText()}` : "¥2400 / 年 · 全家同享";
+      const vipBtn = isVip ? "已购买 ›" : "购买 ›";
       return `<div class="page">
         ${navBar(cap(I.chevL, "返回"), "个人中心",
-          genIsV01() ? `<button class="cap" data-act="roleSwitch" type="button">${I.two}${S.role === "patient" ? "本人" : "家属"}</button>` : "")}
+          genIsV01() ? `<button class="cap" data-act="openDemoPersonSheet" type="button" title="切换演示人名（仅 Demo 演示用）">${I.person}${esc(curPerson.name)} ▾${otherUnread > 0 ? `<span style="margin-left:3px;padding:0 5px;border-radius:999px;background:#EF4444;color:#fff;font-size:10px;font-weight:800">${otherUnread}</span>` : ""}</button>` : "")}
         <div class="scroll px20" style="padding-top:8px">
           <div class="hero">
-            ${heroTopHTML}
+            ${watchingBannerHTML}
+            <div class="pointer" data-go="health-record" role="button" style="cursor:pointer">
+              <div class="hero-top">
+                <div class="avatar">${esc(curPerson.name.slice(0, 1))}</div>
+                <div style="min-width:0">
+                  <div style="display:flex;align-items:center;gap:6px;white-space:nowrap">
+                    <span class="s18 fb">${esc(curPerson.name)}</span>
+                    ${isVip ? `<span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.crown} VIP</span>` : ""}
+                  </div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:5px;white-space:nowrap">
+                    <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.18);padding:2.5px 8px;border-radius:999px">${esc(curPerson.gender)}</span>
+                    ${genIsV01() ? `<span style="font-size:12px;font-weight:700;color:#fff;background:rgba(255,255,255,.22);padding:2.5px 8px;border-radius:999px">守护我的 ${myGuardians.length} · 我守护的 ${myWards.length}</span>` : ""}
+                  </div>
+                </div>
+                <button class="view-cap" data-go="health-record" type="button">点击查看</button>
+              </div>
+              <div class="frost"></div>
+              <div class="metrics">
+                <div><span>年龄</span><b>${curPerson.age || 58}</b></div>
+                <div><span>身高</span><b>${curPerson.height || 170}</b></div>
+                <div><span>体重</span><b>${curPerson.weight || 70}</b></div>
+                <div><span>BMI</span><b>${curBmi}</b></div>
+              </div>
+            </div>
+            ${embeddedCareSectionHTML}
             <div class="frost" style="margin-top:12px;margin-bottom:12px"></div>
             <div class="hero-vip-row" data-go="vip" role="button" style="cursor:pointer">
               <div class="hero-crown-circle">${I.crown}</div>
@@ -7942,7 +8386,6 @@
           </div>
           <div class="list-island mt16">
             ${[
-              ["family", I.two, "家属管理", famRowSub],
               ["hardware", I.waves, "硬件管理", hwCaption()],
               ["activity", I.clock, "操作记录", (S.ops && S.ops[0]) ? opHeadlineHTML(S.ops[0]) : "还没有记录"],
             ].map(([id, ico, t, s]) => vipFeatureRowHTML(id, ico, t, s)).join("")}
@@ -7963,7 +8406,7 @@
             </div>
           </div>
           <button class="cta-ghost mt16" data-act="logout" type="button">退出登录</button>
-          ${shownRole() === "patient" ? `<button class="w100" style="border:0;background:none;color:#828EA5;padding:12px;font-size:16px;cursor:pointer" data-act="unregister" type="button">注销账号</button>` : ""}
+          <button class="w100" style="border:0;background:none;color:#828EA5;padding:12px;font-size:16px;cursor:pointer" data-act="unregister" type="button">注销账号</button>
         </div>
       </div>`;
     },
@@ -10483,25 +10926,21 @@
   }
   function consultCareNoticeHTML(n) {
     if (!n) return "";
-    const isRemind = n.kind === "familyRemindPlan" || n.kind === "familyRemindExercise";
-    const isDone = n.kind === "patientActionDone";
-    const accent = isRemind ? "#D97706" : (isDone ? "#1AA64A" : "#1054E0");
-    const softBg = isRemind ? "rgba(245,158,11,.13)" : (isDone ? "rgba(26,166,74,.12)" : "rgba(16,84,224,.10)");
-    const ico = isRemind ? "🔔" : (isDone ? "✅" : "👥");
+    const meta = careNoticeStyleMeta(n);
     const jumpLabel = n.target === "vitals" ? "去查看血压 ›" : (n.target === "report" ? "去查看报告 ›" : "去查看计划 ›");
     return `
       <div class="chat-msg-row ai">
         <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
-        <div style="background:rgba(255,255,255,.96);border-radius:6px 18px 18px 18px;padding:14px;border:1px solid ${isRemind ? "rgba(217,119,6,.24)" : (isDone ? "rgba(26,166,74,.24)" : "rgba(16,84,224,.20)")};box-shadow:0 6px 14px rgba(16,84,224,.06);flex:1;min-width:0">
+        <div style="background:rgba(255,255,255,.96);border-radius:6px 18px 18px 18px;padding:14px;border:1px solid ${meta.softBg};box-shadow:0 6px 14px rgba(16,84,224,.06);flex:1;min-width:0">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-            <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:${accent};background:${softBg};padding:3px 8px;border-radius:999px">${ico} ${n.badgeText || "康复通知"}</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:${meta.accent};background:${meta.softBg};padding:3px 8px;border-radius:999px">${meta.ico} ${n.badgeText || "康复通知"}</span>
             <span style="font-size:11px;font-weight:600;color:var(--sec)">${n.receiverLabel || ""}</span>
           </div>
           <div class="s16 fb t" style="margin-top:8px;line-height:1.35">${n.title || ""}</div>
           <div class="s14 fm" style="margin-top:5px;color:rgba(16,84,224,.78);line-height:1.45">${n.detail || ""}</div>
           <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
             <span class="s12 fm t-sec mono">${n.time || "刚刚"}</span>
-            ${n.target ? `<button data-go="${n.target}" type="button" style="border:0;background:none;color:${accent};font-size:12.5px;font-weight:700;cursor:pointer;padding:0;font-family:inherit">${jumpLabel}</button>` : ""}
+            ${n.target ? `<button data-go="${n.target}" type="button" style="border:0;background:none;color:${meta.accent};font-size:12.5px;font-weight:700;cursor:pointer;padding:0;font-family:inherit">${jumpLabel}</button>` : ""}
           </div>
         </div>
       </div>`;
@@ -10586,87 +11025,93 @@
   }
   function pushConsultNoticeFromOp(role, actor, action, place, how) {
     if (!genIsV01()) return;
-    const pName = S.name || "李建国";
+    ensureCareGraph();
+    const pName = S.watchingWardName || S.currentPersonName || S.name || "李建国";
+    const guardianSender = S.currentPersonName || actor;
     const subject = how || "今日康复事项";
     const now = new Date();
     const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-    let notice = null;
     if (action === "提醒了患者") {
       const isEx = place === "运动" || /散步|运动/.test(subject);
-      notice = {
+      deliverCareNotice({
         kind: isEx ? "familyRemindExercise" : "familyRemindPlan",
         badgeText: isEx ? "家属运动提醒" : "家属打卡提醒",
-        receiverLabel: `通知患者：${pName}`,
-        title: isEx ? `${actor}提醒你今天出门散步运动` : `${actor}提醒你按时完成「${subject}」`,
+        receiverLabel: `通知被守护人：${pName}`,
+        recipientPerson: pName,
+        title: isEx ? `${guardianSender}提醒你今天出门散步运动` : `${guardianSender}提醒你按时完成「${subject}」`,
         detail: isEx
-          ? `家属${actor}在${place}发起提醒：今日运动计划（${subject}）尚未完成，提醒你循序渐进出门散散步，完成后记得打卡。`
-          : `家属${actor}在${place}发起提醒：今日计划「${subject}」尚未打卡，请按时完成后打卡，让家人放心。`,
+          ? `守护人${guardianSender}在${place}发起提醒：今日运动计划（${subject}）尚未完成，提醒你循序渐进出门散散步，完成后记得打卡。`
+          : `守护人${guardianSender}在${place}发起提醒：今日计划「${subject}」尚未打卡，请按时完成后打卡，让家人放心。`,
         target: "schedule",
         time: timeStr,
-      };
-    } else if (role === "patient") {
+      });
+      return;
+    }
+    if (role === "patient") {
+      const wardSender = S.currentPersonName || actor;
+      const confirmedGuardians = myGuardiansList(wardSender).filter((b) => b.confirmed);
+      const targets = confirmedGuardians.length ? confirmedGuardians.map((b) => b.guardianName) : [null];
+      let baseNotice = null;
       if (action === "打卡了") {
         const isBP = place === "血压监测" || /血压/.test(subject);
-        notice = {
+        baseNotice = {
           kind: "patientActionDone",
           badgeText: "患者康复动态",
-          receiverLabel: "通知家属",
-          title: `${actor}已完成「${subject}」打卡`,
-          detail: `患者${actor}刚在${place}完成了今日计划「${subject}」打卡，同步通知守护家属，请放心。`,
+          title: `${wardSender}已完成「${subject}」打卡`,
+          detail: `被守护人${wardSender}刚在${place}完成了今日计划「${subject}」打卡，同步通知守护人，请放心。`,
           target: isBP ? "vitals" : "schedule",
           time: timeStr,
         };
       } else if (action === "同步了血压" || action === "记录了读数") {
-        notice = {
+        baseNotice = {
           kind: "patientActionDone",
           badgeText: "患者康复动态",
-          receiverLabel: "通知家属",
-          title: `${actor}已同步最新血压读数`,
-          detail: `患者${actor}刚在${place}更新了血压读数：${subject}，家属可随时查看最新血压趋势。`,
+          title: `${wardSender}已同步最新血压读数`,
+          detail: `被守护人${wardSender}刚在${place}更新了血压读数：${subject}，守护人可随时查看最新血压趋势。`,
           target: "vitals",
           time: timeStr,
         };
       } else if (action === "完成了散步") {
-        notice = {
+        baseNotice = {
           kind: "patientActionDone",
           badgeText: "患者康复动态",
-          receiverLabel: "通知家属",
-          title: `${actor}已完成户外散步运动`,
-          detail: `患者${actor}刚完成户外散步并打卡：${subject}，运动轨迹已同步更新。`,
+          title: `${wardSender}已完成户外散步运动`,
+          detail: `被守护人${wardSender}刚完成户外散步并打卡：${subject}，运动轨迹已同步更新。`,
           target: "schedule",
           time: timeStr,
         };
       } else if (action === "上传了复查资料" || action === "上传了资料" || action === "提交了问卷") {
-        notice = {
+        baseNotice = {
           kind: "patientActionDone",
           badgeText: "患者康复动态",
-          receiverLabel: "通知家属",
-          title: `${actor}${action}（${subject}）`,
-          detail: `患者${actor}刚在${place}${action}：${subject}，家属可前往身体报告查看详情。`,
+          title: `${wardSender}${action}（${subject}）`,
+          detail: `被守护人${wardSender}刚在${place}${action}：${subject}，守护人可前往身体报告查看详情。`,
           target: "report",
           time: timeStr,
         };
       }
-    } else if (role === "family" && action === "打卡了") {
-      notice = {
+      if (baseNotice) {
+        targets.forEach((gName) => {
+          deliverCareNotice({
+            ...baseNotice,
+            receiverLabel: gName ? `通知守护人：${gName}` : "通知守护人",
+            recipientPerson: gName,
+          });
+        });
+      }
+      return;
+    }
+    if (role === "family" && action === "打卡了") {
+      deliverCareNotice({
         kind: "familyProxyAction",
         badgeText: "家属代打卡动态",
-        receiverLabel: "通知患者与家属",
-        title: `${actor}已代为完成「${subject}」打卡`,
-        detail: `家属${actor}在${place}确认${pName}已完成「${subject}」并代为打卡，全端进度已实时同步。`,
+        receiverLabel: `通知被守护人：${pName}`,
+        recipientPerson: pName,
+        title: `${guardianSender}已代为完成「${subject}」打卡`,
+        detail: `守护人${guardianSender}在${place}确认${pName}已完成「${subject}」并代为打卡，全端进度已实时同步。`,
         target: "schedule",
         time: timeStr,
-      };
-    }
-    if (notice) {
-      S.messages.push({ who: "notice", notice });
-      const targetRole = noticeRecipientRole(notice);
-      if (!S.consultUnreadByRole) S.consultUnreadByRole = { patient: 0, family: 0 };
-      if (S.screen !== "consult" || shownRole() !== targetRole) {
-        S.consultUnreadByRole[targetRole] = (S.consultUnreadByRole[targetRole] || 0) + 1;
-        S.consultUnread = (S.consultUnreadByRole.patient || 0) + (S.consultUnreadByRole.family || 0);
-      }
-      presentCareNotice(notice);
+      });
     }
   }
   /// 操作记录换日（V10.109）：在「今天 → 最早一条记录那天」之间移动，真机同日翻页手势
@@ -12093,44 +12538,160 @@
         </div>
       </div>`;
     },
+    demoPersonSheet: () => {
+      ensureCareGraph();
+      return `
+      <div class="scrim bottom" data-act="close">
+        <div class="sheet" onclick="event.stopPropagation()">
+          <div class="grab"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div class="s20 fb t">切换演示人名</div>
+              <div class="s13 t-sec" style="margin-top:2px">仅做 Demo 演示用：切换不同人名查看其「守护人 / 被守护人」与双向通知</div>
+            </div>
+            <button class="cap" data-act="close" type="button">关闭</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
+            ${S.demoPeople.map((p) => {
+              const isCur = p.name === S.currentPersonName;
+              const gCount = myGuardiansList(p.name).length;
+              const wCount = myWardsList(p.name).length;
+              const unread = unreadPopupCountForPerson(p.name);
+              return `
+                <button type="button" data-act="switchDemoPerson" data-name="${esc(p.name)}" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;border:${isCur ? "1.5px solid rgba(16,84,224,.32)" : "1px solid transparent"};background:${isCur ? "rgba(16,84,224,.10)" : "#F5F8FF"};cursor:pointer;text-align:left;font-family:inherit;width:100%">
+                  <div style="width:42px;height:42px;border-radius:999px;background:${isCur ? "var(--blue)" : "rgba(16,84,224,.12)"};color:${isCur ? "#fff" : "var(--blue)"};font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(p.name.slice(0, 1))}</div>
+                  <div style="min-width:0;flex:1">
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <span class="s17 fb t">${esc(p.name)}</span>
+                      <span style="font-size:12px;font-weight:600;color:var(--sec)">${esc(p.gender)} · ${p.age}岁</span>
+                      ${unread > 0 ? `<span style="padding:2px 7px;border-radius:999px;background:#EF4444;color:#fff;font-size:11px;font-weight:700">${unread} 条待处理通知</span>` : ""}
+                    </div>
+                    <div style="font-size:12.5px;font-weight:500;color:var(--sec);margin-top:3px">守护我的 ${gCount} 人 · 我守护的 ${wCount} 人 · ${esc(p.phone)}</div>
+                  </div>
+                  ${isCur ? `<span style="color:var(--blue);font-weight:800;font-size:16px">✓</span>` : `<span class="neutral-chev">${I.chevR}</span>`}
+                </button>`;
+            }).join("")}
+          </div>
+        </div>
+      </div>`;
+    },
+    addGuardianSheet: () => {
+      ensureCareGraph();
+      const d = S.careSheetDraft || { name: "", phone: "", rel: "配偶" };
+      const rels = ["配偶", "子女", "父母", "亲属"];
+      return `
+      <div class="scrim bottom" data-act="close">
+        <div class="sheet" onclick="event.stopPropagation()">
+          <div class="grab"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div class="s20 fb t">添加守护人</div>
+              <div class="s13 t-sec" style="margin-top:3px">邀请家人守护「${esc(S.currentPersonName)}」，对方可接收你的打卡完成动态并提醒你按时康复</div>
+            </div>
+            <button class="cap" data-act="close" type="button">取消</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;margin-top:14px">
+            <div>
+              <div class="s13 fb t-sec" style="margin-bottom:6px">守护人姓名</div>
+              <input class="field" name="cg_name" placeholder="请输入守护人姓名（如：王芳）" value="${esc(d.name || "")}" />
+            </div>
+            <div>
+              <div class="s13 fb t-sec" style="margin-bottom:6px">对方是我的（关系）</div>
+              <div class="grid4">
+                ${rels.map((r) => `<button type="button" class="chip ${d.rel === r ? "on" : ""}" data-act="pickCareRel" data-r="${r}">${r}</button>`).join("")}
+              </div>
+            </div>
+            <div>
+              <div class="s13 fb t-sec" style="margin-bottom:6px">守护人手机号</div>
+              <input class="field mono" name="cg_phone" placeholder="11 位手机号（如：13900138899）" maxlength="11" value="${esc(d.phone || "")}" />
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;padding:11px 12px;border-radius:12px;background:rgba(16,84,224,.06);font-size:12.5px;color:var(--sec);line-height:1.45">
+              <span style="color:var(--blue);flex-shrink:0">${I.bell}</span>
+              <span>点击确认后，系统将向该守护人发送「收到康复守护邀请」弹窗与手机系统通知；对方点击「同意绑定」后，你也会收到生效通知。</span>
+            </div>
+            <button class="cta" data-act="submitAddGuardian" type="button">${I.plus}发送守护邀请并添加</button>
+          </div>
+        </div>
+      </div>`;
+    },
+    addWardSheet: () => {
+      ensureCareGraph();
+      const d = S.careSheetDraft || { name: "", phone: "", rel: "配偶" };
+      const rels = ["配偶", "父母", "子女", "亲属"];
+      return `
+      <div class="scrim bottom" data-act="close">
+        <div class="sheet" onclick="event.stopPropagation()">
+          <div class="grab"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div class="s20 fb t">添加被守护人</div>
+              <div class="s13 t-sec" style="margin-top:3px">添加需要「${esc(S.currentPersonName)}」看护的家人，绑定后可查看对方康复计划并发起提醒</div>
+            </div>
+            <button class="cap" data-act="close" type="button">取消</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;margin-top:14px">
+            <div>
+              <div class="s13 fb t-sec" style="margin-bottom:6px">被守护人姓名</div>
+              <input class="field" name="cg_name" placeholder="请输入被守护人姓名（如：张桂兰）" value="${esc(d.name || "")}" />
+            </div>
+            <div>
+              <div class="s13 fb t-sec" style="margin-bottom:6px">对方是我的（关系）</div>
+              <div class="grid4">
+                ${rels.map((r) => `<button type="button" class="chip ${d.rel === r ? "on" : ""}" data-act="pickCareRel" data-r="${r}">${r}</button>`).join("")}
+              </div>
+            </div>
+            <div>
+              <div class="s13 fb t-sec" style="margin-bottom:6px">被守护人手机号</div>
+              <input class="field mono" name="cg_phone" placeholder="11 位手机号（如：13700136688）" maxlength="11" value="${esc(d.phone || "")}" />
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;padding:11px 12px;border-radius:12px;background:rgba(16,84,224,.06);font-size:12.5px;color:var(--sec);line-height:1.45">
+              <span style="color:var(--blue);flex-shrink:0">${I.bell}</span>
+              <span>点击确认后，系统将向该被守护人发送「收到守护申请」弹窗与手机系统通知；对方点击「同意绑定」后，你也会收到生效通知。</span>
+            </div>
+            <button class="cta" data-act="submitAddWard" type="button">${I.plus}发送守护申请并添加</button>
+          </div>
+        </div>
+      </div>`;
+    },
     familyInvite: () => {
-      const mid = S.overlayData && S.overlayData.memberId;
-      const fam = (S.family || []).find((x) => String(x.id) === String(mid)) || activeFamMember();
-      const myName = S.pureFamilyLogin ? fam.name : mySelfName();
-      const patientName = S.name || "李建国";
-      const patientAge = S.age || 58;
+      ensureCareGraph();
+      const bid = S.overlayData && S.overlayData.bondId;
+      const bond = S.careBonds.find((b) => String(b.id) === String(bid)) || pendingIncomingBondFor(S.currentPersonName) || S.careBonds[0];
+      const invitedAsGuardian = bond ? bond.initiatedBy === "ward" : true;
+      const initiator = bond ? (invitedAsGuardian ? bond.wardName : bond.guardianName) : "李建国";
+      const receiver = bond ? (invitedAsGuardian ? bond.guardianName : bond.wardName) : S.currentPersonName;
+      const rel = bond ? bond.relation : "配偶";
+      const gName = bond ? bond.guardianName : receiver;
+      const wName = bond ? bond.wardName : initiator;
       return `
       <div class="scrim center" style="background:rgba(0,0,0,.45)">
         <div class="popup" style="max-width:342px;border-radius:26px;padding:22px;text-align:left" onclick="event.stopPropagation()">
           <div style="display:flex;justify-content:center;margin-bottom:12px">
             <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:rgba(16,84,224,.10);color:var(--blue);font-size:12px;font-weight:700">
-              ${I.two}<span>家属守护绑定通知</span>
+              ${I.two}<span>双向守护绑定确认</span>
             </span>
           </div>
-          <h3 style="text-align:center;font-size:21px;margin:0 0 6px;color:var(--blue)">收到康复守护邀请</h3>
-          <div style="text-align:center;font-size:13.5px;color:var(--sec);margin-bottom:14px">患者 ${esc(patientName)} 将你的手机号添加为共管家属</div>
+          <h3 style="text-align:center;font-size:21px;margin:0 0 6px;color:var(--blue)">${invitedAsGuardian ? "收到康复守护邀请" : "收到康复守护申请"}</h3>
+          <div style="text-align:center;font-size:13.5px;color:var(--sec);margin-bottom:14px">${invitedAsGuardian ? `${esc(initiator)}邀请你成为其康复守护人` : `${esc(initiator)}申请成为你的康复守护人`}</div>
           <div style="background:rgba(16,84,224,.05);border-radius:16px;padding:13px 14px;display:flex;flex-direction:column;gap:9px">
             <div style="display:flex;align-items:flex-start;gap:10px">
-              <span style="width:56px;flex-shrink:0;font-size:12.5px;font-weight:600;color:var(--sec)">守护患者</span>
-              <span style="font-size:13.5px;font-weight:700;color:var(--blue)">${esc(patientName)}（${S.gender || "男"} · ${patientAge}岁 · 主账号）</span>
+              <span style="width:56px;flex-shrink:0;font-size:12.5px;font-weight:600;color:var(--sec)">守护人</span>
+              <span style="font-size:13.5px;font-weight:700;color:var(--blue)">${esc(gName)}（守护方）</span>
             </div>
             <div style="height:1px;background:rgba(16,84,224,.08)"></div>
             <div style="display:flex;align-items:flex-start;gap:10px">
-              <span style="width:56px;flex-shrink:0;font-size:12.5px;font-weight:600;color:var(--sec)">你的身份</span>
-              <span style="font-size:13.5px;font-weight:700;color:var(--blue)">${esc(myName)}（我 · ${esc(fam.rel || "配偶")}）</span>
+              <span style="width:56px;flex-shrink:0;font-size:12.5px;font-weight:600;color:var(--sec)">被守护人</span>
+              <span style="font-size:13.5px;font-weight:700;color:var(--blue)">${esc(wName)}（被守护方 · ${esc(rel)}）</span>
             </div>
             <div style="height:1px;background:rgba(16,84,224,.08)"></div>
             <div style="display:flex;align-items:flex-start;gap:10px">
-              <span style="width:56px;flex-shrink:0;font-size:12.5px;font-weight:600;color:var(--sec)">共享权益</span>
-              <span style="font-size:13px;font-weight:700;color:var(--blue);line-height:1.4">家庭共享 VIP 已生效 · 同步康复计划与打卡、查看血压与报告、共用哈宝医生问诊、接收打卡提醒</span>
+              <span style="width:56px;flex-shrink:0;font-size:12.5px;font-weight:600;color:var(--sec)">通知规则</span>
+              <span style="font-size:13px;font-weight:700;color:var(--blue);line-height:1.4">被守护人接收守护人的提醒通知，守护人接收被守护人的完成动态通知，均通过弹窗 + 手机系统通知触达</span>
             </div>
-          </div>
-          <div style="font-size:11.5px;color:var(--sec);line-height:1.45;margin-top:12px">
-            确认后，当前账号将挂载至${esc(patientName)}的康复档案（若本手机号原有免费空档将自动封存保留）；如拒绝则立即解除绑定。
           </div>
           <div class="duo" style="margin-top:16px;gap:10px">
-            <button type="button" data-act="rejectFamInvite" style="border:0;height:46px;border-radius:14px;background:rgba(220,72,72,.10);color:#DC4848;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">拒绝并解绑</button>
-            <button type="button" data-act="acceptFamInvite" style="border:0;height:46px;border-radius:14px;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">确认开启守护</button>
+            <button type="button" data-act="rejectCareBond" data-id="${bond ? bond.id : ""}" style="border:0;height:46px;border-radius:14px;background:rgba(220,72,72,.10);color:#DC4848;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">拒绝</button>
+            <button type="button" data-act="acceptCareBond" data-id="${bond ? bond.id : ""}" style="border:0;height:46px;border-radius:14px;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">同意绑定</button>
           </div>
         </div>
       </div>`;
