@@ -1049,8 +1049,7 @@
   const HOW_LAB = { root: "根页", push: "压栈", cover: "全屏", replace: "替换", sheet: "贴底" };
   const MODULE_COVERS = new Set(["schedule", "vitals", "report", "walk", "consult", "stamps", "profile"]);
   const EDGE = {
-    "onboard-login>onboard-role": "push",
-    "onboard-role>onboard-profile": "push",
+    "onboard-login>onboard-profile": "push",
     "home>profile": "cover",
     "home>schedule": "cover",
     "home>vitals": "cover",
@@ -1108,7 +1107,6 @@
       { id: "home", t: "李建国的一天", code: "TodayView", how: "root" },
     ]},
     { g: "栈内 Push · 首次进入", items: [
-      { id: "onboard-role", t: "请选择你的身份", code: "OnboardingFlowView", how: "push" },
       { id: "onboard-profile", t: "完善你的信息", code: "OnboardingFlowView", how: "push" },
     ]},
     { g: "全屏 Cover · 首页打开", items: [
@@ -1162,9 +1160,8 @@
   ];
 
   const SPEC = {
-    "onboard-login": { code: "OnboardingFlowView", note: "短信登录 Demo 不校验。11 位手机 + 6 位验证码后「登录」可点。聚焦后口号改「欢迎使用哈宝」。V0.0 只两步（登录 → 完善信息），身份固定患者本人；V0.1 才多一步身份。" },
-    "onboard-role": { code: "OnboardingFlowView", note: "V0.1 专属（V0.0 不出现）。家属也是管理患者的成员，填写的都是患者信息。大卡单选。" },
-    "onboard-profile": { code: "PatientProfileFormFields", note: "姓名必填；「进入哈宝」始终可点，空姓名顶部 toast「请填写姓名」。步骤点 V0.0 是 2/2，V0.1 是 3/3。" },
+    "onboard-login": { code: "OnboardingFlowView", note: "短信登录 Demo 不校验。11 位手机 + 6 位验证码后「登录」可点。初登默认免费用户，新建档固定两步（短信登录 → 完善你的信息）；若输入已绑定的家属手机号登录，则后端自动识别家属身份并直接进入患者首页。" },
+    "onboard-profile": { code: "PatientProfileFormFields", note: "姓名必填；「进入哈宝」始终可点，空姓名顶部 toast「请填写姓名」。步骤点固定为 2/2。" },
     home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 196–206，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。每张计划卡展示标题、提醒时间（或已完成）及「开始日期 – 结束日期」起止区间。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页；底坞中圆哈宝医生始终常亮可点击进入问诊页（非 VIP 发送消息后在聊天流内弹出 VIP 购买提示对话卡）。打卡不再在卡片上盖家属章；谁打的记在 V0.1 个人中心「操作记录」，V0.0 没有这一页。" },
     schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行展示时刻与单日/循环/类别胶囊，下方展示「开始日期 – 结束日期」起止区间；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上更新才进编辑。切「已完成」整页绿白。" },
     vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。底栏「进入哈宝医生」始终可点击进入问诊页（非 VIP 发送消息后弹出 VIP 购买提示对话卡）。" },
@@ -1460,13 +1457,10 @@
   /// 链路表：steps 按顺序前进扫描，命中的即点亮。act = 动作事件，screen = 落到该屏
   /// optional 步不达标不阻塞；state 谓词兜终态（如「已入组」）
   const FLOWS = [
-    { id: "login", label: "未登录 · 登录 → 完善信息（V0.1 多一步身份）", cold: "login", steps: [
+    { id: "login", label: "未登录 · 登录 → 完善信息", cold: "login", steps: [
       { screen: "onboard-login", label: "欢迎使用哈宝" },
       { act: "sendCode", label: "获取验证码", hint: "登录页点「获取验证码」" },
       { act: "login", label: "填 11 位手机号 + 6 位验证码后登录" },
-      { screen: "onboard-role", optional: true, label: "（V0.1）请选择你的身份；V0.0 直接进填资料" },
-      { act: "pickRole", optional: true, label: "（V0.1）选本人 / 家属" },
-      { act: "nextRole", optional: true, label: "（V0.1）下一步" },
       { screen: "onboard-profile", label: "完善你的信息" },
       { act: "pickGender", label: "选性别" },
       { act: "enter", label: "填姓名后完成", hint: "点右上「进入哈宝」" },
@@ -2651,8 +2645,7 @@
     const login = [R("onboard-login")];
     const map = {
       "onboard-login": login,
-      "onboard-role": [...login, P("onboard-role")],
-      "onboard-profile": [...login, P("onboard-role"), P("onboard-profile")],
+      "onboard-profile": [...login, P("onboard-profile")],
       home,
       schedule: [...home, C("schedule")],
       vitals: [...home, C("vitals")],
@@ -3693,9 +3686,21 @@
         // 真机 loginReady = 手机号 11 位 && 验证码 6 位；这里点按给具体原因，别静默
         if (phone.length !== 11) { toast(phone ? "请输入 11 位手机号" : "请填写手机号"); return; }
         if (code.length !== 6) { toast(code ? "请输入 6 位验证码" : "请填写验证码"); return; }
-        // V0.0 没有身份选择：身份固定患者本人，登录后直接填资料（V0.1 才进「我是家属」）
-        if (!genHasFamily()) { S.role = "patient"; go("onboard-profile", "push"); return; }
-        go("onboard-role", "push");
+        // 若输入的是已绑定家属手机号，后端直接匹配进入患者档案首页（无需选身份、无需重复填患者信息）
+        const matchedFam = genHasFamily() && (S.family || []).find((f) => f.phoneRaw === phone);
+        if (matchedFam) {
+          S.role = "family";
+          S.actorId = matchedFam.id;
+          S.loggedIn = true;
+          go("home", "root");
+          toast(`已识别家属账号（${matchedFam.name}），进入${S.name}的康复档案`);
+          return;
+        }
+        // 新注册建档默认是免费用户（患者本人主账号），直接进入第 2 步「完善你的信息」
+        S.phone = phone;
+        S.role = "patient";
+        S.actorId = null;
+        go("onboard-profile", "push");
       },
       sendCode() { toast("验证码已发送（Demo）"); },
       nextRole() { go("onboard-profile", "push"); },
@@ -6415,33 +6420,10 @@
         <button class="cta mt16" data-act="login" type="button">登录</button>
       </div>`,
 
-    "onboard-role": () => `
-      <div class="page px24" style="padding-top:78px">
-        ${dotsHTML(2)}
-        <h2 class="s28 fb t">请选择你的身份</h2>
-        <p class="s14 fm t-sec mt8">家属也是管理患者的成员，填写的都是患者信息</p>
-        <div class="col gap16" style="margin-top:24px">
-          <div class="role-card ${S.role === "patient" ? "on" : ""}" data-act="pickRole" data-role="patient">
-            <div class="role-ico">${I.person}</div>
-            <div class="grow"><div class="s18 fb">我是患者</div><div class="s13 fm" style="opacity:.75">记录和管理自己的康复</div></div>
-            ${S.role === "patient" ? I.check : `<span style="width:22px;height:22px;border:1.6px solid currentColor;border-radius:50%;opacity:.35"></span>`}
-          </div>
-          <div class="role-card ${S.role === "family" ? "on" : ""}" data-act="pickRole" data-role="family">
-            <div class="role-ico">${I.two}</div>
-            <div class="grow"><div class="s18 fb">我是家属</div><div class="s13 fm" style="opacity:.75">帮家人记录，同步康复进展</div></div>
-            ${S.role === "family" ? I.check : `<span style="width:22px;height:22px;border:1.6px solid currentColor;border-radius:50%;opacity:.35"></span>`}
-          </div>
-        </div>
-        <div class="flex gap12" style="margin-top:24px">
-          <button class="cta-ghost" data-act="back" type="button">上一步</button>
-          <button class="cta" data-act="nextRole" type="button">下一步</button>
-        </div>
-      </div>`,
-
     "onboard-profile": () => `
       <div class="page px24" style="padding-top:78px">
-        ${dotsHTML(genHasFamily() ? 3 : 2)}
-        <h2 class="s28 fb t">${shownRole() === "family" ? "填写患者信息" : "完善你的信息"}</h2>
+        ${dotsHTML(2)}
+        <h2 class="s28 fb t">完善你的信息</h2>
         <p class="s14 fm t-sec mt8">用于生成康复建议，可随时在个人中心修改</p>
         <div class="scroll" style="margin-top:20px">
           <div class="field-label">姓名</div>
@@ -7769,13 +7751,15 @@
       </div>`;
     },
 
-    notify: () => `
+    notify: () => {
+      const isFam = shownRole() === "family";
+      return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "打卡通知")}
         <div class="scroll px20" style="padding-top:12px;padding-bottom:24px">
           <div class="list-island">
-            ${rowToggle("通知自己", S.notifySelf, "toggleSelf", notifySys(I.bell))}
-            ${genHasFamily() ? rowToggle("通知家属", S.notifyFamily, "toggleFam", notifySys(I.two)) : ""}
+            ${rowToggle(isFam ? "通知患者本人" : "通知自己", S.notifySelf, "toggleSelf", notifySys(I.bell))}
+            ${genHasFamily() ? rowToggle(isFam ? "通知家属（含我）" : "通知家属", S.notifyFamily, "toggleFam", notifySys(I.two)) : ""}
           </div>
           <div class="list-island mt16">
             ${rowToggle("全部打卡", allCatsOn(), "toggleAll", notifySys(I.check, true))}
@@ -7790,7 +7774,8 @@
             ${(S.customCats || []).map((c) =>
               rowToggle(c.name, !!S.cats[c.id], "toggleCat", notifySys(I[UNIFIED_CUSTOM_ICON], true), c.id)).join("")}
         </div>
-      </div>`,
+      </div>`;
+    },
   };
 
   /// 本周 Demo 读数：均值与评估卡一致（血压 126/78、心率 72）
@@ -10308,9 +10293,9 @@
       || list[0]
       || { id: "f1", name: "王芳", rel: "配偶", phone: "139****2210", phoneRaw: "13900132210" };
   }
-  /// 首次进入步骤点：V0.1 三步（登录 / 身份 / 资料），V0.0 两步（登录 / 资料）
+  /// 首次进入步骤点：固定两步（短信登录 → 完善你的信息）
   function dotsHTML(active) {
-    const total = genHasFamily() ? 3 : 2;
+    const total = 2;
     return `<div class="dots">${Array.from({ length: total }, (_, i) => `<i class="dot ${i + 1 === active ? "on" : ""}"></i>`).join("")}</div>`;
   }
   function notifyCaption() {
