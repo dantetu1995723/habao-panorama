@@ -8264,65 +8264,63 @@
         </div>` : "";
       const guardianRowsHTML = myGuardians.length ? myGuardians.map((b) => {
         const needsMyConfirm = !b.confirmed && b.initiatedBy === "guardian";
-        const badgeText = b.confirmed ? "守护中" : (needsMyConfirm ? "待我确认" : "待对方确认");
-        const badgeBg = b.confirmed ? "rgba(74,222,128,.28)" : (needsMyConfirm ? "rgba(255,220,110,.28)" : "rgba(251,146,60,.32)");
-        const badgeColor = b.confirmed ? "#BBF7D0" : (needsMyConfirm ? "#FFDC6E" : "#FED7AA");
+        const badgeText = b.confirmed ? "" : (needsMyConfirm ? "待我确认" : "待对方确认");
+        const badgeBg = needsMyConfirm ? "rgba(255,220,110,.28)" : "rgba(251,146,60,.32)";
+        const badgeColor = needsMyConfirm ? "#FFDC6E" : "#FED7AA";
         return `
-          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:11px;background:rgba(255,255,255,.10);margin-top:6px">
-            <div style="width:28px;height:28px;border-radius:999px;background:rgba(255,255,255,.20);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(b.guardianName.slice(0, 1))}</div>
-            <div style="min-width:0;flex:1">
-              <div style="display:flex;align-items:center;gap:5px;white-space:nowrap">
-                <span style="font-size:14.5px;font-weight:700;color:#fff">${esc(b.guardianName)}</span>
-                <span style="font-size:10.5px;font-weight:700;color:${badgeColor};background:${badgeBg};padding:1.5px 6px;border-radius:999px">${badgeText}</span>
-              </div>
-              <div style="font-size:11.5px;color:rgba(255,255,255,.78);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">我是被守护人 · 对方是我的${esc(b.relation)} · ${esc(b.guardianPhone)}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:10px;background:rgba(255,255,255,.08);margin-top:5px">
+            <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">
+              <span style="font-size:14.5px;font-weight:700;color:#fff">${esc(b.guardianName)}</span>
+              <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.18);padding:1.5px 6px;border-radius:999px">${esc(b.relation)}</span>
+              ${badgeText ? `<span style="font-size:10.5px;font-weight:700;color:${badgeColor};background:${badgeBg};padding:1.5px 6px;border-radius:999px">${badgeText}</span>` : ""}
             </div>
-            ${needsMyConfirm ? `
-              <button type="button" data-act="acceptCareBond" data-id="${b.id}" style="border:0;background:#fff;color:var(--blue);font-size:11.5px;font-weight:700;padding:4.5px 9px;border-radius:999px;cursor:pointer;font-family:inherit">同意</button>
-              <button type="button" data-act="rejectCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.16);color:#fff;font-size:11.5px;font-weight:700;padding:4.5px 9px;border-radius:999px;cursor:pointer;font-family:inherit">拒绝</button>
-            ` : `
-              <button type="button" data-act="askRemoveCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.15);color:rgba(255,255,255,.92);font-size:11.5px;font-weight:700;padding:4.5px 9px;border-radius:999px;cursor:pointer;font-family:inherit">解除</button>
-            `}
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+              ${needsMyConfirm ? `
+                <button type="button" data-act="acceptCareBond" data-id="${b.id}" style="border:0;background:#fff;color:var(--blue);font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;cursor:pointer;font-family:inherit">同意</button>
+                <button type="button" data-act="rejectCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.18);color:#fff;font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;cursor:pointer;font-family:inherit">拒绝</button>
+              ` : `
+                <button type="button" data-act="askRemoveCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.15);color:rgba(255,255,255,.88);font-size:11px;font-weight:600;padding:4px 8px;border-radius:999px;cursor:pointer;font-family:inherit">解除</button>
+              `}
+            </div>
           </div>`;
-      }).join("") : `<div style="font-size:12px;color:rgba(255,255,255,.72);padding:4px 2px">暂无守护你的人，点击右上角「+ 添加守护人」邀请家人共同看护</div>`;
+      }).join("") : "";
       const wardRowsHTML = myWards.length ? myWards.map((b) => {
         const needsMyConfirm = !b.confirmed && b.initiatedBy === "ward";
         const isWatching = S.watchingWardName === b.wardName;
-        const badgeText = !b.confirmed ? (needsMyConfirm ? "待我确认" : "待对方确认") : (isWatching ? "首页看护中" : "守护中");
-        const badgeBg = !b.confirmed ? (needsMyConfirm ? "rgba(255,220,110,.28)" : "rgba(251,146,60,.32)") : (isWatching ? "rgba(255,220,110,.30)" : "rgba(74,222,128,.28)");
-        const badgeColor = !b.confirmed ? (needsMyConfirm ? "#FFDC6E" : "#FED7AA") : (isWatching ? "#FFDC6E" : "#BBF7D0");
+        const badgeText = !b.confirmed ? (needsMyConfirm ? "待我确认" : "待对方确认") : (isWatching ? "首页看护中" : "");
+        const badgeBg = !b.confirmed ? (needsMyConfirm ? "rgba(255,220,110,.28)" : "rgba(251,146,60,.32)") : "rgba(255,220,110,.26)";
+        const badgeColor = !b.confirmed ? (needsMyConfirm ? "#FFDC6E" : "#FED7AA") : "#FFDC6E";
         return `
-          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:11px;background:rgba(255,255,255,.10);margin-top:6px">
-            <div style="width:28px;height:28px;border-radius:999px;background:rgba(255,255,255,.20);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(b.wardName.slice(0, 1))}</div>
-            <div style="min-width:0;flex:1">
-              <div style="display:flex;align-items:center;gap:5px;white-space:nowrap">
-                <span style="font-size:14.5px;font-weight:700;color:#fff">${esc(b.wardName)}</span>
-                <span style="font-size:10.5px;font-weight:700;color:${badgeColor};background:${badgeBg};padding:1.5px 6px;border-radius:999px">${badgeText}</span>
-              </div>
-              <div style="font-size:11.5px;color:rgba(255,255,255,.78);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">我守护对方 · 对方是我的${esc(b.relation)} · ${esc(b.wardPhone)}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:10px;background:rgba(255,255,255,.08);margin-top:5px">
+            <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">
+              <span style="font-size:14.5px;font-weight:700;color:#fff">${esc(b.wardName)}</span>
+              <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.18);padding:1.5px 6px;border-radius:999px">${esc(b.relation)}</span>
+              ${badgeText ? `<span style="font-size:10.5px;font-weight:700;color:${badgeColor};background:${badgeBg};padding:1.5px 6px;border-radius:999px">${badgeText}</span>` : ""}
             </div>
-            ${needsMyConfirm ? `
-              <button type="button" data-act="acceptCareBond" data-id="${b.id}" style="border:0;background:#fff;color:var(--blue);font-size:11.5px;font-weight:700;padding:4.5px 9px;border-radius:999px;cursor:pointer;font-family:inherit">同意</button>
-              <button type="button" data-act="rejectCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.16);color:#fff;font-size:11.5px;font-weight:700;padding:4.5px 9px;border-radius:999px;cursor:pointer;font-family:inherit">拒绝</button>
-            ` : `
-              ${b.confirmed ? `<button type="button" data-act="toggleWatchWard" data-ward="${esc(b.wardName)}" style="border:0;background:${isWatching ? "rgba(255,220,110,.28)" : "#fff"};color:${isWatching ? "#FFDC6E" : "var(--blue)"};font-size:11.5px;font-weight:700;padding:4.5px 9px;border-radius:999px;cursor:pointer;font-family:inherit">${isWatching ? "切回自己" : "去看护"}</button>` : ""}
-              <button type="button" data-act="askRemoveCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.15);color:rgba(255,255,255,.92);font-size:11.5px;font-weight:700;padding:4.5px 9px;border-radius:999px;cursor:pointer;font-family:inherit">解除</button>
-            `}
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+              ${needsMyConfirm ? `
+                <button type="button" data-act="acceptCareBond" data-id="${b.id}" style="border:0;background:#fff;color:var(--blue);font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;cursor:pointer;font-family:inherit">同意</button>
+                <button type="button" data-act="rejectCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.18);color:#fff;font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;cursor:pointer;font-family:inherit">拒绝</button>
+              ` : `
+                ${b.confirmed ? `<button type="button" data-act="toggleWatchWard" data-ward="${esc(b.wardName)}" style="border:0;background:${isWatching ? "rgba(255,220,110,.26)" : "#fff"};color:${isWatching ? "#FFDC6E" : "var(--blue)"};font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;cursor:pointer;font-family:inherit">${isWatching ? "切回自己" : "去看护"}</button>` : ""}
+                <button type="button" data-act="askRemoveCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.15);color:rgba(255,255,255,.88);font-size:11px;font-weight:600;padding:4px 8px;border-radius:999px;cursor:pointer;font-family:inherit">解除</button>
+              `}
+            </div>
           </div>`;
-      }).join("") : `<div style="font-size:12px;color:rgba(255,255,255,.72);padding:4px 2px">暂无被守护人，点击右上角「+ 添加被守护人」守护家人康复</div>`;
+      }).join("") : "";
       const embeddedCareSectionHTML = genIsV01() ? `
-        <div class="frost" style="margin-top:12px;margin-bottom:12px"></div>
-        <div style="background:rgba(255,255,255,.10);border-radius:14px;padding:10px 11px">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px">
-            <span style="display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#fff">🛡️ 守护人（守护我的人 · ${myGuardians.length}/5）</span>
-            ${myGuardians.length < 5 ? `<button type="button" data-act="openAddGuardianSheet" style="border:0;background:rgba(255,255,255,.22);color:#fff;font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;cursor:pointer;font-family:inherit">+ 添加守护人</button>` : ""}
+        <div class="frost" style="margin-top:10px;margin-bottom:10px"></div>
+        <div style="margin-top:6px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+            <span style="font-size:14px;font-weight:700;color:#fff">守护人</span>
+            ${myGuardians.length < 5 ? `<button type="button" data-act="openAddGuardianSheet" style="border:0;background:rgba(255,255,255,.20);color:#fff;font-size:11.5px;font-weight:700;padding:3.5px 8.5px;border-radius:999px;cursor:pointer;font-family:inherit">+ 添加</button>` : ""}
           </div>
           ${guardianRowsHTML}
         </div>
-        <div style="background:rgba(255,255,255,.10);border-radius:14px;padding:10px 11px;margin-top:10px">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px">
-            <span style="display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#fff">❤️ 被守护人（我守护的人 · ${myWards.length}/5）</span>
-            ${myWards.length < 5 ? `<button type="button" data-act="openAddWardSheet" style="border:0;background:rgba(255,255,255,.22);color:#fff;font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;cursor:pointer;font-family:inherit">+ 添加被守护人</button>` : ""}
+        <div style="margin-top:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+            <span style="font-size:14px;font-weight:700;color:#fff">被守护人</span>
+            ${myWards.length < 5 ? `<button type="button" data-act="openAddWardSheet" style="border:0;background:rgba(255,255,255,.20);color:#fff;font-size:11.5px;font-weight:700;padding:3.5px 8.5px;border-radius:999px;cursor:pointer;font-family:inherit">+ 添加</button>` : ""}
           </div>
           ${wardRowsHTML}
         </div>
@@ -8346,7 +8344,6 @@
                   </div>
                   <div style="display:flex;align-items:center;gap:6px;margin-top:5px;white-space:nowrap">
                     <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.18);padding:2.5px 8px;border-radius:999px">${esc(curPerson.gender)}</span>
-                    ${genIsV01() ? `<span style="font-size:12px;font-weight:700;color:#fff;background:rgba(255,255,255,.22);padding:2.5px 8px;border-radius:999px">守护我的 ${myGuardians.length} · 我守护的 ${myWards.length}</span>` : ""}
                   </div>
                 </div>
                 <button class="view-cap" data-go="health-record" type="button">点击查看</button>
@@ -12566,7 +12563,7 @@
                       <span style="font-size:12px;font-weight:600;color:var(--sec)">${esc(p.gender)} · ${p.age}岁</span>
                       ${unread > 0 ? `<span style="padding:2px 7px;border-radius:999px;background:#EF4444;color:#fff;font-size:11px;font-weight:700">${unread} 条待处理通知</span>` : ""}
                     </div>
-                    <div style="font-size:12.5px;font-weight:500;color:var(--sec);margin-top:3px">守护我的 ${gCount} 人 · 我守护的 ${wCount} 人 · ${esc(p.phone)}</div>
+                    <div style="font-size:12.5px;font-weight:500;color:var(--sec);margin-top:3px">${esc(p.phone)}</div>
                   </div>
                   ${isCur ? `<span style="color:var(--blue);font-weight:800;font-size:16px">✓</span>` : `<span class="neutral-chev">${I.chevR}</span>`}
                 </button>`;
