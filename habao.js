@@ -4956,7 +4956,22 @@
         render();
         toast("已取消订阅");
       },
-      roleSwitch() { S.role = S.role === "patient" ? "family" : "patient"; render(); },
+      roleSwitch() {
+        if (S.role === "patient") {
+          S.role = "family";
+          if (!S.family || !S.family.length) {
+            S.family = [{ id: "f1", name: "王芳", rel: "配偶", phone: "139****2210", phoneRaw: "13900132210" }];
+          }
+          const cur = activeFamMember();
+          S.actorId = cur.id;
+        } else {
+          S.role = "patient";
+          S.actorId = null;
+        }
+        S.myFamNameDraft = undefined;
+        S.myFamRelDraft = undefined;
+        render();
+      },
       openDebug() { openOverlay("debugMenu"); },
       // 设计版本（真机 DesignGenerationStore.select）：V0.0 对应非 VIP 状态，V0.1 对应已开通 VIP 状态，方便直接对比 UI。
       debugGen() {
@@ -5137,6 +5152,57 @@
         closeOverlay();
       },
       pickRel() { S.famRel = el.dataset.r; render(); },
+      pickMyFamRel() {
+        const inp = $("input[name=myFamName]");
+        if (inp) S.myFamNameDraft = inp.value;
+        S.myFamRelDraft = el.dataset.r;
+        render();
+      },
+      saveMyFamIdentity() {
+        const cur = activeFamMember();
+        const rawName = ($("input[name=myFamName]")?.value ?? S.myFamNameDraft ?? cur.name).trim();
+        if (!rawName) { toast("请填写姓名"); return; }
+        const rel = S.myFamRelDraft || cur.rel || "配偶";
+        const target = (S.family || []).find((x) => String(x.id) === String(cur.id));
+        if (target) {
+          target.name = rawName;
+          target.rel = rel;
+        } else {
+          S.family = [{ id: cur.id || "f1", name: rawName, rel, phone: cur.phone || "139****2210", phoneRaw: cur.phoneRaw || "13900132210" }];
+        }
+        S.actorId = cur.id || "f1";
+        S.myFamNameDraft = undefined;
+        S.myFamRelDraft = undefined;
+        render();
+        toast("已更新我的守护身份");
+      },
+      quitGuard() {
+        const cur = activeFamMember();
+        openOverlay("confirm", {
+          title: "退出守护",
+          body: `退出后，你的手机号（${cur.phone}）将与${S.name}的康复档案解除关联，不再接收打卡提醒。`,
+          ok: "确认退出",
+          danger: true,
+          action: "doQuitGuard",
+        });
+      },
+      doQuitGuard() {
+        const cur = activeFamMember();
+        S.family = (S.family || []).filter((x) => String(x.id) !== String(cur.id));
+        S.myFamNameDraft = undefined;
+        S.myFamRelDraft = undefined;
+        S.overlay = null;
+        if (S.family.length) {
+          S.actorId = S.family[0].id;
+          render();
+        } else {
+          S.role = "patient";
+          S.actorId = null;
+          if (S.screen === "family") dismissCover();
+          else render();
+        }
+        toast("已退出守护");
+      },
       // 绑定校验：姓名 / 手机号 / 不能绑自己 / 已绑定 / 最多 5 位（真机 FamilyMemberStore）
       bindFam() {
         const name = $("input[name=fname]")?.value?.trim();
@@ -7379,39 +7445,89 @@
 
     profile: () => {
       const isVip = genIsV01() && !!S.vip;
+      const isFam = shownRole() === "family";
+      const fam = activeFamMember();
+      const heroTopHTML = isFam ? `
+        <div class="pointer" data-go="family" role="button" style="cursor:pointer">
+          <div class="hero-top">
+            <div class="avatar">${fam.name.slice(0, 1)}</div>
+            <div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span class="s18 fb">${fam.name}</span>
+                <span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.two} 家属账号</span>
+              </div>
+              <div class="s13" style="opacity:.9;display:flex;align-items:center;gap:6px;margin-top:4px">
+                <span style="padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.24);font-weight:700">${fam.rel} · 守护中</span>
+                <span style="padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.16);font-variant-numeric:tabular-nums">${fam.phone}</span>
+              </div>
+            </div>
+            <button class="view-cap" data-go="family" type="button">我的身份</button>
+          </div>
+        </div>
+        <div class="pointer" data-go="health-record" role="button" style="cursor:pointer;margin-top:12px;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="color:#FFDC6E;display:inline-flex">${I.heartSq}</span>
+            <span class="s15 fb" style="color:#fff">守护患者：${S.name}</span>
+            <span style="font-size:12px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.18);color:#fff;font-weight:600">${S.gender} · 58岁</span>
+            <span class="grow"></span>
+            <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.95)">患者档案 ›</span>
+          </div>
+          <div class="frost" style="margin:8px 0"></div>
+          <div class="metrics">
+            <div><span>年龄</span><b>58</b></div>
+            <div><span>身高</span><b>${S.height}</b></div>
+            <div><span>体重</span><b>${S.weight}</b></div>
+            <div><span>BMI</span><b>${bmi()}</b></div>
+          </div>
+        </div>
+      ` : `
+        <div class="pointer" data-go="health-record" role="button" style="cursor:pointer">
+          <div class="hero-top">
+            <div class="avatar">${S.name.slice(0, 1)}</div>
+            <div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span class="s18 fb">${S.name}</span>
+                ${isVip ? `<span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.crown} VIP</span>` : ""}
+              </div>
+              <div class="s13" style="opacity:.85">本人　${S.gender}</div>
+            </div>
+            <button class="view-cap" data-go="health-record" type="button">点击查看</button>
+          </div>
+          <div class="frost"></div>
+          <div class="metrics">
+            <div><span>年龄</span><b>58</b></div>
+            <div><span>身高</span><b>${S.height}</b></div>
+            <div><span>体重</span><b>${S.weight}</b></div>
+            <div><span>BMI</span><b>${bmi()}</b></div>
+          </div>
+        </div>
+      `;
+      const vipTitle = isFam
+        ? (isVip ? "家庭共享 VIP 生效中" : "开通家庭共享 VIP")
+        : (isVip ? "VIP 专属全维守护中" : "开通 VIP 享全维守护");
+      const vipSub = isFam
+        ? (isVip ? `主账号已开通 · 有效期至 ${vipExpiryText()}` : "一人开通全家同享 · ¥2400 / 年")
+        : (isVip ? `有效期至 ${vipExpiryText()}` : "¥2400 / 年");
+      const vipBtn = isFam
+        ? (isVip ? "共享中 ›" : "去开通 ›")
+        : (isVip ? "已购买 ›" : "购买 ›");
+      const famRowSub = isFam
+        ? `我是${fam.rel}（${fam.name}）· 守护${S.name}`
+        : (S.family.length ? `已绑定 ${S.family.length} 人` : "尚未绑定家属");
       return `<div class="page">
         ${navBar(cap(I.chevL, "返回"), "个人中心",
           genHasFamily() ? `<button class="cap" data-act="roleSwitch" type="button">${I.two}${S.role === "patient" ? "本人" : "家属"}</button>` : "")}
         <div class="scroll px20" style="padding-top:8px">
           <div class="hero">
-            <div class="pointer" data-go="health-record" role="button" style="cursor:pointer">
-              <div class="hero-top">
-                <div class="avatar">${S.name.slice(0, 1)}</div>
-                <div>
-                  <div style="display:flex;align-items:center;gap:6px">
-                    <span class="s18 fb">${S.name}</span>
-                    ${isVip ? `<span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.crown} VIP</span>` : ""}
-                  </div>
-                  <div class="s13" style="opacity:.85">${shownRole() === "patient" ? "本人" : "守护中"}　${S.gender}</div>
-                </div>
-                <button class="view-cap" data-go="health-record" type="button">点击查看</button>
-              </div>
-              <div class="frost"></div>
-              <div class="metrics">
-                <div><span>年龄</span><b>58</b></div>
-                <div><span>身高</span><b>${S.height}</b></div>
-                <div><span>体重</span><b>${S.weight}</b></div>
-                <div><span>BMI</span><b>${bmi()}</b></div>
-              </div>
-            </div>
+            ${heroTopHTML}
             <div class="frost" style="margin-top:12px;margin-bottom:12px"></div>
             <div class="hero-vip-row" data-go="vip" role="button" style="cursor:pointer">
               <div class="hero-crown-circle">${I.crown}</div>
               <div style="min-width:0;flex:1">
-                <div class="s18 fb" style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isVip ? "VIP 专属全维守护中" : "开通 VIP 享全维守护"}</div>
-                <div class="s14 fsb" style="color:${isVip ? "rgba(255,255,255,.88)" : "#FFE282"};margin-top:2px">${isVip ? `有效期至 ${vipExpiryText()}` : "¥2400 / 年"}</div>
+                <div class="s18 fb" style="color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${vipTitle}</div>
+                <div class="s14 fsb" style="color:${isVip ? "rgba(255,255,255,.88)" : "#FFE282"};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${vipSub}</div>
               </div>
-              <button class="view-cap ${isVip ? "vip-bought" : ""}" data-go="vip" type="button">${isVip ? "已购买 ›" : "购买 ›"}</button>
+              <button class="view-cap ${isVip ? "vip-bought" : ""}" data-go="vip" type="button">${vipBtn}</button>
             </div>
             ${isVip ? `
             <div class="hero-capsules-grid">
@@ -7430,7 +7546,7 @@
           </div>
           <div class="list-island mt16">
             ${[
-              ["family", I.two, "家属管理", S.family.length ? `已绑定 ${S.family.length} 人` : "尚未绑定家属"],
+              ["family", I.two, "家属管理", famRowSub],
               ["hardware", I.waves, "硬件管理", hwCaption()],
               ["activity", I.clock, "操作记录", (S.ops && S.ops[0]) ? opHeadlineHTML(S.ops[0]) : "还没有记录"],
             ].map(([id, ico, t, s]) => vipFeatureRowHTML(id, ico, t, s)).join("")}
@@ -7562,7 +7678,76 @@
         </div>
       </div>`,
 
-    family: () => `
+    family: () => {
+      if (shownRole() === "family") {
+        const fam = activeFamMember();
+        const curName = S.myFamNameDraft !== undefined ? S.myFamNameDraft : fam.name;
+        const curRel = S.myFamRelDraft || fam.rel || "配偶";
+        const others = (S.family || []).filter((x) => String(x.id) !== String(fam.id));
+        return `
+        <div class="page">
+          ${navBar(cap(I.chevL, "返回", "", "backFamily"), "家属管理")}
+          <div class="scroll px20" style="padding-top:16px;padding-bottom:32px">
+            <div class="field-label" style="font-size:16px;margin-bottom:8px">当前守护患者</div>
+            <div style="background:#fff;border-radius:18px;padding:16px;box-shadow:0 6px 16px rgba(16,84,224,.06)">
+              <div style="display:flex;align-items:center;gap:14px">
+                <div class="avatar" style="background:rgba(16,84,224,.10);color:var(--blue)">${S.name.slice(0, 1)}</div>
+                <div class="grow">
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <span class="s19 fb t">${S.name}</span>
+                    <span style="font-size:12px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:3px 8px;border-radius:999px">患者本人 · 主账号</span>
+                  </div>
+                  <div class="s14 fm t-sec" style="margin-top:4px">${S.gender} · 58岁 · 身高 ${S.height}cm · 体重 ${S.weight}kg</div>
+                </div>
+              </div>
+              <div style="height:1px;background:rgba(16,84,224,.08);margin:12px 0"></div>
+              <div style="display:flex;align-items:flex-start;gap:8px;color:var(--sec);font-size:13px;line-height:1.45">
+                <span style="color:var(--blue);display:inline-flex;margin-top:1px">${I.shieldCheck}</span>
+                <span>你已通过本机手机号关联${S.name}的康复档案，日常打卡、记血压、传报告与问诊均实时同步。</span>
+              </div>
+            </div>
+
+            <div class="field-label mt16" style="font-size:16px;margin-bottom:8px">我的守护身份（当前登录账号）</div>
+            <div style="background:#fff;border-radius:18px;padding:16px;box-shadow:0 6px 16px rgba(16,84,224,.06)">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                <div>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <span class="s14 fsb t-sec">登录手机号</span>
+                    <span style="font-size:11px;font-weight:700;color:#1AA64A;background:rgba(26,166,74,.12);padding:2px 8px;border-radius:999px">当前登录</span>
+                  </div>
+                  <div class="s19 fb t mono" style="margin-top:4px">${fam.phone}</div>
+                </div>
+                <button data-act="quitGuard" type="button" style="border:0;background:rgba(220,72,72,.10);color:#DC4848;font-size:14px;font-weight:600;padding:8px 14px;border-radius:999px;cursor:pointer;font-family:inherit">退出守护</button>
+              </div>
+              <div style="height:1px;background:rgba(16,84,224,.08);margin:14px 0"></div>
+              <div class="s15 fsb t" style="margin-bottom:8px">我的姓名 / 称呼</div>
+              <input class="field" name="myFamName" value="${escAttr(curName)}" placeholder="输入你的姓名或称呼" style="background:rgba(16,84,224,.05)" />
+              <div class="s15 fsb t mt16" style="margin-bottom:8px">我与患者的关系</div>
+              <div class="chips">${["配偶", "子女", "父母", "其他"].map((r) => `<button class="chip ${curRel === r ? "on" : ""}" data-act="pickMyFamRel" data-r="${r}" type="button">${r}</button>`).join("")}</div>
+              <button class="cta w100 mt16" data-act="saveMyFamIdentity" type="button" style="height:48px;font-size:17px">保存身份信息</button>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px;margin-bottom:8px">
+              <div class="field-label" style="font-size:16px;margin:0">其他共管家属</div>
+              <span class="s13 fsb t-sec">共 ${others.length} 人</span>
+            </div>
+            ${others.length ? `
+              ${others.map((f) => `
+                <div class="plan-row" style="margin-top:10px">
+                  <div class="grow"><div class="s17 fb t">${f.name}</div><div class="s14 t-sec">${f.rel}　${f.phone}</div></div>
+                  <span style="font-size:13px;font-weight:600;color:var(--blue);background:rgba(16,84,224,.08);padding:6px 12px;border-radius:999px">共同守护中</span>
+                </div>`).join("")}
+              <div class="s13 fm t-sec" style="margin-top:8px;padding:0 4px">仅患者主账号可添加或移除其他共管家属。</div>
+            ` : `
+              <div style="background:#fff;border-radius:16px;padding:16px;box-shadow:0 4px 12px rgba(16,84,224,.05)">
+                <div class="s16 fb t">暂无其他共管家属</div>
+                <div class="s13 fm t-sec" style="margin-top:6px;line-height:1.45">如需新增或移除其他共管家属，请由患者主账号在「家属管理」中操作。</div>
+              </div>
+            `}
+          </div>
+        </div>`;
+      }
+      return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回", "", "backFamily"), "家属管理")}
         <div class="scroll px24" style="padding-top:20px">
@@ -7581,7 +7766,8 @@
         <div class="px24 flex gap8" style="padding-bottom:28px">
           <button class="cta grow" data-act="bindFam" type="button">点击绑定</button>
         </div>
-      </div>`,
+      </div>`;
+    },
 
     notify: () => `
       <div class="page">
@@ -10115,6 +10301,13 @@
   }
   /// 身份展示：V0.0 一律按患者本人（真机 ServiceView.displayedRole / HealthRecordView.role）
   function shownRole() { return genHasFamily() ? S.role : "patient"; }
+  /// 当前家属登录视角对应的家属成员（与真机 ServiceView.activeFamilyMember 同源）
+  function activeFamMember() {
+    const list = S.family || [];
+    return list.find((m) => String(m.id) === String(S.actorId))
+      || list[0]
+      || { id: "f1", name: "王芳", rel: "配偶", phone: "139****2210", phoneRaw: "13900132210" };
+  }
   /// 首次进入步骤点：V0.1 三步（登录 / 身份 / 资料），V0.0 两步（登录 / 资料）
   function dotsHTML(active) {
     const total = genHasFamily() ? 3 : 2;
