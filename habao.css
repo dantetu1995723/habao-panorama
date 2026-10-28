@@ -1603,6 +1603,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .vip-cap.on { background: rgba(16,84,224,.12); color: var(--blue); }
 .vip-divider { height: 1px; background: rgba(16,84,224,.12); margin: 2px 0; }
 .vip-feature-row { background: transparent !important; padding: 12px 0 !important; }
+.vip-feature-row.locked, .list-row.locked { cursor: default !important; }
 .vip-well { background: rgba(16,84,224,.10) !important; color: var(--blue) !important; }
 .vip-head-well { background: var(--blue) !important; color: #fff !important; }
 .vip-title { font-size: calc(17px * var(--fs)); font-weight: 700; color: var(--blue); margin: 0; }
