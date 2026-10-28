@@ -1298,6 +1298,13 @@
     answers: {},
     restRows: REST_PRESET.map((x) => ({ ...x })),
     family: [{ id: "f1", name: "王芳", rel: "配偶", phone: "139****2210", phoneRaw: "13900132210" }],
+    guardedPatients: [
+      { id: "p1", name: "李建国", gender: "男", age: 58, height: 170, weight: 75 },
+      { id: "p2", name: "张桂兰", gender: "女", age: 56, height: 160, weight: 61 },
+    ],
+    activePatientId: "p1",
+    consultUnread: 0,
+    seededCareNotices: false,
     famRel: "配偶",
     notifySelf: true,
     notifyFamily: false,
@@ -2694,7 +2701,42 @@
     return (map[id] || [...home, C(id)]).map((f) => ({ ...f }));
   }
   function ensureConsultCaseOnEnter() {
-    // 哈宝医生保持最单纯的对话形态，进入时不自动加载案例或带入模块卡片
+    // V0.1+ 哈宝医生统一承载医患家协同通知（家属提醒患者 + 患者动态通知家属）
+    if (genIsV01() && !S.seededCareNotices) {
+      S.seededCareNotices = true;
+      const pName = S.name || "李建国";
+      const fam = activeFamMember();
+      const fLabel = `${fam.name}（${fam.rel || "家属"}）`;
+      if (!S.messages.some((m) => m.who === "notice")) {
+        S.messages.unshift(
+          {
+            who: "notice",
+            notice: {
+              kind: "patientActionDone",
+              badgeText: "患者康复动态",
+              receiverLabel: "通知家属",
+              title: `${pName}已完成「起床」打卡`,
+              detail: `患者${pName}已在首页完成今日计划「06:00 起床」打卡，同步通知守护家属。`,
+              target: "schedule",
+              time: "06:05",
+            },
+          },
+          {
+            who: "notice",
+            notice: {
+              kind: "familyRemindPlan",
+              badgeText: "家属打卡提醒",
+              receiverLabel: `通知患者：${pName}`,
+              title: `${fLabel}提醒你按时完成「阿司匹林肠溶片」`,
+              detail: `家属${fLabel}通过哈宝医生提醒${pName}：今日计划「08:00 阿司匹林肠溶片」待完成，服药后记得打卡，让家人放心。`,
+              target: "schedule",
+              time: "08:15",
+            },
+          }
+        );
+      }
+    }
+    S.consultUnread = 0;
   }
   function present(id, how) {
     const prevScreen = S.screen;
@@ -3826,7 +3868,7 @@
         S.remindedTasks[id] = true;
         logOp("提醒了患者", place, [["计划", title]]);
         closeOverlay();
-        toast(`已向${S.name}发送「${title}」提醒`);
+        toast(`已通过「哈宝医生」向${S.name}发送「${title}」提醒`);
       },
       familyWalkRemind() {
         const pending = liveTasks().filter((t) => t.cat === "exercise" && !S.completed[t.id]);
@@ -3835,7 +3877,19 @@
         S.remindedWalkToday = true;
         const exTitle = pending[0] ? pending[0].title : (liveTasks().find((t) => t.cat === "exercise")?.title || "户外散步");
         logOp("提醒了患者", "运动", [["计划", exTitle]]);
-        toast(`已向${S.name}发送「${exTitle}」运动提醒`);
+        toast(`已通过「哈宝医生」向${S.name}发送「${exTitle}」运动提醒`);
+        render();
+      },
+      switchGuardedPatient() {
+        const pid = el.dataset.id;
+        const p = (S.guardedPatients || []).find((x) => String(x.id) === String(pid));
+        if (!p) return;
+        S.activePatientId = p.id;
+        S.name = p.name;
+        S.gender = p.gender;
+        S.height = p.height;
+        S.weight = p.weight;
+        toast(`已切换为守护患者「${p.name}」`);
         render();
       },
       familyWalkProxyDone() {
@@ -7306,7 +7360,14 @@
       <div class="page rel${S.consultKeyboard ? " consult-kb" : ""}${S.plusPanel ? " consult-panel" : ""}">
         ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="24" height="24" alt="" />哈宝医生</span>`)}
         <div class="scroll px20 grow">
-          ${S.messages.length ? S.messages.map((m) => (m.who === "vip" ? `
+          ${!S.messages.some((m) => m.who !== "notice") ? `
+            <div class="island-card ta-c" style="padding:16px;margin-top:12px;margin-bottom:10px">
+              <img src="${A.logo}" width="64" height="64" alt="" />
+              <h2 class="s21 fb t mt8">你好，这里是哈宝医生</h2>
+              <p class="s16 t-sec">有不适或用药疑问，都可以问我</p>
+            </div>
+          ` : ""}
+          ${S.messages.map((m) => (m.who === "notice" ? consultCareNoticeHTML(m.notice) : m.who === "vip" ? `
             <div class="chat-msg-row ai">
               <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
               ${genHasFamily() ? `<div class="bubble ai">${CONSULT_VIP_GREETING}</div>` : consultVipCardHTML()}
@@ -7321,13 +7382,7 @@
               <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
               <div class="bubble ai">${m.t}</div>
             </div>
-          `)).join("") : `
-            <div class="island-card ta-c" style="padding:16px;margin-top:12px">
-              <img src="${A.logo}" width="64" height="64" alt="" />
-              <h2 class="s21 fb t mt8">你好，这里是哈宝医生</h2>
-              <p class="s16 t-sec">有不适或用药疑问，都可以问我</p>
-            </div>
-          `}
+          `)).join("")}
         </div>
         ${S.pendingImage ? `<div class="consult-pending">已选 1 张图片，补充一句再发送</div>` : ""}
         <div class="listen-hint" id="listen-hint" hidden></div>
@@ -7472,7 +7527,8 @@
     },
 
     vip: () => {
-      const on = !!S.vip;
+      const isFam = shownRole() === "family";
+      const on = isFam ? true : !!S.vip;
       const benefitSections = [
         {
           ico: I.steth,
@@ -7535,7 +7591,7 @@
             <div class="frost"></div>
             <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap">
               <div class="s22 fb">¥2400 <span class="s16" style="font-weight:600;opacity:.85">/ 年</span></div>
-              ${on ? `<span class="s13 fb" style="padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.18);color:rgba(255,255,255,.95)">已开通 · 有效期至 ${vipExpiryText()}</span>` : ""}
+              ${on ? `<span class="s13 fb" style="padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.18);color:rgba(255,255,255,.95)">${isFam ? `家庭共享生效 · 至 ${vipExpiryText()}` : `已开通 · 有效期至 ${vipExpiryText()}`}</span>` : ""}
             </div>
           </div>
 
@@ -7564,7 +7620,12 @@
           <p class="s14 fm t-sec mt16 ta-c">本机演示开通，不会真实扣款。</p>
         </div>
         <div class="px20" style="padding-top:10px;padding-bottom:28px">
-          ${on
+          ${isFam ? `
+            <div style="background:rgba(16,84,224,.08);border-radius:16px;padding:12px 14px;text-align:center">
+              <div class="s16 fb t">正共享患者「${S.name}」的 VIP 权益</div>
+              <div class="s12 fm t-sec" style="margin-top:4px;line-height:1.4">VIP 随患者档案生效，家属无需重复付费；如需为你本人档案开通请切回「本人」身份</div>
+            </div>
+          ` : on
             ? `<button class="cta-ghost" data-act="askCancelVip" type="button">取消订阅</button>`
             : `<button class="cta" data-act="askVip" type="button">立即开通</button>`}
         </div>
@@ -7572,8 +7633,8 @@
     },
 
     profile: () => {
-      const isVip = genIsV01() && !!S.vip;
       const isFam = shownRole() === "family";
+      const isVip = genHasFamily();
       const fam = activeFamMember();
       const heroTopHTML = isFam ? `
         <div class="pointer" data-go="family" role="button" style="cursor:pointer">
@@ -7629,11 +7690,13 @@
         ? (isVip ? "共享中 ›" : "去开通 ›")
         : (isVip ? "已购买 ›" : "购买 ›");
       const famRowSub = isFam
-        ? `我是${fam.rel}（${fam.name}）· 守护${S.name}`
+        ? ((S.guardedPatients && S.guardedPatients.length > 1)
+          ? `我是${fam.rel}（${fam.name}）· 守护${S.name}等 ${S.guardedPatients.length} 人`
+          : `我是${fam.rel}（${fam.name}）· 守护${S.name}`)
         : (S.family.length ? `已绑定 ${S.family.length} 人` : "尚未绑定家属");
       return `<div class="page">
         ${navBar(cap(I.chevL, "返回"), "个人中心",
-          genHasFamily() ? `<button class="cap" data-act="roleSwitch" type="button">${I.two}${S.role === "patient" ? "本人" : "家属"}</button>` : "")}
+          genIsV01() ? `<button class="cap" data-act="roleSwitch" type="button">${I.two}${S.role === "patient" ? "本人" : "家属"}</button>` : "")}
         <div class="scroll px20" style="padding-top:8px">
           <div class="hero">
             ${heroTopHTML}
@@ -7801,26 +7864,36 @@
         const curName = S.myFamNameDraft !== undefined ? S.myFamNameDraft : fam.name;
         const curRel = S.myFamRelDraft || fam.rel || "配偶";
         const others = (S.family || []).filter((x) => String(x.id) !== String(fam.id));
+        const gPatients = S.guardedPatients || [{ id: "p1", name: S.name, gender: S.gender, age: 58, height: S.height, weight: S.weight }];
         return `
         <div class="page">
           ${navBar(cap(I.chevL, "返回", "", "backFamily"), "家属管理")}
           <div class="scroll px20" style="padding-top:16px;padding-bottom:32px">
-            <div class="field-label" style="font-size:16px;margin-bottom:8px">当前守护患者</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div class="field-label" style="font-size:16px;margin:0">我守护的患者（点击可切换）</div>
+              <span class="s13 fsb t-sec">已关联 ${gPatients.length}/5 人</span>
+            </div>
             <div style="background:#fff;border-radius:18px;padding:16px;box-shadow:0 6px 16px rgba(16,84,224,.06)">
-              <div style="display:flex;align-items:center;gap:14px">
-                <div class="avatar" style="background:rgba(16,84,224,.10);color:var(--blue)">${S.name.slice(0, 1)}</div>
-                <div class="grow">
-                  <div style="display:flex;align-items:center;gap:8px">
-                    <span class="s19 fb t">${S.name}</span>
-                    <span style="font-size:12px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:3px 8px;border-radius:999px">患者本人 · 主账号</span>
+              ${gPatients.map((p, idx) => {
+                const isSel = p.name === S.name || String(p.id) === String(S.activePatientId);
+                return `
+                <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:${isSel ? "rgba(16,84,224,.05)" : "#fff"};border:1px solid ${isSel ? "rgba(16,84,224,.22)" : "rgba(16,84,224,.08)"};${idx > 0 ? "margin-top:10px" : ""}">
+                  <div class="avatar" style="width:44px;height:44px;font-size:18px;background:rgba(16,84,224,.10);color:var(--blue)">${p.name.slice(0, 1)}</div>
+                  <div class="grow" style="min-width:0">
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <span class="s18 fb t">${p.name}</span>
+                      <span style="font-size:11px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 7px;border-radius:999px">VIP 共享</span>
+                    </div>
+                    <div class="s13 fm t-sec" style="margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.gender} · ${p.age}岁 · 身高${p.height}cm · 体重${p.weight}kg</div>
                   </div>
-                  <div class="s14 fm t-sec" style="margin-top:4px">${S.gender} · 58岁 · 身高 ${S.height}cm · 体重 ${S.weight}kg</div>
-                </div>
-              </div>
-              <div style="height:1px;background:rgba(16,84,224,.08);margin:12px 0"></div>
-              <div style="display:flex;align-items:flex-start;gap:8px;color:var(--sec);font-size:13px;line-height:1.45">
+                  ${isSel
+                    ? `<span style="font-size:12.5px;font-weight:700;color:#1AA64A;background:rgba(26,166,74,.12);padding:6px 10px;border-radius:999px;flex-shrink:0">当前守护中</span>`
+                    : `<button data-act="switchGuardedPatient" data-id="${p.id}" type="button" style="border:0;background:var(--blue);color:#fff;font-size:13px;font-weight:700;padding:7px 12px;border-radius:999px;cursor:pointer;flex-shrink:0;font-family:inherit">切换守护</button>`}
+                </div>`;
+              }).join("")}
+              <div style="display:flex;align-items:flex-start;gap:8px;color:var(--sec);font-size:13px;line-height:1.45;margin-top:12px">
                 <span style="color:var(--blue);display:inline-flex;margin-top:1px">${I.shieldCheck}</span>
-                <span>你已通过本机手机号关联${S.name}的康复档案，日常打卡、记血压、传报告与问诊均实时同步。</span>
+                <span>同一账号支持「本人 / 家属」双身份切换；作为家属最多可同时守护 5 位已开通 VIP 的患者，所有提醒与打卡通知统一汇入「哈宝医生」。</span>
               </div>
             </div>
 
@@ -7904,6 +7977,12 @@
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "打卡通知")}
         <div class="scroll px20" style="padding-top:12px;padding-bottom:24px">
+          ${genHasFamily() ? `
+            <div style="display:flex;align-items:flex-start;gap:8px;padding:0 4px 12px;color:var(--sec);font-size:13.5px;line-height:1.45">
+              <span style="color:var(--blue);display:inline-flex;margin-top:1px">${I.steth}</span>
+              <span>开启后，家属提醒患者打卡/运动、以及患者完成的康复动作，均统一在「哈宝医生」对话流中发送通知。</span>
+            </div>
+          ` : ""}
           <div class="list-island">
             ${rowToggle(isFam ? "通知患者本人" : "通知自己", S.notifySelf, "toggleSelf", notifySys(I.bell))}
             ${genHasFamily() ? rowToggle(isFam ? "通知家属（含我）" : "通知家属", S.notifyFamily, "toggleFam", notifySys(I.two)) : ""}
@@ -10157,9 +10236,10 @@
   /// V0.1 / V0.2 出现家属 / 硬件 / 操作记录 / 问诊的入口。真正能用还要开通 VIP。V0.2 额外启用计划详情页新版布局。
   function genIsV01() { return S.gen === "0.1" || S.gen === "0.2"; }
   function genIsV02() { return S.gen === "0.2"; }
-  function genHasFamily() { return genIsV01() && !!S.vip; }
+  /// VIP 随患者档案走：本人视角看自己是否买 VIP，家属视角看所守护患者档案（已开通 VIP）直接共享权益
+  function genHasFamily() { return genIsV01() && (!!S.vip || S.role === "family"); }
   function vipExpiryText() {
-    if (!S.vipUntil) return "";
+    if (!S.vipUntil) return "2027年10月28日";
     const d = new Date(S.vipUntil);
     return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
   }
@@ -10181,7 +10261,7 @@
   }
   /// VIP 专区功能行（家属管理 / 硬件管理 / 操作记录）：纯正蓝色视觉设计；未开通时不可点击
   function vipFeatureRowHTML(id, ico, title, caption) {
-    const locked = !(genIsV01() && S.vip);
+    const locked = !genHasFamily();
     const sub = locked ? "开通 VIP 后可用" : caption;
     const tail = locked ? `<span class="vip-lock">${I.crown}</span>` : `<span class="vip-chev">${I.chevR}</span>`;
     const tag = locked ? "div" : "button";
@@ -10215,7 +10295,36 @@
     </button>`;
   }
   function consultOrbHTML() {
-    return `<div class="orb ai" data-go="consult"><img src="${A.logo}" alt="哈宝医生" /></div>`;
+    const hasUnread = genIsV01() && (S.consultUnread || 0) > 0;
+    const dotHTML = hasUnread
+      ? `<span style="position:absolute;top:6px;right:6px;width:11px;height:11px;border-radius:999px;background:#EF4444;border:2px solid #fff;box-shadow:0 2px 6px rgba(239,68,68,.35)"></span>`
+      : "";
+    return `<div class="orb ai" data-go="consult" style="position:relative"><img src="${A.logo}" alt="哈宝医生" />${dotHTML}</div>`;
+  }
+  function consultCareNoticeHTML(n) {
+    if (!n) return "";
+    const isRemind = n.kind === "familyRemindPlan" || n.kind === "familyRemindExercise";
+    const isDone = n.kind === "patientActionDone";
+    const accent = isRemind ? "#D97706" : (isDone ? "#1AA64A" : "#1054E0");
+    const softBg = isRemind ? "rgba(245,158,11,.13)" : (isDone ? "rgba(26,166,74,.12)" : "rgba(16,84,224,.10)");
+    const ico = isRemind ? "🔔" : (isDone ? "✅" : "👥");
+    const jumpLabel = n.target === "vitals" ? "去查看血压 ›" : (n.target === "report" ? "去查看报告 ›" : "去查看计划 ›");
+    return `
+      <div class="chat-msg-row ai">
+        <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
+        <div style="background:rgba(255,255,255,.96);border-radius:6px 18px 18px 18px;padding:14px;border:1px solid ${isRemind ? "rgba(217,119,6,.24)" : (isDone ? "rgba(26,166,74,.24)" : "rgba(16,84,224,.20)")};box-shadow:0 6px 14px rgba(16,84,224,.06);flex:1;min-width:0">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:${accent};background:${softBg};padding:3px 8px;border-radius:999px">${ico} ${n.badgeText || "康复通知"}</span>
+            <span style="font-size:11px;font-weight:600;color:var(--sec)">${n.receiverLabel || ""}</span>
+          </div>
+          <div class="s16 fb t" style="margin-top:8px;line-height:1.35">${n.title || ""}</div>
+          <div class="s14 fm" style="margin-top:5px;color:rgba(16,84,224,.78);line-height:1.45">${n.detail || ""}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+            <span class="s12 fm t-sec mono">${n.time || "刚刚"}</span>
+            ${n.target ? `<button data-go="${n.target}" type="button" style="border:0;background:none;color:${accent};font-size:12.5px;font-weight:700;cursor:pointer;padding:0;font-family:inherit">${jumpLabel}</button>` : ""}
+          </div>
+        </div>
+      </div>`;
   }
   function consultCtaHTML(extraStyle) {
     const style = extraStyle ? `${extraStyle};` : "";
@@ -10293,6 +10402,88 @@
       at: Date.now(), actor, actorId, action, place: place || "", how,
     });
     if (S.ops.length > 300) { S.ops.length = 300; S.opDropped = true; }
+    pushConsultNoticeFromOp(actorId ? "family" : "patient", actor, action, place || "", how);
+  }
+  function pushConsultNoticeFromOp(role, actor, action, place, how) {
+    if (!genIsV01()) return;
+    const pName = S.name || "李建国";
+    const subject = how || "今日康复事项";
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    let notice = null;
+    if (action === "提醒了患者") {
+      const isEx = place === "运动" || /散步|运动/.test(subject);
+      notice = {
+        kind: isEx ? "familyRemindExercise" : "familyRemindPlan",
+        badgeText: isEx ? "家属运动提醒" : "家属打卡提醒",
+        receiverLabel: `通知患者：${pName}`,
+        title: isEx ? `${actor}提醒你今天出门散步运动` : `${actor}提醒你按时完成「${subject}」`,
+        detail: isEx
+          ? `家属${actor}在${place}发起提醒：今日运动计划（${subject}）尚未完成，提醒你循序渐进出门散散步，完成后记得打卡。`
+          : `家属${actor}在${place}发起提醒：今日计划「${subject}」尚未打卡，请按时完成后打卡，让家人放心。`,
+        target: "schedule",
+        time: timeStr,
+      };
+    } else if (role === "patient") {
+      if (action === "打卡了") {
+        const isBP = place === "血压监测" || /血压/.test(subject);
+        notice = {
+          kind: "patientActionDone",
+          badgeText: "患者康复动态",
+          receiverLabel: "通知家属",
+          title: `${actor}已完成「${subject}」打卡`,
+          detail: `患者${actor}刚在${place}完成了今日计划「${subject}」打卡，同步通知守护家属，请放心。`,
+          target: isBP ? "vitals" : "schedule",
+          time: timeStr,
+        };
+      } else if (action === "同步了血压" || action === "记录了读数") {
+        notice = {
+          kind: "patientActionDone",
+          badgeText: "患者康复动态",
+          receiverLabel: "通知家属",
+          title: `${actor}已同步最新血压读数`,
+          detail: `患者${actor}刚在${place}更新了血压读数：${subject}，家属可随时查看最新血压趋势。`,
+          target: "vitals",
+          time: timeStr,
+        };
+      } else if (action === "完成了散步") {
+        notice = {
+          kind: "patientActionDone",
+          badgeText: "患者康复动态",
+          receiverLabel: "通知家属",
+          title: `${actor}已完成户外散步运动`,
+          detail: `患者${actor}刚完成户外散步并打卡：${subject}，运动轨迹已同步更新。`,
+          target: "schedule",
+          time: timeStr,
+        };
+      } else if (action === "上传了复查资料" || action === "上传了资料" || action === "提交了问卷") {
+        notice = {
+          kind: "patientActionDone",
+          badgeText: "患者康复动态",
+          receiverLabel: "通知家属",
+          title: `${actor}${action}（${subject}）`,
+          detail: `患者${actor}刚在${place}${action}：${subject}，家属可前往身体报告查看详情。`,
+          target: "report",
+          time: timeStr,
+        };
+      }
+    } else if (role === "family" && action === "打卡了") {
+      notice = {
+        kind: "familyProxyAction",
+        badgeText: "家属代打卡动态",
+        receiverLabel: "通知患者与家属",
+        title: `${actor}已代为完成「${subject}」打卡`,
+        detail: `家属${actor}在${place}确认${pName}已完成「${subject}」并代为打卡，全端进度已实时同步。`,
+        target: "schedule",
+        time: timeStr,
+      };
+    }
+    if (notice) {
+      S.messages.push({ who: "notice", notice });
+      if (S.screen !== "consult") {
+        S.consultUnread = (S.consultUnread || 0) + 1;
+      }
+    }
   }
   /// 操作记录换日（V10.109）：在「今天 → 最早一条记录那天」之间移动，真机同日翻页手势
   function opStepDay(delta) {
@@ -10431,8 +10622,8 @@
     if (!id) return;
     logOp(onlyToday ? "删除了这一次" : "删除了计划", entryPlace(), [["计划", taskTitle(id)]]);
   }
-  /// 身份展示：V0.0 一律按患者本人（真机 ServiceView.displayedRole / HealthRecordView.role）
-  function shownRole() { return genHasFamily() ? S.role : "patient"; }
+  /// 身份展示：V0.0 一律按患者本人；V0.1+ 下同一个账号 ID 始终支持在「本人」与「家属」间切换（真机 ServiceView.displayedRole）
+  function shownRole() { return genIsV01() ? S.role : "patient"; }
   /// 当前家属登录视角对应的家属成员（与真机 ServiceView.activeFamilyMember 同源）
   function activeFamMember() {
     const list = S.family || [];
