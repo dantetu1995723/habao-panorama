@@ -2359,6 +2359,30 @@
   function presentCareNotice(notice) {
     // 已统一为首页 App 内通知栏，不再弹出居中弹窗或跨页横幅
   }
+  function careNoticeBubbleText(notice) {
+    const t = String(notice?.title || "").trim();
+    const d = String(notice?.detail || "").trim();
+    if (!d) return t;
+    const sep = /[。！？]$/.test(t) ? "" : "：";
+    return `${t}${sep}${d}`;
+  }
+  function appendCareBubbleToMessages(notice, targetPerson) {
+    if (!S.messages) S.messages = [];
+    const target = (targetPerson || notice.recipientPerson || S.currentPersonName || "李建国").trim();
+    S.messages = S.messages.filter(
+      (m) => !(m.isCareBubble && m.recipientPerson === target && m.noticeTitle === notice.title && m.noticeKind === notice.kind)
+    );
+    S.messages.push({
+      id: notice.id || `cb_${Date.now()}`,
+      who: "ai",
+      t: careNoticeBubbleText(notice),
+      time: notice.time || "",
+      isCareBubble: true,
+      recipientPerson: target,
+      noticeTitle: notice.title,
+      noticeKind: notice.kind,
+    });
+  }
   function deliverCareNotice(notice) {
     if (!notice || !genIsV01()) return;
     ensureCareGraph();
@@ -2371,6 +2395,10 @@
       notice.id = `hn_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     }
     const targetPerson = (notice.recipientPerson || S.currentPersonName || "李建国").trim();
+    notice.recipientPerson = targetPerson;
+    // 1. 哈宝医生对话页写入纯对话气泡（仅目标接收人可见，无任何操作按钮）
+    appendCareBubbleToMessages(notice, targetPerson);
+    // 2. 触达手机系统通知（当前登录人立即触发系统通知，其他人物入队待切号时触发系统通知）
     if (targetPerson === S.currentPersonName) {
       triggerSysPushBanner(notice);
     } else {
@@ -2395,19 +2423,19 @@
     if (!genIsV01() || S.seededCareNotices) return;
     S.seededCareNotices = true;
     if (!S.pendingPersonPopups) S.pendingPersonPopups = {};
+    const seedWf = {
+      id: "hn_seed_wf",
+      kind: "patientActionDone",
+      badgeText: "打卡完成",
+      recipientPerson: "王芳",
+      title: "李建国已完成「起床」打卡",
+      detail: "今日计划「06:00 起床」已完成打卡",
+      target: "schedule",
+      time: "06:05",
+    };
+    appendCareBubbleToMessages(seedWf, "王芳");
     if (!S.pendingPersonPopups["王芳"] || !S.pendingPersonPopups["王芳"].length) {
-      S.pendingPersonPopups["王芳"] = [
-        {
-          id: "hn_seed_wf",
-          kind: "patientActionDone",
-          badgeText: "打卡完成",
-          recipientPerson: "王芳",
-          title: "李建国已完成「起床」打卡",
-          detail: "今日计划「06:00 起床」已完成打卡",
-          target: "schedule",
-          time: "06:05",
-        },
-      ];
+      S.pendingPersonPopups["王芳"] = [seedWf];
     }
   }
   function presentUnreadCareNoticeForPerson(personName) {
@@ -8405,9 +8433,14 @@
 
     // 纯粹的对话问诊页：空态只有 Logo 问候，下方一条输入框（点按打字，长按把语音流进框里）和一枚加号（拍照 / 相册 / AI电话）。
     consult: () => {
+      ensureCareGraph();
+      ensureSeededCareNotices();
       const canSend = consultCanSend();
       const inText = S.inputMode === "text";
-      const visibleMessages = S.messages.filter((m) => m.who !== "notice");
+      const curPerson = S.currentPersonName || "李建国";
+      const visibleMessages = S.messages.filter(
+        (m) => m.who !== "notice" && (!m.recipientPerson || m.recipientPerson === curPerson)
+      );
       const plusItem = (act, icon, label) =>
         `<button class="plus-item" type="button" data-act="${act}"><span>${icon}</span>${label}</button>`;
       return `
@@ -8465,20 +8498,29 @@
 
     // 历史记录：按日期归档、只读、不可删（真机 ConsultHistoryView）。V10.56 起不预置样例对话——
     // 只有本人问过的才出现在「今天」，没问过给空态。
-    "consult-history": () => (genIsConsultV2() ? rxHistoryHTML() : `
+    "consult-history": () => {
+      if (genIsConsultV2()) return rxHistoryHTML();
+      ensureCareGraph();
+      ensureSeededCareNotices();
+      const curPerson = S.currentPersonName || "李建国";
+      const histMessages = S.messages.filter(
+        (m) => m.who !== "notice" && (!m.recipientPerson || m.recipientPerson === curPerson)
+      );
+      return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "历史记录")}
-        ${S.messages.length ? `
+        ${histMessages.length ? `
         <div class="scroll px20" style="padding-top:8px">
           <div class="s18 fb t mb8">今天</div>
-          ${S.messages.map((m) => `<div class="bubble ${m.who === "vip" ? "ai" : m.who}">${m.who === "vip" && genHasFamily() ? CONSULT_VIP_GREETING : m.t}</div>`).join("")}
+          ${histMessages.map((m) => `<div class="bubble ${m.who === "vip" ? "ai" : m.who}">${m.who === "vip" && genHasFamily() ? CONSULT_VIP_GREETING : m.t}</div>`).join("")}
         </div>` : `
         <div class="grow col center" style="padding:0 28px">
           <div class="hist-empty-ico">${I.clock}</div>
           <div class="s21 fb t mt16">还没有历史记录</div>
           <p class="s16 t-sec ta-c mt8">问过的话会按日期自动出现在这里，一直保留</p>
         </div>`}
-      </div>`),
+      </div>`;
+    },
 
     stamps: () => {
       const todayYMD = toYMD(demoDate());
@@ -11617,7 +11659,7 @@
         proxyTarget = "schedule";
       }
       if (!proxyTitle) return;
-      if (S.notifySelf !== false && allowsOpByCategoryAndTaskGate(action, place, subject, false)) {
+      if (pName !== guardianSender && S.notifySelf !== false && allowsOpByCategoryAndTaskGate(action, place, subject, false)) {
         deliverCareNotice({
           kind: "familyProxyAction",
           badgeText: "代为打卡",
