@@ -4188,7 +4188,7 @@
   }
 
   function proceedLoginWithPhone(phone) {
-    // 若输入的是已绑定家属手机号，后端直接匹配进入患者档案首页，并弹出「收到康复守护邀请」强确认通知弹窗
+    // 若输入的是已绑定家属手机号，后端直接匹配进入患者档案首页（通知仅走手机系统通知，不弹居中邀请弹窗）
     const matchedFam = genHasFamily() && (S.family || []).find((f) => f.phoneRaw === phone);
     if (matchedFam) {
       S.role = "family";
@@ -4196,7 +4196,6 @@
       S.loggedIn = true;
       S.pureFamilyLogin = true;
       go("home", "root");
-      openOverlay("familyInvite", { memberId: matchedFam.id });
       return;
     }
     // 新注册建档默认是免费用户（患者本人主账号），直接进入第 2 步「完善你的信息」
@@ -4418,7 +4417,6 @@
         S.completed[id] = true;
         markProxy(id, place);
         closeOverlay();
-        toast(`已代${S.name}完成「${t.title}」打卡`);
       },
       familyRemindTask() {
         const id = S.overlayData.id;
@@ -4428,7 +4426,6 @@
         S.remindedTasks[id] = true;
         logOp("提醒了患者", place, [["计划", title]]);
         closeOverlay();
-        toast(`已向${S.name}发送「${title}」提醒`);
       },
       familyWalkRemind() {
         const pending = liveTasks().filter((t) => t.cat === "exercise" && !S.completed[t.id]);
@@ -4437,7 +4434,6 @@
         S.remindedWalkToday = true;
         const exTitle = pending[0] ? pending[0].title : (liveTasks().find((t) => t.cat === "exercise")?.title || "户外散步");
         logOp("提醒了患者", "运动", [["计划", exTitle]]);
-        toast(`已向${S.name}发送「${exTitle}」运动提醒`);
         render();
       },
       switchGuardedPatient() {
@@ -5687,7 +5683,6 @@
         syncLegacyListsFromBonds();
         syncActivePersonContext(p.name);
         closeOverlay();
-        toast(`已切换演示人名：${p.name}`);
         presentUnreadCareNoticeForPerson(p.name);
         render();
       },
@@ -5751,7 +5746,6 @@
           detail: "可在个人中心点击「同意」或「拒绝」。",
           target: null,
         });
-        toast(`已向${name}发送守护邀请（可右上角切换「${name}」体验）`);
         render();
       },
       submitAddWard() {
@@ -5795,7 +5789,6 @@
           detail: "可在个人中心点击「同意」或「拒绝」。",
           target: null,
         });
-        toast(`已向${name}发送守护申请（可右上角切换「${name}」体验）`);
         render();
       },
       acceptCareBond() {
@@ -5807,7 +5800,6 @@
         syncLegacyListsFromBonds();
         const initiator = bond.initiatedBy === "ward" ? bond.wardName : bond.guardianName;
         const confirmer = bond.initiatedBy === "ward" ? bond.guardianName : bond.wardName;
-        if (S.overlay === "familyInvite") S.overlay = null;
         deliverCareNotice({
           kind: "bindConfirmed",
           badgeText: "已同意添加",
@@ -5817,7 +5809,6 @@
           detail: "现可同步查看每日计划与打卡进展。",
           target: "schedule",
         });
-        toast(`已同意「${initiator}」的添加请求`);
         render();
       },
       rejectCareBond() {
@@ -5835,7 +5826,6 @@
           syncActivePersonContext(S.currentPersonName);
         }
         syncLegacyListsFromBonds();
-        if (S.overlay === "familyInvite") S.overlay = null;
         deliverCareNotice({
           kind: "bindRejected",
           badgeText: "未通过申请",
@@ -5845,7 +5835,6 @@
           detail: "对方暂未同意本次添加申请。",
           target: null,
         });
-        toast("已拒绝该添加请求");
         render();
       },
       askRemoveCareBond() {
@@ -5889,7 +5878,6 @@
           detail: "双方不再同步每日健康进展。",
           target: null,
         });
-        toast(`已解除与${other}的关联`);
         render();
       },
       toggleWatchWard() {
@@ -8419,21 +8407,21 @@
     consult: () => {
       const canSend = consultCanSend();
       const inText = S.inputMode === "text";
-      const visibleMessages = S.messages.filter((m) => m.who !== "notice" || noticeMatchesCurrentPerson(m.notice));
+      const visibleMessages = S.messages.filter((m) => m.who !== "notice");
       const plusItem = (act, icon, label) =>
         `<button class="plus-item" type="button" data-act="${act}"><span>${icon}</span>${label}</button>`;
       return `
       <div class="page rel${S.consultKeyboard ? " consult-kb" : ""}${S.plusPanel ? " consult-panel" : ""}">
         ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="24" height="24" alt="" />哈宝医生</span>`)}
         <div class="scroll px20 grow">
-          ${!visibleMessages.some((m) => m.who !== "notice") ? `
+          ${!visibleMessages.length ? `
             <div class="island-card ta-c" style="padding:16px;margin-top:12px;margin-bottom:10px">
               <img src="${A.logo}" width="64" height="64" alt="" />
               <h2 class="s21 fb t mt8">你好，这里是哈宝医生</h2>
               <p class="s16 t-sec">有不适或用药疑问，都可以问我</p>
             </div>
           ` : ""}
-          ${visibleMessages.map((m) => (m.who === "notice" ? consultCareNoticeHTML(m.notice) : m.who === "vip" ? `
+          ${visibleMessages.map((m) => (m.who === "vip" ? `
             <div class="chat-msg-row ai">
               <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
               ${genHasFamily() ? `<div class="bubble ai">${CONSULT_VIP_GREETING}</div>` : consultVipCardHTML()}
@@ -11428,32 +11416,7 @@
     </button>`;
   }
   function consultOrbHTML() {
-    const hasUnread = genIsV01() && consultUnreadFor(shownRole()) > 0;
-    const notifyHTML = hasUnread
-      ? `<span class="orb-notify-bell">${I.bell}</span><span class="orb-notify-pill">${I.bell}新提醒</span>`
-      : "";
-    return `<div class="orb ai${hasUnread ? " notify" : ""}" data-go="consult" style="position:relative"><img src="${A.logo}" alt="哈宝医生" />${notifyHTML}</div>`;
-  }
-  function consultCareNoticeHTML(n) {
-    if (!n) return "";
-    const meta = careNoticeStyleMeta(n);
-    const jumpLabel = n.target === "vitals" ? "去查看血压 ›" : (n.target === "report" ? "去查看报告 ›" : "去查看计划 ›");
-    return `
-      <div class="chat-msg-row ai">
-        <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
-        <div style="background:rgba(255,255,255,.96);border-radius:6px 18px 18px 18px;padding:14px;border:1px solid ${meta.softBg};box-shadow:0 6px 14px rgba(16,84,224,.06);flex:1;min-width:0">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-            <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:${meta.accent};background:${meta.softBg};padding:3px 8px;border-radius:999px">${meta.ico} ${n.badgeText || "康复通知"}</span>
-            <span style="font-size:11px;font-weight:600;color:var(--sec)">${n.receiverLabel || ""}</span>
-          </div>
-          <div class="s16 fb t" style="margin-top:8px;line-height:1.35">${n.title || ""}</div>
-          <div class="s14 fm" style="margin-top:5px;color:rgba(16,84,224,.78);line-height:1.45">${n.detail || ""}</div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
-            <span class="s12 fm t-sec mono">${n.time || "刚刚"}</span>
-            ${n.target ? `<button data-go="${n.target}" type="button" style="border:0;background:none;color:${meta.accent};font-size:12.5px;font-weight:700;cursor:pointer;padding:0;font-family:inherit">${jumpLabel}</button>` : ""}
-          </div>
-        </div>
-      </div>`;
+    return `<div class="orb ai" data-go="consult" style="position:relative"><img src="${A.logo}" alt="哈宝医生" /></div>`;
   }
   function consultCtaHTML(extraStyle) {
     const style = extraStyle ? `${extraStyle};` : "";
@@ -13334,7 +13297,7 @@
             </div>
             <div style="display:flex;align-items:flex-start;gap:8px;padding:11px 12px;border-radius:12px;background:rgba(16,84,224,.06);font-size:12.5px;color:var(--sec);line-height:1.45">
               <span style="color:var(--blue);flex-shrink:0">${I.bell}</span>
-              <span>点击确认后，系统将向对方发送「收到康复守护邀请」弹窗与手机系统通知；对方点击「同意绑定」后，你也会收到生效通知。</span>
+              <span>点击确认后，系统将向对方发送手机系统通知；对方点击「同意」后，你也会收到系统通知。</span>
             </div>
             <button class="cta" data-act="submitAddGuardian" type="button">${I.plus}发送守护邀请并添加</button>
           </div>
@@ -13373,31 +13336,9 @@
             </div>
             <div style="display:flex;align-items:flex-start;gap:8px;padding:11px 12px;border-radius:12px;background:rgba(16,84,224,.06);font-size:12.5px;color:var(--sec);line-height:1.45">
               <span style="color:var(--blue);flex-shrink:0">${I.bell}</span>
-              <span>点击确认后，系统将向对方发送「收到守护申请」弹窗与手机系统通知；对方点击「同意绑定」后，你也会收到生效通知。</span>
+              <span>点击确认后，系统将向对方发送手机系统通知；对方点击「同意」后，你也会收到系统通知。</span>
             </div>
             <button class="cta" data-act="submitAddWard" type="button">${I.plus}发送守护申请并添加</button>
-          </div>
-        </div>
-      </div>`;
-    },
-    familyInvite: () => {
-      ensureCareGraph();
-      const bid = S.overlayData && S.overlayData.bondId;
-      const bond = S.careBonds.find((b) => String(b.id) === String(bid)) || pendingIncomingBondFor(S.currentPersonName) || S.careBonds[0];
-      const invitedAsGuardian = bond ? bond.initiatedBy === "ward" : true;
-      const initiator = bond ? (invitedAsGuardian ? bond.wardName : bond.guardianName) : "李建国";
-      const receiver = bond ? (invitedAsGuardian ? bond.guardianName : bond.wardName) : S.currentPersonName;
-      const rel = bond ? bond.relation : "配偶";
-      return `
-      <div class="scrim center" style="background:rgba(0,0,0,.45)">
-        <div class="popup" style="max-width:336px;border-radius:26px;padding:24px 22px;text-align:center" onclick="event.stopPropagation()">
-          <div style="font-size:34px;line-height:1;margin-bottom:12px">🤝</div>
-          <h3 style="font-size:20px;margin:0 0 8px;color:var(--blue)">${invitedAsGuardian ? "收到康复守护邀请" : "收到康复守护申请"}</h3>
-          <div style="font-size:15px;color:var(--blue);font-weight:600;margin-bottom:6px">${invitedAsGuardian ? `${esc(initiator)}（${esc(rel)}）邀请你成为TA的守护人` : `${esc(initiator)}（${esc(rel)}）申请成为你的守护人`}</div>
-          <div style="font-size:13.5px;color:var(--sec);line-height:1.45;margin-bottom:18px">绑定后双方可互相查看康复进展并提醒打卡。</div>
-          <div class="duo" style="gap:10px">
-            <button type="button" data-act="rejectCareBond" data-id="${bond ? bond.id : ""}" style="border:0;height:46px;border-radius:14px;background:rgba(220,72,72,.10);color:#DC4848;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">拒绝</button>
-            <button type="button" data-act="acceptCareBond" data-id="${bond ? bond.id : ""}" style="border:0;height:46px;border-radius:14px;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">同意绑定</button>
           </div>
         </div>
       </div>`;
