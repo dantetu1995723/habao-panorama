@@ -4328,7 +4328,9 @@
           if (S.screen === "home") refreshHomeSoft(); else render();
           return;
         }
-        if (shownRole() === "family") {
+        // 家属守护视角：仅「运动」与「测血压/测心率」等需被守护者亲自完成的事项弹出「代为录入/打卡 vs 发送提醒」分流；
+        // 复查直接走「上传复查资料 / 直接打卡」，日常计划（服药/作息/饮食/自定义）直接帮被守护者一键打卡
+        if (shownRole() === "family" && (t.cat === "exercise" || t.cat === "monitoring")) {
           const place = S.screen === "schedule" ? "健康计划" : "首页";
           openOverlay("familyCheckin", { id, place });
           return;
@@ -4426,7 +4428,7 @@
         S.remindedTasks[id] = true;
         logOp("提醒了患者", place, [["计划", title]]);
         closeOverlay();
-        toast(`已通过「哈宝医生」向${S.name}发送「${title}」提醒`);
+        toast(`已向${S.name}发送「${title}」提醒`);
       },
       familyWalkRemind() {
         const pending = liveTasks().filter((t) => t.cat === "exercise" && !S.completed[t.id]);
@@ -4435,7 +4437,7 @@
         S.remindedWalkToday = true;
         const exTitle = pending[0] ? pending[0].title : (liveTasks().find((t) => t.cat === "exercise")?.title || "户外散步");
         logOp("提醒了患者", "运动", [["计划", exTitle]]);
-        toast(`已通过「哈宝医生」向${S.name}发送「${exTitle}」运动提醒`);
+        toast(`已向${S.name}发送「${exTitle}」运动提醒`);
         render();
       },
       switchGuardedPatient() {
@@ -11617,16 +11619,50 @@
       }
       return;
     }
-    if (role === "family" && action === "打卡了") {
+    if (role === "family") {
+      let proxyTitle = "";
+      let proxyDetail = "";
+      let proxyTarget = "schedule";
+      if (action === "打卡了") {
+        const isBP = place === "血压监测" || /血压/.test(subject);
+        proxyTitle = `${guardianSender}已帮你完成「${subject}」打卡`;
+        proxyDetail = `今日计划「${subject}」已在${place}代为打卡。`;
+        proxyTarget = isBP ? "vitals" : "schedule";
+      } else if (action === "同步了血压" || action === "记录了读数") {
+        proxyTitle = `${guardianSender}已帮你记录最新血压`;
+        proxyDetail = `最新血压读数：${subject}。`;
+        proxyTarget = "vitals";
+      } else if (action === "上传了复查资料" || action === "上传了资料") {
+        proxyTitle = `${guardianSender}已帮你${action}（${subject}）`;
+        proxyDetail = `已代为更新身体报告（${subject}）。`;
+        proxyTarget = "report";
+      } else if (action === "提交了问卷") {
+        proxyTitle = `${guardianSender}已帮你提交随访问卷`;
+        proxyDetail = `最新随访问卷已代为提交。`;
+        proxyTarget = "report";
+      } else if (
+        action === "新建了计划" ||
+        action === "修改了计划" ||
+        action === "删除了计划" ||
+        action === "删除了这一次" ||
+        action === "完成了首次创建" ||
+        action === "更新了用药与复查" ||
+        action === "生成了运动计划"
+      ) {
+        proxyTitle = `${guardianSender}已帮你${action}「${subject}」`;
+        proxyDetail = `已在${place}帮你${action}：${subject}。`;
+        proxyTarget = "schedule";
+      }
+      if (!proxyTitle) return;
       if (S.notifySelf !== false && allowsOpByCategoryAndTaskGate(action, place, subject, false)) {
         deliverCareNotice({
           kind: "familyProxyAction",
           badgeText: "代为打卡",
           receiverLabel: "",
           recipientPerson: pName,
-          title: `${guardianSender}已帮你完成「${subject}」打卡`,
-          detail: `今日计划「${subject}」已在${place}代为打卡。`,
-          target: "schedule",
+          title: proxyTitle,
+          detail: proxyDetail,
+          target: proxyTarget,
           time: timeStr,
         });
       }
@@ -11639,9 +11675,11 @@
             badgeText: "代为打卡",
             receiverLabel: "",
             recipientPerson: b.guardianName,
-            title: `${guardianSender}已代${pName}完成「${subject}」`,
-            detail: `今日计划「${subject}」已在${place}代为打卡。`,
-            target: "schedule",
+            title: action === "打卡了"
+              ? `${guardianSender}已代${pName}完成「${subject}」`
+              : `${guardianSender}已代${pName}${action}「${subject}」`,
+            detail: proxyDetail,
+            target: proxyTarget,
             time: timeStr,
           });
         });
@@ -12971,14 +13009,17 @@
       const t = SEED.find((x) => x.id === S.overlayData.id) || {};
       const isAppt = t.cat === "appointment";
       const isVitals = t.cat === "monitoring" && t.title !== "测心率";
+      const isHr = t.cat === "monitoring" && t.title === "测心率";
       const isEx = t.cat === "exercise";
       const primaryLabel = isVitals
         ? "已测血压，代为录入"
-        : isEx
-          ? "已完成散步，代为打卡"
-          : isAppt
-            ? "已完成复查，代为打卡"
-            : "已完成，代为打卡";
+        : isHr
+          ? "已测心率，代为打卡"
+          : isEx
+            ? "已完成散步，代为打卡"
+            : isAppt
+              ? "已完成复查，代为打卡"
+              : "已完成，代为打卡";
       const primaryIco = isVitals ? I.ecg : I.check;
       const alreadyReminded = !!(S.remindedTasks && S.remindedTasks[t.id]);
       const remindLabel = alreadyReminded ? "未完成，再次发送提醒" : "未完成，发送提醒";
