@@ -2422,7 +2422,58 @@
       recipientPerson: target,
       noticeTitle: notice.title,
       noticeKind: notice.kind,
+      bondId: notice.bondId || null,
+      senderName: notice.senderName || "",
+      bindDecision: notice.kind === "bindRequest" ? (notice.bindDecision || "pending") : null,
     });
+  }
+  function updateCareBubbleBindDecision(bondId, decision) {
+    if (!S.messages || !bondId) return;
+    S.messages.forEach((m) => {
+      if (m.isCareBubble && m.noticeKind === "bindRequest" && String(m.bondId) === String(bondId)) {
+        m.bindDecision = decision;
+      }
+    });
+  }
+  function resolveCareBubbleBindDecision(m) {
+    if (!m || m.noticeKind !== "bindRequest") return null;
+    if (m.bindDecision && m.bindDecision !== "pending") return m.bindDecision;
+    ensureCareGraph();
+    const bonds = S.careBonds || [];
+    if (m.bondId) {
+      const b = bonds.find((x) => String(x.id) === String(m.bondId));
+      if (b) return b.confirmed ? "accepted" : "pending";
+      return m.bindDecision === "accepted" ? "accepted" : "rejected";
+    }
+    const b2 = bonds.find(
+      (x) =>
+        (x.guardianName === m.recipientPerson || x.wardName === m.recipientPerson) &&
+        (!m.senderName || x.guardianName === m.senderName || x.wardName === m.senderName)
+    );
+    if (b2) return b2.confirmed ? "accepted" : "pending";
+    return m.bindDecision === "accepted" ? "accepted" : "rejected";
+  }
+  function consultCareBindDecisionHTML(m) {
+    const decision = resolveCareBubbleBindDecision(m);
+    if (!decision) return "";
+    if (decision === "pending") {
+      const bid = m.bondId || "";
+      return `
+        <div style="display:flex;align-items:center;gap:10px;margin-top:11px">
+          <button type="button" data-act="rejectCareBond" data-id="${esc(bid)}" data-msgid="${esc(m.id)}" style="flex:1;height:38px;border-radius:12px;border:1px solid rgba(16,84,224,.18);background:rgba(16,84,224,.08);color:var(--blue);font-size:14.5px;font-weight:700;cursor:pointer;font-family:inherit">不同意</button>
+          <button type="button" data-act="acceptCareBond" data-id="${esc(bid)}" data-msgid="${esc(m.id)}" style="flex:1;height:38px;border-radius:12px;border:0;background:var(--blue);color:#fff;font-size:14.5px;font-weight:700;cursor:pointer;font-family:inherit">同意</button>
+        </div>`;
+    }
+    if (decision === "accepted") {
+      return `
+        <div style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;padding:5px 12px;border-radius:999px;background:rgba(26,166,74,.14);color:#15803d;font-size:13.5px;font-weight:700">
+          <span>✓ 已同意</span>
+        </div>`;
+    }
+    return `
+      <div style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;padding:5px 12px;border-radius:999px;background:rgba(16,84,224,.07);color:var(--t-sec);font-size:13.5px;font-weight:700">
+        <span>已选择不同意</span>
+      </div>`;
   }
   function deliverCareNotice(notice) {
     if (!notice || !genIsV01()) return;
@@ -2437,7 +2488,7 @@
     }
     const targetPerson = (notice.recipientPerson || S.currentPersonName || "李建国").trim();
     notice.recipientPerson = targetPerson;
-    // 1. 哈宝医生对话页写入纯对话气泡（仅目标接收人可见，无任何操作按钮）与未读标记
+    // 1. 哈宝医生对话页写入消息气泡（仅目标接收人可见；绑定申请气泡附带「同意 / 不同意」操作）与未读标记
     appendCareBubbleToMessages(notice, targetPerson);
     if (!S.unreadConsultByPerson) S.unreadConsultByPerson = {};
     if (S.screen === "consult" && targetPerson === (S.currentPersonName || "李建国")) {
@@ -2445,10 +2496,9 @@
     } else {
       S.unreadConsultByPerson[targetPerson] = true;
     }
-    // 2. 触达手机系统通知（当前登录人立即触发系统通知，其他人物入队待切号时触发系统通知）
-    if (targetPerson === S.currentPersonName) {
-      triggerSysPushBanner(notice);
-    } else {
+    // 2. 立即关联触发手机系统通知横幅，同时若目标接收人为其他测试身份则入队供切换身份时再次弹出系统通知
+    triggerSysPushBanner(notice);
+    if (targetPerson !== S.currentPersonName) {
       if (!S.pendingPersonPopups[targetPerson]) S.pendingPersonPopups[targetPerson] = [];
       S.pendingPersonPopups[targetPerson] = S.pendingPersonPopups[targetPerson].filter(
         (x) => !(x.title === notice.title && x.kind === notice.kind)
@@ -5835,11 +5885,14 @@
         deliverCareNotice({
           kind: "bindRequest",
           badgeText: "添加申请",
+          senderName: me.name,
           receiverLabel: "",
           recipientPerson: name,
+          bondId: bond.id,
+          bindDecision: "pending",
           title: `${me.name}（${rel}）邀请你成为守护人`,
-          detail: "可在个人中心点击「同意」或「拒绝」。",
-          target: null,
+          detail: "同意后可查看TA的每日计划与康复进展，并提醒或帮TA打卡。请在哈宝医生中选择同意或不同意。",
+          target: "consult",
         });
         render();
       },
@@ -5878,41 +5931,57 @@
         deliverCareNotice({
           kind: "bindRequest",
           badgeText: "添加申请",
+          senderName: me.name,
           receiverLabel: "",
           recipientPerson: name,
+          bondId: bond.id,
+          bindDecision: "pending",
           title: `${me.name}（${rel}）申请守护你`,
-          detail: "可在个人中心点击「同意」或「拒绝」。",
-          target: null,
+          detail: "同意后TA可查看你的每日计划与康复进展，并提醒或帮你打卡。请在哈宝医生中选择同意或不同意。",
+          target: "consult",
         });
         render();
       },
       acceptCareBond() {
         ensureCareGraph();
         const bid = el.dataset.id || (S.overlayData && S.overlayData.bondId);
+        const msgId = el.dataset.msgid;
         const bond = S.careBonds.find((b) => String(b.id) === String(bid)) || pendingIncomingBondFor(S.currentPersonName);
-        if (!bond) { closeOverlay(); return; }
+        if (msgId && S.messages) {
+          const msg = S.messages.find((m) => String(m.id) === String(msgId));
+          if (msg) msg.bindDecision = "accepted";
+        }
+        if (!bond) { closeOverlay(); render(); return; }
         bond.confirmed = true;
+        updateCareBubbleBindDecision(bond.id, "accepted");
         syncLegacyListsFromBonds();
         const initiator = bond.initiatedBy === "ward" ? bond.wardName : bond.guardianName;
         const confirmer = bond.initiatedBy === "ward" ? bond.guardianName : bond.wardName;
         deliverCareNotice({
           kind: "bindConfirmed",
           badgeText: "已同意添加",
+          senderName: confirmer,
           receiverLabel: "",
           recipientPerson: initiator,
-          title: `${confirmer}已同意你的添加请求`,
-          detail: "现可同步查看每日计划与打卡进展。",
-          target: "schedule",
+          title: `${confirmer}已同意你的守护申请`,
+          detail: "守护关系已生效，现可同步查看每日计划与打卡进展。",
+          target: "consult",
         });
         render();
       },
       rejectCareBond() {
         ensureCareGraph();
         const bid = el.dataset.id || (S.overlayData && S.overlayData.bondId);
+        const msgId = el.dataset.msgid;
         const bond = S.careBonds.find((b) => String(b.id) === String(bid)) || pendingIncomingBondFor(S.currentPersonName);
-        if (!bond) { closeOverlay(); return; }
+        if (msgId && S.messages) {
+          const msg = S.messages.find((m) => String(m.id) === String(msgId));
+          if (msg) msg.bindDecision = "rejected";
+        }
+        if (!bond) { closeOverlay(); render(); return; }
         const initiator = bond.initiatedBy === "ward" ? bond.wardName : bond.guardianName;
         const rejecter = bond.initiatedBy === "ward" ? bond.guardianName : bond.wardName;
+        updateCareBubbleBindDecision(bond.id, "rejected");
         S.careBonds = S.careBonds.filter((b) => String(b.id) !== String(bond.id));
         if (S.watchingWardName === bond.wardName) {
           S.watchingWardName = null;
@@ -5924,11 +5993,12 @@
         deliverCareNotice({
           kind: "bindRejected",
           badgeText: "未通过申请",
+          senderName: rejecter,
           receiverLabel: "",
           recipientPerson: initiator,
-          title: `${rejecter}未通过你的添加请求`,
-          detail: "对方暂未同意本次添加申请。",
-          target: null,
+          title: `${rejecter}不同意你的守护申请`,
+          detail: "对方选择了不同意，本次守护绑定未生效。",
+          target: "consult",
         });
         render();
       },
@@ -5954,6 +6024,9 @@
         if (!bond) { closeOverlay(); return; }
         const actor = S.currentPersonName;
         const other = bond.guardianName === actor ? bond.wardName : bond.guardianName;
+        if (!bond.confirmed) {
+          updateCareBubbleBindDecision(bond.id, "rejected");
+        }
         S.careBonds = S.careBonds.filter((b) => String(b.id) !== String(bond.id));
         if (S.watchingWardName === bond.wardName) {
           const me = currentDemoPerson();
@@ -5967,11 +6040,12 @@
         deliverCareNotice({
           kind: "bindRemoved",
           badgeText: "已解除关联",
+          senderName: actor,
           receiverLabel: "",
           recipientPerson: other,
-          title: `${actor}已解除与你的关联`,
-          detail: "双方不再同步每日健康进展。",
-          target: null,
+          title: `${actor}已与你解除守护关系`,
+          detail: "双方已解除守护绑定，不再同步每日健康计划与打卡通知。",
+          target: "consult",
         });
         render();
       },
@@ -6012,8 +6086,19 @@
         const n = S.sysPushBanner;
         S.sysPushBanner = null;
         if (n) {
+          if (n.recipientPerson && n.recipientPerson !== S.currentPersonName) {
+            const p = (S.demoPeople || []).find((x) => x.name === n.recipientPerson);
+            if (p) {
+              S.currentPersonName = p.name;
+              S.watchingWardName = null;
+              S.role = "patient";
+              S.actorId = null;
+              S.phone = p.phoneRaw;
+              syncActivePersonContext(p.name);
+            }
+          }
           if (n.kind === "bindRequest" || n.kind === "bindConfirmed" || n.kind === "bindRejected" || n.kind === "bindRemoved") {
-            go("profile");
+            go("consult");
             return;
           }
           if (n.target === "vitals") { go("vitals"); return; }
@@ -8531,7 +8616,7 @@
           ` : `
             <div class="chat-msg-row ai">
               <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
-              <div class="bubble ai">${m.t}</div>
+              <div class="bubble ai">${m.t}${consultCareBindDecisionHTML(m)}</div>
             </div>
           `)).join("")}
         </div>
@@ -8810,7 +8895,7 @@
             <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
               ${needsMyConfirm ? `
                 <button type="button" data-act="acceptCareBond" data-id="${b.id}" style="border:0;background:#fff;color:var(--blue);font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;cursor:pointer;font-family:inherit">同意</button>
-                <button type="button" data-act="rejectCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.18);color:#fff;font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;cursor:pointer;font-family:inherit">拒绝</button>
+                <button type="button" data-act="rejectCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.18);color:#fff;font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;cursor:pointer;font-family:inherit">不同意</button>
               ` : `
                 <button type="button" data-act="askRemoveCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.15);color:rgba(255,255,255,.88);font-size:11px;font-weight:600;padding:4px 8px;border-radius:999px;cursor:pointer;font-family:inherit">解除</button>
               `}
@@ -8832,7 +8917,7 @@
             <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
               ${needsMyConfirm ? `
                 <button type="button" data-act="acceptCareBond" data-id="${b.id}" style="border:0;background:#fff;color:var(--blue);font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;cursor:pointer;font-family:inherit">同意</button>
-                <button type="button" data-act="rejectCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.18);color:#fff;font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;cursor:pointer;font-family:inherit">拒绝</button>
+                <button type="button" data-act="rejectCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.18);color:#fff;font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px;cursor:pointer;font-family:inherit">不同意</button>
               ` : `
                 <button type="button" data-act="askRemoveCareBond" data-id="${b.id}" style="border:0;background:rgba(255,255,255,.15);color:rgba(255,255,255,.88);font-size:11px;font-weight:600;padding:4px 8px;border-radius:999px;cursor:pointer;font-family:inherit">解除</button>
               `}
