@@ -1137,6 +1137,8 @@
       { id: "hardware", t: "硬件管理", code: "HardwareManageView", how: "cover" },
       { id: "hardware-scan", t: "扫码绑定", code: "HardwareScanView", how: "cover" },
       { id: "activity", t: "操作记录", code: "ActivityLogView", how: "cover" },
+      { id: "privacy", t: "隐私协议", code: "LegalAgreementDetailSheet", how: "cover" },
+      { id: "service-terms", t: "服务协议", code: "LegalAgreementDetailSheet", how: "cover" },
     ]},
     { g: "同 Cover 替换", items: [
       { id: "ocr-capture", t: "上传资料", code: "IntakeCaptureView", how: "replace" },
@@ -1160,8 +1162,10 @@
   ];
 
   const SPEC = {
-    "onboard-login": { code: "OnboardingFlowView", note: "短信登录 Demo 不校验。11 位手机 + 6 位验证码后「登录」可点。初登默认免费用户，新建档固定两步（短信登录 → 完善你的信息）；若输入已绑定的家属手机号登录，则后端自动识别家属身份并直接进入患者首页。" },
+    "onboard-login": { code: "OnboardingFlowView + FirstLaunchPrivacyConsentPopup", note: "首次进入 App（iOS & Android 通用合规）先弹出居中《用户隐私保护提示》弹窗（列明相机/相册、位置/运动、麦克风/语音、蓝牙设备四项按需动态权限，点「不同意」进入二次温情挽留态，点「同意并继续」落盘记住并自动勾选登录页底部协议框）。短信登录 Demo 不校验，11 位手机 + 6 位验证码后「登录」可点；若手动取消勾选底部《服务协议》和《隐私协议》直接点「登录」，则弹出居中「同意并登录」一键确认框。初登默认免费用户，新建档固定两步（短信登录 → 完善你的信息）；若输入已绑定的家属手机号登录，则后端自动识别家属身份并直接进入患者首页。" },
     "onboard-profile": { code: "PatientProfileFormFields", note: "姓名必填；「进入哈宝」始终可点，空姓名顶部 toast「请填写姓名」。步骤点固定为 2/2。" },
+    privacy: { code: "LegalAgreementDetailSheet(.privacy)", note: "《哈宝隐私保护政策》详情页（iOS / Android 通用合规口径）：涵盖收集与使用范围、系统权限用时方申请原则（相机/定位/麦克风/蓝牙/通知）、全程加密与家属共享规则、查阅/撤回授权/永久注销账号权利。首次进入弹窗、登录页协议行与个人中心列表共用。" },
+    "service-terms": { code: "LegalAgreementDetailSheet(.service)", note: "《哈宝用户服务协议》详情页：涵盖院外心肺康复管理服务范围、非急诊医疗安全免责声明（剧烈胸痛或危急血压请立即拨打 120）、账号与家庭守护规范、VIP 会员随患者档案生效与退订保留规则。首次进入弹窗、登录页协议行与个人中心列表共用。" },
     home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 196–206，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。每张计划卡展示标题、提醒时间（或已完成）及「开始日期 – 结束日期」起止区间。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页；底坞中圆哈宝医生始终常亮可点击进入问诊页（非 VIP 发送消息后在聊天流内弹出 VIP 购买提示对话卡）。打卡不再在卡片上盖家属章；谁打的记在 V0.1 个人中心「操作记录」，V0.0 没有这一页。" },
     schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行展示时刻与单日/循环/类别胶囊，下方展示「开始日期 – 结束日期」起止区间；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上更新才进编辑。切「已完成」整页绿白。" },
     vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。底栏「进入哈宝医生」始终可点击进入问诊页（非 VIP 发送消息后弹出 VIP 购买提示对话卡）。" },
@@ -1201,6 +1205,10 @@
     frames: [{ id: "home", how: "root" }],
     enrolled: true,
     loggedIn: true,
+    privacyAccepted: true,
+    loginTermsChecked: true,
+    privacyDeclinedStep: false,
+    privacyExitedNotice: false,
     role: "patient",
     name: "李建国",
     gender: "男",
@@ -1482,8 +1490,9 @@
   /// 链路表：steps 按顺序前进扫描，命中的即点亮。act = 动作事件，screen = 落到该屏
   /// optional 步不达标不阻塞；state 谓词兜终态（如「已入组」）
   const FLOWS = [
-    { id: "login", label: "未登录 · 登录 → 完善信息", cold: "login", steps: [
-      { screen: "onboard-login", label: "欢迎使用哈宝" },
+    { id: "login", label: "未登录 · 隐私同意 → 登录 → 完善信息", cold: "login", steps: [
+      { screen: "onboard-login", label: "首次进入《用户隐私保护提示》弹窗" },
+      { act: "acceptInitialPrivacy", label: "同意并继续（勾选隐私与服务协议）", optional: true },
       { act: "sendCode", label: "获取验证码", hint: "登录页点「获取验证码」" },
       { act: "login", label: "填 11 位手机号 + 6 位验证码后登录" },
       { screen: "onboard-profile", label: "完善你的信息" },
@@ -3202,6 +3211,8 @@
       notify: [...home, C("profile"), C("notify")],
       hardware: [...home, C("profile"), C("hardware")],
       "hardware-scan": [...home, C("profile"), C("hardware"), C("hardware-scan")],
+      privacy: S.loggedIn ? [...home, C("profile"), C("privacy")] : [...login, C("privacy")],
+      "service-terms": S.loggedIn ? [...home, C("profile"), C("service-terms")] : [...login, C("service-terms")],
       "first-rest": [...home, C("first-rest")],
       "select-type": [...home, C("schedule"), C("select-type")],
       "ocr-capture": S.enrolled ? [...home, C("schedule"), C("ocr-capture")] : [...home, C("ocr-capture")],
@@ -3587,6 +3598,11 @@
     scr.querySelector(".sys-push-banner")?.remove();
     scr.querySelector(".care-notice-modal")?.remove();
     scr.insertAdjacentHTML("beforeend", toastHTML() + sysPushBannerHTML() + careNoticeModalHTML());
+    // 首次进入 App 隐私保护提示弹窗：未同意且在登录页时自动弹出
+    if (S.screen === "onboard-login" && !S.privacyAccepted && !S.overlay) {
+      S.overlay = "privacyGate";
+      S.overlayData = {};
+    }
     // V0.1 期末反馈：一期过完后首次回到首页自动弹一次（点「稍后再说」后不再自动弹）
     if (S.screen === "home" && !S.overlay && rxShouldPrompt(false)) {
       S.plan.cur.fbPrompted = true;
@@ -4173,6 +4189,26 @@
     input.onpointercancel = finish;
   }
 
+  function proceedLoginWithPhone(phone) {
+    // 若输入的是已绑定家属手机号，后端直接匹配进入患者档案首页，并弹出「收到康复守护邀请」强确认通知弹窗
+    const matchedFam = genHasFamily() && (S.family || []).find((f) => f.phoneRaw === phone);
+    if (matchedFam) {
+      S.role = "family";
+      S.actorId = matchedFam.id;
+      S.loggedIn = true;
+      S.pureFamilyLogin = true;
+      go("home", "root");
+      openOverlay("familyInvite", { memberId: matchedFam.id });
+      return;
+    }
+    // 新注册建档默认是免费用户（患者本人主账号），直接进入第 2 步「完善你的信息」
+    S.phone = phone;
+    S.role = "patient";
+    S.actorId = null;
+    S.pureFamilyLogin = false;
+    go("onboard-profile", "push");
+  }
+
   function bindLoginFocus() {
     if (S.screen !== "onboard-login") return;
     const page = document.querySelector(".page");
@@ -4224,23 +4260,51 @@
         // 真机 loginReady = 手机号 11 位 && 验证码 6 位；这里点按给具体原因，别静默
         if (phone.length !== 11) { toast(phone ? "请输入 11 位手机号" : "请填写手机号"); return; }
         if (code.length !== 6) { toast(code ? "请输入 6 位验证码" : "请填写验证码"); return; }
-        // 若输入的是已绑定家属手机号，后端直接匹配进入患者档案首页，并弹出「收到康复守护邀请」强确认通知弹窗
-        const matchedFam = genHasFamily() && (S.family || []).find((f) => f.phoneRaw === phone);
-        if (matchedFam) {
-          S.role = "family";
-          S.actorId = matchedFam.id;
-          S.loggedIn = true;
-          S.pureFamilyLogin = true;
-          go("home", "root");
-          openOverlay("familyInvite", { memberId: matchedFam.id });
+        if (!S.loginTermsChecked) {
+          S.phone = phone;
+          openOverlay("loginTermsConfirm");
           return;
         }
-        // 新注册建档默认是免费用户（患者本人主账号），直接进入第 2 步「完善你的信息」
-        S.phone = phone;
-        S.role = "patient";
-        S.actorId = null;
-        S.pureFamilyLogin = false;
-        go("onboard-profile", "push");
+        proceedLoginWithPhone(phone);
+      },
+      acceptInitialPrivacy() {
+        S.privacyAccepted = true;
+        S.loginTermsChecked = true;
+        S.privacyDeclinedStep = false;
+        S.privacyExitedNotice = false;
+        if (S.overlay === "privacyGate") S.overlay = null;
+        render();
+        toast("已同意隐私保护政策与服务协议");
+      },
+      declineInitialPrivacy() {
+        S.privacyDeclinedStep = true;
+        S.privacyExitedNotice = false;
+        render();
+      },
+      exitAfterDeclinePrivacy() {
+        S.privacyExitedNotice = true;
+        render();
+        toast("已暂停进入应用（真机将安全退出应用）");
+      },
+      toggleLoginTerms() {
+        const phoneInput = $("input[name=phone]");
+        if (phoneInput) S.phone = phoneInput.value;
+        S.loginTermsChecked = !S.loginTermsChecked;
+        render();
+      },
+      agreeAndLogin() {
+        S.privacyAccepted = true;
+        S.loginTermsChecked = true;
+        closeOverlay();
+        const phone = $("input[name=phone]")?.value || S.phone || "";
+        proceedLoginWithPhone(phone);
+      },
+      openAgreementModal() {
+        const kind = el.dataset.kind === "service" ? "service-terms" : "privacy";
+        const phoneInput = $("input[name=phone]");
+        if (phoneInput) S.phone = phoneInput.value;
+        if (S.overlay === "loginTermsConfirm") S.overlay = null;
+        go(kind, "cover");
       },
       sendCode() { toast("验证码已发送（Demo）"); },
       nextRole() { go("onboard-profile", "push"); },
@@ -5988,17 +6052,21 @@
         S.rxArchive = [];
         act("debugRxPush");
       },
-      // 真机「测试登录步骤」：仅 accountStore.logout()——计划与记录全部保留
+      // 真机「测试登录步骤」：重置首次进入隐私弹窗 + accountStore.logout()——计划与记录全部保留
       debugTestLogin() {
         resetFlowFlags();
         S.loggedIn = false;
+        S.privacyAccepted = false;
+        S.loginTermsChecked = false;
+        S.privacyDeclinedStep = false;
+        S.privacyExitedNotice = false;
         closeOverlay();
         S.frames = [{ id: "onboard-login", how: "root" }];
         S.screen = "onboard-login";
         S.enter = true;
         render();
         S.enter = false;
-        toast("已退出登录，计划与记录保留");
+        toast("已回到首次进入隐私保护提示与登录页，计划与记录保留");
       },
       pickGenderEdit() {
         if (!S.origPatient) S.origPatient = { name: S.name, gender: S.gender };
@@ -7442,7 +7510,7 @@
         ${dotsHTML(1)}
         <h2 class="s28 fb t page-title">欢迎使用哈宝</h2>
         <p class="s14 fm t-sec mt8 page-sub">手机号登录，未注册将自动创建账号</p>
-        <div class="col center" style="margin:28px 0 18px">
+        <div class="col center" style="margin:26px 0 16px">
           <img class="brand-logo" src="${A.logo}" width="86" height="86" alt="" />
           <p class="login-welcome s28 fb t">欢迎使用哈宝</p>
           <p class="brand-slogan s14 fm t-sec mt12">让哈宝，陪你恢复健康</p>
@@ -7453,6 +7521,15 @@
         <div class="flex gap8">
           <input class="field" name="code" maxlength="6" placeholder="6 位验证码" value="123456" />
           <button class="cta-ghost" style="width:96px;padding:0;height:52px;font-size:13px" data-act="sendCode" type="button">获取验证码</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:16px;padding:4px 0;font-size:14px;flex-wrap:wrap">
+          <button type="button" data-act="toggleLoginTerms" style="display:inline-flex;align-items:center;gap:8px;border:0;background:none;padding:0;cursor:pointer;font-family:inherit;color:var(--sec)">
+            <span style="width:22px;height:22px;border-radius:7px;background:${S.loginTermsChecked ? "var(--blue)" : "#fff"};border:1.6px solid ${S.loginTermsChecked ? "var(--blue)" : "rgba(16,84,224,.32)"};display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:800;flex-shrink:0">${S.loginTermsChecked ? "✓" : ""}</span>
+            <span style="font-size:14px;font-weight:500;color:var(--sec)">我已阅读并同意</span>
+          </button>
+          <button type="button" data-act="openAgreementModal" data-kind="service" style="border:0;background:none;padding:0;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:var(--blue)">《服务协议》</button>
+          <span style="color:var(--sec);font-size:14px">和</span>
+          <button type="button" data-act="openAgreementModal" data-kind="privacy" style="border:0;background:none;padding:0;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:var(--blue)">《隐私协议》</button>
         </div>
         <button class="cta mt16" data-act="login" type="button">登录</button>
       </div>`,
@@ -8683,22 +8760,74 @@
               <div class="grow"><h4 class="neutral-title">打卡通知</h4><p>${notifyCaption()}</p></div>
               <span class="neutral-chev">${I.chevR}</span>
             </button>
-            <div class="list-row base-feature-row">
-              <div class="well neutral-well">${I.doc}</div>
+            <button class="list-row base-feature-row" data-go="privacy" type="button">
+              <div class="well neutral-well">${I.shieldCheck}</div>
               <div class="grow"><h4 class="neutral-title">隐私协议</h4><p>了解数据如何被保护</p></div>
               <span class="neutral-chev">${I.chevR}</span>
-            </div>
-            <div class="list-row base-feature-row">
+            </button>
+            <button class="list-row base-feature-row" data-go="service-terms" type="button">
               <div class="well neutral-well">${I.doc}</div>
               <div class="grow"><h4 class="neutral-title">服务协议</h4><p>使用条款与说明</p></div>
               <span class="neutral-chev">${I.chevR}</span>
-            </div>
+            </button>
           </div>
           <button class="cta-ghost mt16" data-act="logout" type="button">退出登录</button>
           <button class="w100" style="border:0;background:none;color:#828EA5;padding:12px;font-size:16px;cursor:pointer" data-act="unregister" type="button">注销账号</button>
         </div>
       </div>`;
     },
+
+    privacy: () => `
+      <div class="page">
+        ${navBar(cap(I.chevL, "返回"), "隐私协议")}
+        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:16px">
+          <div style="padding:18px;border-radius:20px;background:rgba(16,84,224,.07)">
+            <div style="display:flex;align-items:center;gap:8px;color:var(--blue);font-size:20px;font-weight:800">
+              ${I.shieldCheck}<span>哈宝隐私保护政策</span>
+            </div>
+            <div style="font-size:13px;font-weight:600;color:var(--sec);margin-top:6px">生效日期：2026年10月29日 · 适用端：iOS / Android 通用</div>
+            <div style="font-size:15px;font-weight:500;color:#1E293B;line-height:1.55;margin-top:8px">哈宝深知个人健康与医疗信息对您的重要性。我们严格遵循《个人信息保护法》及 iOS App Store、Android 各大应用商店隐私合规标准，采用「最小必要、本地优先、全程加密、按需授权」原则保护您的个人信息。</div>
+          </div>
+          ${[
+            ["一、收集与使用", "我们如何收集和使用您的信息", "1. 账号注册与身份识别：当您注册或登录哈宝时，我们需要收集您的手机号码及短信验证码，用于创建账号、识别患者本人或守护家属身份。<br>2. 康复档案与日常监测：为向您提供个性化的康复计划、血压心率趋势分析与身体报告管理，您可自主填写姓名、性别、出生日期、身高、体重，以及录入血压、心率、散步记录和随访问卷。<br>3. 病历与报告识别（OCR）：当您使用「拍照上传病历/复查报告」功能时，我们会根据您的主动上传，解析出院诊断、用药医嘱与复查时间，帮您一键生成提醒计划。"],
+            ["二、设备权限（iOS & Android 通用）", "系统权限调用遵循「用时方申请」原则", "在您同意本隐私政策时，我们不会提前索取任何系统敏感权限；仅在您实际触发对应功能时，才会向系统发起动态权限申请，且拒绝授权不影响其他功能正常使用：<br>• 相机与相册权限：仅在您拍摄或从相册导入出院记录、检查化验单及在哈宝医生发送图片时调用。<br>• 位置信息与运动权限：仅在您开启「户外散步」记录运动距离、步数与轨迹路线时调用。<br>• 麦克风与语音识别权限：仅在您于「哈宝医生」按住说话语音提问时调用。<br>• 蓝牙与本地网络权限：仅在您扫码绑定或同步哈宝智能血压计、智能手表读数时调用。<br>• 通知推送权限：用于向您及已绑定的守护人/被守护人发送服药、测血压、复查与打卡提醒。"],
+            ["三、存储、加密与家属共享", "数据安全保护与家庭协同规则", "1. 全程加密与脱敏：您的手机号在界面默认脱敏显示（如 138****5678），通信传输全程采用 TLS 加密，核心健康档案在云端加密存储。<br>2. 家属共管授权：仅在您与家人双向确认建立「守护人 / 被守护人」绑定关系后，授权对方查看您的康复计划、血压监测与身体报告进展；您可随时在「个人中心」一键解除守护关系，解除后立即停止数据共享。<br>3. 分享脱敏保护：您生成的今日集章海报、血压周报或散步海报均自动隐藏操作人敏感身份及具体医疗隐私细节，方便安心转发。"],
+            ["四、您的权利", "查询、更正、撤回同意与注销账号", "1. 查阅与更正：您可随时在「个人中心 → 健康档案」查阅、修改您的个人资料与病历照片。<br>2. 撤回权限授权：您可随时在手机系统「设置 → 隐私/应用权限管理」中关闭相机、定位、麦克风、蓝牙或通知权限。<br>3. 注销账号：您可通过「个人中心 → 注销账号」申请永久注销。注销后，我们将立即清空或不可逆匿名化您的个人档案、入组记录、康复计划、操作记录及硬件绑定信息。"],
+          ].map(([badge, title, body]) => `
+            <div class="island-card" style="padding:18px;border-radius:20px">
+              <span style="display:inline-block;padding:4px 10px;border-radius:999px;background:rgba(16,84,224,.10);color:var(--blue);font-size:12.5px;font-weight:700">${badge}</span>
+              <div style="font-size:18px;font-weight:800;color:#1E293B;margin-top:10px">${title}</div>
+              <div style="font-size:15px;color:#334155;line-height:1.62;margin-top:8px">${body}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>`,
+
+    "service-terms": () => `
+      <div class="page">
+        ${navBar(cap(I.chevL, "返回"), "服务协议")}
+        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:16px">
+          <div style="padding:18px;border-radius:20px;background:rgba(16,84,224,.07)">
+            <div style="display:flex;align-items:center;gap:8px;color:var(--blue);font-size:20px;font-weight:800">
+              ${I.doc}<span>哈宝用户服务协议</span>
+            </div>
+            <div style="font-size:13px;font-weight:600;color:var(--sec);margin-top:6px">生效日期：2026年10月29日 · 适用端：iOS / Android 通用</div>
+            <div style="font-size:15px;font-weight:500;color:#1E293B;line-height:1.55;margin-top:8px">欢迎您使用哈宝院外心肺康复管理软件及相关服务。本协议由您与哈瑞特医疗（哈宝团队）共同缔结，适用于 iOS 与 Android 客户端。请在使用前仔细阅读以下条款，特别是健康安全免责声明与账号管理规则。</div>
+          </div>
+          ${[
+            ["一、服务内容", "哈宝院外康复管理服务范围", "哈宝为心血管及慢病康复人群提供院外日程提醒（服药、测血压、运动、饮食、作息、复查）、体征记录、病历归档、集章鼓励以及 VIP 专属服务（哈宝医生在线咨询、家属多端共管、智能硬件互联、操作记录留痕与支架保险理赔协助）。"],
+            ["二、医疗安全提示", "非急诊诊疗声明与紧急呼救准则", "1. 辅助康复属性：哈宝及「哈宝医生」提供的健康建议、报告解读与康复计划旨在协助您执行出院医嘱与日常健康管理，不能替代医院急诊或线下面诊处置。<br>2. 危急症状立即呼救：若您或被守护患者出现剧烈胸痛、胸口压榨感不缓解、严重呼吸困难、大汗淋漓、晕厥、黑便或血压触发危急报警值（如 ≥180/110 mmHg），请立即停止一切活动并拨打 120 急救电话或前往就近医院急诊就医。"],
+            ["三、账号与家庭守护", "实名手机号登录与守护人协同规范", "1. 账号使用：您应使用本人合法拥有的手机号码注册登录，妥善保管短信验证码。<br>2. 家庭守护规范：添加「守护我的人」或「被我守护的人」须征得家人知情同意。代为打卡、代录血压或发起提醒将如实记录在「操作记录」中，便于家庭成员与康复团队协同核对。"],
+            ["四、VIP 会员与权益说明", "服务订阅、共享与退订机制", "1. VIP 随患者档案生效：开通 VIP 会员后，绑定确认的守护家属在看护该患者时可自动共享家属共管、哈宝医生等协同权益，无需重复付费。<br>2. 随时管理：您可在「个人中心 → VIP 会员」查看权益详情与有效期。即使取消订阅或到期，您本机已建立的健康档案、计划与历史记录仍完好保留。"],
+          ].map(([badge, title, body]) => `
+            <div class="island-card" style="padding:18px;border-radius:20px">
+              <span style="display:inline-block;padding:4px 10px;border-radius:999px;background:rgba(16,84,224,.10);color:var(--blue);font-size:12.5px;font-weight:700">${badge}</span>
+              <div style="font-size:18px;font-weight:800;color:#1E293B;margin-top:10px">${title}</div>
+              <div style="font-size:15px;color:#334155;line-height:1.62;margin-top:8px">${body}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>`,
 
     hardware: () => `
       <div class="page">
@@ -12842,6 +12971,105 @@
         </div>
       </div>`;
     },
+    privacyGate: () => {
+      if (S.privacyDeclinedStep) {
+        return `
+        <div class="scrim center" style="background:rgba(0,0,0,.42)">
+          <div class="popup" style="max-width:356px;border-radius:28px;padding:22px;text-align:left" onclick="event.stopPropagation()">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:46px;height:46px;border-radius:999px;background:rgba(242,153,74,.15);color:#F2994A;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                ${I.warn}
+              </div>
+              <div>
+                <div style="font-size:20px;font-weight:800;color:var(--blue)">需要您的同意才能提供服务</div>
+                <div style="font-size:13px;font-weight:500;color:var(--sec);margin-top:2px">我们承诺严格保护您的医疗与个人隐私</div>
+              </div>
+            </div>
+            <div style="font-size:15px;font-weight:500;color:#1E293B;line-height:1.55;margin-top:14px">
+              哈宝需要依据《用户服务协议》与《隐私保护政策》为您保存康复计划、血压读数及病历档案。若您不同意，我们将无法为您提供心肺康复管理服务。
+            </div>
+            <div style="display:flex;gap:10px;margin-top:14px">
+              <button type="button" data-act="openAgreementModal" data-kind="service" style="flex:1;padding:9px 10px;border-radius:12px;border:0;background:rgba(16,84,224,.08);color:var(--blue);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:4px">📄 《服务协议》 ›</button>
+              <button type="button" data-act="openAgreementModal" data-kind="privacy" style="flex:1;padding:9px 10px;border-radius:12px;border:0;background:rgba(16,84,224,.08);color:var(--blue);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:4px">🛡️ 《隐私协议》 ›</button>
+            </div>
+            ${S.privacyExitedNotice ? `
+              <div style="margin-top:12px;padding:11px 12px;border-radius:12px;background:rgba(16,84,224,.08);color:var(--blue);font-size:13px;font-weight:600;line-height:1.45">
+                ℹ️ 已暂停进入应用（真机将安全关闭应用，您可随时点击下方「同意并使用」继续体验）
+              </div>
+            ` : ""}
+            <div style="display:flex;gap:12px;margin-top:16px">
+              <button type="button" data-act="exitAfterDeclinePrivacy" style="flex:1;height:52px;border-radius:16px;border:0;background:#F1F5F9;color:var(--sec);font-size:16px;font-weight:700;cursor:pointer;font-family:inherit">不同意并退出</button>
+              <button type="button" data-act="acceptInitialPrivacy" style="flex:1;height:52px;border-radius:16px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">同意并使用</button>
+            </div>
+          </div>
+        </div>`;
+      }
+      const perms = [
+        [I.cam, "相机与相册", "拍摄病历与复查单"],
+        [I.walk, "位置与运动", "记录户外散步轨迹"],
+        [I.mic, "麦克风语音", "哈宝医生语音提问"],
+        [I.waves, "蓝牙设备", "同步血压计与手表"],
+      ];
+      return `
+      <div class="scrim center" style="background:rgba(0,0,0,.42)">
+        <div class="popup" style="max-width:356px;border-radius:28px;padding:22px;text-align:left" onclick="event.stopPropagation()">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:48px;height:48px;border-radius:999px;background:linear-gradient(135deg,rgba(16,84,224,.16),rgba(30,190,214,.12));color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              ${I.shieldCheck}
+            </div>
+            <div>
+              <div style="font-size:21px;font-weight:800;color:var(--blue)">用户隐私保护提示</div>
+              <div style="font-size:13px;font-weight:500;color:var(--sec);margin-top:2px">守护您的心血管康复与个人隐私安全</div>
+            </div>
+          </div>
+          <div style="font-size:14.5px;font-weight:500;color:#1E293B;line-height:1.5;margin-top:14px">
+            欢迎使用哈宝！在您开启康复之旅前，请仔细阅读并了解我们对您个人信息的保护规则：
+          </div>
+          <div style="margin-top:10px;padding:12px;border-radius:16px;background:rgba(16,84,224,.06)">
+            <div style="display:flex;align-items:center;gap:6px;color:var(--blue);font-size:13px;font-weight:700;margin-bottom:9px">
+              <span>🔒 按需申请系统权限（未用到绝不提前索取）</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              ${perms.map(([ico, t, sub]) => `
+                <div style="display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:12px;background:rgba(255,255,255,.9)">
+                  <span style="width:26px;height:26px;border-radius:999px;background:#fff;color:var(--blue);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">${ico}</span>
+                  <div style="min-width:0">
+                    <div style="font-size:12.5px;font-weight:700;color:#1E293B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t}</div>
+                    <div style="font-size:11px;font-weight:500;color:var(--sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sub}</div>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+          <div style="margin-top:12px">
+            <div style="font-size:13.5px;font-weight:500;color:var(--sec);margin-bottom:6px">您可点击阅读完整条款了解详情：</div>
+            <div style="display:flex;gap:10px">
+              <button type="button" data-act="openAgreementModal" data-kind="service" style="flex:1;padding:8px 10px;border-radius:12px;border:0;background:rgba(16,84,224,.08);color:var(--blue);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:4px">📄 《服务协议》 ›</button>
+              <button type="button" data-act="openAgreementModal" data-kind="privacy" style="flex:1;padding:8px 10px;border-radius:12px;border:0;background:rgba(16,84,224,.08);color:var(--blue);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:4px">🛡️ 《隐私协议》 ›</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:16px">
+            <button type="button" data-act="declineInitialPrivacy" style="flex:1;height:52px;border-radius:16px;border:0;background:#F1F5F9;color:var(--sec);font-size:17px;font-weight:700;cursor:pointer;font-family:inherit">不同意</button>
+            <button type="button" data-act="acceptInitialPrivacy" style="flex:1;height:52px;border-radius:16px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">同意并继续</button>
+          </div>
+        </div>
+      </div>`;
+    },
+    loginTermsConfirm: () => `
+      <div class="scrim center" data-act="close">
+        <div class="popup" style="max-width:348px;border-radius:26px;padding:24px 22px;text-align:center" onclick="event.stopPropagation()">
+          <h3 style="font-size:21px;margin:0;color:var(--blue)">请阅读并同意协议</h3>
+          <p style="font-size:15px;color:var(--sec);line-height:1.5;margin:10px 0 14px">为保障您的合法权益与健康数据安全，请先阅读并同意以下协议后继续登录：</p>
+          <div style="display:flex;gap:10px;margin-bottom:16px">
+            <button type="button" data-act="openAgreementModal" data-kind="service" style="flex:1;padding:9px 10px;border-radius:12px;border:0;background:rgba(16,84,224,.08);color:var(--blue);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">《服务协议》</button>
+            <button type="button" data-act="openAgreementModal" data-kind="privacy" style="flex:1;padding:9px 10px;border-radius:12px;border:0;background:rgba(16,84,224,.08);color:var(--blue);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">《隐私协议》</button>
+          </div>
+          <div class="duo" style="gap:12px">
+            <button class="cancel" data-act="close" type="button">取消</button>
+            <button class="ok" data-act="agreeAndLogin" type="button">同意并登录</button>
+          </div>
+        </div>
+      </div>`,
     homeTargetSheet: () => {
       ensureCareGraph();
       const me = currentDemoPerson();
@@ -13575,13 +13803,20 @@
     document.querySelectorAll(".mode-row button").forEach((b) => b.classList.remove("on"));
     if (m === "login") {
       $("#mode-login").classList.add("on");
-      resetFlowFlags(); S.loggedIn = false; S.enrolled = false; jump("onboard-login");
+      resetFlowFlags();
+      S.loggedIn = false;
+      S.enrolled = false;
+      S.privacyAccepted = false;
+      S.loginTermsChecked = false;
+      S.privacyDeclinedStep = false;
+      S.privacyExitedNotice = false;
+      jump("onboard-login");
     } else if (m === "new") {
       $("#mode-new").classList.add("on");
-      resetFlowFlags(); S.loggedIn = true; S.enrolled = false; jump("home");
+      resetFlowFlags(); S.loggedIn = true; S.enrolled = false; S.privacyAccepted = true; S.loginTermsChecked = true; jump("home");
     } else {
       $("#mode-demo").classList.add("on");
-      resetFlowFlags(); S.loggedIn = true; S.enrolled = true; jump("home");
+      resetFlowFlags(); S.loggedIn = true; S.enrolled = true; S.privacyAccepted = true; S.loginTermsChecked = true; jump("home");
     }
   }
 
