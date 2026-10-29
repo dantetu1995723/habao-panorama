@@ -2363,11 +2363,25 @@
       notice.id = `hn_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     }
     const targetPerson = (notice.recipientPerson || S.currentPersonName || "李建国").trim();
-    if (!S.pendingPersonPopups[targetPerson]) S.pendingPersonPopups[targetPerson] = [];
-    S.pendingPersonPopups[targetPerson] = S.pendingPersonPopups[targetPerson].filter(
-      (x) => !(x.title === notice.title && x.kind === notice.kind)
-    );
-    S.pendingPersonPopups[targetPerson].unshift(notice);
+    if (targetPerson === S.currentPersonName) {
+      triggerSysPushBanner(notice);
+    } else {
+      if (!S.pendingPersonPopups[targetPerson]) S.pendingPersonPopups[targetPerson] = [];
+      S.pendingPersonPopups[targetPerson] = S.pendingPersonPopups[targetPerson].filter(
+        (x) => !(x.title === notice.title && x.kind === notice.kind)
+      );
+      S.pendingPersonPopups[targetPerson].unshift(notice);
+    }
+  }
+  function triggerSysPushBanner(notice) {
+    S.sysPushBanner = notice;
+    clearTimeout(sysBannerTimer);
+    sysBannerTimer = setTimeout(() => {
+      if (S.sysPushBanner === notice) {
+        S.sysPushBanner = null;
+        document.querySelector(".phone-screen .sys-push-banner")?.remove();
+      }
+    }, 4500);
   }
   function ensureSeededCareNotices() {
     if (!genIsV01() || S.seededCareNotices) return;
@@ -2405,13 +2419,33 @@
   function presentUnreadCareNoticeForPerson(personName) {
     ensureCareGraph();
     ensureSeededCareNotices();
+    const queue = S.pendingPersonPopups[personName];
+    if (queue && queue.length) {
+      const next = queue.shift();
+      triggerSysPushBanner(next);
+    }
   }
   function presentUnreadCareNoticeForRole(role) {
     ensureCareGraph();
     ensureSeededCareNotices();
+    presentUnreadCareNoticeForPerson(S.currentPersonName);
   }
   function sysPushBannerHTML() {
-    return "";
+    const n = S.sysPushBanner;
+    if (!n) return "";
+    return `
+      <div class="sys-push-banner" id="sys-push-banner" data-act="closeSysPush" style="position:absolute;top:48px;left:12px;right:12px;z-index:95;background:rgba(255,255,255,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(15,23,42,.07);border-radius:22px;padding:11px 14px;box-shadow:0 10px 28px rgba(15,23,42,.15);display:flex;align-items:center;gap:11px;cursor:grab;user-select:none;animation:fadeUp .22s ease">
+        <img src="assets/brand_logo.png" alt="哈宝" style="width:38px;height:38px;border-radius:10px;background:#EEF5FF;padding:2px;flex-shrink:0" />
+        <div style="min-width:0;flex:1">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:13px;font-weight:700;color:#1A2947">哈宝 · ${esc(n.badgeText || "通知")}</span>
+            <span style="flex:1"></span>
+            <span style="font-size:11.5px;color:var(--sec)">现在</span>
+          </div>
+          <div style="font-size:14px;font-weight:700;color:#1A2947;margin-top:2.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(n.title)}</div>
+          <div style="font-size:12.5px;color:var(--sec);margin-top:1.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(n.detail)}</div>
+        </div>
+      </div>`;
   }
   function careNoticeStyleMeta(n) {
     const k = n ? n.kind : "";
@@ -2430,38 +2464,10 @@
     return "";
   }
   function currentHomeNotices() {
-    if (!genIsV01()) return [];
-    ensureCareGraph();
-    ensureSeededCareNotices();
-    return S.pendingPersonPopups[S.currentPersonName] || [];
+    return [];
   }
   function homeNoticeBarHTML() {
-    const list = currentHomeNotices();
-    if (!list.length) return "";
-    const n = list[0];
-    const meta = careNoticeStyleMeta(n);
-    const countPill = list.length > 1
-      ? `<span style="font-size:11px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.09);padding:1.5px 6px;border-radius:999px;font-variant-numeric:tabular-nums">1/${list.length}</span>`
-      : "";
-    return `
-      <div class="home-notice-bar" id="home-notice-bar" data-id="${escAttr(n.id || "")}" style="margin:0 24px 10px;padding:10px 13px;border-radius:18px;background:rgba(255,255,255,.96);border:1px solid ${meta.border};box-shadow:0 4px 12px rgba(16,84,224,.08);display:flex;align-items:center;gap:11px;cursor:grab;user-select:none;touch-action:pan-y;transition:transform .2s ease,opacity .2s ease">
-        <div data-act="tapHomeNotice" style="width:38px;height:38px;border-radius:50%;background:${meta.softBg};color:${meta.accent};display:grid;place-items:center;flex-shrink:0">
-          ${meta.ico}
-        </div>
-        <div data-act="tapHomeNotice" style="min-width:0;flex:1">
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="font-size:11.5px;font-weight:700;color:${meta.accent};background:${meta.softBg};padding:2px 7px;border-radius:999px">${esc(n.badgeText || "打卡通知")}</span>
-            ${countPill}
-            <span style="flex:1"></span>
-            <span style="font-size:11px;font-weight:500;color:var(--sec);opacity:.78">可滑动划掉</span>
-          </div>
-          <div style="font-size:14.5px;font-weight:700;color:#1E293B;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(n.title || "")}</div>
-          <div style="font-size:12.5px;font-weight:500;color:var(--sec);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(n.detail || "")}</div>
-        </div>
-        <button type="button" data-act="dismissHomeNotice" data-id="${escAttr(n.id || "")}" aria-label="关闭此条通知" style="width:26px;height:26px;border-radius:50%;border:0;background:rgba(16,84,224,.06);color:var(--sec);display:grid;place-items:center;cursor:pointer;flex-shrink:0;padding:0">
-          ${I.x}
-        </button>
-      </div>`;
+    return "";
   }
 
   const L = {
@@ -2475,8 +2481,7 @@
   };
 
   function homeModuleHeight(enrolled) {
-    const noticeReserve = currentHomeNotices().length ? 84 : 0;
-    const raw = 932 - 62 - 16 - 44 - 20 - 41 - 12 - 20 - 80 - 34 - noticeReserve - (enrolled ? 0 : L.stripH + L.stripGap);
+    const raw = 932 - 62 - 16 - 44 - 20 - 41 - 12 - 20 - 80 - 34 - (enrolled ? 0 : L.stripH + L.stripGap);
     return Math.min(Math.max(raw, L.minH), L.maxH);
   }
   function homeGeo(w, h) {
@@ -3669,47 +3674,43 @@
     if (scrub) bindScrub(scrub);
     const lane = laneScroll();
     if (lane) lane.onscroll = onLaneScroll;
-    const noticeBar = document.getElementById("home-notice-bar");
-    if (noticeBar) {
+    const sysBanner = document.getElementById("sys-push-banner");
+    if (sysBanner) {
       let startX = 0, startY = 0, dragging = false;
-      noticeBar.addEventListener("pointerdown", (e) => {
-        if (e.target.closest("button")) return;
+      sysBanner.addEventListener("pointerdown", (e) => {
         startX = e.clientX;
         startY = e.clientY;
         dragging = true;
       });
-      noticeBar.addEventListener("pointermove", (e) => {
+      sysBanner.addEventListener("pointermove", (e) => {
         if (!dragging) return;
         const dx = e.clientX - startX;
         const dy = Math.min(0, e.clientY - startY);
-        noticeBar.style.transform = `translate(${dx}px, ${dy * 0.4}px)`;
-        noticeBar.style.opacity = String(Math.max(0.25, 1 - Math.abs(dx) / 180));
+        sysBanner.style.transform = `translate(${dx}px, ${dy}px)`;
+        sysBanner.style.opacity = String(Math.max(0.25, 1 - (Math.abs(dx) + Math.abs(dy)) / 160));
       });
       const finishSwipe = (e) => {
         if (!dragging) return;
         dragging = false;
         const dx = (e.clientX || startX) - startX;
         const dy = (e.clientY || startY) - startY;
-        if (Math.abs(dx) > 48 || dy < -28) {
-          const nid = noticeBar.getAttribute("data-id") || "";
-          noticeBar.style.transition = "transform .18s ease, opacity .18s ease";
-          noticeBar.style.transform = `translate(${dx >= 0 ? 320 : -320}px, 0)`;
-          noticeBar.style.opacity = "0";
+        if (Math.abs(dx) > 40 || dy < -18) {
+          sysBanner.style.transition = "transform .18s ease, opacity .18s ease";
+          sysBanner.style.transform = `translate(${dx}px, -90px)`;
+          sysBanner.style.opacity = "0";
           setTimeout(() => {
-            const targetPerson = S.demoPersonName || "李建国";
-            const queue = S.pendingPersonPopups[targetPerson] || [];
-            S.pendingPersonPopups[targetPerson] = nid ? queue.filter((n) => n.id !== nid) : queue.slice(1);
-            render();
+            S.sysPushBanner = null;
+            sysBanner.remove();
           }, 160);
         } else {
-          noticeBar.style.transition = "transform .18s ease, opacity .18s ease";
-          noticeBar.style.transform = "translate(0, 0)";
-          noticeBar.style.opacity = "1";
-          setTimeout(() => { if (noticeBar) noticeBar.style.transition = ""; }, 180);
+          sysBanner.style.transition = "transform .18s ease, opacity .18s ease";
+          sysBanner.style.transform = "translate(0, 0)";
+          sysBanner.style.opacity = "1";
+          setTimeout(() => { if (sysBanner) sysBanner.style.transition = ""; }, 180);
         }
       };
-      noticeBar.addEventListener("pointerup", finishSwipe);
-      noticeBar.addEventListener("pointercancel", finishSwipe);
+      sysBanner.addEventListener("pointerup", finishSwipe);
+      sysBanner.addEventListener("pointercancel", finishSwipe);
     }
   }
 
@@ -7610,7 +7611,6 @@
               <button class="circle-btn" data-go="profile" type="button">${I.person}</button>
             </div>
           </div>
-          ${homeNoticeBarHTML()}
           <div class="entry-strip">
             <div class="entry" data-go="schedule"><div class="ico">${I.cal}</div><span>健康计划</span></div>
             <div class="entry" data-go="vitals"><div class="ico">${I.ecg}</div><span>血压监测</span></div>
