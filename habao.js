@@ -2224,6 +2224,35 @@
       .map((b) => b.guardianName)
       .join("、");
   }
+  function hasConfirmedGuardiansForCurrentPerson() {
+    ensureCareGraph();
+    const target = S.currentPersonName || "李建国";
+    return myGuardiansList(target).some((b) => b.confirmed);
+  }
+  function confirmedGuardianNamesSummaryForCurrentPerson() {
+    ensureCareGraph();
+    const target = S.currentPersonName || "李建国";
+    return myGuardiansList(target)
+      .filter((b) => b.confirmed)
+      .map((b) => b.guardianName)
+      .join("、");
+  }
+  const PROFILE_CONTEXT_SCREENS = new Set([
+    "profile",
+    "health-record",
+    "patient-edit",
+    "notify",
+    "activity",
+    "hardware",
+    "hardware-scan",
+    "vip",
+    "privacy",
+    "service-terms",
+  ]);
+  function isProfileContextScreen(screenId) {
+    if (PROFILE_CONTEXT_SCREENS.has(screenId)) return true;
+    return (S.frames || []).some((f) => f && f.id === "profile");
+  }
   function syncActivePersonContext(nextActivePersonName) {
     ensureCareGraph();
     if (!S.personStoreMap) S.personStoreMap = {};
@@ -3561,6 +3590,12 @@
   }
 
   function render() {
+    const desiredPersonKey = isProfileContextScreen(S.screen)
+      ? (S.currentPersonName || "李建国")
+      : activePersonName();
+    if (S.boundPersonKey !== desiredPersonKey) {
+      syncActivePersonContext(desiredPersonKey);
+    }
     // 点一枚芯片（如每月日号）就是一次整体重绘，innerHTML 一换滚动容器就归零、
     // 页面弹回顶部（网格在页面深处最明显）。同屏重绘前先记下 scrollTop，渲染完写回。
     const keepScroll = (lastRenderedScreen === S.screen && !scrollResetOnce)
@@ -5738,7 +5773,7 @@
         const name = ($("input[name=cg_name]")?.value ?? S.careSheetDraft?.name ?? "").trim();
         const phone = ($("input[name=cg_phone]")?.value ?? S.careSheetDraft?.phone ?? "").replace(/\D/g, "");
         const rel = S.careSheetDraft?.rel || "配偶";
-        const me = activeDemoPerson();
+        const me = currentDemoPerson();
         if (!name) { toast("请填写守护人姓名"); return; }
         if (phone.length !== 11) { toast("请填写 11 位手机号"); return; }
         if (name === me.name || phone === me.phoneRaw) { toast("不能添加自己为守护人"); return; }
@@ -5781,7 +5816,7 @@
         const name = ($("input[name=cg_name]")?.value ?? S.careSheetDraft?.name ?? "").trim();
         const phone = ($("input[name=cg_phone]")?.value ?? S.careSheetDraft?.phone ?? "").replace(/\D/g, "");
         const rel = S.careSheetDraft?.rel || "配偶";
-        const me = activeDemoPerson();
+        const me = currentDemoPerson();
         if (!name) { toast("请填写姓名"); return; }
         if (phone.length !== 11) { toast("请填写 11 位手机号"); return; }
         if (name === me.name || phone === me.phoneRaw) { toast("不能添加自己"); return; }
@@ -6131,41 +6166,37 @@
       savePatient() {
         const name = $("input[name=pname]")?.value?.trim();
         if (!name) { toast("请填写姓名"); return; }
-        const prev = S.origPatient || { name: S.name, gender: S.gender };
+        const curP = currentDemoPerson();
+        const prev = S.origPatient || { name: curP.name, gender: curP.gender };
         const changed = [];
         if (prev.name !== name) changed.push(`姓名 ${prev.name}→${name}`);
         if (prev.gender !== S.gender) changed.push(`性别 ${prev.gender}→${S.gender}`);
-        const actName = activePersonName();
-        const dp = (S.demoPeople || []).find((p) => p.name === actName);
-        if (dp) {
-          dp.gender = S.gender;
-          dp.height = S.height;
-          dp.weight = S.weight;
+        const oldName = curP.name;
+        curP.name = name;
+        curP.gender = S.gender;
+        curP.height = S.height;
+        curP.weight = S.weight;
+        S.currentPersonName = name;
+        if (oldName !== name) {
+          (S.careBonds || []).forEach((b) => {
+            if (b.guardianName === oldName) b.guardianName = name;
+            if (b.wardName === oldName) b.wardName = name;
+          });
         }
         S.name = name;
-        if (shownRole() === "patient") {
-          S.selfProfile = {
-            name: S.name,
-            gender: S.gender,
-            age: S.age || 58,
-            height: S.height,
-            weight: S.weight,
-          };
-        } else {
-          const gp = (S.guardedPatients || []).find((p) => String(p.id) === String(S.activePatientId));
-          if (gp) {
-            gp.name = S.name;
-            gp.gender = S.gender;
-          }
-        }
+        S.selfProfile = {
+          name: S.name,
+          gender: S.gender,
+          age: S.age || 58,
+          height: S.height,
+          weight: S.weight,
+        };
         S.origPatient = null;
         logOp("修改了患者信息", "健康档案", [["改动", changed.length ? changed.join("、") : "本次未动"]]);
         back();
       },
       toggleSelf() {
-        const isWatchingWard = !!(genHasFamily() && S.watchingWardName && S.watchingWardName !== S.currentPersonName);
-        const targetNm = activePersonName();
-        const label = isWatchingWard ? `通知${targetNm}` : "通知自己";
+        const label = "通知自己";
         const curOn = !!(S.notifySelf && anyCatOn());
         const next = !curOn;
         S.notifySelf = next;
@@ -6178,7 +6209,7 @@
       },
       // 全部打卡总开关：全开时点按全关，否则全开；上岛全关时点按自动开启通知自己
       toggleAll() {
-        const canNotifyGuardian = hasConfirmedGuardiansForActivePerson();
+        const canNotifyGuardian = hasConfirmedGuardiansForCurrentPerson();
         const gateActive = !!(S.notifySelf || (genHasFamily() && canNotifyGuardian && S.notifyFamily));
         const curOn = gateActive && allCatsOn();
         const next = !curOn;
@@ -6193,7 +6224,7 @@
       toggleCat() {
         const c = el.dataset.cat;
         if (!c) return;
-        const canNotifyGuardian = hasConfirmedGuardiansForActivePerson();
+        const canNotifyGuardian = hasConfirmedGuardiansForCurrentPerson();
         const gateActive = !!(S.notifySelf || (genHasFamily() && canNotifyGuardian && S.notifyFamily));
         const curOn = gateActive && !!S.cats[c];
         const next = !curOn;
@@ -6206,15 +6237,11 @@
         render();
       },
       toggleFam() {
-        const isWatchingWard = !!(genHasFamily() && S.watchingWardName && S.watchingWardName !== S.currentPersonName);
-        const targetNm = activePersonName();
-        const famLabel = isWatchingWard ? "通知守护TA的人" : "通知守护我的人";
-        if (!hasConfirmedGuardiansForActivePerson()) {
+        const famLabel = "通知守护我的人";
+        if (!hasConfirmedGuardiansForCurrentPerson()) {
           openOverlay("confirm", {
-            title: isWatchingWard ? "请先添加守护TA的人" : "请先添加守护我的人",
-            body: isWatchingWard
-              ? `开启「通知守护TA的人」前，请先添加并确认至少一位守护${targetNm}的人。`
-              : "开启「通知守护我的人」前，请先添加并确认至少一位守护你的人。",
+            title: "请先添加守护我的人",
+            body: "开启「通知守护我的人」前，请先添加并确认至少一位守护你的人。",
             ok: "去添加",
             action: "openAddGuardianSheet",
           });
@@ -8687,7 +8714,7 @@
             <div class="frost"></div>
             <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap">
               <div class="s22 fb">¥2400 <span class="s16" style="font-weight:600;opacity:.85">/ 年</span></div>
-              ${on ? `<span class="s13 fb" style="padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.18);color:rgba(255,255,255,.95)">${isFam ? `家庭共享生效 · 至 ${vipExpiryText()}` : `已开通 · 有效期至 ${vipExpiryText()}`}</span>` : ""}
+              ${on ? `<span class="s13 fb" style="padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.18);color:rgba(255,255,255,.95)">已开通 · 有效期至 ${vipExpiryText()}</span>` : ""}
             </div>
           </div>
 
@@ -8716,12 +8743,7 @@
           <p class="s14 fm t-sec mt16 ta-c">本机演示开通，不会真实扣款。</p>
         </div>
         <div class="px20" style="padding-top:10px;padding-bottom:28px">
-          ${isFam ? `
-            <div style="background:rgba(16,84,224,.08);border-radius:16px;padding:12px 14px;text-align:center">
-              <div class="s16 fb t">正共享患者「${S.name}」的 VIP 权益</div>
-              <div class="s12 fm t-sec" style="margin-top:4px;line-height:1.4">VIP 随患者档案生效，家属无需重复付费；如需为你本人档案开通请切回「本人」身份</div>
-            </div>
-          ` : on
+          ${on
             ? `<button class="cta-ghost" data-act="askCancelVip" type="button">取消订阅</button>`
             : `<button class="cta" data-act="askVip" type="button">立即开通</button>`}
         </div>
@@ -8732,11 +8754,9 @@
       ensureCareGraph();
       const isVip = genHasFamily();
       const curPerson = currentDemoPerson();
-      const activeP = activeDemoPerson();
-      const isWatchingWard = !!(S.watchingWardName && S.watchingWardName !== curPerson.name);
-      const myGuardians = myGuardiansList(activeP.name);
-      const myWards = myWardsList(activeP.name);
-      const curBmi = ((activeP.weight || 70) / Math.pow((activeP.height || 170) / 100, 2)).toFixed(1);
+      const myGuardians = myGuardiansList(curPerson.name);
+      const myWards = myWardsList(curPerson.name);
+      const curBmi = ((curPerson.weight || 70) / Math.pow((curPerson.height || 170) / 100, 2)).toFixed(1);
       const otherUnread = otherPeopleUnreadTotal();
       const guardianRowsHTML = myGuardians.length ? myGuardians.map((b) => {
         const needsMyConfirm = !b.confirmed && b.initiatedBy === "guardian";
@@ -8786,14 +8806,14 @@
         <div class="frost" style="margin-top:10px;margin-bottom:10px"></div>
         <div style="margin-top:6px">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-            <span style="font-size:14px;font-weight:700;color:#fff">${isWatchingWard ? "守护TA的人" : "守护我的人"}</span>
+            <span style="font-size:14px;font-weight:700;color:#fff">守护我的人</span>
             ${myGuardians.length < 5 ? `<button type="button" data-act="openAddGuardianSheet" style="border:0;background:rgba(255,255,255,.20);color:#fff;font-size:11.5px;font-weight:700;padding:3.5px 8.5px;border-radius:999px;cursor:pointer;font-family:inherit">+ 添加</button>` : ""}
           </div>
           ${guardianRowsHTML}
         </div>
         <div style="margin-top:10px">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-            <span style="font-size:14px;font-weight:700;color:#fff">${isWatchingWard ? "被TA守护的人" : "被我守护的人"}</span>
+            <span style="font-size:14px;font-weight:700;color:#fff">被我守护的人</span>
             ${myWards.length < 5 ? `<button type="button" data-act="openAddWardSheet" style="border:0;background:rgba(255,255,255,.20);color:#fff;font-size:11.5px;font-weight:700;padding:3.5px 8.5px;border-radius:999px;cursor:pointer;font-family:inherit">+ 添加</button>` : ""}
           </div>
           ${wardRowsHTML}
@@ -8804,29 +8824,29 @@
       const vipBtn = isVip ? "已购买 ›" : "购买 ›";
       return `<div class="page">
         ${navBar(cap(I.chevL, "返回"), "个人中心",
-          genIsV01() ? `<button class="cap" data-act="openDemoPersonSheet" type="button" title="切换演示人名（仅 Demo 演示用）">${I.person}${esc(curPerson.name)} ▾${otherUnread > 0 ? `<span style="margin-left:3px;padding:0 5px;border-radius:999px;background:#EF4444;color:#fff;font-size:10px;font-weight:800">${otherUnread}</span>` : ""}</button>` : "")}
+          genIsV01() ? `<button class="cap" data-act="openDemoPersonSheet" type="button" title="切换测试身份（当前使用App的主角）">测试身份：${esc(curPerson.name)} ▾${otherUnread > 0 ? `<span style="margin-left:3px;padding:0 5px;border-radius:999px;background:#EF4444;color:#fff;font-size:10px;font-weight:800">${otherUnread}</span>` : ""}</button>` : "")}
         <div class="scroll px20" style="padding-top:8px">
           <div class="hero">
             <div class="pointer" data-go="health-record" role="button" style="cursor:pointer">
               <div class="hero-top">
-                <div class="avatar">${esc(activeP.name.slice(0, 1))}</div>
+                <div class="avatar">${esc(curPerson.name.slice(0, 1))}</div>
                 <div style="min-width:0">
                   <div style="display:flex;align-items:center;gap:6px;white-space:nowrap">
-                    <span class="s18 fb">${esc(activeP.name)}</span>
+                    <span class="s18 fb">${esc(curPerson.name)}</span>
                     ${isVip ? `<span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.crown} VIP</span>` : ""}
                   </div>
                   <div style="display:flex;align-items:center;gap:6px;margin-top:5px;white-space:nowrap">
-                    <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.18);padding:2.5px 8px;border-radius:999px">${isWatchingWard ? "被我守护的人" : "我"}</span>
-                    <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.18);padding:2.5px 8px;border-radius:999px">${esc(activeP.gender)}</span>
+                    <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.18);padding:2.5px 8px;border-radius:999px">${esc(curPerson.gender)}</span>
+                    <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.18);padding:2.5px 8px;border-radius:999px">我</span>
                   </div>
                 </div>
                 <button class="view-cap" data-go="health-record" type="button">点击查看</button>
               </div>
               <div class="frost"></div>
               <div class="metrics">
-                <div><span>年龄</span><b>${activeP.age || 58}</b></div>
-                <div><span>身高</span><b>${activeP.height || 170}</b></div>
-                <div><span>体重</span><b>${activeP.weight || 70}</b></div>
+                <div><span>年龄</span><b>${curPerson.age || 58}</b></div>
+                <div><span>身高</span><b>${curPerson.height || 170}</b></div>
+                <div><span>体重</span><b>${curPerson.weight || 70}</b></div>
                 <div><span>BMI</span><b>${curBmi}</b></div>
               </div>
             </div>
@@ -8998,7 +9018,7 @@
           <div class="hero" style="border-radius:22px 22px 0 0">
             <div class="hero-top">
               <div class="avatar lg">${S.name.slice(0, 1)}</div>
-              <div><div class="s24 fb">${S.name}</div><div class="s13" style="opacity:.85">${shownRole() === "patient" ? "我" : "被我守护的人"}　${S.gender}</div></div>
+              <div><div class="s24 fb">${S.name}</div><div class="s13" style="opacity:.85">我　${S.gender}</div></div>
             </div>
             <div class="frost"></div>
             <div class="metrics">
@@ -9118,19 +9138,15 @@
     },
 
     notify: () => {
-      const isWatchingWard = !!(genHasFamily() && S.watchingWardName && S.watchingWardName !== S.currentPersonName);
-      const targetNm = activePersonName();
-      const canNotifyGuardian = hasConfirmedGuardiansForActivePerson();
-      const guardianNames = confirmedGuardianNamesSummaryForActivePerson();
+      const canNotifyGuardian = hasConfirmedGuardiansForCurrentPerson();
+      const guardianNames = confirmedGuardianNamesSummaryForCurrentPerson();
       const anyCat = anyCatOn();
-      const selfTitle = isWatchingWard ? `通知${esc(targetNm)}` : "通知自己";
-      const selfSub = isWatchingWard
-        ? `计划到点提醒${esc(targetNm)}，代打卡时通知TA`
-        : "计划到点提醒自己";
-      const famTitle = isWatchingWard ? "通知守护TA的人" : "通知守护我的人";
+      const selfTitle = "通知自己";
+      const selfSub = "计划到点提醒自己";
+      const famTitle = "通知守护我的人";
       const famSub = canNotifyGuardian
         ? `到点与完成打卡时通知：${esc(guardianNames)}`
-        : (isWatchingWard ? "尚未添加守护TA的人，点按去添加" : "尚未添加守护我的人，点按去添加");
+        : "尚未添加守护我的人，点按去添加";
       const gateActive = !!(S.notifySelf || (genHasFamily() && canNotifyGuardian && S.notifyFamily));
       return `
       <div class="page">
@@ -11531,11 +11547,18 @@
         return;
       }
     }
-    S.ops.unshift({
+    const opItem = {
       id: `op${Date.now()}${Math.random().toString(36).slice(2, 6)}`,
       at: Date.now(), actor, actorId, action, place: place || "", how,
-    });
+    };
+    S.ops.unshift(opItem);
     if (S.ops.length > 300) { S.ops.length = 300; S.opDropped = true; }
+    if (S.currentPersonName && S.boundPersonKey && S.currentPersonName !== S.boundPersonKey) {
+      const myBucket = ensurePersonStore(S.currentPersonName);
+      if (!myBucket.ops) myBucket.ops = [];
+      myBucket.ops.unshift({ ...opItem });
+      if (myBucket.ops.length > 300) myBucket.ops.length = 300;
+    }
     pushConsultNoticeFromOp(actorId ? "family" : "patient", actor, action, place || "", how);
   }
   function pushConsultNoticeFromOp(role, actor, action, place, how) {
@@ -11919,9 +11942,8 @@
     return `<div class="dots">${Array.from({ length: total }, (_, i) => `<i class="dot ${i + 1 === active ? "on" : ""}"></i>`).join("")}</div>`;
   }
   function notifyCaption() {
-    const isWatchingWard = !!(genHasFamily() && S.watchingWardName && S.watchingWardName !== S.currentPersonName);
-    const famLabel = isWatchingWard ? "通知守护TA的人" : "通知守护我的人";
-    const famOn = genHasFamily() && hasConfirmedGuardiansForActivePerson() && S.notifyFamily;
+    const famLabel = "通知守护我的人";
+    const famOn = genHasFamily() && hasConfirmedGuardiansForCurrentPerson() && S.notifyFamily;
     if (!anyCatOn() || (!S.notifySelf && !famOn)) return "已关闭";
     if (S.notifySelf && famOn) return `到点提醒与${famLabel}`;
     if (S.notifySelf) return "到点提醒";
@@ -13277,16 +13299,14 @@
           <div class="grab"></div>
           <div style="display:flex;align-items:center;justify-content:space-between">
             <div>
-              <div class="s20 fb t">切换演示人名</div>
-              <div class="s13 t-sec" style="margin-top:2px">仅做 Demo 演示用：切换不同人名查看其「守护我的人 / 被我守护的人」与双向通知</div>
+              <div class="s20 fb t">切换测试身份</div>
+              <div class="s13 t-sec" style="margin-top:2px">仅用于 Demo 测试：切换当前使用 App 的主角（「我」），个人中心始终以所选主角为第一人称展示</div>
             </div>
             <button class="cap" data-act="close" type="button">关闭</button>
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
             ${S.demoPeople.map((p) => {
               const isCur = p.name === S.currentPersonName;
-              const gCount = myGuardiansList(p.name).length;
-              const wCount = myWardsList(p.name).length;
               const unread = unreadPopupCountForPerson(p.name);
               return `
                 <button type="button" data-act="switchDemoPerson" data-name="${esc(p.name)}" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;border:${isCur ? "1.5px solid rgba(16,84,224,.32)" : "1px solid transparent"};background:${isCur ? "rgba(16,84,224,.10)" : "#F5F8FF"};cursor:pointer;text-align:left;font-family:inherit;width:100%">
@@ -13295,6 +13315,7 @@
                     <div style="display:flex;align-items:center;gap:6px">
                       <span class="s17 fb t">${esc(p.name)}</span>
                       <span style="font-size:12px;font-weight:600;color:var(--sec)">${esc(p.gender)} · ${p.age}岁</span>
+                      ${isCur ? `<span style="padding:2px 7px;border-radius:999px;background:var(--blue);color:#fff;font-size:11px;font-weight:700">当前主角</span>` : ""}
                       ${unread > 0 ? `<span style="padding:2px 7px;border-radius:999px;background:#EF4444;color:#fff;font-size:11px;font-weight:700">${unread} 条待处理通知</span>` : ""}
                     </div>
                     <div style="font-size:12.5px;font-weight:500;color:var(--sec);margin-top:3px">${esc(p.phone)}</div>
@@ -13310,14 +13331,14 @@
       ensureCareGraph();
       const d = S.careSheetDraft || { name: "", phone: "", rel: "配偶" };
       const rels = ["配偶", "子女", "父母", "亲属"];
-      const targetNm = activePersonName();
+      const targetNm = S.currentPersonName || "李建国";
       return `
       <div class="scrim bottom" data-act="close">
         <div class="sheet" onclick="event.stopPropagation()">
           <div class="grab"></div>
           <div style="display:flex;align-items:center;justify-content:space-between">
             <div>
-              <div class="s20 fb t">添加守护${targetNm === S.currentPersonName ? "我" : esc(targetNm)}的人</div>
+              <div class="s20 fb t">添加守护我的人</div>
               <div class="s13 t-sec" style="margin-top:3px">邀请家人守护「${esc(targetNm)}」，对方可接收打卡完成动态并发送康复提醒</div>
             </div>
             <button class="cap" data-act="close" type="button">取消</button>
