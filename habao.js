@@ -7453,9 +7453,11 @@
       if (S.scheme === 3) return scheme4Home(); // 方案四：时段泳道 + 底部扇形拨盘
       const mh = homeModuleHeight(S.enrolled);
       const headerTitleHTML = genIsV01()
-        ? `<button type="button" data-act="openHomeTargetSheet" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;padding:0;margin:0;cursor:pointer;font-family:inherit;text-align:left;max-width:100%">
-             <span style="font-size:calc(26px * var(--fs));font-weight:800;color:var(--text);letter-spacing:-.3px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(homeHeaderTitle())}</span>
-             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue);opacity:.75;margin-top:2px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
+        ? `<button type="button" data-act="openHomeTargetSheet" style="display:inline-flex;align-items:center;gap:8px;background:none;border:none;padding:0;margin:0;cursor:pointer;font-family:inherit;text-align:left;max-width:100%">
+             <h2 style="margin:0">${esc(homeHeaderTitle())}</h2>
+             <span style="width:28px;height:28px;border-radius:50%;background:linear-gradient(#fff,#F8FBFF);border:1px solid rgba(16,84,224,.10);display:inline-grid;place-items:center;color:var(--blue);flex-shrink:0">
+               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;transform:translateY(.5px)"><path d="m6 9 6 6 6-6"/></svg>
+             </span>
            </button>`
         : `<h2>${esc(homeHeaderTitle())}</h2>`;
       return `
