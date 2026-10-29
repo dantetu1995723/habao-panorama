@@ -711,15 +711,18 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .orb.ai.notify img { transform: translateY(-3px); }
 .orb-notify-bell {
-  position: absolute; top: -2px; right: -2px; z-index: 3;
-  width: 24px; height: 24px; border-radius: 50%;
-  background: linear-gradient(135deg, #F59E0B, #D97706);
-  border: 2px solid #fff;
-  box-shadow: 0 2px 6px rgba(217,119,6,.36);
+  position: absolute; top: 1px; right: 1px; z-index: 3;
+  width: 25px; height: 25px; border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 25%, rgba(255,255,255,.32), transparent 48%),
+    linear-gradient(135deg, #FF7660 0%, #EC4848 100%);
+  border: 2.4px solid #fff;
+  box-shadow: 0 2px 5px rgba(236,72,72,.30);
   display: flex; align-items: center; justify-content: center;
   color: #fff;
+  pointer-events: none;
 }
-.orb-notify-bell svg { width: 12px; height: 12px; }
+.orb-notify-bell svg { width: 12px; height: 12px; transform: rotate(-8deg); }
 .orb-notify-pill {
   position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); z-index: 3;
   display: inline-flex; align-items: center; gap: 3px;

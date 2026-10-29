@@ -2425,8 +2425,14 @@
     }
     const targetPerson = (notice.recipientPerson || S.currentPersonName || "李建国").trim();
     notice.recipientPerson = targetPerson;
-    // 1. 哈宝医生对话页写入纯对话气泡（仅目标接收人可见，无任何操作按钮）
+    // 1. 哈宝医生对话页写入纯对话气泡（仅目标接收人可见，无任何操作按钮）与未读标记
     appendCareBubbleToMessages(notice, targetPerson);
+    if (!S.unreadConsultByPerson) S.unreadConsultByPerson = {};
+    if (S.screen === "consult" && targetPerson === (S.currentPersonName || "李建国")) {
+      S.unreadConsultByPerson[targetPerson] = false;
+    } else {
+      S.unreadConsultByPerson[targetPerson] = true;
+    }
     // 2. 触达手机系统通知（当前登录人立即触发系统通知，其他人物入队待切号时触发系统通知）
     if (targetPerson === S.currentPersonName) {
       triggerSysPushBanner(notice);
@@ -2452,6 +2458,19 @@
     if (!genIsV01() || S.seededCareNotices) return;
     S.seededCareNotices = true;
     if (!S.pendingPersonPopups) S.pendingPersonPopups = {};
+    if (!S.unreadConsultByPerson) S.unreadConsultByPerson = {};
+    const seedLjg = {
+      id: "hn_seed_ljg",
+      kind: "familyRemindPlan",
+      badgeText: "打卡提醒",
+      recipientPerson: "李建国",
+      title: "王芳提醒你完成「阿司匹林肠溶片」",
+      detail: "今日计划「08:00 阿司匹林肠溶片」尚未打卡，请记得按时完成。",
+      target: "schedule",
+      time: "08:05",
+    };
+    appendCareBubbleToMessages(seedLjg, "李建国");
+    S.unreadConsultByPerson["李建国"] = true;
     const seedWf = {
       id: "hn_seed_wf",
       kind: "patientActionDone",
@@ -2463,6 +2482,7 @@
       time: "06:05",
     };
     appendCareBubbleToMessages(seedWf, "王芳");
+    S.unreadConsultByPerson["王芳"] = true;
     if (!S.pendingPersonPopups["王芳"] || !S.pendingPersonPopups["王芳"].length) {
       S.pendingPersonPopups["王芳"] = [seedWf];
     }
@@ -8465,6 +8485,8 @@
       const canSend = consultCanSend();
       const inText = S.inputMode === "text";
       const curPerson = S.currentPersonName || "李建国";
+      if (!S.unreadConsultByPerson) S.unreadConsultByPerson = {};
+      S.unreadConsultByPerson[curPerson] = false;
       const visibleMessages = S.messages.filter(
         (m) => m.who !== "notice" && (!m.recipientPerson || m.recipientPerson === curPerson)
       );
@@ -11474,7 +11496,12 @@
     </button>`;
   }
   function consultOrbHTML() {
-    return `<div class="orb ai" data-go="consult" style="position:relative"><img src="${A.logo}" alt="哈宝医生" /></div>`;
+    ensureCareGraph();
+    ensureSeededCareNotices();
+    const curPerson = S.currentPersonName || "李建国";
+    const hasUnread = genIsV01() && !!(S.unreadConsultByPerson && S.unreadConsultByPerson[curPerson]);
+    const badge = hasUnread ? `<span class="orb-notify-bell" aria-label="哈宝医生有新消息">${I.bell}</span>` : "";
+    return `<div class="orb ai" data-go="consult" style="position:relative"><img src="${A.logo}" alt="哈宝医生" />${badge}</div>`;
   }
   function consultCtaHTML(extraStyle) {
     const style = extraStyle ? `${extraStyle};` : "";
