@@ -2021,9 +2021,9 @@
     if (!genIsV01()) return `${S.name}的一天`;
     ensureCareGraph();
     if (S.watchingWardName) {
-      return `${S.watchingWardName}（我看护的人）的一天`;
+      return `${S.watchingWardName}的一天`;
     }
-    return `${currentDemoPerson().name}（我）的一天`;
+    return `${currentDemoPerson().name}的一天`;
   }
   function buildPresetDataForPerson(personName) {
     const baseHour = Date.now();
@@ -5570,7 +5570,7 @@
           syncLegacyListsFromBonds();
           syncActivePersonContext(me.name);
           closeOverlay();
-          toast(`已切换至「${me.name}（我）的一天」`);
+          toast(`已切换至「${me.name}的一天」`);
           render();
           return;
         }
@@ -5583,7 +5583,7 @@
         S.actorId = famEntry.id;
         syncActivePersonContext(ward.name);
         closeOverlay();
-        toast(`已切换至「${ward.name}（我看护的人）的一天」`);
+        toast(`已切换至「${ward.name}的一天」`);
         render();
       },
       switchDemoPerson() {
@@ -7453,9 +7453,9 @@
       if (S.scheme === 3) return scheme4Home(); // 方案四：时段泳道 + 底部扇形拨盘
       const mh = homeModuleHeight(S.enrolled);
       const headerTitleHTML = genIsV01()
-        ? `<button type="button" data-act="openHomeTargetSheet" style="display:inline-flex;align-items:center;gap:8px;padding:6px 10px 6px 12px;border-radius:999px;background:rgba(255,255,255,.94);border:1px solid rgba(16,84,224,.18);box-shadow:0 3px 10px rgba(16,84,224,.09);cursor:pointer;font-family:inherit;max-width:100%">
-             <span style="font-size:calc(19px * var(--fs));font-weight:800;color:#0F172A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(homeHeaderTitle())}</span>
-             <span style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:999px;background:rgba(16,84,224,.10);color:var(--blue);font-size:12px;font-weight:700;flex-shrink:0">切换 ▾</span>
+        ? `<button type="button" data-act="openHomeTargetSheet" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;padding:0;margin:0;cursor:pointer;font-family:inherit;text-align:left;max-width:100%">
+             <span style="font-size:calc(26px * var(--fs));font-weight:800;color:var(--text);letter-spacing:-.3px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(homeHeaderTitle())}</span>
+             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue);opacity:.75;margin-top:2px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
            </button>`
         : `<h2>${esc(homeHeaderTitle())}</h2>`;
       return `
@@ -12801,46 +12801,37 @@
       const confirmedWards = myWardsList(me.name).filter((b) => b.confirmed);
       return `
       <div class="scrim bottom" data-act="close">
-        <div class="sheet" onclick="event.stopPropagation()">
+        <div class="sheet" onclick="event.stopPropagation()" style="padding:20px 20px 32px">
           <div class="grab"></div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <div>
-              <div class="s20 fb t">切换查看对象</div>
-              <div class="s13 t-sec" style="margin-top:2px">切换后，首页及所有健康模块将同步为所选对象的专属档案</div>
-            </div>
-            <button class="cap" data-act="close" type="button">关闭</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div class="s20 fb t" style="font-size:19px;letter-spacing:-.2px">切换看护对象</div>
+            <button class="cap" data-act="close" type="button" style="padding:5px 12px;border-radius:999px;font-size:13px">关闭</button>
           </div>
-          <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
-            <button type="button" data-act="selectHomeTarget" data-ward="" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;border:${isSelf ? "1.5px solid rgba(16,84,224,.32)" : "1px solid transparent"};background:${isSelf ? "rgba(16,84,224,.10)" : "#F5F8FF"};cursor:pointer;text-align:left;font-family:inherit;width:100%">
-              <div style="width:42px;height:42px;border-radius:999px;background:${isSelf ? "var(--blue)" : "rgba(16,84,224,.12)"};color:${isSelf ? "#fff" : "var(--blue)"};font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(me.name.slice(0, 1))}</div>
-              <div style="min-width:0;flex:1">
-                <div style="display:flex;align-items:center;gap:6px">
-                  <span class="s17 fb t">${esc(me.name)}（我）的一天</span>
-                  <span style="font-size:11.5px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 7px;border-radius:999px">本人</span>
-                </div>
-                <div style="font-size:12.5px;font-weight:500;color:var(--sec);margin-top:3px">查看与管理我自己的康复计划、血压、运动与身体报告</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <button type="button" data-act="selectHomeTarget" data-ward="" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:18px;border:${isSelf ? "1.5px solid var(--blue)" : "1px solid rgba(0,0,0,.06)"};background:${isSelf ? "rgba(16,84,224,.06)" : "#FFFFFF"};cursor:pointer;text-align:left;font-family:inherit;width:100%">
+              <div style="width:40px;height:40px;border-radius:999px;background:${isSelf ? "var(--blue)" : "rgba(16,84,224,.10)"};color:${isSelf ? "#fff" : "var(--blue)"};font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(me.name.slice(0, 1))}</div>
+              <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+                <span style="font-size:16.5px;font-weight:700;color:var(--text)">${esc(me.name)}的一天</span>
+                <span style="font-size:11.5px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 8px;border-radius:999px">本人</span>
               </div>
-              ${isSelf ? `<span style="color:var(--blue);font-weight:800;font-size:16px">✓</span>` : `<span class="neutral-chev">${I.chevR}</span>`}
+              ${isSelf ? `<span style="color:var(--blue);font-weight:800;font-size:18px">✓</span>` : `<span style="display:inline-block;width:18px;height:18px;border-radius:999px;border:1.5px solid rgba(16,84,224,.22)"></span>`}
             </button>
             ${confirmedWards.map((b) => {
               const isWatching = S.watchingWardName === b.wardName;
               return `
-                <button type="button" data-act="selectHomeTarget" data-ward="${esc(b.wardName)}" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;border:${isWatching ? "1.5px solid rgba(16,84,224,.32)" : "1px solid transparent"};background:${isWatching ? "rgba(16,84,224,.10)" : "#F5F8FF"};cursor:pointer;text-align:left;font-family:inherit;width:100%">
-                  <div style="width:42px;height:42px;border-radius:999px;background:${isWatching ? "var(--blue)" : "rgba(16,84,224,.12)"};color:${isWatching ? "#fff" : "var(--blue)"};font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(b.wardName.slice(0, 1))}</div>
-                  <div style="min-width:0;flex:1">
-                    <div style="display:flex;align-items:center;gap:6px">
-                      <span class="s17 fb t">${esc(b.wardName)}（我看护的人）的一天</span>
-                      <span style="font-size:11.5px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 7px;border-radius:999px">${esc(b.relation)}</span>
-                    </div>
-                    <div style="font-size:12.5px;font-weight:500;color:var(--sec);margin-top:3px">查看与协助看护${esc(b.wardName)}的康复计划、血压、运动与身体报告</div>
+                <button type="button" data-act="selectHomeTarget" data-ward="${esc(b.wardName)}" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:18px;border:${isWatching ? "1.5px solid var(--blue)" : "1px solid rgba(0,0,0,.06)"};background:${isWatching ? "rgba(16,84,224,.06)" : "#FFFFFF"};cursor:pointer;text-align:left;font-family:inherit;width:100%">
+                  <div style="width:40px;height:40px;border-radius:999px;background:${isWatching ? "var(--blue)" : "rgba(16,84,224,.10)"};color:${isWatching ? "#fff" : "var(--blue)"};font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(b.wardName.slice(0, 1))}</div>
+                  <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+                    <span style="font-size:16.5px;font-weight:700;color:var(--text)">${esc(b.wardName)}的一天</span>
+                    <span style="font-size:11.5px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 8px;border-radius:999px">${esc(b.relation)}</span>
                   </div>
-                  ${isWatching ? `<span style="color:var(--blue);font-weight:800;font-size:16px">✓</span>` : `<span class="neutral-chev">${I.chevR}</span>`}
+                  ${isWatching ? `<span style="color:var(--blue);font-weight:800;font-size:18px">✓</span>` : `<span style="display:inline-block;width:18px;height:18px;border-radius:999px;border:1.5px solid rgba(16,84,224,.22)"></span>`}
                 </button>`;
             }).join("")}
             ${!confirmedWards.length ? `
-              <button type="button" data-act="goProfileFromTargetSheet" style="display:flex;align-items:center;gap:10px;padding:13px 14px;border-radius:14px;border:0;background:#F5F8FF;cursor:pointer;text-align:left;font-family:inherit;width:100%">
-                <span style="color:var(--blue);display:inline-flex">${I.plus}</span>
-                <span class="s15 fb t" style="flex:1">还没有被守护人，去个人中心添加</span>
+              <button type="button" data-act="goProfileFromTargetSheet" style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-radius:16px;border:1px dashed rgba(16,84,224,.25);background:rgba(16,84,224,.03);cursor:pointer;text-align:left;font-family:inherit;width:100%">
+                <span style="color:var(--blue);display:inline-flex;font-size:15px">${I.plus}</span>
+                <span style="font-size:14px;font-weight:600;color:var(--blue);flex:1">去个人中心添加被守护人</span>
                 <span class="neutral-chev">${I.chevR}</span>
               </button>
             ` : ""}
