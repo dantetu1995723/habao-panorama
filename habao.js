@@ -2100,8 +2100,10 @@
           { title: "第二次复查", pages: 1 },
         ],
         ops: [
-          { id: "op_zgl_1", who: "patient", actorName: "张桂兰", kind: "测血压打卡", place: "首页", at: baseHour - 1800000, lines: [["计划", "晨起测血压与心率"], ["读数", "血压 134/82，心率 76 bpm"]] },
-          { id: "op_zgl_2", who: "family", actorName: "李建国", kind: "提醒患者", place: "健康计划", at: baseHour - 5400000, lines: [["提醒", "傍晚复测血压"]] },
+          { id: "op_zgl_0", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "打卡了", place: "首页", at: baseHour - 900000, how: "服用利伐沙班片", notifiedNames: ["张桂兰"] },
+          { id: "op_zgl_1", role: "patient", actor: "张桂兰", targetName: "张桂兰", action: "打卡了", place: "首页", at: baseHour - 1800000, how: "服用苯磺酸氨氯地平片", notifiedNames: ["李建国"] },
+          { id: "op_zgl_2", role: "patient", actor: "张桂兰", targetName: "张桂兰", action: "同步了血压", place: "血压监测", at: baseHour - 3600000, how: "哈宝血压计，血压 134/83，心率 76 bpm", notifiedNames: ["李建国"] },
+          { id: "op_zgl_3", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "提醒了", place: "首页", at: baseHour - 86400000, how: "傍晚复测血压", notifiedNames: ["张桂兰"] },
         ],
       };
     }
@@ -2161,8 +2163,12 @@
           { title: "第一次复查", pages: 1 },
         ],
         ops: [
-          { id: "op_wf_1", who: "patient", actorName: "王芳", kind: "完成了散步", place: "运动", at: baseHour - 2400000, lines: [["散步", "2.86 公里 · 32 分钟"], ["打卡", "傍晚有氧健步走 已完成"]] },
-          { id: "op_wf_2", who: "patient", actorName: "王芳", kind: "完成打卡", place: "首页", at: baseHour - 7200000, lines: [["计划", "服用辅酶Q10胶囊"]] },
+          { id: "op_wf_0", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "打卡了", place: "首页", at: baseHour - 600000, how: "晨起温水", notifiedNames: ["李建国"] },
+          { id: "op_wf_1", role: "patient", actor: "李建国", targetName: "李建国", action: "完成了散步", place: "运动", at: baseHour - 1800000, how: "1.24 公里（晨间散步 已完成）", notifiedNames: ["王芳"] },
+          { id: "op_wf_2", role: "patient", actor: "王芳", targetName: "王芳", action: "打卡了", place: "首页", at: baseHour - 3600000, how: "服用辅酶Q10胶囊", notifiedNames: [] },
+          { id: "op_wf_3", role: "patient", actor: "李建国", targetName: "李建国", action: "打卡了", place: "首页", at: baseHour - 5400000, how: "服用阿司匹林肠溶片", notifiedNames: ["王芳"] },
+          { id: "op_wf_4", role: "patient", actor: "王芳", targetName: "王芳", action: "同步了血压", place: "血压监测", at: baseHour - 7200000, how: "血压 112/70，心率 64 bpm", notifiedNames: [] },
+          { id: "op_wf_5", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "提醒了", place: "首页", at: baseHour - 86400000, how: "晚间散步", notifiedNames: ["李建国"] },
         ],
       };
     }
@@ -2195,8 +2201,14 @@
       ],
       archiveReview: [],
       ops: [
-        { id: "op_ljg_1", who: "patient", actorName: "李建国", kind: "测血压打卡", place: "首页", at: baseHour - 1200000, lines: [["计划", "起床测血压"], ["读数", "血压 126/78，心率 72 bpm"]] },
-        { id: "op_ljg_2", who: "family", actorName: "王芳", kind: "完成打卡", place: "健康计划", at: baseHour - 3600000, lines: [["计划", "晨起温水"]] },
+        { id: "op_ljg_0", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "打卡了", place: "首页", at: baseHour - 600000, how: "晨起温水", notifiedNames: ["李建国"] },
+        { id: "op_ljg_1", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "打卡了", place: "首页", at: baseHour - 900000, how: "服用利伐沙班片", notifiedNames: ["张桂兰"] },
+        { id: "op_ljg_2", role: "patient", actor: "李建国", targetName: "李建国", action: "完成了散步", place: "运动", at: baseHour - 1800000, how: "1.24 公里（晨间散步 已完成）", notifiedNames: ["王芳"] },
+        { id: "op_ljg_3", role: "patient", actor: "张桂兰", targetName: "张桂兰", action: "打卡了", place: "首页", at: baseHour - 3000000, how: "服用苯磺酸氨氯地平片", notifiedNames: ["李建国"] },
+        { id: "op_ljg_4", role: "patient", actor: "李建国", targetName: "李建国", action: "打卡了", place: "首页", at: baseHour - 5400000, how: "服用阿司匹林肠溶片", notifiedNames: ["王芳"] },
+        { id: "op_ljg_5", role: "patient", actor: "李建国", targetName: "李建国", action: "同步了血压", place: "血压监测", at: baseHour - 7200000, how: "哈宝血压计，血压 122/76，心率 70 bpm", notifiedNames: ["王芳"] },
+        { id: "op_ljg_6", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "提醒了", place: "首页", at: baseHour - 86400000, how: "晚间散步", notifiedNames: ["李建国"] },
+        { id: "op_ljg_7", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "提醒了", place: "首页", at: baseHour - 90000000, how: "傍晚复测血压", notifiedNames: ["张桂兰"] },
       ],
     };
   }
@@ -4507,7 +4519,7 @@
         const title = taskTitle(id);
         S.remindedTasks = S.remindedTasks || {};
         S.remindedTasks[id] = true;
-        logOp("提醒了患者", place, [["计划", title]]);
+        logOp("提醒了", place, [["计划", title]]);
         closeOverlay();
       },
       familyWalkRemind() {
@@ -4516,7 +4528,7 @@
         pending.forEach((t) => { S.remindedTasks[t.id] = true; });
         S.remindedWalkToday = true;
         const exTitle = pending[0] ? pending[0].title : (liveTasks().find((t) => t.cat === "exercise")?.title || "户外散步");
-        logOp("提醒了患者", "运动", [["计划", exTitle]]);
+        logOp("提醒了", "运动", [["计划", exTitle]]);
         render();
       },
       switchGuardedPatient() {
@@ -6873,13 +6885,16 @@
       opPickActor() {
         const op = (S.ops || []).find((x) => x.id === S.overlayData.id);
         const id = el.dataset.id;
+        const name = el.dataset.name;
         if (op) {
           if (id) {
-            const member = (S.family || []).find((f) => String(f.id) === String(id));
-            if (member) { op.actor = member.name; op.actorId = member.id; }
+            op.actor = name || op.actor;
+            op.actorId = id;
+            op.role = "family";
           } else {
-            op.actor = S.name || "本人";
+            op.actor = name || S.currentPersonName || S.name || "我";
             op.actorId = null;
+            op.role = "patient";
           }
         }
         closeOverlay();
@@ -11550,53 +11565,92 @@
   }
   function logOp(action, place, howOrLines) {
     if (!S.ops) S.ops = [];
-    let actor = S.name || "本人";
+    ensureCareGraph();
+    const normalizedAction = (action === "提醒了患者" || action === "提醒患者") ? "提醒了" : action;
+    const curPerson = S.currentPersonName || S.name || "李建国";
+    const targetPerson = isProfileContextScreen(S.screen)
+      ? curPerson
+      : (activePersonName() || curPerson);
+    const isProxyOrRemind = (curPerson !== targetPerson) || (genHasFamily() && S.role === "family") || normalizedAction === "提醒了";
+    let actor = curPerson;
     let actorId = null;
-    if (genHasFamily() && S.role === "family") {
-      const member = (S.family || []).find((m) => m.id === S.actorId) || (S.family || [])[0];
-      actor = member ? member.name : "家属";
-      if (member) { S.actorId = member.id; actorId = member.id; }
+    if (isProxyOrRemind) {
+      const bond = (S.careBonds || []).find((b) => b.confirmed && (
+        (b.guardianName === curPerson && b.wardName === targetPerson) ||
+        (b.guardianName === actor)
+      ));
+      if (bond) actorId = bond.id;
+      else {
+        const member = (S.family || []).find((m) => m.id === S.actorId || m.name === curPerson) || (S.family || [])[0];
+        if (member) { actorId = member.id; }
+      }
     }
-    const how = opNormalizeHow(action, howOrLines);
+    const role = isProxyOrRemind ? "family" : "patient";
+    const how = opNormalizeHow(normalizedAction, howOrLines);
     // 取消打卡覆盖当天那条同计划的「打卡了」，不新增一条（V10.113）
-    if (action === "取消了打卡" && how) {
+    if (normalizedAction === "取消了打卡" && how) {
       const hit = S.ops.find((op) => op.action === "打卡了"
         && toYMD(new Date(op.at)) === toYMD(new Date())
+        && (!op.targetName || op.targetName === targetPerson)
         && (op.how === how || String(op.how || "").indexOf(`${how}（`) === 0));
       if (hit) {
-        hit.action = action;
+        hit.action = normalizedAction;
         hit.at = Date.now();
         hit.place = place || "";
+        hit.role = role;
         hit.actor = actor;
         hit.actorId = actorId;
+        hit.targetName = targetPerson;
         hit.how = how;
+        hit.notifiedNames = [];
         S.ops.sort((a, b) => b.at - a.at);
+        const mirrorNames = new Set([actor, targetPerson]);
+        mirrorNames.forEach((pName) => {
+          if (!pName || pName === S.boundPersonKey) return;
+          const b = ensurePersonStore(pName);
+          const mHit = (b.ops || []).find((x) => x.id === hit.id);
+          if (mHit) {
+            Object.assign(mHit, { ...hit });
+            b.ops.sort((x, y) => y.at - x.at);
+          }
+        });
         return;
       }
     }
+    const notifiedNames = pushConsultNoticeFromOp(role, actor, targetPerson, normalizedAction, place || "", how) || [];
     const opItem = {
       id: `op${Date.now()}${Math.random().toString(36).slice(2, 6)}`,
-      at: Date.now(), actor, actorId, action, place: place || "", how,
+      at: Date.now(),
+      role,
+      actor,
+      actorId,
+      targetName: targetPerson,
+      action: normalizedAction,
+      place: place || "",
+      how,
+      notifiedNames,
     };
     S.ops.unshift(opItem);
     if (S.ops.length > 300) { S.ops.length = 300; S.opDropped = true; }
-    if (S.currentPersonName && S.boundPersonKey && S.currentPersonName !== S.boundPersonKey) {
-      const myBucket = ensurePersonStore(S.currentPersonName);
+    const mirrorTargets = new Set([actor, targetPerson, ...(notifiedNames || [])]);
+    mirrorTargets.forEach((pName) => {
+      if (!pName || pName === S.boundPersonKey) return;
+      const myBucket = ensurePersonStore(pName);
       if (!myBucket.ops) myBucket.ops = [];
+      myBucket.ops = myBucket.ops.filter((x) => x.id !== opItem.id);
       myBucket.ops.unshift({ ...opItem });
       if (myBucket.ops.length > 300) myBucket.ops.length = 300;
-    }
-    pushConsultNoticeFromOp(actorId ? "family" : "patient", actor, action, place || "", how);
+    });
   }
-  function pushConsultNoticeFromOp(role, actor, action, place, how) {
-    if (!genIsV01()) return;
+  function pushConsultNoticeFromOp(role, actor, targetName, action, place, how) {
+    if (!genIsV01()) return [];
     ensureCareGraph();
-    const pName = S.watchingWardName || S.currentPersonName || S.name || "李建国";
+    const pName = targetName || S.watchingWardName || S.currentPersonName || S.name || "李建国";
     const guardianSender = S.currentPersonName || actor;
     const subject = how || "今日康复事项";
     const now = new Date();
     const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-    if (action === "提醒了患者") {
+    if (action === "提醒了" || action === "提醒了患者") {
       const isEx = place === "运动" || /散步|运动/.test(subject);
       deliverCareNotice({
         kind: isEx ? "familyRemindExercise" : "familyRemindPlan",
@@ -11610,7 +11664,7 @@
         target: "schedule",
         time: timeStr,
       });
-      return;
+      return [pName];
     }
     if (role === "patient") {
       // 严格有向 + 四层串联闸：
@@ -11618,12 +11672,12 @@
       // ② 打卡通知「通知守护我的人」总闸必须开启
       // ③ 对应类别开关必须开启
       // ④ 若为计划打卡，单条计划的守护人通知分开关必须开启
-      if (!S.notifyFamily) return;
-      const wardSender = activePersonName() || actor;
+      if (!S.notifyFamily) return [];
+      const wardSender = pName || activePersonName() || actor;
       const confirmedGuardians = myGuardiansList(wardSender).filter((b) => b.confirmed);
       const targets = confirmedGuardians.map((b) => b.guardianName).filter((nm) => nm !== wardSender);
-      if (!targets.length) return;
-      if (!allowsOpByCategoryAndTaskGate(action, place, subject, true)) return;
+      if (!targets.length) return [];
+      if (!allowsOpByCategoryAndTaskGate(action, place, subject, true)) return [];
       let baseNotice = null;
       if (action === "打卡了") {
         const isBP = place === "血压监测" || /血压/.test(subject);
@@ -11671,8 +11725,9 @@
             recipientPerson: gName,
           });
         });
+        return targets;
       }
-      return;
+      return [];
     }
     if (role === "family") {
       let proxyTitle = "";
@@ -11708,7 +11763,8 @@
         proxyDetail = `已在${place}帮你${action}：${subject}。`;
         proxyTarget = "schedule";
       }
-      if (!proxyTitle) return;
+      if (!proxyTitle) return [];
+      const notifiedList = [];
       if (pName !== guardianSender && S.notifySelf !== false && allowsOpByCategoryAndTaskGate(action, place, subject, false)) {
         deliverCareNotice({
           kind: "familyProxyAction",
@@ -11720,6 +11776,7 @@
           target: proxyTarget,
           time: timeStr,
         });
+        notifiedList.push(pName);
       }
       if (S.notifyFamily && allowsOpByCategoryAndTaskGate(action, place, subject, true)) {
         const otherGuardians = myGuardiansList(pName)
@@ -11737,9 +11794,12 @@
             target: proxyTarget,
             time: timeStr,
           });
+          notifiedList.push(b.guardianName);
         });
       }
+      return notifiedList;
     }
+    return [];
   }
   function allowsOpByCategoryAndTaskGate(action, place, subject, requireTaskFamilyFlag) {
     const cats = S.cats || {};
@@ -11805,29 +11865,125 @@
     return out;
   }
   function opHowText(op) {
-    if (typeof op.how === "string") return op.how;
-    return opNormalizeHow(op.action, op.lines);
+    const raw = typeof op.how === "string" ? op.how : opNormalizeHow(op.action || op.kind || "", op.lines);
+    if (!genIsV01()) return raw;
+    if (/已通知|已发送/.test(raw)) return raw;
+    const viewer = S.currentPersonName || S.name || "李建国";
+    const isRemind = op.action === "提醒了" || op.action === "提醒了患者" || op.kind === "提醒患者";
+    if (isRemind) {
+      const target = opResolvedTarget(op) || viewer;
+      const who = target === viewer ? "我" : target;
+      return raw ? `${raw}（已通知${who}）` : `已通知${who}`;
+    }
+    const notified = (op.notifiedNames || []).map((n) => String(n || "").trim()).filter(Boolean);
+    if (!notified.length) return raw;
+    const mapped = [...new Set(notified.map((n) => (n === viewer ? "我" : n)))];
+    const note = `已通知${mapped.join("、")}`;
+    return raw ? `${raw}（${note}）` : note;
+  }
+  function opActorName(op) {
+    return String(op.actor || op.actorName || "我").trim();
+  }
+  function opActionName(op) {
+    const a = String(op.action || op.kind || "").trim();
+    if (a === "提醒了患者" || a === "提醒患者") return "提醒了";
+    if (a === "完成打卡") return "打卡了";
+    if (a === "测血压打卡") return "打卡了";
+    return a;
+  }
+  function opIdentityFor(personName, op) {
+    ensureCareGraph();
+    const viewer = S.currentPersonName || S.name || "李建国";
+    const clean = String(personName || "").trim();
+    if (!clean || clean === viewer || clean === "本人" || clean === "我") return "我";
+    if (myGuardiansList(viewer).some((b) => b.guardianName === clean)) return "守护我的人";
+    if (myWardsList(viewer).some((b) => b.wardName === clean)) return "被我守护的人";
+    if (op) {
+      const t = String(op.targetName || "").trim();
+      const a = opActorName(op);
+      if (t === viewer && a === clean) return "守护我的人";
+      if (a === viewer && t === clean) return "被我守护的人";
+      if ((op.notifiedNames || []).includes(viewer) && a === clean) return "被我守护的人";
+    }
+    return op && op.role === "family" ? "守护我的人" : "我";
+  }
+  function opResolvedTarget(op) {
+    const actor = opActorName(op);
+    const rawTarget = String(op.targetName || "").trim();
+    const viewer = S.currentPersonName || S.name || "李建国";
+    const act = opActionName(op);
+    if (act === "提醒了") {
+      if (rawTarget) return rawTarget;
+      if (actor === viewer) {
+        const w = myWardsList(viewer)[0];
+        return w ? w.wardName : "李建国";
+      }
+      return viewer;
+    }
+    if (rawTarget && rawTarget !== actor) return rawTarget;
+    return "";
+  }
+  function opPersonChipHTML(name, op) {
+    const roleTag = genIsV01()
+      ? `<span class="op-role-tag">${esc(opIdentityFor(name, op))}</span>`
+      : "";
+    return `<span class="op-name">${I.person}<span>${esc(name)}</span>${roleTag}</span>`;
   }
   function opSentence(op) {
-    const headline = op.place ? `${op.actor}在${op.place}${op.action}` : `${op.actor}${op.action}`;
+    const actor = opActorName(op);
+    const act = opActionName(op);
+    const target = genIsV01() ? opResolvedTarget(op) : "";
+    let headline = "";
+    if (act === "提醒了" && target) {
+      headline = op.place ? `${actor}在${op.place}${act}${target}` : `${actor}${act}${target}`;
+    } else if (target) {
+      headline = op.place ? `${actor}在${op.place}帮${target}${act}` : `${actor}帮${target}${act}`;
+    } else {
+      headline = op.place ? `${actor}在${op.place}${act}` : `${actor}${act}`;
+    }
     const how = opHowText(op);
     return { headline, how, summary: how ? `${headline} ${how}` : headline };
   }
   function esc(s) {
     return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   }
-  /// 5W1H 一句话特殊化：Who 浅蓝胶囊 + 在 + Where 白底蓝框胶囊 + What 粗体蓝字 + How 浅蓝底圆角块
+  /// 5W1H 一句话特殊化：Who 浅蓝胶囊（带 我/守护我的人/被我守护的人 身份标）+ 在 + Where 白底蓝框胶囊 + [帮/提醒了 目标胶囊] + What 粗体蓝字 + How 浅蓝底圆角块
   function opHeadlineHTML(op) {
-    const unbound = op.actorId && !(S.family || []).some((m) => String(m.id) === String(op.actorId));
-    const name = `<span class="op-name">${I.person}${esc(op.actor)}</span>${unbound ? `<span class="op-unbound">已解绑</span>` : ""}`;
-    const action = `<span class="op-plain">${esc(op.action)}</span>`;
+    const actor = opActorName(op);
+    const act = opActionName(op);
+    const viewer = S.currentPersonName || S.name || "李建国";
+    const unbound = op.actorId
+      && actor !== viewer
+      && !(S.careBonds || []).some((b) => b.confirmed && (b.guardianName === actor || b.wardName === actor || String(b.id) === String(op.actorId)))
+      && !(S.family || []).some((m) => String(m.id) === String(op.actorId));
+    const name = `${opPersonChipHTML(actor, op)}${unbound ? `<span class="op-unbound">已解绑</span>` : ""}`;
+    const placePart = op.place ? `<span class="op-plain">在</span><span class="op-place">${esc(op.place)}</span>` : "";
+    const target = genIsV01() ? opResolvedTarget(op) : "";
+    let middlePart = `<span class="op-plain">${esc(act)}</span>`;
+    if (act === "提醒了" && target) {
+      middlePart = `<span class="op-plain">${esc(act)}</span>${opPersonChipHTML(target, op)}`;
+    } else if (target) {
+      middlePart = `<span class="op-plain">帮</span>${opPersonChipHTML(target, op)}<span class="op-plain">${esc(act)}</span>`;
+    }
     const how = opHowText(op);
     const howBadge = how ? `<span class="op-how">${esc(how)}</span>` : "";
-    if (!op.place) return name + action + howBadge;
-    return `${name}<span class="op-plain">在</span><span class="op-place">${esc(op.place)}</span>${action}${howBadge}`;
+    return `${name}${placePart}${middlePart}${howBadge}`;
   }
   function opText(op) {
-    return `${op.actor}在${op.place || ""}${op.action} ${opHowText(op)}`;
+    const actor = opActorName(op);
+    const actorRole = genIsV01() ? `（${opIdentityFor(actor, op)}）` : "";
+    const act = opActionName(op);
+    const target = genIsV01() ? opResolvedTarget(op) : "";
+    const targetRole = target && genIsV01() ? `（${opIdentityFor(target, op)}）` : "";
+    const placePart = op.place ? `在${op.place}` : "";
+    const how = opHowText(op);
+    if (act === "提醒了" && target) {
+      return `${actor}${actorRole}${placePart}${act}${target}${targetRole} ${how}`;
+    }
+    if (target) {
+      return `${actor}${actorRole}${placePart}帮${target}${targetRole}${act} ${how}`;
+    }
+    return `${actor}${actorRole}${placePart}${act} ${how}`;
   }
   function opHM(at) {
     const d = new Date(at);
@@ -11848,7 +12004,11 @@
   }
   function opVisibleOps() {
     const showsFamily = genIsV01();
-    return (S.ops || []).filter((op) => showsFamily || !op.actorId);
+    const viewer = S.currentPersonName || S.name || "李建国";
+    return (S.ops || []).filter((op) => {
+      if (showsFamily) return true;
+      return !op.actorId && op.role !== "family" && (!op.targetName || op.targetName === viewer);
+    });
   }
   function opSearchBody(q) {
     const hits = opVisibleOps().filter((op) => opText(op).indexOf(q) >= 0);
@@ -13514,7 +13674,7 @@
       return `
       <div class="scrim center" data-act="close">
         <div class="popup" style="padding:8px 0 12px" onclick="event.stopPropagation()">
-          <div class="s13 t-sec ta-c" style="padding:6px 16px 10px">${esc(op.actor || "")}${esc(op.action || "")}</div>
+          <div class="s13 t-sec ta-c" style="padding:6px 16px 10px">${esc(opActorName(op))}${esc(opActionName(op))}</div>
           <button class="op-actor-row" data-act="opReassign" data-id="${op.id}" type="button"><span>改归属</span></button>
           <button class="op-actor-row" data-act="opDel" data-id="${op.id}" type="button"><span style="color:var(--appt)">删除这条记录</span></button>
           <button class="op-actor-row" data-act="close" type="button"><span style="color:var(--secondary)">取消</span></button>
@@ -13523,15 +13683,21 @@
     },
     opActor: () => {
       const op = (S.ops || []).find((x) => x.id === S.overlayData.id) || {};
-      const rows = [{ id: "", name: S.name || "本人", rel: "本人" }]
-        .concat((S.family || []).map((f) => ({ id: f.id, name: f.name, rel: f.rel || "家属" })));
-      const none = (S.family || []).length ? "" : `<div class="s15 t-sec" style="padding:6px 16px 0">还没有绑定家属</div>`;
+      ensureCareGraph();
+      const me = S.currentPersonName || S.name || "李建国";
+      const guardians = myGuardiansList(me).filter((b) => b.confirmed);
+      const wards = myWardsList(me).filter((b) => b.confirmed);
+      const rows = [{ id: "", name: me, rel: "我" }]
+        .concat(guardians.map((b) => ({ id: b.id, name: b.guardianName, rel: `守护我的人 · ${b.relation || "家人"}` })))
+        .concat(wards.map((b) => ({ id: b.id, name: b.wardName, rel: `被我守护的人 · ${b.relation || "家人"}` })));
+      const none = (guardians.length || wards.length) ? "" : `<div class="s15 t-sec" style="padding:6px 16px 0">还没有添加守护我的人或被我守护的人</div>`;
+      const curActor = opActorName(op);
       return `
       <div class="scrim bottom" data-act="close">
         <div class="sheet" onclick="event.stopPropagation()">
           <div class="grab"></div>
           <div class="s20 fb t" style="margin:2px 16px 12px">这条记录算谁的</div>
-          ${rows.map((r) => `<button class="op-actor-row${String(op.actorId || "") === String(r.id) ? " on" : ""}" data-act="opPickActor" data-id="${r.id}" type="button"><span>${esc(r.name)}</span><span class="s13 t-sec">${esc(r.rel)}</span></button>`).join("")}
+          ${rows.map((r) => `<button class="op-actor-row${curActor === r.name ? " on" : ""}" data-act="opPickActor" data-id="${r.id}" data-name="${escAttr(r.name)}" type="button"><span>${esc(r.name)}</span><span class="s13 t-sec">${esc(r.rel)}</span></button>`).join("")}
           ${none}
         </div>
       </div>`;
