@@ -12993,82 +12993,33 @@
       if (S.privacyDeclinedStep) {
         return `
         <div class="scrim center" style="background:rgba(0,0,0,.42)">
-          <div class="popup" style="max-width:356px;border-radius:28px;padding:22px;text-align:left" onclick="event.stopPropagation()">
-            <div style="display:flex;align-items:center;gap:12px">
-              <div style="width:46px;height:46px;border-radius:999px;background:rgba(242,153,74,.15);color:#F2994A;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                ${I.warn}
-              </div>
-              <div>
-                <div style="font-size:20px;font-weight:800;color:var(--blue)">需要您的同意才能提供服务</div>
-                <div style="font-size:13px;font-weight:500;color:var(--sec);margin-top:2px">我们承诺严格保护您的医疗与个人隐私</div>
-              </div>
+          <div class="popup" style="max-width:348px;border-radius:26px;padding:24px;text-align:left" onclick="event.stopPropagation()">
+            <h3 style="font-size:21px;font-weight:800;color:var(--blue);margin:0;text-align:center">用户隐私保护提示</h3>
+            <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;font-size:15px;color:#1E293B;line-height:1.6">
+              <div>1. 若您不同意《服务协议》与《隐私协议》，我们将无法为您提供登录及康复管理服务；</div>
+              <div>2. 同意前我们不会收集您的任何个人信息或开启任何系统权限。</div>
+              ${S.privacyExitedNotice ? `<div style="color:var(--blue);font-weight:600">3. 已暂停进入应用，您可随时点击「同意并使用」继续。</div>` : ""}
             </div>
-            <div style="font-size:15px;font-weight:500;color:#1E293B;line-height:1.55;margin-top:14px">
-              哈宝需要依据《用户服务协议》与《隐私保护政策》为您保存康复计划、血压读数及病历档案。若您不同意，我们将无法为您提供心肺康复管理服务。
-            </div>
-            <div style="display:flex;gap:10px;margin-top:14px">
-              <button type="button" data-act="openAgreementModal" data-kind="service" style="flex:1;padding:9px 10px;border-radius:12px;border:0;background:rgba(16,84,224,.08);color:var(--blue);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:4px">📄 《服务协议》 ›</button>
-              <button type="button" data-act="openAgreementModal" data-kind="privacy" style="flex:1;padding:9px 10px;border-radius:12px;border:0;background:rgba(16,84,224,.08);color:var(--blue);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:4px">🛡️ 《隐私协议》 ›</button>
-            </div>
-            ${S.privacyExitedNotice ? `
-              <div style="margin-top:12px;padding:11px 12px;border-radius:12px;background:rgba(16,84,224,.08);color:var(--blue);font-size:13px;font-weight:600;line-height:1.45">
-                ℹ️ 已暂停进入应用（真机将安全关闭应用，您可随时点击下方「同意并使用」继续体验）
-              </div>
-            ` : ""}
-            <div style="display:flex;gap:12px;margin-top:16px">
-              <button type="button" data-act="exitAfterDeclinePrivacy" style="flex:1;height:52px;border-radius:16px;border:0;background:#F1F5F9;color:var(--sec);font-size:16px;font-weight:700;cursor:pointer;font-family:inherit">不同意并退出</button>
-              <button type="button" data-act="acceptInitialPrivacy" style="flex:1;height:52px;border-radius:16px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">同意并使用</button>
+            <div style="display:flex;gap:12px;margin-top:20px">
+              <button type="button" data-act="exitAfterDeclinePrivacy" style="flex:1;height:50px;border-radius:16px;border:0;background:#F1F5F9;color:var(--sec);font-size:16px;font-weight:700;cursor:pointer;font-family:inherit">不同意并退出</button>
+              <button type="button" data-act="acceptInitialPrivacy" style="flex:1;height:50px;border-radius:16px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit">同意并使用</button>
             </div>
           </div>
         </div>`;
       }
-      const perms = [
-        [I.cam, "相机与相册", "拍病历报告"],
-        [I.walk, "位置与运动", "记散步轨迹"],
-        [I.mic, "麦克风语音", "语音发问诊"],
-        [I.waves, "蓝牙与通知", "连血压手表"],
-      ];
       return `
       <div class="scrim center" style="background:rgba(0,0,0,.42)">
-        <div class="popup" style="max-width:356px;border-radius:28px;padding:22px;text-align:left" onclick="event.stopPropagation()">
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="width:48px;height:48px;border-radius:999px;background:linear-gradient(135deg,rgba(16,84,224,.16),rgba(30,190,214,.12));color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              ${I.shieldCheck}
-            </div>
-            <div>
-              <div style="font-size:21px;font-weight:800;color:var(--blue)">用户隐私保护提示</div>
-              <div style="font-size:13px;font-weight:500;color:var(--sec);margin-top:2px">守护您的心血管康复与个人隐私安全</div>
-            </div>
+        <div class="popup" style="max-width:348px;border-radius:26px;padding:24px;text-align:left" onclick="event.stopPropagation()">
+          <h3 style="font-size:21px;font-weight:800;color:var(--blue);margin:0;text-align:center">用户隐私保护提示</h3>
+          <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;font-size:15px;color:#1E293B;line-height:1.6">
+            <div>1. 为帮助您管理康复计划、记录血压与身体报告，我们会收集必要的个人及健康信息；</div>
+            <div>2. 相机、位置、麦克风、蓝牙与通知等权限不会默认开启，仅在您使用对应功能时才按需询问；</div>
+            <div>3. 您的健康档案全程加密存储，未经您本人授权不会向任何第三方提供；</div>
+            <div>4. 详情请阅读<button type="button" data-act="openAgreementModal" data-kind="service" style="border:0;background:none;padding:0;color:var(--blue);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">《服务协议》</button>与<button type="button" data-act="openAgreementModal" data-kind="privacy" style="border:0;background:none;padding:0;color:var(--blue);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">《隐私协议》</button>。</div>
           </div>
-          <div style="font-size:14.5px;font-weight:500;color:#1E293B;line-height:1.5;margin-top:14px">
-            欢迎使用哈宝！在您开启康复之旅前，请仔细阅读并了解我们对您个人信息的保护规则：
-          </div>
-          <div style="margin-top:10px;padding:12px;border-radius:16px;background:rgba(16,84,224,.06)">
-            <div style="display:flex;align-items:center;gap:6px;color:var(--blue);font-size:13px;font-weight:700;margin-bottom:9px">
-              <span>🔒 按需申请系统权限（未用到绝不提前索取）</span>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-              ${perms.map(([ico, t, sub]) => `
-                <div style="display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:12px;background:rgba(255,255,255,.9)">
-                  <span style="width:26px;height:26px;border-radius:999px;background:#fff;color:var(--blue);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">${ico}</span>
-                  <div style="min-width:0">
-                    <div style="font-size:12.5px;font-weight:700;color:#1E293B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t}</div>
-                    <div style="font-size:11px;font-weight:500;color:var(--sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sub}</div>
-                  </div>
-                </div>
-              `).join("")}
-            </div>
-          </div>
-          <div style="margin-top:12px">
-            <div style="font-size:13.5px;font-weight:500;color:var(--sec);margin-bottom:6px">您可点击阅读完整条款了解详情：</div>
-            <div style="display:flex;gap:10px">
-              <button type="button" data-act="openAgreementModal" data-kind="service" style="flex:1;padding:8px 10px;border-radius:12px;border:0;background:rgba(16,84,224,.08);color:var(--blue);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:4px">📄 《服务协议》 ›</button>
-              <button type="button" data-act="openAgreementModal" data-kind="privacy" style="flex:1;padding:8px 10px;border-radius:12px;border:0;background:rgba(16,84,224,.08);color:var(--blue);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:4px">🛡️ 《隐私协议》 ›</button>
-            </div>
-          </div>
-          <div style="display:flex;gap:12px;margin-top:16px">
-            <button type="button" data-act="declineInitialPrivacy" style="flex:1;height:52px;border-radius:16px;border:0;background:#F1F5F9;color:var(--sec);font-size:17px;font-weight:700;cursor:pointer;font-family:inherit">不同意</button>
-            <button type="button" data-act="acceptInitialPrivacy" style="flex:1;height:52px;border-radius:16px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">同意并继续</button>
+          <div style="display:flex;gap:12px;margin-top:20px">
+            <button type="button" data-act="declineInitialPrivacy" style="flex:1;height:50px;border-radius:16px;border:0;background:#F1F5F9;color:var(--sec);font-size:17px;font-weight:700;cursor:pointer;font-family:inherit">不同意</button>
+            <button type="button" data-act="acceptInitialPrivacy" style="flex:1;height:50px;border-radius:16px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit">同意并继续</button>
           </div>
         </div>
       </div>`;
