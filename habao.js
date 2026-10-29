@@ -2214,7 +2214,15 @@
   function hasConfirmedGuardiansForActivePerson() {
     ensureCareGraph();
     const target = activePersonName();
-    return myGuardiansList(target).some((b) => b.confirmed) || myWardsList(target).some((b) => b.confirmed);
+    return myGuardiansList(target).some((b) => b.confirmed);
+  }
+  function confirmedGuardianNamesSummaryForActivePerson() {
+    ensureCareGraph();
+    const target = activePersonName();
+    return myGuardiansList(target)
+      .filter((b) => b.confirmed)
+      .map((b) => b.guardianName)
+      .join("、");
   }
   function syncActivePersonContext(nextActivePersonName) {
     ensureCareGraph();
@@ -2387,20 +2395,6 @@
     if (!genIsV01() || S.seededCareNotices) return;
     S.seededCareNotices = true;
     if (!S.pendingPersonPopups) S.pendingPersonPopups = {};
-    if (!S.pendingPersonPopups["李建国"] || !S.pendingPersonPopups["李建国"].length) {
-      S.pendingPersonPopups["李建国"] = [
-        {
-          id: "hn_seed_ljg",
-          kind: "familyRemindPlan",
-          badgeText: "打卡提醒",
-          recipientPerson: "李建国",
-          title: "王芳提醒你完成「阿司匹林肠溶片」",
-          detail: "今日 08:00 计划尚未打卡，服药后记得打卡",
-          target: "schedule",
-          time: "08:15",
-        },
-      ];
-    }
     if (!S.pendingPersonPopups["王芳"] || !S.pendingPersonPopups["王芳"].length) {
       S.pendingPersonPopups["王芳"] = [
         {
@@ -5719,7 +5713,7 @@
         const name = ($("input[name=cg_name]")?.value ?? S.careSheetDraft?.name ?? "").trim();
         const phone = ($("input[name=cg_phone]")?.value ?? S.careSheetDraft?.phone ?? "").replace(/\D/g, "");
         const rel = S.careSheetDraft?.rel || "配偶";
-        const me = currentDemoPerson();
+        const me = activeDemoPerson();
         if (!name) { toast("请填写守护人姓名"); return; }
         if (phone.length !== 11) { toast("请填写 11 位手机号"); return; }
         if (name === me.name || phone === me.phoneRaw) { toast("不能添加自己为守护人"); return; }
@@ -5751,11 +5745,11 @@
           badgeText: "添加申请",
           receiverLabel: "",
           recipientPerson: name,
-          title: `${me.name}（${rel}）请求添加你`,
+          title: `${me.name}（${rel}）邀请你成为守护人`,
           detail: "可在个人中心点击「同意」或「拒绝」。",
           target: null,
         });
-        toast(`已向${name}发送添加请求（可右上角切换「${name}」体验）`);
+        toast(`已向${name}发送守护邀请（可右上角切换「${name}」体验）`);
         render();
       },
       submitAddWard() {
@@ -5763,7 +5757,7 @@
         const name = ($("input[name=cg_name]")?.value ?? S.careSheetDraft?.name ?? "").trim();
         const phone = ($("input[name=cg_phone]")?.value ?? S.careSheetDraft?.phone ?? "").replace(/\D/g, "");
         const rel = S.careSheetDraft?.rel || "配偶";
-        const me = currentDemoPerson();
+        const me = activeDemoPerson();
         if (!name) { toast("请填写姓名"); return; }
         if (phone.length !== 11) { toast("请填写 11 位手机号"); return; }
         if (name === me.name || phone === me.phoneRaw) { toast("不能添加自己"); return; }
@@ -5795,11 +5789,11 @@
           badgeText: "添加申请",
           receiverLabel: "",
           recipientPerson: name,
-          title: `${me.name}（${rel}）请求添加你`,
+          title: `${me.name}（${rel}）申请守护你`,
           detail: "可在个人中心点击「同意」或「拒绝」。",
           target: null,
         });
-        toast(`已向${name}发送添加请求（可右上角切换「${name}」体验）`);
+        toast(`已向${name}发送守护申请（可右上角切换「${name}」体验）`);
         render();
       },
       acceptCareBond() {
@@ -5927,6 +5921,20 @@
       closeCareNotice() {
         S.careNoticePopup = null;
         S.sysPushBanner = null;
+        render();
+      },
+      closeSysPush() {
+        const n = S.sysPushBanner;
+        S.sysPushBanner = null;
+        if (n) {
+          if (n.kind === "bindRequest" || n.kind === "bindConfirmed" || n.kind === "bindRejected" || n.kind === "bindRemoved") {
+            go("profile");
+            return;
+          }
+          if (n.target === "vitals") { go("vitals"); return; }
+          if (n.target === "report") { go("report"); return; }
+          if (n.target === "schedule") { go("schedule"); return; }
+        }
         render();
       },
       dismissHomeNotice() {
@@ -6136,10 +6144,29 @@
         logOp("修改了患者信息", "健康档案", [["改动", changed.length ? changed.join("、") : "本次未动"]]);
         back();
       },
-      toggleSelf() { S.notifySelf = !S.notifySelf; logOp("改了到点提醒", "打卡通知", [["提醒", `总开关 已${S.notifySelf ? "打开" : "关闭"}`]]); render(); },
-      // 全部打卡总开关：全开时点按全关，否则全开
+      toggleSelf() {
+        const isWatchingWard = !!(genHasFamily() && S.watchingWardName && S.watchingWardName !== S.currentPersonName);
+        const targetNm = activePersonName();
+        const label = isWatchingWard ? `通知${targetNm}` : "通知自己";
+        const curOn = !!(S.notifySelf && anyCatOn());
+        const next = !curOn;
+        S.notifySelf = next;
+        if (next && !anyCatOn()) {
+          Object.keys(CAT).forEach((c) => { S.cats[c] = true; });
+          (S.customCats || []).forEach((c) => { S.cats[c.id] = true; });
+        }
+        logOp("改了到点提醒", "打卡通知", [["提醒", `${label} 已${next ? "打开" : "关闭"}`]]);
+        render();
+      },
+      // 全部打卡总开关：全开时点按全关，否则全开；上岛全关时点按自动开启通知自己
       toggleAll() {
-        const next = !allCatsOn();
+        const canNotifyGuardian = hasConfirmedGuardiansForActivePerson();
+        const gateActive = !!(S.notifySelf || (genHasFamily() && canNotifyGuardian && S.notifyFamily));
+        const curOn = gateActive && allCatsOn();
+        const next = !curOn;
+        if (next && !gateActive) {
+          S.notifySelf = true;
+        }
         Object.keys(CAT).forEach((c) => { S.cats[c] = next; });
         (S.customCats || []).forEach((c) => { S.cats[c.id] = next; });
         logOp("改了到点提醒", "打卡通知", [["提醒", `全部打卡 已${next ? "打开" : "关闭"}`]]);
@@ -6148,23 +6175,41 @@
       toggleCat() {
         const c = el.dataset.cat;
         if (!c) return;
-        S.cats[c] = !S.cats[c];
+        const canNotifyGuardian = hasConfirmedGuardiansForActivePerson();
+        const gateActive = !!(S.notifySelf || (genHasFamily() && canNotifyGuardian && S.notifyFamily));
+        const curOn = gateActive && !!S.cats[c];
+        const next = !curOn;
+        if (next && !gateActive) {
+          S.notifySelf = true;
+        }
+        S.cats[c] = next;
         const nm = (CAT[c] && CAT[c].name) || ((S.customCats || []).find((x) => x.id === c) || {}).name || "类别";
         logOp("改了到点提醒", "打卡通知", [["提醒", `${nm} 已${S.cats[c] ? "打开" : "关闭"}`]]);
         render();
       },
       toggleFam() {
+        const isWatchingWard = !!(genHasFamily() && S.watchingWardName && S.watchingWardName !== S.currentPersonName);
+        const targetNm = activePersonName();
+        const famLabel = isWatchingWard ? "通知守护TA的人" : "通知守护我的人";
         if (!hasConfirmedGuardiansForActivePerson()) {
           openOverlay("confirm", {
-            title: "请先添加家人",
-            body: "开启「通知家人」前，请先添加并确认至少一位家人。",
+            title: isWatchingWard ? "请先添加守护TA的人" : "请先添加守护我的人",
+            body: isWatchingWard
+              ? `开启「通知守护TA的人」前，请先添加并确认至少一位守护${targetNm}的人。`
+              : "开启「通知守护我的人」前，请先添加并确认至少一位守护你的人。",
             ok: "去添加",
             action: "openAddGuardianSheet",
           });
           return;
         }
-        S.notifyFamily = !S.notifyFamily;
-        logOp("改了到点提醒", "打卡通知", [["提醒", `通知家人 已${S.notifyFamily ? "打开" : "关闭"}`]]);
+        const curOn = !!(S.notifyFamily && anyCatOn());
+        const next = !curOn;
+        S.notifyFamily = next;
+        if (next && !anyCatOn()) {
+          Object.keys(CAT).forEach((c) => { S.cats[c] = true; });
+          (S.customCats || []).forEach((c) => { S.cats[c.id] = true; });
+        }
+        logOp("改了到点提醒", "打卡通知", [["提醒", `${famLabel} 已${next ? "打开" : "关闭"}`]]);
         render();
       },
       goFamily() {
@@ -8657,8 +8702,8 @@
       const curPerson = currentDemoPerson();
       const activeP = activeDemoPerson();
       const isWatchingWard = !!(S.watchingWardName && S.watchingWardName !== curPerson.name);
-      const myGuardians = myGuardiansList(curPerson.name);
-      const myWards = myWardsList(curPerson.name);
+      const myGuardians = myGuardiansList(activeP.name);
+      const myWards = myWardsList(activeP.name);
       const curBmi = ((activeP.weight || 70) / Math.pow((activeP.height || 170) / 100, 2)).toFixed(1);
       const otherUnread = otherPeopleUnreadTotal();
       const guardianRowsHTML = myGuardians.length ? myGuardians.map((b) => {
@@ -8709,14 +8754,14 @@
         <div class="frost" style="margin-top:10px;margin-bottom:10px"></div>
         <div style="margin-top:6px">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-            <span style="font-size:14px;font-weight:700;color:#fff">守护我的人</span>
+            <span style="font-size:14px;font-weight:700;color:#fff">${isWatchingWard ? "守护TA的人" : "守护我的人"}</span>
             ${myGuardians.length < 5 ? `<button type="button" data-act="openAddGuardianSheet" style="border:0;background:rgba(255,255,255,.20);color:#fff;font-size:11.5px;font-weight:700;padding:3.5px 8.5px;border-radius:999px;cursor:pointer;font-family:inherit">+ 添加</button>` : ""}
           </div>
           ${guardianRowsHTML}
         </div>
         <div style="margin-top:10px">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-            <span style="font-size:14px;font-weight:700;color:#fff">被我守护的人</span>
+            <span style="font-size:14px;font-weight:700;color:#fff">${isWatchingWard ? "被TA守护的人" : "被我守护的人"}</span>
             ${myWards.length < 5 ? `<button type="button" data-act="openAddWardSheet" style="border:0;background:rgba(255,255,255,.20);color:#fff;font-size:11.5px;font-weight:700;padding:3.5px 8.5px;border-radius:999px;cursor:pointer;font-family:inherit">+ 添加</button>` : ""}
           </div>
           ${wardRowsHTML}
@@ -9044,16 +9089,27 @@
       const isWatchingWard = !!(genHasFamily() && S.watchingWardName && S.watchingWardName !== S.currentPersonName);
       const targetNm = activePersonName();
       const canNotifyGuardian = hasConfirmedGuardiansForActivePerson();
+      const guardianNames = confirmedGuardianNamesSummaryForActivePerson();
+      const anyCat = anyCatOn();
+      const selfTitle = isWatchingWard ? `通知${esc(targetNm)}` : "通知自己";
+      const selfSub = isWatchingWard
+        ? `计划到点提醒${esc(targetNm)}，代打卡时通知TA`
+        : "计划到点提醒自己";
+      const famTitle = isWatchingWard ? "通知守护TA的人" : "通知守护我的人";
+      const famSub = canNotifyGuardian
+        ? `到点与完成打卡时通知：${esc(guardianNames)}`
+        : (isWatchingWard ? "尚未添加守护TA的人，点按去添加" : "尚未添加守护我的人，点按去添加");
+      const gateActive = !!(S.notifySelf || (genHasFamily() && canNotifyGuardian && S.notifyFamily));
       return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "打卡通知")}
         <div class="scroll px20" style="padding-top:12px;padding-bottom:24px">
           <div class="list-island">
-            ${rowToggle(isWatchingWard ? `通知${esc(targetNm)}` : "通知自己", S.notifySelf, "toggleSelf", notifySys(I.bell))}
-            ${genHasFamily() ? rowToggle("通知家人", canNotifyGuardian && S.notifyFamily, "toggleFam", notifySys(I.two)) : ""}
+            ${rowToggle(selfTitle, !!(S.notifySelf && anyCat), "toggleSelf", notifySys(I.bell), "", selfSub)}
+            ${genHasFamily() ? rowToggle(famTitle, !!(canNotifyGuardian && S.notifyFamily && anyCat), "toggleFam", notifySys(I.two), "", famSub) : ""}
           </div>
-          <div class="list-island mt16">
-            ${rowToggle("全部打卡", allCatsOn(), "toggleAll", notifySys(I.check, true))}
+          <div class="list-island mt16" style="opacity:${gateActive ? "1" : "0.56"}">
+            ${rowToggle("全部打卡", gateActive && allCatsOn(), "toggleAll", notifySys(I.check, true))}
             ${[
               ["服药", "medication"],
               ["运动", "exercise"],
@@ -9061,9 +9117,10 @@
               ["作息", "rest"],
               ["饮食", "diet"],
               ["复查", "appointment"],
-            ].map(([t, cat]) => rowToggle(t, !!S.cats[cat], "toggleCat", notifyCat(cat), cat)).join("")}
+            ].map(([t, cat]) => rowToggle(t, gateActive && !!S.cats[cat], "toggleCat", notifyCat(cat), cat)).join("")}
             ${(S.customCats || []).map((c) =>
-              rowToggle(c.name, !!S.cats[c.id], "toggleCat", notifySys(I[UNIFIED_CUSTOM_ICON], true), c.id)).join("")}
+              rowToggle(c.name, gateActive && !!S.cats[c.id], "toggleCat", notifySys(I[UNIFIED_CUSTOM_ICON], true), c.id)).join("")}
+          </div>
         </div>
       </div>`;
     },
@@ -11278,10 +11335,16 @@
   function notifyCat(cat) {
     return `<div class="badge b40 ${cat === "appointment" ? "appt" : ""}"><img src="${A.task[cat]}" alt="" /></div>`;
   }
-  function rowToggle(title, on, actName, iconHTML, dataAttr) {
-    return `<div class="list-row" style="min-height:58px">
+  function rowToggle(title, on, actName, iconHTML, dataAttr, subtitle) {
+    const subHTML = subtitle
+      ? `<div style="font-size:12.5px;font-weight:500;color:var(--sec);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${subtitle}</div>`
+      : "";
+    return `<div class="list-row" style="min-height:58px;padding-top:${subtitle ? "6px" : "0"};padding-bottom:${subtitle ? "6px" : "0"}">
       ${iconHTML || notifySys(I.bell)}
-      <div class="grow s20 fb t">${title}</div>
+      <div class="grow" style="min-width:0">
+        <div class="s20 fb t" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${title}</div>
+        ${subHTML}
+      </div>
       <button class="toggle ${on ? "on" : ""}" data-act="${actName}"${dataAttr ? ` data-cat="${dataAttr}"` : ""} type="button"><i></i></button>
     </div>`;
   }
@@ -11493,14 +11556,17 @@
       return;
     }
     if (role === "patient") {
+      // 严格有向 + 四层串联闸：
+      // ① 仅通知已确认的「守护我的人」（guardians），绝不向「被我守护的人」（wards）发通知！
+      // ② 打卡通知「通知守护我的人」总闸必须开启
+      // ③ 对应类别开关必须开启
+      // ④ 若为计划打卡，单条计划的守护人通知分开关必须开启
       if (!S.notifyFamily) return;
       const wardSender = activePersonName() || actor;
       const confirmedGuardians = myGuardiansList(wardSender).filter((b) => b.confirmed);
-      const confirmedWards = myWardsList(wardSender).filter((b) => b.confirmed);
-      let targets = confirmedGuardians.map((b) => b.guardianName);
-      if (!targets.length) targets = confirmedWards.map((b) => b.wardName);
-      targets = targets.filter((nm) => nm !== wardSender);
+      const targets = confirmedGuardians.map((b) => b.guardianName).filter((nm) => nm !== wardSender);
       if (!targets.length) return;
+      if (!allowsOpByCategoryAndTaskGate(action, place, subject, true)) return;
       let baseNotice = null;
       if (action === "打卡了") {
         const isBP = place === "血压监测" || /血压/.test(subject);
@@ -11552,7 +11618,7 @@
       return;
     }
     if (role === "family" && action === "打卡了") {
-      if (S.notifySelf !== false) {
+      if (S.notifySelf !== false && allowsOpByCategoryAndTaskGate(action, place, subject, false)) {
         deliverCareNotice({
           kind: "familyProxyAction",
           badgeText: "代为打卡",
@@ -11564,7 +11630,43 @@
           time: timeStr,
         });
       }
+      if (S.notifyFamily && allowsOpByCategoryAndTaskGate(action, place, subject, true)) {
+        const otherGuardians = myGuardiansList(pName)
+          .filter((b) => b.confirmed && b.guardianName !== guardianSender);
+        otherGuardians.forEach((b) => {
+          deliverCareNotice({
+            kind: "familyProxyAction",
+            badgeText: "代为打卡",
+            receiverLabel: "",
+            recipientPerson: b.guardianName,
+            title: `${guardianSender}已代${pName}完成「${subject}」`,
+            detail: `今日计划「${subject}」已在${place}代为打卡。`,
+            target: "schedule",
+            time: timeStr,
+          });
+        });
+      }
     }
+  }
+  function allowsOpByCategoryAndTaskGate(action, place, subject, requireTaskFamilyFlag) {
+    const cats = S.cats || {};
+    if (action === "打卡了") {
+      const baseTitle = String(subject || "").split("（")[0].trim();
+      const matched = SEED.find((t) => t.title === baseTitle || String(subject || "").indexOf(t.title) === 0);
+      if (matched) {
+        if (requireTaskFamilyFlag && S.famOff && S.famOff[matched.id]) return false;
+        const catKey = taskCatKey(matched);
+        return catKey ? cats[catKey] !== false : true;
+      }
+      if (place === "血压监测" || /血压/.test(subject)) return cats.monitoring !== false;
+      if (place === "运动" || /散步|运动/.test(subject)) return cats.exercise !== false;
+      if (/复查/.test(subject)) return cats.appointment !== false;
+      return cats.medication !== false;
+    }
+    if (action === "同步了血压" || action === "记录了读数") return cats.monitoring !== false;
+    if (action === "完成了散步") return cats.exercise !== false;
+    if (action === "上传了复查资料" || action === "上传了资料" || action === "提交了问卷") return cats.appointment !== false;
+    return true;
   }
   /// 操作记录换日（V10.109）：在「今天 → 最早一条记录那天」之间移动，真机同日翻页手势
   function opStepDay(delta) {
@@ -11774,11 +11876,13 @@
     return `<div class="dots">${Array.from({ length: total }, (_, i) => `<i class="dot ${i + 1 === active ? "on" : ""}"></i>`).join("")}</div>`;
   }
   function notifyCaption() {
+    const isWatchingWard = !!(genHasFamily() && S.watchingWardName && S.watchingWardName !== S.currentPersonName);
+    const famLabel = isWatchingWard ? "通知守护TA的人" : "通知守护我的人";
     const famOn = genHasFamily() && hasConfirmedGuardiansForActivePerson() && S.notifyFamily;
     if (!anyCatOn() || (!S.notifySelf && !famOn)) return "已关闭";
-    if (S.notifySelf && famOn) return "到点提醒与通知家人";
+    if (S.notifySelf && famOn) return `到点提醒与${famLabel}`;
     if (S.notifySelf) return "到点提醒";
-    return "通知家人";
+    return famLabel;
   }
   /// 计划所属的总闸键：自定义类别按 id 判（打卡通知页的自定义行也按 id 存）
   function taskCatKey(t) {
@@ -11793,9 +11897,14 @@
   function blockedByGate(catOverride) {
     const cat = catOverride || currentTaskCat();
     if (gateOpen(cat)) return false;
+    const isWatchingWard = !!(genHasFamily() && S.watchingWardName && S.watchingWardName !== S.currentPersonName);
+    const selfLabel = isWatchingWard ? `通知${activePersonName()}` : "通知自己";
+    const isSelfOff = !S.notifySelf;
     openOverlay("confirm", {
-      title: `请先打开${catName(cat)}通知`,
-      body: `个人中心已关闭「${catName(cat)}」通知，在这里开启也不会响。要收到提醒，请先到个人中心打开总开关。`,
+      title: isSelfOff ? `请先打开${selfLabel}` : `请先打开${catName(cat)}通知`,
+      body: isSelfOff
+        ? `个人中心已关闭「${selfLabel}」，在这里开启也不会响。要收到提醒，请先到打卡通知打开总开关。`
+        : `个人中心已关闭「${catName(cat)}」通知，在这里开启也不会响。要收到提醒，请先到打卡通知打开总开关。`,
       ok: "去设置",
       action: "goNotify",
     });
@@ -11808,22 +11917,30 @@
     if (!cat) return true;
     return !!S.cats[cat];
   }
-  /// 家人通道关着时弹窗拦下：未添加家人去添加；已添加未开总闸去打卡通知页。返回 true 表示已拦下。
+  /// 守护人通道关着时弹窗拦下：未添加守护人去添加；已添加未开总闸或未开该类别去打卡通知页。返回 true 表示已拦下。
   function blockedByFamilyGate(catOverride) {
     const cat = catOverride || currentTaskCat();
     if (familyGateOpen(cat)) return false;
+    const isWatchingWard = !!(genHasFamily() && S.watchingWardName && S.watchingWardName !== S.currentPersonName);
+    const targetNm = activePersonName();
+    const famLabel = isWatchingWard ? "通知守护TA的人" : "通知守护我的人";
     if (!hasConfirmedGuardiansForActivePerson()) {
       openOverlay("confirm", {
-        title: "请先添加家人",
-        body: "开启家人通知前，请先添加并确认至少一位家人。",
+        title: isWatchingWard ? "请先添加守护TA的人" : "请先添加守护我的人",
+        body: isWatchingWard
+          ? `开启「通知守护TA的人」前，请先添加并确认至少一位守护${targetNm}的人。`
+          : "开启「通知守护我的人」前，请先添加并确认至少一位守护你的人。",
         ok: "去添加",
         action: "goFamilyFromTask",
       });
       return true;
     }
+    const isFamOff = !S.notifyFamily;
     openOverlay("confirm", {
-      title: "请先打开通知家人",
-      body: "个人中心已关闭「通知家人」，在这里开启也不会发。请先到打卡通知打开总开关。",
+      title: isFamOff ? `请先打开${famLabel}` : `请先打开${catName(cat)}通知`,
+      body: isFamOff
+        ? `个人中心已关闭「${famLabel}」，在这里开启也不会发。请先到打卡通知打开总开关。`
+        : `个人中心已关闭「${catName(cat)}」通知，在这里开启也不会发。请先到打卡通知打开总开关。`,
       ok: "去设置",
       action: "goNotify",
     });
@@ -12208,8 +12325,14 @@
     // 家属通知（V10.52 · 真机同款）：系列级一档；家属通道 = 通知家属 × 已绑定 × 类别，已打卡同锁。
     // V0.0 没有家属通道，整行不出现（真机 AddEditTaskView 按 includesFamily 决定排不排这颗开关）
     if (genHasFamily()) {
-      rows.push(reminderRow("家人通知",
-        done ? "本次已打卡，提醒已锁定" : "同步通知家人",
+      const isWatchingWard = !!(S.watchingWardName && S.watchingWardName !== S.currentPersonName);
+      const famTitle = isWatchingWard ? "通知守护TA的人" : "通知守护我的人";
+      const gNames = confirmedGuardianNamesSummaryForActivePerson();
+      const famCap = done
+        ? "本次已打卡，提醒已锁定"
+        : (gNames ? `到点与完成打卡时通知：${gNames}` : (isWatchingWard ? "尚未添加守护TA的人" : "尚未添加守护我的人"));
+      rows.push(reminderRow(famTitle,
+        famCap,
         done ? false : (familyGateOpen(taskCatKey(d)) && !S.famOff[id]),
         "famNotify", done, accent.fg, false));
     }
@@ -12228,9 +12351,13 @@
       "本次提醒",
       d.muteFirst ? "这一次不响铃，下次出现照常提醒" : "关闭只压这一次，下次出现照常响铃",
       gate && !d.muteFirst, "draftMuteToday", false, accent.fg));
-    // 家人通知（V10.52）：写进草稿随「添加 / 确认」落库；闸关着时拨不开、弹层引导。V0.0 不出现
+    // 通知守护我的人 / 通知守护TA的人（V10.191）：写进草稿随「添加 / 确认」落库；闸关着时拨不开、弹层引导。V0.0 不出现
     if (genHasFamily()) {
-      rows.push(reminderRow("家人通知", "同步通知家人",
+      const isWatchingWard = !!(S.watchingWardName && S.watchingWardName !== S.currentPersonName);
+      const famTitle = isWatchingWard ? "通知守护TA的人" : "通知守护我的人";
+      const gNames = confirmedGuardianNamesSummaryForActivePerson();
+      const famCap = gNames ? `到点与完成打卡时通知：${gNames}` : (isWatchingWard ? "尚未添加守护TA的人" : "尚未添加守护我的人");
+      rows.push(reminderRow(famTitle, famCap,
         familyGateOpen(taskCatKey(d)) && d.famNotify !== false,
         "draftFamNotify", false, accent.fg, false));
     }
@@ -12494,8 +12621,10 @@
         const on = done ? false : (gate && !muted);
         v02SwitchRows.push(reminderRow("本次提醒", "", on, viewing ? "muteToday" : "draftMuteToday", done, accent.fg));
         if (genHasFamily()) {
+          const isWatchingWard = !!(S.watchingWardName && S.watchingWardName !== S.currentPersonName);
+          const famTitle = isWatchingWard ? "通知守护TA的人" : "通知守护我的人";
           const famOn = done ? false : (familyGateOpen(taskCatKey(d)) && (viewing ? !S.famOff[id] : d.famNotify !== false));
-          v02SwitchRows.push(`<div class="v02-date-sep" style="background:${accent.muted};margin:0"></div>` + reminderRow("家人通知", "", famOn, viewing ? "famNotify" : "draftFamNotify", done, accent.fg));
+          v02SwitchRows.push(`<div class="v02-date-sep" style="background:${accent.muted};margin:0"></div>` + reminderRow(famTitle, "", famOn, viewing ? "famNotify" : "draftFamNotify", done, accent.fg));
         }
       }
 
@@ -13135,14 +13264,15 @@
       ensureCareGraph();
       const d = S.careSheetDraft || { name: "", phone: "", rel: "配偶" };
       const rels = ["配偶", "子女", "父母", "亲属"];
+      const targetNm = activePersonName();
       return `
       <div class="scrim bottom" data-act="close">
         <div class="sheet" onclick="event.stopPropagation()">
           <div class="grab"></div>
           <div style="display:flex;align-items:center;justify-content:space-between">
             <div>
-              <div class="s20 fb t">添加守护我的人</div>
-              <div class="s13 t-sec" style="margin-top:3px">邀请家人守护「${esc(S.currentPersonName)}」，对方可接收你的打卡完成动态并提醒你按时康复</div>
+              <div class="s20 fb t">添加守护${targetNm === S.currentPersonName ? "我" : esc(targetNm)}的人</div>
+              <div class="s13 t-sec" style="margin-top:3px">邀请家人守护「${esc(targetNm)}」，对方可接收打卡完成动态并发送康复提醒</div>
             </div>
             <button class="cap" data-act="close" type="button">取消</button>
           </div>
