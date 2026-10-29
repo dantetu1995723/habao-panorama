@@ -12799,40 +12799,42 @@
       const me = currentDemoPerson();
       const isSelf = !S.watchingWardName;
       const confirmedWards = myWardsList(me.name).filter((b) => b.confirmed);
+      const totalCards = 1 + Math.max(1, confirmedWards.length);
+      const sheetMinHeight = 124 + totalCards * 108;
       return `
       <div class="scrim bottom" data-act="close">
-        <div class="sheet" onclick="event.stopPropagation()" style="padding:20px 20px 32px">
+        <div class="sheet" onclick="event.stopPropagation()" style="padding:20px 22px 26px;min-height:${sheetMinHeight}px;display:flex;flex-direction:column;border-top-left-radius:30px;border-top-right-radius:30px">
           <div class="grab"></div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-            <div class="s20 fb t" style="font-size:19px;letter-spacing:-.2px">切换看护对象</div>
-            <button class="cap" data-act="close" type="button" style="padding:5px 12px;border-radius:999px;font-size:13px">关闭</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;margin-bottom:18px">
+            <div style="font-size:21px;font-weight:800;color:var(--blue);letter-spacing:-.2px">走进谁的一天</div>
+            <button type="button" data-act="close" aria-label="关闭" style="width:32px;height:32px;border-radius:999px;border:0;background:rgba(16,84,224,.08);color:var(--sec);font-size:15px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;cursor:pointer">✕</button>
           </div>
-          <div style="display:flex;flex-direction:column;gap:12px">
-            <button type="button" data-act="selectHomeTarget" data-ward="" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:18px;border:${isSelf ? "1.5px solid var(--blue)" : "1px solid rgba(0,0,0,.06)"};background:${isSelf ? "rgba(16,84,224,.06)" : "#FFFFFF"};cursor:pointer;text-align:left;font-family:inherit;width:100%">
-              <div style="width:40px;height:40px;border-radius:999px;background:${isSelf ? "var(--blue)" : "rgba(16,84,224,.10)"};color:${isSelf ? "#fff" : "var(--blue)"};font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(me.name.slice(0, 1))}</div>
-              <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
-                <span style="font-size:16.5px;font-weight:700;color:var(--text)">${esc(me.name)}的一天</span>
-                <span style="font-size:11.5px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 8px;border-radius:999px">本人</span>
+          <div style="display:flex;flex-direction:column;gap:16px;flex:1">
+            <button type="button" data-act="selectHomeTarget" data-ward="" style="flex:1;min-height:88px;display:flex;align-items:center;gap:16px;padding:18px 22px;border-radius:24px;border:${isSelf ? "1.8px solid rgba(16,84,224,.42)" : "1px solid rgba(16,84,224,.08)"};background:${isSelf ? "linear-gradient(135deg,rgba(16,84,224,.11),rgba(16,84,224,.04))" : "#FFFFFF"};box-shadow:0 4px 12px ${isSelf ? "rgba(16,84,224,.08)" : "rgba(16,84,224,.04)"};cursor:pointer;text-align:left;font-family:inherit;width:100%">
+              <div style="width:56px;height:56px;border-radius:999px;background:${isSelf ? "var(--blue)" : "rgba(16,84,224,.10)"};color:${isSelf ? "#fff" : "var(--blue)"};font-size:22px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:${isSelf ? "0 4px 10px rgba(16,84,224,.22)" : "none"}">${esc(me.name.slice(0, 1))}</div>
+              <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+                <span style="font-size:20px;font-weight:800;color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(me.name)}的一天</span>
+                <span style="font-size:12.5px;font-weight:700;color:${isSelf ? "#fff" : "var(--blue)"};background:${isSelf ? "rgba(16,84,224,.85)" : "rgba(16,84,224,.10)"};padding:4px 10px;border-radius:999px;flex-shrink:0">我</span>
               </div>
-              ${isSelf ? `<span style="color:var(--blue);font-weight:800;font-size:18px">✓</span>` : `<span style="display:inline-block;width:18px;height:18px;border-radius:999px;border:1.5px solid rgba(16,84,224,.22)"></span>`}
+              <span style="width:36px;height:36px;border-radius:999px;background:${isSelf ? "var(--blue)" : "rgba(16,84,224,.08)"};color:${isSelf ? "#fff" : "var(--blue)"};font-size:15px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">${isSelf ? "✓" : "→"}</span>
             </button>
             ${confirmedWards.map((b) => {
               const isWatching = S.watchingWardName === b.wardName;
               return `
-                <button type="button" data-act="selectHomeTarget" data-ward="${esc(b.wardName)}" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:18px;border:${isWatching ? "1.5px solid var(--blue)" : "1px solid rgba(0,0,0,.06)"};background:${isWatching ? "rgba(16,84,224,.06)" : "#FFFFFF"};cursor:pointer;text-align:left;font-family:inherit;width:100%">
-                  <div style="width:40px;height:40px;border-radius:999px;background:${isWatching ? "var(--blue)" : "rgba(16,84,224,.10)"};color:${isWatching ? "#fff" : "var(--blue)"};font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(b.wardName.slice(0, 1))}</div>
-                  <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
-                    <span style="font-size:16.5px;font-weight:700;color:var(--text)">${esc(b.wardName)}的一天</span>
-                    <span style="font-size:11.5px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 8px;border-radius:999px">${esc(b.relation)}</span>
+                <button type="button" data-act="selectHomeTarget" data-ward="${esc(b.wardName)}" style="flex:1;min-height:88px;display:flex;align-items:center;gap:16px;padding:18px 22px;border-radius:24px;border:${isWatching ? "1.8px solid rgba(16,84,224,.42)" : "1px solid rgba(16,84,224,.08)"};background:${isWatching ? "linear-gradient(135deg,rgba(16,84,224,.11),rgba(16,84,224,.04))" : "#FFFFFF"};box-shadow:0 4px 12px ${isWatching ? "rgba(16,84,224,.08)" : "rgba(16,84,224,.04)"};cursor:pointer;text-align:left;font-family:inherit;width:100%">
+                  <div style="width:56px;height:56px;border-radius:999px;background:${isWatching ? "var(--blue)" : "rgba(16,84,224,.10)"};color:${isWatching ? "#fff" : "var(--blue)"};font-size:22px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:${isWatching ? "0 4px 10px rgba(16,84,224,.22)" : "none"}">${esc(b.wardName.slice(0, 1))}</div>
+                  <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+                    <span style="font-size:20px;font-weight:800;color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(b.wardName)}的一天</span>
+                    <span style="font-size:12.5px;font-weight:700;color:${isWatching ? "#fff" : "var(--blue)"};background:${isWatching ? "rgba(16,84,224,.85)" : "rgba(16,84,224,.10)"};padding:4px 10px;border-radius:999px;flex-shrink:0">${esc(b.relation)}</span>
                   </div>
-                  ${isWatching ? `<span style="color:var(--blue);font-weight:800;font-size:18px">✓</span>` : `<span style="display:inline-block;width:18px;height:18px;border-radius:999px;border:1.5px solid rgba(16,84,224,.22)"></span>`}
+                  <span style="width:36px;height:36px;border-radius:999px;background:${isWatching ? "var(--blue)" : "rgba(16,84,224,.08)"};color:${isWatching ? "#fff" : "var(--blue)"};font-size:15px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">${isWatching ? "✓" : "→"}</span>
                 </button>`;
             }).join("")}
             ${!confirmedWards.length ? `
-              <button type="button" data-act="goProfileFromTargetSheet" style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-radius:16px;border:1px dashed rgba(16,84,224,.25);background:rgba(16,84,224,.03);cursor:pointer;text-align:left;font-family:inherit;width:100%">
-                <span style="color:var(--blue);display:inline-flex;font-size:15px">${I.plus}</span>
-                <span style="font-size:14px;font-weight:600;color:var(--blue);flex:1">去个人中心添加被守护人</span>
-                <span class="neutral-chev">${I.chevR}</span>
+              <button type="button" data-act="goProfileFromTargetSheet" style="flex:1;min-height:88px;display:flex;align-items:center;gap:16px;padding:18px 22px;border-radius:24px;border:1.2px dashed rgba(16,84,224,.22);background:rgba(255,255,255,.85);cursor:pointer;text-align:left;font-family:inherit;width:100%">
+                <div style="width:56px;height:56px;border-radius:999px;background:rgba(16,84,224,.09);color:var(--blue);font-size:22px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">+</div>
+                <span style="font-size:19px;font-weight:800;color:var(--blue);flex:1">添一位牵挂的人</span>
+                <span style="width:36px;height:36px;border-radius:999px;background:rgba(16,84,224,.08);color:var(--blue);font-size:15px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">→</span>
               </button>
             ` : ""}
           </div>
