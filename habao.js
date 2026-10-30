@@ -2421,12 +2421,12 @@
         completedBy: {},
         remindedTasks: {},
         vitalsWeek: [
-          { day: "一", sys: 136, dia: 84, hr: 78 },
-          { day: "二", sys: 138, dia: 85, hr: 80 },
-          { day: "三", sys: 134, dia: 82, hr: 76 },
-          { day: "四", sys: 132, dia: 80, hr: 75 },
-          { day: "五", sys: 135, dia: 83, hr: 77 },
-          { day: "六", sys: 133, dia: 81, hr: 74 },
+          { day: "一", sys: 136, dia: 84, hr: 68 },
+          { day: "二", sys: 142, dia: 86, hr: 84 },
+          { day: "三", sys: 134, dia: 82, hr: 72 },
+          { day: "四", sys: 144, dia: 88, hr: 86 },
+          { day: "五", sys: 135, dia: 83, hr: 70 },
+          { day: "六", sys: 133, dia: 81, hr: 82 },
           { day: "日", sys: 134, dia: 82, hr: 76 },
         ],
         vitalsLog: [
@@ -2487,13 +2487,13 @@
         completedBy: {},
         remindedTasks: {},
         vitalsWeek: [
-          { day: "一", sys: 114, dia: 72, hr: 66 },
-          { day: "二", sys: 116, dia: 74, hr: 68 },
-          { day: "三", sys: 112, dia: 70, hr: 65 },
-          { day: "四", sys: 115, dia: 73, hr: 67 },
-          { day: "五", sys: 113, dia: 71, hr: 66 },
-          { day: "六", sys: 114, dia: 72, hr: 65 },
-          { day: "日", sys: 114, dia: 72, hr: 67 },
+          { day: "一", sys: 114, dia: 72, hr: 57 },
+          { day: "二", sys: 116, dia: 74, hr: 59 },
+          { day: "三", sys: 112, dia: 70, hr: 56 },
+          { day: "四", sys: 115, dia: 73, hr: 58 },
+          { day: "五", sys: 113, dia: 71, hr: 57 },
+          { day: "六", sys: 114, dia: 72, hr: 56 },
+          { day: "日", sys: 114, dia: 72, hr: 58 },
         ],
         vitalsLog: [
           { time: "07:18", sys: 114, dia: 72, hr: 66, hw: false },
@@ -8976,6 +8976,15 @@
     vitals: () => {
       const wk = vitalsWeekData();
       const avg = vitalsWeekAvg();
+      const sum = vitalsSummary();
+      const badgeStyles = {
+        green: "color:#15803d;background:rgba(34,197,94,.12)",
+        amber: "color:#d97706;background:rgba(245,158,11,.14)",
+        red: "color:#e11d48;background:rgba(240,90,110,.14)",
+        blue: "color:#1054E0;background:rgba(16,84,224,.10)",
+      };
+      const bpColor = sum.bpStat === "触及告警" ? "#F05A6E" : "#1054E0";
+      const bpBg = sum.bpStat === "触及告警" ? "rgba(240,90,110,.06)" : "rgba(16,84,224,.06)";
       return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "血压监测", `<button class="cap" data-go="vitals-detail" type="button">${I.list}明细</button>`)}
@@ -8986,10 +8995,27 @@
         </div>
         <div class="scroll px20">
           <div class="island-card" style="padding:18px">
-            <div class="flex between"><div class="s19 fb t">整体AI评估</div><span class="cap">${vitalsSummary().badge}</span></div>
-            <p class="s16 t mt12">${vitalsSummary().text}</p>
-            <div class="flex between mt12 s15 t"><span>平均血压 ${avg.sys}/${avg.dia} <span class="t-sec">mmHg</span></span><span>平均心率 ${avg.hr} <span class="t-sec">bpm</span></span></div>
-            <p class="s12 t-sec mt8">参考目标：血压 ${VITAL.bpTargetText(58)}，静息心率 55–60。仅依据当前记录提供康复参考，不替代医生诊断</p>
+            <div class="flex between center"><div class="s19 fb t">整体AI评估</div><span class="cap" style="${badgeStyles[sum.tone] || badgeStyles.blue}">${sum.badge}</span></div>
+            <p class="s16 t mt12" style="line-height:1.45">${sum.text}</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+              <div style="padding:12px;border-radius:13px;background:${bpBg}">
+                <div class="s13 fb t-sec">平均血压</div>
+                <div style="margin-top:6px;display:flex;align-items:baseline;gap:3px">
+                  <span class="s20 fb mono" style="color:${bpColor}">${avg.sys}/${avg.dia}</span>
+                  <span class="s12 fb" style="color:${bpColor};opacity:.7">mmHg</span>
+                </div>
+                <div class="s13 fb" style="margin-top:6px;color:${bpColor};opacity:.85">${sum.bpStat}</div>
+              </div>
+              <div style="padding:12px;border-radius:13px;background:rgba(240,90,110,.06)">
+                <div class="s13 fb t-sec">平均心率</div>
+                <div style="margin-top:6px;display:flex;align-items:baseline;gap:3px">
+                  <span class="s20 fb mono" style="color:#F05A6E">${avg.hr}</span>
+                  <span class="s12 fb" style="color:#F05A6E;opacity:.7">bpm</span>
+                </div>
+                <div class="s13 fb" style="margin-top:6px;color:#F05A6E;opacity:.85">${sum.hrStat}</div>
+              </div>
+            </div>
+            <p class="s12 t-sec mt12">仅依据当前记录提供康复参考，不替代医生诊断</p>
           </div>
           <div class="island-card mt12" style="padding:18px">
             <div class="flex between" style="align-items:baseline">
@@ -10289,15 +10315,15 @@
     },
   };
 
-  /// 本周 Demo 读数：均值与评估卡一致（血压 126/78、心率 72）
+  /// 本周 Demo 读数：均值与评估卡一致（血压 126/78、心率 58）
   const VITALS_WEEK = [
-    { day: "一", sys: 124, dia: 76, hr: 70 },
-    { day: "二", sys: 130, dia: 80, hr: 74 },
-    { day: "三", sys: 126, dia: 78, hr: 72 },
-    { day: "四", sys: 122, dia: 74, hr: 68 },
-    { day: "五", sys: 128, dia: 78, hr: 74 },
-    { day: "六", sys: 124, dia: 76, hr: 71 },
-    { day: "日", sys: 128, dia: 82, hr: 75 },
+    { day: "一", sys: 124, dia: 76, hr: 57 },
+    { day: "二", sys: 130, dia: 80, hr: 59 },
+    { day: "三", sys: 126, dia: 78, hr: 58 },
+    { day: "四", sys: 122, dia: 74, hr: 56 },
+    { day: "五", sys: 128, dia: 78, hr: 59 },
+    { day: "六", sys: 124, dia: 76, hr: 58 },
+    { day: "日", sys: 128, dia: 82, hr: 60 },
   ];
   /// 按周偏移生成该周读数：本周为基线，往期整体略高（康复向好）+ 逐日确定性波动
   /// （只叠波动的话七天均值恰好抵消，翻页看不出变化，所以要有 drift）
@@ -10529,26 +10555,109 @@
     if (n) S.draft.note = n.value;
   }
 
-  /// 本周评估卡：按均值判档出一句结论（真机 RecordsView 空 / 稳 / 关注三级）
+  /// 本周评估卡：与真机 VitalsPeriodAssessment 完全同构（四档区间总评 + 六档分项状态 + 达标与趋势话术）
   function vitalsSummary() {
-    const avg = vitalsWeekAvg();
-    const avgSys = avg.sys; const avgDia = avg.dia; const avgHr = avg.hr;
-    const age = S.age || 58;
-    const bp = VITAL.bpStatus(avgSys, avgDia, age);
-    const hr = VITAL.hrStatus(avgHr);
-    const bpOk = bp === "inTarget";
-    const hrOk = hr === "inTarget";
-    if (bpOk && hrOk) {
-      return { badge: "整体平稳", text: `本周血压与静息心率均值都落在康复目标内（血压 ${VITAL.bpTargetText(age)}，心率 55–60），建议继续保持。` };
+    const wk = vitalsWeekData();
+    const total = wk.length;
+    if (!total) {
+      return {
+        badge: "等待记录",
+        tone: "blue",
+        bpStat: "暂无记录",
+        hrStat: "暂无记录",
+        text: "完成血压或心率记录后，将结合当前统计区间生成评估。",
+      };
     }
-    const bits = [];
-    bits.push(bpOk
-      ? `血压均值 ${avgSys}/${avgDia} 在目标 ${VITAL.bpTargetText(age)} 内`
-      : `血压均值 ${avgSys}/${avgDia} ${VITAL_LAB[bp]}（目标 ${VITAL.bpTargetText(age)}）`);
-    bits.push(hrOk
-      ? `静息心率均值 ${avgHr} 落在目标 55–60`
-      : `静息心率均值 ${avgHr} ${VITAL_LAB[hr]}（目标 55–60）`);
-    return { badge: hrOk && bpOk ? "整体平稳" : "需要关注", text: `本周${bits.join("；")}。建议规律服药、晨起复测，并在复查时把记录带给医生。` };
+    const age = S.age || 58;
+    const bpStatuses = wk.map((d) => VITAL.bpStatus(d.sys, d.dia, age));
+    const hrStatuses = wk.map((d) => VITAL.hrStatus(d.hr));
+    const bpInRange = bpStatuses.filter((st) => st === "inTarget").length;
+    const hrInRange = hrStatuses.filter((st) => st === "inTarget").length;
+    const bpAlerts = bpStatuses.filter((st) => st === "alertHigh" || st === "alertLow").length;
+    const hrAlerts = hrStatuses.filter((st) => st === "alertHigh" || st === "alertLow").length;
+
+    const sysVals = wk.map((d) => d.sys);
+    const diaVals = wk.map((d) => d.dia);
+    const hrVals = wk.map((d) => d.hr);
+    const sysSpan = Math.max(...sysVals) - Math.min(...sysVals);
+    const diaSpan = Math.max(...diaVals) - Math.min(...diaVals);
+    const hrSpan = Math.max(...hrVals) - Math.min(...hrVals);
+    const bpHasBoth = bpStatuses.includes("aboveTarget") && bpStatuses.includes("belowTarget");
+    const hrHasBoth = hrStatuses.includes("aboveTarget") && hrStatuses.includes("belowTarget");
+    const bpVolatile = total >= 2 && (sysSpan >= 20 || diaSpan >= 15 || bpHasBoth);
+    const hrVolatile = total >= 2 && (hrSpan >= 15 || hrHasBoth);
+
+    const bpOutside = total - bpInRange;
+    const hrOutside = total - hrInRange;
+
+    const bpStat = bpAlerts > 0
+      ? "触及告警"
+      : bpVolatile
+      ? "波动较大"
+      : bpOutside === 0
+      ? "均在目标内"
+      : bpOutside * 2 >= total
+      ? "多次超出目标"
+      : "偶有超出目标";
+
+    const hrStat = hrAlerts > 0
+      ? "触及告警"
+      : hrVolatile
+      ? "波动较大"
+      : hrOutside === 0
+      ? "整体平稳"
+      : hrOutside * 2 >= total
+      ? "多次超出目标"
+      : "偶有波动";
+
+    let badge = "整体平稳";
+    let tone = "green";
+    if (bpAlerts > 0 || hrAlerts > 0) {
+      badge = "危急告警";
+      tone = "red";
+    } else if (bpOutside > 0 || hrOutside > 0 || bpVolatile || hrVolatile) {
+      badge = "建议关注";
+      tone = "amber";
+    }
+
+    const parts = [];
+    if (bpAlerts > 0) {
+      parts.push(`有 ${bpAlerts} 次血压触及报警线`);
+    } else if (bpOutside === 0) {
+      parts.push("血压记录均在康复目标内");
+    } else {
+      parts.push(`有 ${bpOutside} 次血压超出康复目标 ${VITAL.bpTargetText(age)}`);
+    }
+
+    if (hrAlerts > 0) {
+      parts.push(`有 ${hrAlerts} 次心率触及报警线`);
+    } else if (hrOutside === 0) {
+      parts.push("静息心率均在目标内");
+    } else {
+      parts.push(`有 ${hrOutside} 次心率超出目标 55–60`);
+    }
+
+    if (total < 4) {
+      parts.push("继续记录可形成更清晰的变化趋势");
+    } else {
+      const mid = Math.floor(total / 2);
+      const early = wk.slice(0, mid);
+      const recent = wk.slice(mid);
+      const avgOf = (arr, k) => Math.round(arr.reduce((s, d) => s + d[k], 0) / arr.length);
+      const bpDelta = avgOf(recent, "sys") - avgOf(early, "sys");
+      const hrDelta = avgOf(recent, "hr") - avgOf(early, "hr");
+      if (bpVolatile) parts.push("近期血压波动较大");
+      else if (bpDelta >= 5) parts.push("近期血压较前段略有上升");
+      else if (bpDelta <= -5) parts.push("近期血压较前段有所回落");
+      else parts.push("血压趋势较平稳");
+
+      if (hrVolatile) parts.push("近期心率波动较大");
+      else if (hrDelta >= 4) parts.push("心率较前段略有上升");
+      else if (hrDelta <= -4) parts.push("心率较前段有所回落");
+      else parts.push("心率趋势较平稳");
+    }
+
+    return { badge, tone, bpStat, hrStat, text: `${parts.join("，")}。` };
   }
 
   /// 录入面板动态提示：逐项判档，取更严重的一档作为整条底色（真机 VitalsInputSheet 五档）
@@ -10624,7 +10733,7 @@
     if (S.consultModule === "vitals") {
       const avg = vitalsWeekAvg();
       const s = vitalsSummary();
-      const tone = s.badge === "整体平稳" ? "green" : "amber";
+      const tone = s.tone || (s.badge === "整体平稳" ? "green" : "amber");
       return {
         kind: "vitals",
         title: "已带入血压监测",
@@ -10635,9 +10744,9 @@
           bpStatus: s.bpStat || "均在目标内",
           hrValue: `${avg.hr}`,
           hrStatus: s.hrStat || "整体平稳",
-          focusLabel: "区间重点",
+          focusLabel: s.badge === "危急告警" ? "单次报警" : "区间重点",
           focusText: s.text,
-          danger: false,
+          danger: s.badge === "危急告警",
         },
         body: s.text,
       };
@@ -10922,8 +11031,8 @@
       ctxSummary: "近期有 3 次早上血压高于康复目标 <140/90 mmHg，平均血压 144/88 mmHg，平均心率 70 次/分（平稳），未超过 ≥180/110 的危险报警线。",
       vitalsData: {
         bpValue: "144/88",
-        bpStatus: "高于目标 (<140/90)",
-        hrValue: "70",
+        bpStatus: "偶有超出目标",
+        hrValue: "58",
         hrStatus: "整体平稳",
         focusLabel: "近期重点",
         focusText: "3 次早上血压偏高，未超过 ≥180/110 危险线",
@@ -10967,7 +11076,7 @@
         bpValue: "126/78",
         bpStatus: "均在目标内",
         hrValue: "76",
-        hrStatus: "偶有偏快 (55–60)",
+        hrStatus: "偶有波动",
         focusLabel: "近期重点",
         focusText: "2 次下午心率偏快，血压保持达标",
         danger: false,
@@ -11008,9 +11117,9 @@
       ctxSummary: "突发危险读数：高压 186 / 低压 112 mmHg，心率 104 次/分，已超过高压 ≥180、低压 ≥110、心率 >100 的危险报警线，伴头晕胸闷。",
       vitalsData: {
         bpValue: "186/112",
-        bpStatus: "超过危险线 (≥180/110)",
+        bpStatus: "触及告警",
         hrValue: "104",
-        hrStatus: "超过报警线 (>100)",
+        hrStatus: "触及告警",
         focusLabel: "单次报警",
         focusText: "血压和心率同时越过危险线，伴胸闷头晕",
         danger: true,
