@@ -2029,6 +2029,185 @@
     if (!S.currentPersonName) S.currentPersonName = "李建国";
     if (!S.pendingPersonPopups) S.pendingPersonPopups = {};
     if (!S.careSheetDraft) S.careSheetDraft = { name: "", phone: "", rel: "配偶" };
+    if (!S.careProxyRequests) S.careProxyRequests = [];
+  }
+  function incomingProxyRequestsFor(personName) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName || "李建国";
+    return S.careProxyRequests.filter((r) => r.status === "pending" && r.recipientName === nm);
+  }
+  function returnedProxyResultsFor(personName) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName || "李建国";
+    return S.careProxyRequests.filter((r) => r.status !== "pending" && !r.senderAcknowledged && r.senderName === nm);
+  }
+  function outgoingPendingProxyFor(senderName, recipientName) {
+    ensureCareGraph();
+    const s = senderName || S.currentPersonName || "李建国";
+    return S.careProxyRequests.filter((r) => r.status === "pending" && r.senderName === s && (!recipientName || r.recipientName === recipientName));
+  }
+  function pendingProxyRequestForTask(taskId, senderName, recipientName) {
+    return outgoingPendingProxyFor(senderName, recipientName).find((r) => String(r.targetTaskId) === String(taskId) || String(r.taskSnapshot?.id) === String(taskId)) || null;
+  }
+  function evaluatePlanRiskFor({ personName, cat, title, hour, min, cycle, rule, editingTaskId, isProxyAction }) {
+    ensureCareGraph();
+    const target = personName || activePersonName() || "李建国";
+    const cleanTitle = String(title || "").trim();
+    const bucket = ensurePersonStore(target);
+    const existingTasks = (target === (S.boundPersonKey || "李建国")) ? SEED : (bucket.tasks || []);
+    const dup = existingTasks.find((t) => {
+      if (editingTaskId && String(t.id) === String(editingTaskId)) return false;
+      return Number(t.h) === Number(hour) && Number(t.m) === Number(min) && String(t.title || "").trim() === cleanTitle;
+    });
+    if (dup) {
+      return {
+        hasHardBlock: true,
+        hardBlockMessage: `${pad(hour)}:${pad(min)} 已存在同名计划「${cleanTitle}」，请调整时间或名称`,
+      };
+    }
+    const warnings = [];
+    let warningTitle = null;
+    const personObj = (S.demoPeople || []).find((p) => p.name === target);
+    const age = personObj ? personObj.age : 58;
+    const isTargetActive = target === activePersonName();
+    const hasContra = isTargetActive && (S.contra || (typeof contraindicationHits === "function" && contraindicationHits().length > 0));
+    const highBorg = isTargetActive && (S.borg > 7 || (S.symptoms || []).some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x)));
+
+    if (cat === "exercise") {
+      warningTitle = "运动风险提醒";
+      if (target === "张桂兰" || age >= 70) {
+        warnings.push(`${target}（${age}岁）属于高龄或合并心血管基础病史（如房颤/高血压），首次创建计划未包含运动体测。若存在罕见病、绝对禁忌症或体测量表不达标情况，强行运动存在心血管风险，请确认是否仍要继续创建？`);
+      } else if (hasContra || highBorg) {
+        warnings.push(`检测到${target}存在运动禁忌症、罕见病风险或体测量表未达标情况，建议先遵循医嘱评估后再开展有氧运动。确定仍要继续创建运动计划吗？`);
+      } else if (isProxyAction) {
+        warnings.push(`运动计划未在首次出院计划中默认创建。为「${target}」后续创建运动计划前，请提醒并确认对方无罕见心血管疾病、无近30天胸痛晕厥等禁忌症，且体测量表评估达标。是否仍要继续创建？`);
+      }
+    }
+
+    if ((hour >= 21 || hour < 6) && (cat === "exercise" || cat === "appointment")) {
+      if (!warningTitle) warningTitle = "计划时间提醒";
+      const catName = cat === "exercise" ? "运动" : "复查";
+      warnings.push(`当前设定的时间（${pad(hour)}:${pad(min)}）处于夜间或凌晨休息时段，心血管康复人群不宜在该时段安排${catName}计划，是否仍要继续？`);
+    } else if (hour >= 0 && hour < 5 && (cat === "monitoring" || cat === "diet")) {
+      if (!warningTitle) warningTitle = "计划时间提醒";
+      const catName = cat === "monitoring" ? "测血压" : "饮食";
+      warnings.push(`当前设定的时间（${pad(hour)}:${pad(min)}）处于凌晨深睡时段，可能打断睡眠并引起血压波动，建议调整至晨起后，是否仍要继续安排${catName}？`);
+    }
+
+    if (cat === "appointment" && cycle && (!rule || rule === "daily")) {
+      if (!warningTitle) warningTitle = "复查周期提醒";
+      warnings.push("门诊复查通常为特定单日或按月定期复查，当前设置为「每日循环」，可能会每天重复提醒，是否仍要继续？");
+    }
+
+    if (cat === "medication" && isProxyAction) {
+      if (!warningTitle) warningTitle = "用药核对提醒";
+      warnings.push(`代办新增或调整「${target}」的服药计划前，请确认药品名称、剂量与出院医嘱一致，避免重复服药或漏服，是否继续发送给对方确认？`);
+    }
+
+    return {
+      hasHardBlock: false,
+      hasWarning: warnings.length > 0,
+      warningTitle: warningTitle || "计划风险提醒",
+      warningMessage: warnings.join("\n\n"),
+    };
+  }
+  function proxyActionLabel(kind) {
+    if (kind === "remind") return "提醒";
+    if (kind === "checkIn") return "代打卡";
+    if (kind === "createPlan") return "新增计划";
+    if (kind === "updatePlan") return "修改计划";
+    if (kind === "deletePlan") return "删除计划";
+    return "代办";
+  }
+  function proxyIncomingTitle(r) {
+    const t = r.taskSnapshot?.title || "康复计划";
+    if (r.kind === "remind") return `${r.senderName} 提醒你完成「${t}」`;
+    if (r.kind === "checkIn") return `${r.senderName} 帮你打卡「${t}」`;
+    if (r.kind === "createPlan") return `${r.senderName} 为你新增计划「${t}」`;
+    if (r.kind === "updatePlan") return `${r.senderName} 修改了你的计划「${t}」`;
+    if (r.kind === "deletePlan") return `${r.senderName} 申请删除计划「${t}」`;
+    return `${r.senderName} 发起代办「${t}」`;
+  }
+  function proxyReturnedTitle(r) {
+    const t = r.taskSnapshot?.title || "康复计划";
+    const dec = r.status === "accepted" ? "已接受" : "不接受";
+    return `${r.recipientName}${dec}你的${proxyActionLabel(r.kind)}「${t}」`;
+  }
+  function proxyDetailLine(r) {
+    const snap = r.taskSnapshot || {};
+    const hm = `${pad(snap.h ?? 8)}:${pad(snap.m ?? 0)}`;
+    const catName = CAT[snap.cat]?.chip || "事项";
+    const extra = r.summaryNote ? ` · ${r.summaryNote}` : "";
+    return `${hm} · ${catName}${extra}`;
+  }
+  function sendProxyRequestFor({ senderName, recipientName, kind, targetTaskId, taskSnapshot, summaryNote }) {
+    ensureCareGraph();
+    const effId = targetTaskId || taskSnapshot?.id;
+    S.careProxyRequests = S.careProxyRequests.filter((r) => !(
+      r.senderName === senderName &&
+      r.recipientName === recipientName &&
+      r.kind === kind &&
+      r.status === "pending" &&
+      (String(r.targetTaskId) === String(effId) || String(r.taskSnapshot?.id) === String(effId))
+    ));
+    const req = {
+      id: `pr_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      senderName,
+      recipientName,
+      kind,
+      targetTaskId: effId,
+      taskSnapshot: { ...taskSnapshot },
+      summaryNote: summaryNote || "",
+      status: "pending",
+      senderAcknowledged: false,
+      createdAt: Date.now(),
+    };
+    S.careProxyRequests.unshift(req);
+    return req;
+  }
+  function applyAcceptedProxyMutationInStore(req) {
+    const target = req.recipientName;
+    const bucket = ensurePersonStore(target);
+    const isCurrentBound = (S.boundPersonKey || "李建国") === target;
+    const taskList = isCurrentBound ? SEED : bucket.tasks;
+    const compMap = isCurrentBound ? S.completed : (bucket.completed || (bucket.completed = {}));
+    const compByMap = isCurrentBound ? S.completedBy : (bucket.completedBy || (bucket.completedBy = {}));
+    const remMap = isCurrentBound ? S.remindedTasks : (bucket.remindedTasks || (bucket.remindedTasks = {}));
+
+    const tid = req.targetTaskId || req.taskSnapshot?.id;
+    if (req.kind === "remind") {
+      if (tid) remMap[tid] = true;
+    } else if (req.kind === "checkIn") {
+      if (tid) {
+        compMap[tid] = true;
+        compByMap[tid] = req.senderName;
+      }
+    } else if (req.kind === "createPlan") {
+      const nt = { ...req.taskSnapshot, id: tid || `proxy_${Date.now()}` };
+      if (!taskList.some((x) => String(x.id) === String(nt.id))) {
+        taskList.push(nt);
+        taskList.sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
+      }
+    } else if (req.kind === "updatePlan") {
+      const idx = taskList.findIndex((x) => String(x.id) === String(tid));
+      if (idx >= 0) {
+        taskList[idx] = { ...taskList[idx], ...req.taskSnapshot, id: taskList[idx].id };
+      } else if (req.taskSnapshot) {
+        taskList.push({ ...req.taskSnapshot, id: tid || `proxy_${Date.now()}` });
+      }
+      taskList.sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
+    } else if (req.kind === "deletePlan") {
+      const idx = taskList.findIndex((x) => String(x.id) === String(tid));
+      if (idx >= 0) taskList.splice(idx, 1);
+      delete compMap[tid];
+      delete compByMap[tid];
+    }
+    if (!isCurrentBound) {
+      bucket.tasks = taskList;
+      bucket.completed = compMap;
+      bucket.completedBy = compByMap;
+      bucket.remindedTasks = remMap;
+    }
   }
   function bondInvolves(b, personName) {
     return b && (b.guardianName === personName || b.wardName === personName);
@@ -2093,17 +2272,23 @@
   function pendingFamilyEventCountFor(personName) {
     return incomingBindRequestsFor(personName).length
       + rejectedReturnedRequestsFor(personName).length
-      + acceptedReturnedBondsFor(personName).length;
+      + acceptedReturnedBondsFor(personName).length
+      + incomingProxyRequestsFor(personName).length
+      + returnedProxyResultsFor(personName).length;
   }
   function familyManageCaptionFor(personName) {
     const nm = personName || S.currentPersonName || "李建国";
     const confirmedCount = confirmedFamilyBondsFor(nm).length;
-    const incomingCount = incomingBindRequestsFor(nm).length;
+    const incomingCount = incomingBindRequestsFor(nm).length + incomingProxyRequestsFor(nm).length;
+    const returnedCount = returnedProxyResultsFor(nm).length + rejectedReturnedRequestsFor(nm).length;
     const outgoingCount = outgoingPendingRequestsFor(nm).length;
     if (incomingCount > 0) {
       return confirmedCount > 0
         ? `已绑定 ${confirmedCount} 人 · ${incomingCount} 条待确认`
-        : `${incomingCount} 条绑定请求待确认`;
+        : `${incomingCount} 条请求待确认`;
+    }
+    if (returnedCount > 0 && confirmedCount > 0) {
+      return `已绑定 ${confirmedCount} 人 · ${returnedCount} 条回执`;
     }
     if (confirmedCount > 0) {
       return `已绑定 ${confirmedCount} 人`;
@@ -5534,6 +5719,35 @@
       saveTask() {
         syncDraftInputs();
         if (!S.draft?.title) { toast("请填写事项名称"); return; }
+        const risk = evaluatePlanRiskFor({
+          personName: activePersonName(),
+          cat: S.draft.cat,
+          title: S.draft.title,
+          hour: S.draft.hour,
+          min: S.draft.min,
+          cycle: !!S.draft.cycle,
+          rule: S.draft.rule || "daily",
+          editingTaskId: S.taskId,
+          isProxyAction: false,
+        });
+        if (risk.hasHardBlock) {
+          toast(risk.hardBlockMessage);
+          return;
+        }
+        if (risk.hasWarning) {
+          openOverlay("confirm", {
+            title: risk.warningTitle,
+            body: risk.warningMessage,
+            cancel: "先去调整",
+            ok: "继续保存",
+            action: "proceedSaveTaskAfterRisk",
+          });
+          return;
+        }
+        map.proceedSaveTaskAfterRisk();
+      },
+      proceedSaveTaskAfterRisk() {
+        closeOverlay();
         const orig = SEED.find((x) => x.id === S.taskId);
         const prompt = buildScheduleUpdatePrompt(orig, S.draft);
         if (prompt) {
@@ -5602,6 +5816,37 @@
       addTask() {
         syncDraftInputs();
         if (!S.draft?.title) { toast("请填写事项名称"); return; }
+        if (!S.pendingManualEnroll && !S.draftReturn) {
+          const risk = evaluatePlanRiskFor({
+            personName: activePersonName(),
+            cat: S.draft.cat,
+            title: S.draft.title,
+            hour: S.draft.hour,
+            min: S.draft.min,
+            cycle: !!S.draft.cycle,
+            rule: S.draft.rule || "daily",
+            editingTaskId: null,
+            isProxyAction: false,
+          });
+          if (risk.hasHardBlock) {
+            toast(risk.hardBlockMessage);
+            return;
+          }
+          if (risk.hasWarning) {
+            openOverlay("confirm", {
+              title: risk.warningTitle,
+              body: risk.warningMessage,
+              cancel: "先去调整",
+              ok: "继续保存",
+              action: "proceedAddTaskAfterRisk",
+            });
+            return;
+          }
+        }
+        map.proceedAddTaskAfterRisk();
+      },
+      proceedAddTaskAfterRisk() {
+        closeOverlay();
         if (S.pendingManualEnroll) {
           S.enrolled = true;
           S.pendingManualEnroll = false;
@@ -6046,6 +6291,324 @@
         S.overlay = null;
         toast(isPending ? `已撤回向${other}发送的绑定请求` : `已与${other}解除家属关系`);
         render();
+      },
+      openFamilyProxyView() {
+        ensureCareGraph();
+        const famName = el.dataset.name;
+        if (!famName) return;
+        S.activeProxyFamilyName = famName;
+        S.proxyEditorDraft = null;
+        render();
+      },
+      closeFamilyProxyView() {
+        if (S.proxyEditorDraft) {
+          S.proxyEditorDraft = null;
+          render();
+          return;
+        }
+        S.activeProxyFamilyName = null;
+        render();
+      },
+      sendProxyRemind() {
+        ensureCareGraph();
+        const me = currentDemoPerson();
+        const famName = S.activeProxyFamilyName;
+        const tid = el.dataset.id;
+        if (!famName || !tid) return;
+        const bucket = ensurePersonStore(famName);
+        const task = (bucket.tasks || []).find((t) => String(t.id) === String(tid));
+        if (!task) return;
+        sendProxyRequestFor({
+          senderName: me.name,
+          recipientName: famName,
+          kind: "remind",
+          targetTaskId: task.id,
+          taskSnapshot: task,
+          summaryNote: "按时提醒",
+        });
+        toast(`已向${famName}发送提醒通知，待对方接受`);
+        render();
+      },
+      sendProxyCheckIn() {
+        ensureCareGraph();
+        const me = currentDemoPerson();
+        const famName = S.activeProxyFamilyName;
+        const tid = el.dataset.id;
+        if (!famName || !tid) return;
+        const bucket = ensurePersonStore(famName);
+        const task = (bucket.tasks || []).find((t) => String(t.id) === String(tid));
+        if (!task) return;
+        sendProxyRequestFor({
+          senderName: me.name,
+          recipientName: famName,
+          kind: "checkIn",
+          targetTaskId: task.id,
+          taskSnapshot: task,
+          summaryNote: "代为完成打卡",
+        });
+        toast(`已向${famName}发送代打卡通知，待对方接受`);
+        render();
+      },
+      withdrawProxyReq() {
+        ensureCareGraph();
+        const rid = el.dataset.id;
+        const req = (S.careProxyRequests || []).find((r) => String(r.id) === String(rid));
+        if (!req) return;
+        S.careProxyRequests = S.careProxyRequests.filter((r) => String(r.id) !== String(rid));
+        toast(`已撤回「${proxyActionLabel(req.kind)}」请求`);
+        render();
+      },
+      acceptProxyReq() {
+        ensureCareGraph();
+        const rid = el.dataset.id;
+        const req = (S.careProxyRequests || []).find((r) => String(r.id) === String(rid));
+        if (!req || req.status !== "pending") return;
+        applyAcceptedProxyMutationInStore(req);
+        req.status = "accepted";
+        req.senderAcknowledged = false;
+        toast(`已接受${req.senderName}的${proxyActionLabel(req.kind)}，并通知对方`);
+        render();
+      },
+      rejectProxyReq() {
+        ensureCareGraph();
+        const rid = el.dataset.id;
+        const req = (S.careProxyRequests || []).find((r) => String(r.id) === String(rid));
+        if (!req || req.status !== "pending") return;
+        req.status = "rejected";
+        req.senderAcknowledged = false;
+        toast(`已返回「不接受」给${req.senderName}`);
+        render();
+      },
+      ackProxyReturn() {
+        ensureCareGraph();
+        const rid = el.dataset.id;
+        S.careProxyRequests = (S.careProxyRequests || []).filter((r) => String(r.id) !== String(rid));
+        render();
+      },
+      openProxyTaskEditor() {
+        ensureCareGraph();
+        const famName = S.activeProxyFamilyName;
+        if (!famName) return;
+        const tid = el.dataset.id;
+        const bucket = ensurePersonStore(famName);
+        const existing = tid ? (bucket.tasks || []).find((t) => String(t.id) === String(tid)) : null;
+        if (existing) {
+          S.proxyEditorDraft = {
+            mode: "edit",
+            taskId: existing.id,
+            cat: existing.cat || "monitoring",
+            title: existing.title || "",
+            hour: existing.h ?? 8,
+            min: existing.m ?? 0,
+            cycle: existing.cycle !== false,
+            rule: existing.rule || "daily",
+            note: existing.note || "",
+          };
+        } else {
+          S.proxyEditorDraft = {
+            mode: "add",
+            taskId: null,
+            cat: "monitoring",
+            title: "起床测血压",
+            hour: 8,
+            min: 0,
+            cycle: true,
+            rule: "daily",
+            note: "",
+          };
+        }
+        render();
+      },
+      closeProxyTaskEditor() {
+        S.proxyEditorDraft = null;
+        render();
+      },
+      pickProxyCat() {
+        if (!S.proxyEditorDraft) return;
+        const titleInput = $("input[name=proxyTitle]");
+        const noteInput = $("input[name=proxyNote]");
+        if (titleInput) S.proxyEditorDraft.title = titleInput.value;
+        if (noteInput) S.proxyEditorDraft.note = noteInput.value;
+        const nextCat = el.dataset.cat || "monitoring";
+        const defaults = {
+          monitoring: "起床测血压",
+          medication: "按医嘱服药",
+          exercise: "户外散步 20 分钟",
+          diet: "低盐清淡饮食",
+          rest: "午间静卧休息",
+          appointment: "心内科门诊复查",
+        };
+        const prevDefault = defaults[S.proxyEditorDraft.cat];
+        S.proxyEditorDraft.cat = nextCat;
+        if (!S.proxyEditorDraft.title.trim() || S.proxyEditorDraft.title === prevDefault) {
+          S.proxyEditorDraft.title = defaults[nextCat] || "康复计划";
+        }
+        if (nextCat === "appointment" && S.proxyEditorDraft.mode === "add") {
+          S.proxyEditorDraft.cycle = false;
+        }
+        render();
+      },
+      pickProxyCycle() {
+        if (!S.proxyEditorDraft) return;
+        const titleInput = $("input[name=proxyTitle]");
+        const noteInput = $("input[name=proxyNote]");
+        if (titleInput) S.proxyEditorDraft.title = titleInput.value;
+        if (noteInput) S.proxyEditorDraft.note = noteInput.value;
+        S.proxyEditorDraft.cycle = el.dataset.v === "1";
+        render();
+      },
+      pickProxyRule() {
+        if (!S.proxyEditorDraft) return;
+        const titleInput = $("input[name=proxyTitle]");
+        const noteInput = $("input[name=proxyNote]");
+        if (titleInput) S.proxyEditorDraft.title = titleInput.value;
+        if (noteInput) S.proxyEditorDraft.note = noteInput.value;
+        S.proxyEditorDraft.rule = el.dataset.r || "daily";
+        render();
+      },
+      pickProxyHour() {
+        if (!S.proxyEditorDraft) return;
+        const titleInput = $("input[name=proxyTitle]");
+        const noteInput = $("input[name=proxyNote]");
+        if (titleInput) S.proxyEditorDraft.title = titleInput.value;
+        if (noteInput) S.proxyEditorDraft.note = noteInput.value;
+        S.proxyEditorDraft.hour = Number(el.dataset.h ?? 8);
+        render();
+      },
+      pickProxyMin() {
+        if (!S.proxyEditorDraft) return;
+        const titleInput = $("input[name=proxyTitle]");
+        const noteInput = $("input[name=proxyNote]");
+        if (titleInput) S.proxyEditorDraft.title = titleInput.value;
+        if (noteInput) S.proxyEditorDraft.note = noteInput.value;
+        S.proxyEditorDraft.min = Number(el.dataset.m ?? 0);
+        render();
+      },
+      submitProxyTaskEditor() {
+        ensureCareGraph();
+        if (!S.proxyEditorDraft || !S.activeProxyFamilyName) return;
+        const titleInput = $("input[name=proxyTitle]");
+        const noteInput = $("input[name=proxyNote]");
+        if (titleInput) S.proxyEditorDraft.title = titleInput.value;
+        if (noteInput) S.proxyEditorDraft.note = noteInput.value;
+        const d = S.proxyEditorDraft;
+        const cleanTitle = String(d.title || "").trim();
+        if (!cleanTitle) {
+          toast("请填写计划名称");
+          return;
+        }
+        const risk = evaluatePlanRiskFor({
+          personName: S.activeProxyFamilyName,
+          cat: d.cat,
+          title: cleanTitle,
+          hour: d.hour,
+          min: d.min,
+          cycle: !!d.cycle,
+          rule: d.rule || "daily",
+          editingTaskId: d.taskId,
+          isProxyAction: true,
+        });
+        if (risk.hasHardBlock) {
+          toast(risk.hardBlockMessage);
+          return;
+        }
+        if (risk.hasWarning) {
+          openOverlay("confirm", {
+            title: risk.warningTitle,
+            body: risk.warningMessage,
+            cancel: "取消",
+            ok: "继续创建",
+            action: "confirmProxyTaskRisk",
+          });
+          return;
+        }
+        map.confirmProxyTaskRisk();
+      },
+      confirmProxyTaskRisk() {
+        closeOverlay();
+        if (!S.proxyEditorDraft || !S.activeProxyFamilyName) return;
+        const me = currentDemoPerson();
+        const famName = S.activeProxyFamilyName;
+        const d = S.proxyEditorDraft;
+        const isEdit = d.mode === "edit" && d.taskId;
+        const taskSnap = {
+          id: isEdit ? d.taskId : `proxy_${Date.now()}`,
+          title: String(d.title || "").trim(),
+          cat: d.cat,
+          h: d.hour,
+          m: d.min,
+          cycle: !!d.cycle,
+          rule: d.cycle ? (d.rule || "daily") : "once",
+          note: String(d.note || "").trim(),
+        };
+        sendProxyRequestFor({
+          senderName: me.name,
+          recipientName: famName,
+          kind: isEdit ? "updatePlan" : "createPlan",
+          targetTaskId: isEdit ? d.taskId : taskSnap.id,
+          taskSnapshot: taskSnap,
+          summaryNote: isEdit
+            ? `修改为 ${pad(d.hour)}:${pad(d.min)} · ${d.cycle ? "循环" : "单日"}`
+            : `新增 ${pad(d.hour)}:${pad(d.min)} · ${d.cycle ? "循环" : "单日"}`,
+        });
+        S.proxyEditorDraft = null;
+        toast(isEdit ? `已向${famName}发送修改计划通知，待对方接受` : `已向${famName}发送新增计划通知，待对方接受`);
+        render();
+      },
+      askProxyDeleteTask() {
+        if (!S.proxyEditorDraft || !S.activeProxyFamilyName || !S.proxyEditorDraft.taskId) return;
+        openOverlay("confirm", {
+          title: "删除家属计划",
+          body: `确定申请删除${S.activeProxyFamilyName}的「${S.proxyEditorDraft.title}」吗？需对方在「家属管理」点击接受后才会正式删除。`,
+          cancel: "取消",
+          ok: "发送删除请求",
+          danger: true,
+          action: "doProxyDeleteTask",
+        });
+      },
+      doProxyDeleteTask() {
+        closeOverlay();
+        if (!S.proxyEditorDraft || !S.activeProxyFamilyName || !S.proxyEditorDraft.taskId) return;
+        const me = currentDemoPerson();
+        const famName = S.activeProxyFamilyName;
+        const d = S.proxyEditorDraft;
+        const taskSnap = {
+          id: d.taskId,
+          title: String(d.title || "").trim(),
+          cat: d.cat,
+          h: d.hour,
+          m: d.min,
+          cycle: !!d.cycle,
+          note: String(d.note || "").trim(),
+        };
+        sendProxyRequestFor({
+          senderName: me.name,
+          recipientName: famName,
+          kind: "deletePlan",
+          targetTaskId: d.taskId,
+          taskSnapshot: taskSnap,
+          summaryNote: "申请删除该计划",
+        });
+        S.proxyEditorDraft = null;
+        toast(`已向${famName}发送删除计划通知，待对方接受`);
+        render();
+      },
+      askForceContinueExercise() {
+        const reason = el.dataset.reason || "contra";
+        openOverlay("confirm", {
+          title: reason === "contra" ? "罕见病与禁忌症提醒" : "量表未达标提醒",
+          body: reason === "contra"
+            ? "当前存在绝对禁忌症或罕见心血管疾病（室颤、心衰Ⅲ级及以上），强行开展有氧运动存在心血管事件风险。建议由家属协同看护并遵循医嘱，确定仍要继续创建运动计划吗？"
+            : "当前体测或主观劳累度（Borg 量表）未达安全标准，或伴有罕见病/高危因素。强行创建运动计划可能增加心血管负荷，建议由家属协同看护并降低运动强度。确定仍要继续创建运动计划吗？",
+          cancel: "暂不创建",
+          ok: "继续创建",
+          action: "doForceContinueExercise",
+        });
+      },
+      doForceContinueExercise() {
+        closeOverlay();
+        seedExerciseDrafts();
+        go("confirm-exercise", "replace");
       },
       toggleWatchWard() {
         ensureCareGraph();
@@ -8129,10 +8692,11 @@
         ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "运动前风险提示")}
         <div class="col center grow">
           <div style="width:104px;height:104px;border-radius:50%;background:rgba(242,153,74,.16);display:grid;place-items:center;color:#F2994A;font-size:42px">!</div>
-          <h2 class="s22 fb t-amber mt16">检测到绝对禁忌症</h2>
-          <p class="s15 fm t-sec ta-c mt12">依据出院诊断，你当前不适合进行运动康复。<br>暂不生成运动计划，可稍后重试。</p>
+          <h2 class="s22 fb t-amber mt16">检测到绝对禁忌症或罕见病风险</h2>
+          <p class="s15 fm t-sec ta-c mt12">依据出院诊断，当前存在绝对禁忌症或罕见心血管病风险，建议暂缓创建运动计划。<br>如医嘱允许且有家属看护，可确认后继续创建。</p>
           <div class="flex gap8 mt16"><span class="cap red">室颤</span><span class="cap red">心衰Ⅲ级及以上</span></div>
           <button class="cta amber mt16" data-act="later" type="button">暂不创建运动计划</button>
+          <button class="cta-line mt12" data-act="askForceContinueExercise" data-reason="contra" type="button">仍要继续创建</button>
         </div>
       </div>` : `
       <div class="page">
@@ -8268,8 +8832,9 @@
       <div class="page px24 col center" style="padding-top:90px">
         <div style="width:104px;height:104px;border-radius:50%;background:rgba(242,153,74,.16);display:grid;place-items:center;color:#F2994A;font-size:42px">!</div>
         <h2 class="s22 fb t-amber mt16">建议人工评估</h2>
-        <p class="s15 t-sec ta-c mt12">评估显示当前更适合由专业人员介入。<br>暂不生成运动计划，可稍后重试。</p>
+        <p class="s15 t-sec ta-c mt12">当前体测或劳累度量表未达标，建议暂缓创建运动计划。<br>如已在医生或家属看护下确认安全，也可继续创建。</p>
         <button class="cta amber mt16" data-act="later" type="button">完成评估</button>
+        <button class="cta-line mt12" data-act="askForceContinueExercise" data-reason="scale" type="button">仍要继续创建</button>
       </div>`,
 
     vitals: () => {
@@ -9194,7 +9759,118 @@
     family: () => {
       ensureCareGraph();
       const me = currentDemoPerson();
+
+      // 子视图 1：本人统一操作入口 ── 查看家属计划 & 发起代办（提醒 / 打卡 / 计划增删改查）
+      if (S.activeProxyFamilyName) {
+        const famName = S.activeProxyFamilyName;
+        const stillBound = confirmedFamilyBondsFor(me.name).some((b) => bondOtherName(b, me.name) === famName);
+        if (!stillBound) {
+          S.activeProxyFamilyName = null;
+          S.proxyEditorDraft = null;
+        } else if (S.proxyEditorDraft) {
+          // 代办添加 / 编辑计划表单
+          const d = S.proxyEditorDraft;
+          const isEdit = d.mode === "edit";
+          const catOpts = [
+            ["monitoring", "测血压"],
+            ["medication", "服药"],
+            ["exercise", "运动"],
+            ["diet", "饮食"],
+            ["rest", "作息"],
+            ["appointment", "复查"],
+          ];
+          const hourOpts = [6, 7, 8, 9, 10, 12, 13, 15, 18, 19, 20, 21, 22];
+          const minOpts = [0, 15, 30, 45];
+          return `
+          <div class="page">
+            ${navBar(cap(I.chevL, "返回", "", "closeProxyTaskEditor"), isEdit ? "编辑计划" : "添加计划")}
+            <div class="scroll px24" style="padding-top:20px;padding-bottom:24px">
+              <div class="field-label">计划类别</div>
+              <div class="chips">${catOpts.map(([k, lab]) => `<button class="chip ${d.cat === k ? "on" : ""}" data-act="pickProxyCat" data-cat="${k}" type="button">${lab}</button>`).join("")}</div>
+              <div class="field-label mt16">计划名称</div>
+              <input class="field" name="proxyTitle" placeholder="输入计划名称" value="${esc(d.title || "")}" />
+              <div class="field-label mt16">计划时间（${pad(d.hour)}:${pad(d.min)}）</div>
+              <div class="chips">${hourOpts.map((h) => `<button class="chip ${Number(d.hour) === h ? "on" : ""}" data-act="pickProxyHour" data-h="${h}" type="button">${pad(h)}时</button>`).join("")}</div>
+              <div class="chips" style="margin-top:8px">${minOpts.map((m) => `<button class="chip ${Number(d.min) === m ? "on" : ""}" data-act="pickProxyMin" data-m="${m}" type="button">${pad(m)}分</button>`).join("")}</div>
+              <div class="field-label mt16">执行周期</div>
+              <div class="chips">
+                <button class="chip ${d.cycle ? "on" : ""}" data-act="pickProxyCycle" data-v="1" type="button">循环计划</button>
+                <button class="chip ${!d.cycle ? "on" : ""}" data-act="pickProxyCycle" data-v="0" type="button">单日计划</button>
+              </div>
+              ${d.cycle ? `
+                <div class="chips" style="margin-top:8px">
+                  ${[["daily", "每日"], ["weekly", "每周"], ["monthly", "每月"]].map(([r, lab]) => `<button class="chip ${(d.rule || "daily") === r ? "on" : ""}" data-act="pickProxyRule" data-r="${r}" type="button">${lab}</button>`).join("")}
+                </div>
+              ` : ""}
+              <div class="field-label mt16">备注说明</div>
+              <input class="field" name="proxyNote" placeholder="选填：剂量、时长或注意事项" value="${esc(d.note || "")}" />
+              ${isEdit ? `
+                <button class="cta-line mt16" data-act="askProxyDeleteTask" type="button" style="color:#DC3C3C;border-color:rgba(220,60,60,.25);background:rgba(220,60,60,.08)">删除该计划（需对方接受）</button>
+              ` : ""}
+            </div>
+            <div class="px24 flex gap8" style="padding-bottom:28px">
+              <button class="cta grow" data-act="submitProxyTaskEditor" type="button">${isEdit ? `发送修改给${esc(famName)}确认` : `发送给${esc(famName)}确认`}</button>
+            </div>
+          </div>`;
+        } else {
+          const bucket = ensurePersonStore(famName);
+          const famTasks = (bucket.tasks || []).slice().sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
+          const compMap = bucket.completed || {};
+          const taskRows = famTasks.map((t) => {
+            const done = !!compMap[t.id];
+            const pendingReq = pendingProxyRequestForTask(t.id, me.name, famName);
+            const catLabel = CAT[t.cat]?.chip || "事项";
+            const cycleLabel = t.cycle === false ? "单日" : "每日";
+            const hm = `${pad(t.h ?? 8)}:${pad(t.m ?? 0)}`;
+            let badgeHtml = "";
+            if (done) {
+              badgeHtml = `<span style="font-size:11px;font-weight:700;color:#1AA64A;background:rgba(26,166,74,.12);padding:2px 8px;border-radius:999px">已完成</span>`;
+            } else if (pendingReq) {
+              badgeHtml = `<span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:2px 8px;border-radius:999px">待接受：${esc(proxyActionLabel(pendingReq.kind))}</span>`;
+            }
+            let actionsHtml = "";
+            if (pendingReq) {
+              actionsHtml = `<button class="cap blue" data-act="withdrawProxyReq" data-id="${pendingReq.id}" type="button">撤回</button>`;
+            } else if (done) {
+              actionsHtml = `<button class="cap blue" data-act="openProxyTaskEditor" data-id="${t.id}" type="button">编辑</button>`;
+            } else {
+              actionsHtml = `
+                <button class="cap blue" data-act="sendProxyRemind" data-id="${t.id}" type="button">提醒</button>
+                <button class="cap" data-act="sendProxyCheckIn" data-id="${t.id}" type="button" style="background:var(--blue);color:#fff;border:0">打卡</button>
+                <button class="cap blue" data-act="openProxyTaskEditor" data-id="${t.id}" type="button">编辑</button>
+              `;
+            }
+            return `
+              <div class="plan-row mt12">
+                <div class="grow" style="min-width:0">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <span class="s18 fb t">${esc(t.title)}</span>
+                    ${badgeHtml}
+                  </div>
+                  <div class="s14 t-sec" style="margin-top:2px">${hm} · ${esc(catLabel)} · ${cycleLabel}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+                  ${actionsHtml}
+                </div>
+              </div>`;
+          }).join("");
+
+          return `
+          <div class="page">
+            ${navBar(cap(I.chevL, "返回", "", "closeFamilyProxyView"), `${esc(famName)}的计划`)}
+            <div class="scroll px24" style="padding-top:20px;padding-bottom:24px">
+              ${taskRows || `<div class="plan-row mt12"><div class="grow"><div class="s18 fb t">暂无康复计划</div><div class="s14 t-sec" style="margin-top:2px">点击下方按钮为${esc(famName)}添加计划</div></div></div>`}
+            </div>
+            <div class="px24 flex gap8" style="padding-bottom:28px">
+              <button class="cta grow" data-act="openProxyTaskEditor" type="button">添加计划</button>
+            </div>
+          </div>`;
+        }
+      }
+
       const incoming = incomingBindRequestsFor(me.name);
+      const incomingProxy = incomingProxyRequestsFor(me.name);
+      const returnedProxy = returnedProxyResultsFor(me.name);
       const rejectedReturns = rejectedReturnedRequestsFor(me.name);
       const outgoing = outgoingPendingRequestsFor(me.name);
       const confirmed = confirmedFamilyBondsFor(me.name);
@@ -9218,6 +9894,38 @@
               <button class="cap blue" data-act="rejectCareBond" data-id="${b.id}" type="button">不同意</button>
               <button class="cap" data-act="acceptCareBond" data-id="${b.id}" type="button" style="background:var(--blue);color:#fff;border:0">同意</button>
             </div>
+          </div>`;
+      }).join("");
+
+      const incomingProxyRows = incomingProxy.map((r) => `
+          <div class="plan-row mt12">
+            <div class="grow" style="min-width:0">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span class="s16 fb t">${esc(proxyIncomingTitle(r))}</span>
+                <span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:2px 8px;border-radius:999px">待我确认</span>
+              </div>
+              <div class="s14 t-sec" style="margin-top:2px">${esc(proxyDetailLine(r))}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+              <button class="cap blue" data-act="rejectProxyReq" data-id="${r.id}" type="button">不接受</button>
+              <button class="cap" data-act="acceptProxyReq" data-id="${r.id}" type="button" style="background:var(--blue);color:#fff;border:0">接受</button>
+            </div>
+          </div>`).join("");
+
+      const returnedProxyRows = returnedProxy.map((r) => {
+        const isAcc = r.status === "accepted";
+        const badgeFg = isAcc ? "#1AA64A" : "#DC3C3C";
+        const badgeBg = isAcc ? "rgba(26,166,74,.12)" : "rgba(220,60,60,.12)";
+        return `
+          <div class="plan-row mt12">
+            <div class="grow" style="min-width:0">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span class="s16 fb t">${esc(proxyReturnedTitle(r))}</span>
+                <span style="font-size:11px;font-weight:700;color:${badgeFg};background:${badgeBg};padding:2px 8px;border-radius:999px">${isAcc ? "对方已接受" : "对方不接受"}</span>
+              </div>
+              <div class="s14 t-sec" style="margin-top:2px">${esc(proxyDetailLine(r))}</div>
+            </div>
+            <button class="cap blue" data-act="ackProxyReturn" data-id="${r.id}" type="button">删除</button>
           </div>`;
       }).join("");
 
@@ -9254,11 +9962,14 @@
               </div>
               <div class="s14 t-sec" style="margin-top:2px">${esc(rel)}　${esc(ph)}</div>
             </div>
-            <button class="cap blue" data-act="askRemoveCareBond" data-id="${b.id}" type="button">${isConfirmed ? "解除" : "撤回"}</button>
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+              ${isConfirmed ? `<button class="cap" data-act="openFamilyProxyView" data-name="${esc(other)}" type="button" style="background:var(--blue);color:#fff;border:0">代办</button>` : ""}
+              <button class="cap blue" data-act="askRemoveCareBond" data-id="${b.id}" type="button">${isConfirmed ? "解除" : "撤回"}</button>
+            </div>
           </div>`;
       }).join("");
 
-      const hasList = !!(incomingRows || rejectedRows || memberRows);
+      const hasList = !!(incomingRows || incomingProxyRows || returnedProxyRows || rejectedRows || memberRows);
 
       return `
       <div class="page">
@@ -9272,7 +9983,7 @@
             <div class="field-label mt16">手机号</div>
             <input class="field" name="fphone" maxlength="11" placeholder="11 位手机号" value="${esc(S.famDraftPhone || "")}" />
           ` : ""}
-          ${hasList ? `<div style="${canSendMore ? "margin-top:12px" : ""}">${incomingRows}${rejectedRows}${memberRows}</div>` : ""}
+          ${hasList ? `<div style="${canSendMore ? "margin-top:12px" : ""}">${incomingRows}${incomingProxyRows}${returnedProxyRows}${rejectedRows}${memberRows}</div>` : ""}
         </div>
         ${canSendMore ? `
           <div class="px24 flex gap8" style="padding-bottom:28px">
