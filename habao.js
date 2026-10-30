@@ -2060,7 +2060,7 @@
   }
   function resolvedSelectedFamilyBondFor(personName) {
     ensureCareGraph();
-    if (S.famIsAdding) return null;
+    if (S.famIsAdding && genHasVip()) return null;
     const nm = personName || S.currentPersonName || "李建国";
     const confirmed = confirmedFamilyBondsFor(nm);
     if (!confirmed.length) return null;
@@ -2341,6 +2341,14 @@
       return `待对方确认 ${outgoingCount} 人`;
     }
     return "尚未绑定家属";
+  }
+  function hasAnyFamilyOrNoticeFor(personName) {
+    const nm = personName || S.currentPersonName || "李建国";
+    return (
+      confirmedFamilyBondsFor(nm).length > 0 ||
+      outgoingPendingRequestsFor(nm).length > 0 ||
+      pendingFamilyEventCountFor(nm) > 0
+    );
   }
   function currentDemoPerson() {
     ensureCareGraph();
@@ -6363,9 +6371,23 @@
       },
       toggleAddFamForm() {
         ensureCareGraph();
+        if (!genHasVip()) {
+          openOverlay("confirm", {
+            title: "需开通 VIP",
+            body: "你当前正在使用已绑定家属共享的照护通道。如需主动发起绑定新的家属（最多 5 人），请先开通本人 VIP 会员。",
+            cancel: "暂不开通",
+            ok: "去开通 VIP",
+            action: "goVipFromFamily",
+          });
+          return;
+        }
         S.famIsAdding = !S.famIsAdding;
         S.proxyEditorDraft = null;
         render();
+      },
+      goVipFromFamily() {
+        closeOverlay();
+        go("vip", "cover");
       },
       closeFamilyProxyView() {
         if (S.proxyEditorDraft) {
@@ -9592,7 +9614,7 @@
       const vipBtn = isVip ? "已购买 ›" : "购买 ›";
       return `<div class="page">
         ${navBar(cap(I.chevL, "返回"), "个人中心",
-          genIsV01() ? `<button class="cap" data-act="openDemoPersonSheet" type="button" title="切换测试身份（当前使用App的主角）">测试身份：${esc(curPerson.name)} ▾${otherUnread > 0 ? `<span style="margin-left:3px;padding:0 5px;border-radius:999px;background:#EF4444;color:#fff;font-size:10px;font-weight:800">${otherUnread}</span>` : ""}</button>` : "")}
+          `<button class="cap" data-act="openDemoPersonSheet" type="button" title="切换测试身份（当前使用App的主角）">测试身份：${esc(curPerson.name)} ▾${otherUnread > 0 ? `<span style="margin-left:3px;padding:0 5px;border-radius:999px;background:#EF4444;color:#fff;font-size:10px;font-weight:800">${otherUnread}</span>` : ""}</button>`)}
         <div class="scroll px20" style="padding-top:8px">
           <div class="hero">
             <div class="pointer" data-go="health-record" role="button" style="cursor:pointer">
@@ -9645,7 +9667,7 @@
           </div>
           <div class="list-island mt16">
             ${[
-              ...(genIsV01() ? [["family", I.two, "家属管理", familyManageCaptionFor(curPerson.name)]] : []),
+              ["family", I.two, "家属管理", familyManageCaptionFor(curPerson.name)],
               ["hardware", I.waves, "硬件管理", hwCaption()],
               ["activity", I.clock, "操作记录", (S.ops && S.ops[0]) ? opHeadlineHTML(S.ops[0]) : "还没有记录"],
             ].map(([id, ico, t, s]) => vipFeatureRowHTML(id, ico, t, s)).join("")}
@@ -9843,9 +9865,10 @@
       const canSendMore = occupied < 5;
       const totalNotices = incoming.length + incomingProxy.length + returnedProxy.length + rejectedReturns.length;
 
+      const isSelfVip = genHasVip();
       const selectedBond = resolvedSelectedFamilyBondFor(me.name);
       const selectedFamName = selectedBond ? bondOtherName(selectedBond, me.name) : null;
-      const showingBindForm = col === "operate" && (S.famIsAdding || !confirmed.length) && canSendMore;
+      const showingBindForm = col === "operate" && isSelfVip && (S.famIsAdding || !confirmed.length) && canSendMore;
 
       if (col === "operate" && S.proxyEditorDraft && selectedFamName) {
         const d = S.proxyEditorDraft;
@@ -9904,19 +9927,20 @@
 
       let operateBodyHTML = "";
       if (col === "operate") {
+        const isAddingExpanded = S.famIsAdding && isSelfVip;
         const selectorStripHTML = confirmed.length ? `
           <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:2px;margin-top:16px">
             ${confirmed.map((b) => {
               const other = bondOtherName(b, me.name);
               const rel = bondRelationForViewer(b, me.name);
-              const on = !S.famIsAdding && selectedFamName === other;
+              const on = !isAddingExpanded && selectedFamName === other;
               return `<button type="button" data-act="selectActiveFam" data-name="${esc(other)}" style="flex-shrink:0;height:44px;padding:0 16px;border-radius:14px;border:0;background:${on ? "var(--blue)" : "#fff"};color:${on ? "#fff" : "var(--blue)"};font-size:15.5px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;box-shadow:0 3px 10px rgba(16,84,224,${on ? ".18" : ".05"})">
                 <span>${esc(other)}</span>
                 <span style="font-size:13px;font-weight:600;opacity:${on ? ".9" : ".72"}">${esc(rel)}</span>
               </button>`;
             }).join("")}
             ${canSendMore ? `
-              <button type="button" data-act="toggleAddFamForm" style="flex-shrink:0;height:44px;padding:0 14px;border-radius:14px;border:0;background:${S.famIsAdding ? "var(--blue)" : "#fff"};color:${S.famIsAdding ? "#fff" : "var(--blue)"};font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 3px 10px rgba(16,84,224,${S.famIsAdding ? ".18" : ".05"})">${S.famIsAdding ? "× 收起绑定" : "+ 绑定家属"}</button>
+              <button type="button" data-act="toggleAddFamForm" style="flex-shrink:0;height:44px;padding:0 14px;border-radius:14px;border:0;background:${isAddingExpanded ? "var(--blue)" : "#fff"};color:${isAddingExpanded ? "#fff" : "var(--blue)"};font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 3px 10px rgba(16,84,224,${isAddingExpanded ? ".18" : ".05"})">${isAddingExpanded ? "× 收起绑定" : "+ 绑定家属"}</button>
             ` : ""}
           </div>` : "";
 
@@ -10033,6 +10057,19 @@
             ${pendingCreateRowsHTML}
             ${taskRowsHTML}
           `;
+        } else if (!isSelfVip) {
+          operateBodyHTML = `
+            ${outgoingRowsHTML}
+            <div class="plan-row mt12">
+              <div class="grow">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span class="s18 fb t">尚未绑定家属</span>
+                  <span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:2px 8px;border-radius:999px">需 VIP 发起</span>
+                </div>
+                <div class="s14 t-sec" style="margin-top:6px;line-height:1.5">开通 VIP 后最多可主动绑定 5 位家属；若家属已开通 VIP 并向你发起绑定，可在「收家属通知」中直接同意并互助照护，无需重复购买 VIP。</div>
+              </div>
+            </div>
+          `;
         }
       }
 
@@ -10125,6 +10162,11 @@
           bottomDockHTML = `
             <div class="px24 flex gap8" style="padding-bottom:28px">
               <button class="cta grow" data-act="openProxyTaskEditor" type="button">为${esc(selectedFamName)}添加计划</button>
+            </div>`;
+        } else if (!confirmed.length && !isSelfVip) {
+          bottomDockHTML = `
+            <div class="px24 flex gap8" style="padding-bottom:28px">
+              <button class="cta grow" data-go="vip" type="button">开通 VIP 绑定家属</button>
             </div>`;
         }
       }
@@ -12442,10 +12484,18 @@
       <span class="vip-cap${on ? " on" : ""}">${cap}</span>
     </button>`;
   }
-  /// VIP 专区功能行（家属管理 / 硬件管理 / 操作记录）：纯正蓝色视觉设计；未开通时不可点击
+  /// VIP 专区功能行（家属管理 / 硬件管理 / 操作记录）：纯正蓝色视觉设计；未开通时不可点击（家属管理除外：对非 VIP 亦开放进入以接收邀请和互助）
   function vipFeatureRowHTML(id, ico, title, caption) {
-    const locked = !genHasVip();
-    const sub = locked ? "开通 VIP 后可用" : caption;
+    const isFamily = id === "family";
+    const locked = !genHasVip() && !isFamily;
+    const sub = locked
+      ? "开通 VIP 后可用"
+      : isFamily && !genHasVip()
+        ? hasAnyFamilyOrNoticeFor(S.currentPersonName)
+          ? caption
+          : "开通 VIP 后可绑定家属"
+        : caption;
+    const subMuted = locked || (isFamily && !genHasVip() && !hasAnyFamilyOrNoticeFor(S.currentPersonName));
     const tail = locked ? `<span class="vip-lock">${I.crown}</span>` : `<span class="vip-chev">${I.chevR}</span>`;
     const tag = locked ? "div" : "button";
     const attrs = locked
@@ -12458,14 +12508,14 @@
           <h4 class="vip-title">${title}</h4>
           <span class="vip-badge-pill">VIP</span>
         </div>
-        <p class="${locked ? "t-blue-muted" : ""}">${sub}</p>
+        <p class="${subMuted ? "t-blue-muted" : ""}">${sub}</p>
       </div>
       ${tail}
     </${tag}>`;
   }
-  /// 家属管理 / 操作记录 / 硬件管理：未开通时这一行还在，不可点击。
+  /// 家属管理 / 操作记录 / 硬件管理：未开通时硬件/操作记录不可点击，家属管理始终可进入。
   function profileFeatureRow(id, ico, title, caption) {
-    const locked = genIsV01() && !S.vip && (id === "family" || id === "activity" || id === "hardware");
+    const locked = genIsV01() && !S.vip && (id === "activity" || id === "hardware");
     const sub = locked ? "开通 VIP 后可用" : caption;
     const tail = locked ? `<span class="vip-lock">${I.crown}</span>` : I.chevR;
     if (locked) {
