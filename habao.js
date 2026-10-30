@@ -2091,7 +2091,7 @@
   }
   function resolvedSelectedFamilyBondFor(personName) {
     ensureCareGraph();
-    if (S.famIsAdding && genHasVip()) return null;
+    if (S.famIsAdding) return null;
     const nm = personName || S.currentPersonName || "李建国";
     const confirmed = confirmedFamilyBondsFor(nm);
     if (!confirmed.length) return null;
@@ -6409,19 +6409,18 @@
       },
       toggleAddFamForm() {
         ensureCareGraph();
-        if (!genHasVip()) {
-          openOverlay("confirm", {
-            title: "需开通 VIP",
-            body: "你当前正在使用已绑定家属共享的照护通道。如需主动发起绑定新的家属（最多 5 人），请先开通本人 VIP 会员。",
-            cancel: "暂不开通",
-            ok: "去开通 VIP",
-            action: "goVipFromFamily",
-          });
-          return;
-        }
         S.famIsAdding = !S.famIsAdding;
         S.proxyEditorDraft = null;
         render();
+      },
+      askVipForFamily() {
+        openOverlay("confirm", {
+          title: "需开通 VIP",
+          body: "你当前正在使用已绑定家属共享的照护通道。如需主动发起绑定新的家属（最多 5 人），请先开通本人 VIP 会员。",
+          cancel: "暂不开通",
+          ok: "去开通 VIP",
+          action: "goVipFromFamily",
+        });
       },
       goVipFromFamily() {
         closeOverlay();
@@ -9915,7 +9914,7 @@
       const isSelfVip = genHasVip();
       const selectedBond = resolvedSelectedFamilyBondFor(me.name);
       const selectedFamName = selectedBond ? bondOtherName(selectedBond, me.name) : null;
-      const showingBindForm = col === "operate" && isSelfVip && (S.famIsAdding || !confirmed.length) && canSendMore;
+      const showingBindForm = col === "operate" && (S.famIsAdding || !confirmed.length) && canSendMore;
 
       if (col === "operate" && S.proxyEditorDraft && selectedFamName) {
         const d = S.proxyEditorDraft;
@@ -9974,7 +9973,7 @@
 
       let operateBodyHTML = "";
       if (col === "operate") {
-        const isAddingExpanded = S.famIsAdding && isSelfVip;
+        const isAddingExpanded = !!S.famIsAdding;
         const selectorStripHTML = confirmed.length ? `
           <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:2px;margin-top:16px">
             ${confirmed.map((b) => {
@@ -9987,7 +9986,10 @@
               </button>`;
             }).join("")}
             ${canSendMore ? `
-              <button type="button" data-act="toggleAddFamForm" style="flex-shrink:0;height:44px;padding:0 14px;border-radius:14px;border:0;background:${isAddingExpanded ? "var(--blue)" : "#fff"};color:${isAddingExpanded ? "#fff" : "var(--blue)"};font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 3px 10px rgba(16,84,224,${isAddingExpanded ? ".18" : ".05"})">${isAddingExpanded ? "× 收起绑定" : "+ 绑定家属"}</button>
+              <button type="button" data-act="toggleAddFamForm" style="flex-shrink:0;height:44px;padding:0 14px;border-radius:14px;border:0;background:${isAddingExpanded ? "var(--blue)" : "#fff"};color:${isAddingExpanded ? "#fff" : "var(--blue)"};font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;box-shadow:0 3px 10px rgba(16,84,224,${isAddingExpanded ? ".18" : ".05"})">
+                <span>${isAddingExpanded ? "× 收起绑定" : "+ 绑定家属"}</span>
+                ${!isSelfVip ? `<span style="padding:1.5px 6px;border-radius:999px;background:${isAddingExpanded ? "#fff" : "#FEF3C7"};color:${isAddingExpanded ? "var(--blue)" : "#B45309"};font-size:10.5px;font-weight:800;display:inline-flex;align-items:center;gap:2px">👑 VIP</span>` : ""}
+              </button>
             ` : ""}
           </div>` : "";
 
@@ -10008,10 +10010,24 @@
             </div>`;
         }).join("");
 
+        const vipBindBannerHTML = !isSelfVip ? `
+          <div data-go="vip" role="button" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:16px;background:#fff;border:1px solid rgba(245,158,11,.32);box-shadow:0 4px 12px rgba(16,84,224,.06);margin-top:16px;cursor:pointer">
+            <div style="width:44px;height:44px;border-radius:999px;background:#FEF3C7;color:#B45309;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0">👑</div>
+            <div style="min-width:0;flex:1">
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                <span class="s18 fb t">主动添加家属</span>
+                <span style="padding:2px 8px;border-radius:999px;background:#FEF3C7;color:#B45309;font-size:11px;font-weight:800">👑 VIP 专属</span>
+              </div>
+              <div class="s13 t-sec" style="margin-top:4px;line-height:1.45">免费用户可接受家属绑定并与已绑定家属互助；主动添加新家属（最多 5 人）需开通 VIP 会员。</div>
+            </div>
+            <span style="padding:6px 11px;border-radius:999px;background:var(--blue);color:#fff;font-size:12.5px;font-weight:700;flex-shrink:0">去开通 ›</span>
+          </div>` : "";
+
         if (showingBindForm) {
           operateBodyHTML = `
             ${selectorStripHTML}
             ${outgoingRowsHTML}
+            ${vipBindBannerHTML}
             <div style="margin-top:16px">
               <div class="field-label">姓名</div>
               <input class="field" name="fname" placeholder="姓名" value="${esc(S.famDraftName || "")}" />
@@ -10201,10 +10217,17 @@
       let bottomDockHTML = "";
       if (col === "operate") {
         if (showingBindForm) {
-          bottomDockHTML = `
-            <div class="px24 flex gap8" style="padding-bottom:28px">
-              <button class="cta grow" data-act="bindFam" type="button">点击绑定</button>
-            </div>`;
+          if (isSelfVip) {
+            bottomDockHTML = `
+              <div class="px24 flex gap8" style="padding-bottom:28px">
+                <button class="cta grow" data-act="bindFam" type="button">点击绑定</button>
+              </div>`;
+          } else {
+            bottomDockHTML = `
+              <div class="px24 flex gap8" style="padding-bottom:28px">
+                <button class="cta grow" data-act="askVipForFamily" type="button" style="display:flex;align-items:center;justify-content:center;gap:8px"><span style="color:#FFDC6E;display:inline-flex">${I.crown}</span><span>开通 VIP 绑定家属</span><span style="padding:2px 7px;border-radius:999px;background:rgba(255,255,255,.22);color:#FFDC6E;font-size:11px;font-weight:800">VIP</span></button>
+              </div>`;
+          }
         } else if (selectedFamName) {
           bottomDockHTML = `
             <div class="px24 flex gap8" style="padding-bottom:28px">
@@ -10213,7 +10236,7 @@
         } else if (!confirmed.length && !isSelfVip) {
           bottomDockHTML = `
             <div class="px24 flex gap8" style="padding-bottom:28px">
-              <button class="cta grow" data-go="vip" type="button">开通 VIP 绑定家属</button>
+              <button class="cta grow" data-act="askVipForFamily" type="button" style="display:flex;align-items:center;justify-content:center;gap:8px"><span style="color:#FFDC6E;display:inline-flex">${I.crown}</span><span>开通 VIP 绑定家属</span><span style="padding:2px 7px;border-radius:999px;background:rgba(255,255,255,.22);color:#FFDC6E;font-size:11px;font-weight:800">VIP</span></button>
             </div>`;
         }
       }
@@ -12539,7 +12562,7 @@
       ? "开通 VIP 后可用"
       : isFamily && !genHasVip()
         ? hasAnyFamilyOrNoticeFor(S.currentPersonName)
-          ? caption
+          ? `${caption} · 添加家属需 VIP`
           : "开通 VIP 后可绑定家属"
         : caption;
     const subMuted = locked || (isFamily && !genHasVip() && !hasAnyFamilyOrNoticeFor(S.currentPersonName));
