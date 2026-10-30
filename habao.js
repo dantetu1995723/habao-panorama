@@ -10006,18 +10006,13 @@
               const other = bondOtherName(b, me.name);
               const rel = bondRelationForViewer(b, me.name);
               const on = !isAddingExpanded && selectedFamName === other;
-              const bStore = ensurePersonStore(other);
-              const bTasks = bStore.tasks || [];
-              const bDone = bTasks.filter((x) => !!(bStore.completed || {})[x.id]).length;
-              return `<button type="button" data-act="selectActiveFam" data-name="${esc(other)}" style="flex-shrink:0;white-space:nowrap;height:44px;padding:0 14px 0 10px;border-radius:15px;border:${on ? "0" : "0.8px solid rgba(16,84,224,.12)"};background:${on ? "var(--blue)" : "#fff"};color:${on ? "#fff" : "var(--blue)"};font-size:15.5px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:7px;box-shadow:0 3px 10px rgba(16,84,224,${on ? ".20" : ".05"})">
-                <span style="width:26px;height:26px;border-radius:50%;background:${on ? "rgba(255,255,255,.22)" : "rgba(16,84,224,.10)"};color:${on ? "#fff" : "var(--blue)"};font-size:13px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">${esc(other.slice(0, 1))}</span>
+              return `<button type="button" data-act="selectActiveFam" data-name="${esc(other)}" style="flex-shrink:0;white-space:nowrap;height:42px;padding:0 15px;border-radius:14px;border:${on ? "0" : "0.8px solid rgba(16,84,224,.12)"};background:${on ? "var(--blue)" : "#fff"};color:${on ? "#fff" : "var(--blue)"};font-size:15.5px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;box-shadow:0 3px 10px rgba(16,84,224,${on ? ".20" : ".05"})">
                 <span>${esc(other)}</span>
-                <span style="font-size:11.5px;font-weight:600;padding:2px 6px;border-radius:999px;background:${on ? "rgba(255,255,255,.20)" : "rgba(16,84,224,.08)"}">${esc(rel)}</span>
-                <span style="font-size:11.5px;font-weight:700;opacity:${on ? ".92" : ".65"};font-variant-numeric:tabular-nums">${bDone}/${bTasks.length}</span>
+                <span style="font-size:12.5px;font-weight:600;opacity:${on ? ".92" : ".72"}">${esc(rel)}</span>
               </button>`;
             }).join("")}
             ${canSendMore ? `
-              <button type="button" data-act="toggleAddFamForm" style="flex-shrink:0;white-space:nowrap;height:44px;padding:0 14px;border-radius:15px;border:${isAddingExpanded ? "0" : "0.8px solid rgba(16,84,224,.12)"};background:${isAddingExpanded ? "var(--blue)" : "#fff"};color:${isAddingExpanded ? "#fff" : "var(--blue)"};font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;box-shadow:0 3px 10px rgba(16,84,224,${isAddingExpanded ? ".18" : ".05"})">
+              <button type="button" data-act="toggleAddFamForm" style="flex-shrink:0;white-space:nowrap;height:42px;padding:0 14px;border-radius:14px;border:${isAddingExpanded ? "0" : "0.8px solid rgba(16,84,224,.12)"};background:${isAddingExpanded ? "var(--blue)" : "#fff"};color:${isAddingExpanded ? "#fff" : "var(--blue)"};font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;box-shadow:0 3px 10px rgba(16,84,224,${isAddingExpanded ? ".18" : ".05"})">
                 <span>${isAddingExpanded ? "× 收起绑定" : "+ 绑定家属"}</span>
                 ${!isSelfVip ? `<span style="padding:1.5px 6px;border-radius:999px;background:${isAddingExpanded ? "#fff" : "#FEF3C7"};color:${isAddingExpanded ? "var(--blue)" : "#B45309"};font-size:10.5px;font-weight:800;display:inline-flex;align-items:center;gap:2px">👑 VIP</span>` : ""}
               </button>
