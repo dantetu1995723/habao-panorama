@@ -10019,21 +10019,37 @@
             ` : ""}
           </div>` : "";
 
+        const noticeTopBarHTML = ({ personName, relation, actionText, statusText, statusFg, statusBg }) => `
+          <div style="display:flex;align-items:center;gap:6px;padding:11px 14px 9px;border-bottom:0.8px solid rgba(16,84,224,.08)">
+            <div style="width:24px;height:24px;border-radius:50%;background:rgba(16,84,224,.10);color:var(--blue);font-size:12px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc((personName || "家").slice(0, 1))}</div>
+            <span style="font-size:14.5px;font-weight:700;color:var(--text);white-space:nowrap">${esc(personName)}</span>
+            ${relation ? `<span style="font-size:11px;font-weight:600;color:var(--secondary);background:#EDF3FF;padding:2px 6px;border-radius:6px;white-space:nowrap">${esc(relation)}</span>` : ""}
+            <span style="font-size:12.5px;font-weight:600;color:var(--secondary);white-space:nowrap">· ${esc(actionText)}</span>
+            <div style="flex:1"></div>
+            <span style="font-size:11.5px;font-weight:700;color:${statusFg};background:${statusBg};padding:3px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><i style="width:5.5px;height:5.5px;border-radius:50%;background:${statusFg};display:inline-block"></i>${esc(statusText)}</span>
+          </div>`;
+
         const outgoingRowsHTML = outgoing.map((b) => {
           const other = bondOtherName(b, me.name);
           const rel = bondRelationForViewer(b, me.name);
           const ph = bondOtherPhone(b, me.name);
           return `
-            <div class="plan-row mt12" style="border-radius:20px;border:0.8px solid rgba(16,84,224,.16);padding:14px">
-              <div style="width:40px;height:40px;border-radius:50%;background:rgba(16,84,224,.10);color:var(--blue);font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(other.slice(0, 1))}</div>
-              <div class="grow" style="min-width:0">
-                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                  <span class="s17 fb t">${esc(other)}</span>
-                  <span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:2px 8px;border-radius:999px;white-space:nowrap">待对方确认</span>
+            <div class="act-card mt12">
+              ${noticeTopBarHTML({ personName: other, relation: rel, actionText: "家属绑定", statusText: "待对方确认", statusFg: "#D97706", statusBg: "rgba(245,158,11,.14)" })}
+              <div class="act-card-main">
+                <div style="width:40px;height:40px;border-radius:12px;background:rgba(16,84,224,.10);color:var(--blue);font-size:16px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc(other.slice(0, 1))}</div>
+                <div class="grow" style="min-width:0">
+                  <div class="s15 fb t" style="line-height:1.35">已发送家属绑定邀请</div>
+                  <div class="act-info">
+                    <span class="act-chip">关系：${esc(rel)}</span>
+                    <span class="tm">手机号 ${esc(ph)}</span>
+                  </div>
                 </div>
-                <div class="s13 t-sec" style="margin-top:3px">${esc(rel)}　${esc(ph)}</div>
+                <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(245,158,11,.14);color:#D97706;display:grid;place-items:center">${I.clock}</span>
               </div>
-              <button class="cap blue" data-act="askRemoveCareBond" data-id="${b.id}" type="button" style="flex-shrink:0;white-space:nowrap">撤回</button>
+              <div class="act-card-bar">
+                <button type="button" data-act="askRemoveCareBond" data-id="${b.id}" style="font-weight:700;white-space:nowrap">${I.undo}撤回绑定申请</button>
+              </div>
             </div>`;
         }).join("");
 
@@ -10216,24 +10232,40 @@
 
       let noticesBodyHTML = "";
       if (col === "notices") {
+        const relWith = (otherName) => {
+          const b = active.find((x) => bondOtherName(x, me.name) === otherName);
+          return b ? bondRelationForViewer(b, me.name) : "";
+        };
+        const noticeTopBar = ({ personName, relation, actionText, statusText, statusFg, statusBg }) => `
+          <div style="display:flex;align-items:center;gap:6px;padding:11px 14px 9px;border-bottom:0.8px solid rgba(16,84,224,.08)">
+            <div style="width:24px;height:24px;border-radius:50%;background:rgba(16,84,224,.10);color:var(--blue);font-size:12px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc((personName || "家").slice(0, 1))}</div>
+            <span style="font-size:14.5px;font-weight:700;color:var(--text);white-space:nowrap">${esc(personName)}</span>
+            ${relation ? `<span style="font-size:11px;font-weight:600;color:var(--secondary);background:#EDF3FF;padding:2px 6px;border-radius:6px;white-space:nowrap">${esc(relation)}</span>` : ""}
+            <span style="font-size:12.5px;font-weight:600;color:var(--secondary);white-space:nowrap">· ${esc(actionText)}</span>
+            <div style="flex:1"></div>
+            <span style="font-size:11.5px;font-weight:700;color:${statusFg};background:${statusBg};padding:3px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><i style="width:5.5px;height:5.5px;border-radius:50%;background:${statusFg};display:inline-block"></i>${esc(statusText)}</span>
+          </div>`;
+
         const incomingRows = incoming.map((b) => {
           const other = bondOtherName(b, me.name);
           const rel = bondRelationForViewer(b, me.name);
           const ph = bondOtherPhone(b, me.name);
           return `
             <div class="act-card mt12">
+              ${noticeTopBar({ personName: other, relation: rel, actionText: "家属绑定", statusText: "绑定待确认", statusFg: "#D97706", statusBg: "rgba(245,158,11,.14)" })}
               <div class="act-card-main">
-                <div style="width:42px;height:42px;border-radius:50%;background:rgba(16,84,224,.10);color:var(--blue);font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(other.slice(0, 1))}</div>
+                <div style="width:40px;height:40px;border-radius:12px;background:rgba(16,84,224,.10);color:var(--blue);font-size:16px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc(other.slice(0, 1))}</div>
                 <div class="grow" style="min-width:0">
-                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                    <span class="s17 fb t">${esc(other)}</span>
-                    <span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:2px 8px;border-radius:999px;white-space:nowrap">绑定待确认</span>
+                  <div class="s15 fb t" style="line-height:1.35">申请与你绑定互为家属</div>
+                  <div class="act-info">
+                    <span class="act-chip">关系：${esc(rel)}</span>
+                    <span class="tm">手机号 ${esc(ph)}</span>
                   </div>
-                  <div class="s13 t-sec" style="margin-top:4px">${esc(rel)}　${esc(ph)}</div>
                 </div>
+                <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(245,158,11,.14);color:#D97706;display:grid;place-items:center">${I.clock}</span>
               </div>
               <div class="act-card-bar">
-                <button type="button" data-act="rejectCareBond" data-id="${b.id}" style="color:var(--secondary);white-space:nowrap">不同意</button>
+                <button type="button" data-act="rejectCareBond" data-id="${b.id}" style="color:var(--secondary);white-space:nowrap">${I.x}不同意</button>
                 <button type="button" data-act="acceptCareBond" data-id="${b.id}" style="font-weight:700;white-space:nowrap">${I.check}同意绑定</button>
               </div>
             </div>`;
@@ -10245,27 +10277,28 @@
           const chip = CAT[kind]?.name || CAT[kind]?.chip || "事项";
           const isCycle = snap.cycle !== false;
           const hm = `${pad(snap.h ?? 8)}:${pad(snap.m ?? 0)} - ${pad(((snap.h ?? 8) + 1) % 24)}:${pad(snap.m ?? 0)}`;
+          const rangeText = taskDateRangeLabel({ ...snap, cycle: isCycle });
           const notes = snap.note ? `<div class="act-notes">${cardNote(I.alignLeft, esc(snap.note))}</div>` : "";
+          const rel = relWith(r.senderName);
           return `
             <div class="act-card mt12">
+              ${noticeTopBar({ personName: r.senderName, relation: rel, actionText: proxyActionLabel(r.kind), statusText: "待我确认", statusFg: "#D97706", statusBg: "rgba(245,158,11,.14)" })}
               <div class="act-card-main">
                 <div class="badge b40"><img src="${A.task[kind] || A.task.monitoring}" alt="" /></div>
                 <div class="grow" style="min-width:0">
-                  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">
-                    <span class="s13 fb t">${esc(r.senderName)}</span>
-                    <span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:2px 8px;border-radius:999px;white-space:nowrap">${esc(proxyActionLabel(r.kind))}</span>
-                  </div>
                   <div class="s15 fb t" style="line-height:1.35;word-break:break-word">${esc(snap.title || proxyDetailLine(r))}</div>
                   <div class="act-info">
                     <span class="tm">${hm}</span>
                     <span class="act-chip">${isCycle ? "循环" : "单日"}</span>
                     <span class="act-chip">${esc(chip)}</span>
                   </div>
+                  <div class="act-dates">${rangeText}</div>
                 </div>
+                <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(245,158,11,.14);color:#D97706;display:grid;place-items:center">${I.clock}</span>
               </div>
               ${notes}
               <div class="act-card-bar">
-                <button type="button" data-act="rejectProxyReq" data-id="${r.id}" style="color:var(--secondary);white-space:nowrap">不接受</button>
+                <button type="button" data-act="rejectProxyReq" data-id="${r.id}" style="color:var(--secondary);white-space:nowrap">${I.x}不接受</button>
                 <button type="button" data-act="acceptProxyReq" data-id="${r.id}" style="font-weight:700;white-space:nowrap">${I.check}接受</button>
               </div>
             </div>`;
@@ -10277,17 +10310,35 @@
           const badgeBg = isAcc ? "rgba(26,166,74,.12)" : "rgba(220,60,60,.12)";
           const snap = r.taskSnapshot || {};
           const kind = snap.cat === "appointment" ? "appointment" : (snap.cat || "monitoring");
+          const chip = CAT[kind]?.name || CAT[kind]?.chip || "事项";
+          const isCycle = snap.cycle !== false;
+          const hm = `${pad(snap.h ?? 8)}:${pad(snap.m ?? 0)} - ${pad(((snap.h ?? 8) + 1) % 24)}:${pad(snap.m ?? 0)}`;
+          const rangeText = taskDateRangeLabel({ ...snap, cycle: isCycle });
+          const notes = snap.note ? `<div class="act-notes">${cardNote(I.alignLeft, esc(snap.note))}</div>` : "";
+          const rel = relWith(r.recipientName);
+          const rightCircle = isAcc
+            ? `<span class="act-check on" style="cursor:default">${I.check}</span>`
+            : `<span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(220,60,60,.12);color:#DC3C3C;display:grid;place-items:center">${I.x}</span>`;
           return `
-            <div class="plan-row mt12" style="border-radius:20px;border:0.8px solid rgba(16,84,224,.16);padding:14px">
-              <div class="badge b40 ${isAcc ? "done" : ""}"><img src="${A.task[kind] || A.task.monitoring}" alt="" /></div>
-              <div class="grow" style="min-width:0">
-                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                  <span class="s16 fb t">${esc(r.recipientName)}</span>
-                  <span style="font-size:11px;font-weight:700;color:${badgeFg};background:${badgeBg};padding:2px 8px;border-radius:999px;white-space:nowrap">${isAcc ? "对方已接受" : "对方不接受"}</span>
+            <div class="act-card ${isAcc ? "done" : ""} mt12">
+              ${noticeTopBar({ personName: r.recipientName, relation: rel, actionText: proxyActionLabel(r.kind), statusText: isAcc ? "对方已接受" : "对方不接受", statusFg: badgeFg, statusBg: badgeBg })}
+              <div class="act-card-main">
+                <div class="badge b40 ${isAcc ? "done" : ""}"><img src="${A.task[kind] || A.task.monitoring}" alt="" /></div>
+                <div class="grow" style="min-width:0">
+                  <div class="s15 fb ${isAcc ? "t-green" : "t"}" style="line-height:1.35;word-break:break-word">${esc(snap.title || proxyDetailLine(r))}</div>
+                  <div class="act-info">
+                    <span class="tm">${hm}</span>
+                    <span class="act-chip">${isCycle ? "循环" : "单日"}</span>
+                    <span class="act-chip">${esc(chip)}</span>
+                  </div>
+                  <div class="act-dates">${rangeText}</div>
                 </div>
-                <div class="s14 t-sec" style="margin-top:4px;line-height:1.4;word-break:break-word">${esc(proxyActionLabel(r.kind))} · ${esc(proxyDetailLine(r))}</div>
+                ${rightCircle}
               </div>
-              <button class="cap blue" data-act="ackProxyReturn" data-id="${r.id}" type="button" style="flex-shrink:0;white-space:nowrap">删除</button>
+              ${notes}
+              <div class="act-card-bar">
+                <button type="button" data-act="ackProxyReturn" data-id="${r.id}" style="font-weight:700;white-space:nowrap">${I.trash}删除通知</button>
+              </div>
             </div>`;
         }).join("");
 
@@ -10296,16 +10347,22 @@
           const rel = bondRelationForViewer(b, me.name);
           const ph = bondOtherPhone(b, me.name);
           return `
-            <div class="plan-row mt12" style="border-radius:20px;border:0.8px solid rgba(16,84,224,.16);padding:14px">
-              <div style="width:40px;height:40px;border-radius:50%;background:rgba(16,84,224,.10);color:var(--blue);font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(other.slice(0, 1))}</div>
-              <div class="grow" style="min-width:0">
-                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                  <span class="s17 fb t">${esc(other)}</span>
-                  <span style="font-size:11px;font-weight:700;color:#DC3C3C;background:rgba(220,60,60,.12);padding:2px 8px;border-radius:999px;white-space:nowrap">对方不同意</span>
+            <div class="act-card mt12">
+              ${noticeTopBar({ personName: other, relation: rel, actionText: "家属绑定", statusText: "对方不同意", statusFg: "#DC3C3C", statusBg: "rgba(220,60,60,.12)" })}
+              <div class="act-card-main">
+                <div style="width:40px;height:40px;border-radius:12px;background:rgba(220,60,60,.10);color:#DC3C3C;font-size:16px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc(other.slice(0, 1))}</div>
+                <div class="grow" style="min-width:0">
+                  <div class="s15 fb t" style="line-height:1.35">未同意本次家属绑定申请</div>
+                  <div class="act-info">
+                    <span class="act-chip">关系：${esc(rel)}</span>
+                    <span class="tm">手机号 ${esc(ph)}</span>
+                  </div>
                 </div>
-                <div class="s13 t-sec" style="margin-top:4px">${esc(rel)}　${esc(ph)}</div>
+                <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(220,60,60,.12);color:#DC3C3C;display:grid;place-items:center">${I.x}</span>
               </div>
-              <button class="cap blue" data-act="ackCareReturn" data-id="${b.id}" type="button" style="flex-shrink:0;white-space:nowrap">删除</button>
+              <div class="act-card-bar">
+                <button type="button" data-act="ackCareReturn" data-id="${b.id}" style="font-weight:700;white-space:nowrap">${I.trash}删除通知</button>
+              </div>
             </div>`;
         }).join("");
 
