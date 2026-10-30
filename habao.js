@@ -1403,12 +1403,12 @@
     sim: null,
     // 开发菜单：首页方案序号（真机 TodayScheme，0-3；本原型只渲染方案一）
     scheme: 0,
-    // 设计代际（真机 DesignGeneration）：V0.0 默认——家属管理、操作记录、硬件管理与哈宝问诊都不开放，V0.1 才出现入口。
-    // 真机落盘记住选择、正式包固定 V0.0；原型随冷启动回 V0.0（与正式包一致）。
-    gen: "0.0",
-    // VIP（真机 VIPStore）：只在 V0.1 卖。未开通时家属管理、硬件管理、操作记录、问诊上锁。冷启动未开通。
-    vip: false,
-    vipUntil: null,
+    // 设计代际（真机 DesignGeneration）：日常预览默认 V0.1，主账号李建国已开通 VIP，新绑定用户与其余家属默认为免费用户；真机模拟（coldStart）回 V0.0。
+    gen: "0.1",
+    // VIP（真机 VIPStore）：按人物独立记录（vipByPerson），默认仅「李建国」为 VIP，新绑定用户默认均为免费用户（false）。
+    vip: true,
+    vipUntil: 1824681600000,
+    vipByPerson: { "李建国": true },
     // V0.1 哈宝医生「问诊 + 计划制定」（只在设计版本 V0.1 生效；V0.2 仍是三模块联动案例）。
     // Demo：第 1 期（9/1–9/7）已交反馈拿金章；第 2 期 9/8 采纳、今天 9/11 是第 4 天，前三天满日。
     // 过去日的方案打卡按 marks 给演示数据（缺省 full），今天读真实打卡。
@@ -1756,6 +1756,9 @@
 
   function coldStart(mode) {
     resetAll();
+    S.gen = "0.0";
+    S.vip = false;
+    S.vipUntil = null;
     setMode(mode); // 内部 resetFlowFlags + jump，会经 renderSpec 记下初始 nav
     S.sim = { on: true, mode, focus: null, trace: [], done: {}, lastSig: null, t0: Date.now() };
     simTick();
@@ -1995,7 +1998,35 @@
     if (!S.toast) return "";
     return `<div class="toast">${I.warn}${S.toast}</div>`;
   }
+  function personHasVip(personName) {
+    const nm = (personName || S.currentPersonName || "李建国").trim();
+    if (!S.vipByPerson) S.vipByPerson = { "李建国": true };
+    return !!S.vipByPerson[nm];
+  }
+  function syncPersonVipState(personName) {
+    const nm = (personName || S.currentPersonName || "李建国").trim();
+    if (!S.vipByPerson) S.vipByPerson = { "李建国": true };
+    if (S.gen === "0.0") {
+      S.vip = false;
+      S.vipUntil = null;
+      return;
+    }
+    const isVip = !!S.vipByPerson[nm];
+    S.vip = isVip;
+    if (isVip) {
+      if (!S.vipUntil) {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() + 1);
+        S.vipUntil = d.getTime();
+      }
+    } else {
+      S.vipUntil = null;
+    }
+  }
   function ensureCareGraph() {
+    if (!S.vipByPerson) {
+      S.vipByPerson = { "李建国": true };
+    }
     if (!S.demoPeople || !S.demoPeople.length) {
       S.demoPeople = [
         { name: "李建国", gender: "男", age: 58, height: 170, weight: 75, phone: "138****5678", phoneRaw: "13800135678" },
@@ -6058,6 +6089,9 @@
         });
       },
       activateVip() {
+        ensureCareGraph();
+        const curName = (S.currentPersonName || "李建国").trim();
+        S.vipByPerson[curName] = true;
         const d = new Date();
         d.setFullYear(d.getFullYear() + 1);
         S.vip = true;
@@ -6070,19 +6104,21 @@
       askCancelVip() {
         openOverlay("confirm", {
           title: "取消订阅",
-          body: "取消后家属管理、硬件管理、操作记录和哈宝医生服务会重新锁上，支架保险理赔服务同步终止。已经绑定的家属、记录和硬件还会留在手机里。",
+          body: "取消后当前账号变为免费用户，硬件管理、操作记录和哈宝医生服务会重新锁上，家属管理降级为受邀基础模式（不能主动发起绑定或新增代办计划），支架保险理赔服务同步终止。已经绑定的家属、记录和硬件还会留在手机里。",
           ok: "取消订阅",
           danger: true,
           action: "cancelVip",
         });
       },
       cancelVip() {
+        ensureCareGraph();
+        const curName = (S.currentPersonName || "李建国").trim();
+        S.vipByPerson[curName] = false;
         S.vip = false;
         S.vipUntil = null;
-        if (S.gen !== "0.0") S.gen = "0.0";
         S.overlay = null;
         render();
-        toast("已取消订阅");
+        toast("已取消订阅，当前为免费用户");
       },
       openDemoPersonSheet() {
         ensureCareGraph();
@@ -6142,11 +6178,13 @@
           height: p.height,
           weight: p.weight,
         };
+        syncPersonVipState(p.name);
         syncLegacyListsFromBonds();
         syncActivePersonContext(p.name);
         closeOverlay();
         presentUnreadCareNoticeForPerson(p.name);
         render();
+        toast(`已切换至「${p.name}」（${personHasVip(p.name) ? "VIP 会员" : "免费用户"}）`);
       },
       openAddGuardianSheet() {
         ensureCareGraph();
@@ -6812,14 +6850,11 @@
         if (S.gen === "0.0") {
           S.vip = false;
           S.vipUntil = null;
-        } else if (!S.vip) {
-          const d = new Date();
-          d.setFullYear(d.getFullYear() + 1);
-          S.vip = true;
-          S.vipUntil = d.getTime();
+        } else {
+          syncPersonVipState(S.currentPersonName);
         }
         closeOverlay();
-        toast(`设计版本 V${S.gen}｜${genIsV01() && S.vip ? "VIP 已开通状态" : "非 VIP 状态（点按购买横幅或加锁项进入 VIP 购买界面）"}`);
+        toast(`设计版本 V${S.gen}｜${genIsV01() && S.vip ? "VIP 已开通状态" : "免费用户状态（点按购买横幅或加锁项进入 VIP 购买界面）"}`);
       },
       // 真机 V10.52 起调试菜单不再切方案（TodaySchemeFourView 只留文件、不再是首页），
       // 本原型的入口已撤，渲染与状态留档——要临时预览方案四，把开发菜单那两行加回来即可。
@@ -7196,7 +7231,14 @@
           toast("每个人最多只能有 5 个家属");
           return;
         }
-        const targetP = ensureDemoPersonExists(name, phone, rel === "配偶" && me.gender === "男" ? "女" : "男", 55);
+        const isNewlyCreated = !(S.demoPeople || []).some((p) => p.name === name);
+        const targetP = ensureDemoPersonExists(name, phone, rel === "配偶" && me.gender === "男" && name !== "陈建华" ? "女" : "男", 55);
+        // 新绑定的用户默认设为免费用户（未购买 VIP）
+        if (isNewlyCreated && targetP.name !== "李建国") {
+          S.vipByPerson[targetP.name] = false;
+        } else if (S.vipByPerson[targetP.name] === undefined && targetP.name !== "李建国") {
+          S.vipByPerson[targetP.name] = false;
+        }
         if (confirmedFamilyBondsFor(targetP.name).length >= 5) {
           toast("对方已满 5 个家属，无法继续绑定");
           return;
@@ -9558,12 +9600,15 @@
 
     profile: () => {
       ensureCareGraph();
+      syncPersonVipState(S.currentPersonName);
       const isVip = genHasVip();
       const curPerson = currentDemoPerson();
       const myGuardians = myGuardiansList(curPerson.name);
       const myWards = myWardsList(curPerson.name);
       const curBmi = ((curPerson.weight || 70) / Math.pow((curPerson.height || 170) / 100, 2)).toFixed(1);
-      const otherUnread = 0;
+      const otherUnread = (S.demoPeople || [])
+        .filter((p) => p.name !== curPerson.name)
+        .reduce((sum, p) => sum + pendingFamilyEventCountFor(p.name), 0);
       const guardianRowsHTML = myGuardians.length ? myGuardians.map((b) => {
         const needsMyConfirm = !b.confirmed && b.initiatedBy === "guardian";
         const badgeText = b.confirmed ? "" : (needsMyConfirm ? "待我确认" : "待对方确认");
@@ -9623,7 +9668,9 @@
                 <div style="min-width:0">
                   <div style="display:flex;align-items:center;gap:6px;white-space:nowrap">
                     <span class="s18 fb">${esc(curPerson.name)}</span>
-                    ${isVip ? `<span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.crown} VIP</span>` : ""}
+                    ${isVip
+                      ? `<span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.crown} VIP</span>`
+                      : (genIsV01() ? `<span class="vip-badge-pill" style="color:rgba(255,255,255,.95);background:rgba(255,255,255,.22)">免费用户</span>` : "")}
                   </div>
                   <div style="display:flex;align-items:center;gap:6px;margin-top:5px;white-space:nowrap">
                     <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.18);padding:2.5px 8px;border-radius:999px">${esc(curPerson.gender)}</span>
@@ -14352,8 +14399,9 @@
           <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
             ${S.demoPeople.map((p) => {
               const isCur = p.name === S.currentPersonName;
-              const unread = unreadPopupCountForPerson(p.name);
+              const unread = pendingFamilyEventCountFor(p.name);
               const famCount = confirmedFamilyBondsFor(p.name).length;
+              const pVip = personHasVip(p.name);
               return `
                 <button type="button" data-act="switchDemoPerson" data-name="${esc(p.name)}" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;border:${isCur ? "1.5px solid rgba(16,84,224,.32)" : "1px solid transparent"};background:${isCur ? "rgba(16,84,224,.10)" : "#F5F8FF"};cursor:pointer;text-align:left;font-family:inherit;width:100%">
                   <div style="width:42px;height:42px;border-radius:999px;background:${isCur ? "var(--blue)" : "rgba(16,84,224,.12)"};color:${isCur ? "#fff" : "var(--blue)"};font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(p.name.slice(0, 1))}</div>
@@ -14361,8 +14409,11 @@
                     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
                       <span class="s17 fb t">${esc(p.name)}</span>
                       <span style="font-size:12px;font-weight:600;color:var(--sec)">${esc(p.gender)} · ${p.age}岁</span>
+                      ${pVip
+                        ? `<span style="padding:2px 7px;border-radius:999px;background:#FEF3C7;color:#B45309;font-size:10.5px;font-weight:700">👑 VIP</span>`
+                        : `<span style="padding:2px 7px;border-radius:999px;background:#F1F5F9;color:#475569;font-size:10.5px;font-weight:700">免费用户</span>`}
                       ${isCur ? `<span style="padding:2px 7px;border-radius:999px;background:var(--blue);color:#fff;font-size:11px;font-weight:700">当前主角</span>` : ""}
-                      ${unread > 0 ? `<span style="padding:2px 7px;border-radius:999px;background:#EF4444;color:#fff;font-size:11px;font-weight:700">${unread} 条绑定待处理</span>` : ""}
+                      ${unread > 0 ? `<span style="padding:2px 7px;border-radius:999px;background:#EF4444;color:#fff;font-size:11px;font-weight:700">${unread} 条待处理</span>` : ""}
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;margin-top:3px">
                       <span style="font-size:12.5px;font-weight:500;color:var(--sec)">${esc(p.phone)}</span>
