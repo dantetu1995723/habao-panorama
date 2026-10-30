@@ -2029,7 +2029,51 @@
     if (!S.currentPersonName) S.currentPersonName = "李建国";
     if (!S.pendingPersonPopups) S.pendingPersonPopups = {};
     if (!S.careSheetDraft) S.careSheetDraft = { name: "", phone: "", rel: "配偶" };
-    if (!S.careProxyRequests) S.careProxyRequests = [];
+    if (!S.careProxyRequests) {
+      S.careProxyRequests = [
+        {
+          id: "pr_preset_1",
+          senderName: "王芳",
+          recipientName: "李建国",
+          kind: "remind",
+          targetTaskId: "t14",
+          taskSnapshot: { id: "t14", title: "晚间散步", cat: "exercise", h: 19, m: 30, cycle: true, note: "饭后半小时慢走 20 分钟" },
+          summaryNote: "按时提醒",
+          status: "pending",
+          senderAcknowledged: false,
+          createdAt: Date.now() - 600000,
+        },
+        {
+          id: "pr_preset_2",
+          senderName: "李建国",
+          recipientName: "张桂兰",
+          kind: "checkIn",
+          targetTaskId: "zgl_t1",
+          taskSnapshot: { id: "zgl_t1", title: "晨起测血压与心率", cat: "monitoring", h: 6, m: 45, cycle: true, note: "晨起静坐5分钟后测量" },
+          summaryNote: "代为完成打卡",
+          status: "accepted",
+          senderAcknowledged: false,
+          createdAt: Date.now() - 1800000,
+        },
+      ];
+    }
+  }
+  function resolvedSelectedFamilyBondFor(personName) {
+    ensureCareGraph();
+    if (S.famIsAdding) return null;
+    const nm = personName || S.currentPersonName || "李建国";
+    const confirmed = confirmedFamilyBondsFor(nm);
+    if (!confirmed.length) return null;
+    if (S.selectedProxyFamilyName) {
+      const hit = confirmed.find((b) => bondOtherName(b, nm) === S.selectedProxyFamilyName);
+      if (hit) return hit;
+    }
+    return confirmed[0];
+  }
+  function resolvedSelectedFamilyNameFor(personName) {
+    const nm = personName || S.currentPersonName || "李建国";
+    const bond = resolvedSelectedFamilyBondFor(nm);
+    return bond ? bondOtherName(bond, nm) : null;
   }
   function incomingProxyRequestsFor(personName) {
     ensureCareGraph();
@@ -6296,7 +6340,30 @@
         ensureCareGraph();
         const famName = el.dataset.name;
         if (!famName) return;
-        S.activeProxyFamilyName = famName;
+        S.famCol = "operate";
+        S.famIsAdding = false;
+        S.selectedProxyFamilyName = famName;
+        S.proxyEditorDraft = null;
+        render();
+      },
+      pickFamCol() {
+        ensureCareGraph();
+        S.famCol = el.dataset.col || "operate";
+        S.proxyEditorDraft = null;
+        render();
+      },
+      selectActiveFam() {
+        ensureCareGraph();
+        const famName = el.dataset.name;
+        if (!famName) return;
+        S.famIsAdding = false;
+        S.selectedProxyFamilyName = famName;
+        S.proxyEditorDraft = null;
+        render();
+      },
+      toggleAddFamForm() {
+        ensureCareGraph();
+        S.famIsAdding = !S.famIsAdding;
         S.proxyEditorDraft = null;
         render();
       },
@@ -6312,7 +6379,7 @@
       sendProxyRemind() {
         ensureCareGraph();
         const me = currentDemoPerson();
-        const famName = S.activeProxyFamilyName;
+        const famName = resolvedSelectedFamilyNameFor(me.name);
         const tid = el.dataset.id;
         if (!famName || !tid) return;
         const bucket = ensurePersonStore(famName);
@@ -6332,7 +6399,7 @@
       sendProxyCheckIn() {
         ensureCareGraph();
         const me = currentDemoPerson();
-        const famName = S.activeProxyFamilyName;
+        const famName = resolvedSelectedFamilyNameFor(me.name);
         const tid = el.dataset.id;
         if (!famName || !tid) return;
         const bucket = ensurePersonStore(famName);
@@ -6387,7 +6454,8 @@
       },
       openProxyTaskEditor() {
         ensureCareGraph();
-        const famName = S.activeProxyFamilyName;
+        const me = currentDemoPerson();
+        const famName = resolvedSelectedFamilyNameFor(me.name);
         if (!famName) return;
         const tid = el.dataset.id;
         const bucket = ensurePersonStore(famName);
@@ -6486,7 +6554,9 @@
       },
       submitProxyTaskEditor() {
         ensureCareGraph();
-        if (!S.proxyEditorDraft || !S.activeProxyFamilyName) return;
+        const me = currentDemoPerson();
+        const famName = resolvedSelectedFamilyNameFor(me.name);
+        if (!S.proxyEditorDraft || !famName) return;
         const titleInput = $("input[name=proxyTitle]");
         const noteInput = $("input[name=proxyNote]");
         if (titleInput) S.proxyEditorDraft.title = titleInput.value;
@@ -6498,7 +6568,7 @@
           return;
         }
         const risk = evaluatePlanRiskFor({
-          personName: S.activeProxyFamilyName,
+          personName: famName,
           cat: d.cat,
           title: cleanTitle,
           hour: d.hour,
@@ -6526,9 +6596,9 @@
       },
       confirmProxyTaskRisk() {
         closeOverlay();
-        if (!S.proxyEditorDraft || !S.activeProxyFamilyName) return;
         const me = currentDemoPerson();
-        const famName = S.activeProxyFamilyName;
+        const famName = resolvedSelectedFamilyNameFor(me.name);
+        if (!S.proxyEditorDraft || !famName) return;
         const d = S.proxyEditorDraft;
         const isEdit = d.mode === "edit" && d.taskId;
         const taskSnap = {
@@ -6556,10 +6626,12 @@
         render();
       },
       askProxyDeleteTask() {
-        if (!S.proxyEditorDraft || !S.activeProxyFamilyName || !S.proxyEditorDraft.taskId) return;
+        const me = currentDemoPerson();
+        const famName = resolvedSelectedFamilyNameFor(me.name);
+        if (!S.proxyEditorDraft || !famName || !S.proxyEditorDraft.taskId) return;
         openOverlay("confirm", {
           title: "删除家属计划",
-          body: `确定申请删除${S.activeProxyFamilyName}的「${S.proxyEditorDraft.title}」吗？需对方在「家属管理」点击接受后才会正式删除。`,
+          body: `确定申请删除${famName}的「${S.proxyEditorDraft.title}」吗？需对方在「家属管理」点击接受后才会正式删除。`,
           cancel: "取消",
           ok: "发送删除请求",
           danger: true,
@@ -6568,9 +6640,9 @@
       },
       doProxyDeleteTask() {
         closeOverlay();
-        if (!S.proxyEditorDraft || !S.activeProxyFamilyName || !S.proxyEditorDraft.taskId) return;
         const me = currentDemoPerson();
-        const famName = S.activeProxyFamilyName;
+        const famName = resolvedSelectedFamilyNameFor(me.name);
+        if (!S.proxyEditorDraft || !famName || !S.proxyEditorDraft.taskId) return;
         const d = S.proxyEditorDraft;
         const taskSnap = {
           id: d.taskId,
@@ -7125,6 +7197,7 @@
         });
         S.famDraftName = "";
         S.famDraftPhone = "";
+        S.famIsAdding = false;
         syncLegacyListsFromBonds();
         render();
         toast(`已向${name}发送绑定请求，请切至对方测试身份点击同意/不同意`);
@@ -9759,74 +9832,172 @@
     family: () => {
       ensureCareGraph();
       const me = currentDemoPerson();
+      const col = S.famCol || "operate";
+      const incoming = incomingBindRequestsFor(me.name);
+      const incomingProxy = incomingProxyRequestsFor(me.name);
+      const returnedProxy = returnedProxyResultsFor(me.name);
+      const rejectedReturns = rejectedReturnedRequestsFor(me.name);
+      const outgoing = outgoingPendingRequestsFor(me.name);
+      const confirmed = confirmedFamilyBondsFor(me.name);
+      const occupied = occupiedFamilySlotsFor(me.name);
+      const canSendMore = occupied < 5;
+      const totalNotices = incoming.length + incomingProxy.length + returnedProxy.length + rejectedReturns.length;
 
-      // 子视图 1：本人统一操作入口 ── 查看家属计划 & 发起代办（提醒 / 打卡 / 计划增删改查）
-      if (S.activeProxyFamilyName) {
-        const famName = S.activeProxyFamilyName;
-        const stillBound = confirmedFamilyBondsFor(me.name).some((b) => bondOtherName(b, me.name) === famName);
-        if (!stillBound) {
-          S.activeProxyFamilyName = null;
-          S.proxyEditorDraft = null;
-        } else if (S.proxyEditorDraft) {
-          // 代办添加 / 编辑计划表单
-          const d = S.proxyEditorDraft;
-          const isEdit = d.mode === "edit";
-          const catOpts = [
-            ["monitoring", "测血压"],
-            ["medication", "服药"],
-            ["exercise", "运动"],
-            ["diet", "饮食"],
-            ["rest", "作息"],
-            ["appointment", "复查"],
-          ];
-          const hourOpts = [6, 7, 8, 9, 10, 12, 13, 15, 18, 19, 20, 21, 22];
-          const minOpts = [0, 15, 30, 45];
-          return `
-          <div class="page">
-            ${navBar(cap(I.chevL, "返回", "", "closeProxyTaskEditor"), isEdit ? "编辑计划" : "添加计划")}
-            <div class="scroll px24" style="padding-top:20px;padding-bottom:24px">
-              <div class="field-label">计划类别</div>
-              <div class="chips">${catOpts.map(([k, lab]) => `<button class="chip ${d.cat === k ? "on" : ""}" data-act="pickProxyCat" data-cat="${k}" type="button">${lab}</button>`).join("")}</div>
-              <div class="field-label mt16">计划名称</div>
-              <input class="field" name="proxyTitle" placeholder="输入计划名称" value="${esc(d.title || "")}" />
-              <div class="field-label mt16">计划时间（${pad(d.hour)}:${pad(d.min)}）</div>
-              <div class="chips">${hourOpts.map((h) => `<button class="chip ${Number(d.hour) === h ? "on" : ""}" data-act="pickProxyHour" data-h="${h}" type="button">${pad(h)}时</button>`).join("")}</div>
-              <div class="chips" style="margin-top:8px">${minOpts.map((m) => `<button class="chip ${Number(d.min) === m ? "on" : ""}" data-act="pickProxyMin" data-m="${m}" type="button">${pad(m)}分</button>`).join("")}</div>
-              <div class="field-label mt16">执行周期</div>
-              <div class="chips">
-                <button class="chip ${d.cycle ? "on" : ""}" data-act="pickProxyCycle" data-v="1" type="button">循环计划</button>
-                <button class="chip ${!d.cycle ? "on" : ""}" data-act="pickProxyCycle" data-v="0" type="button">单日计划</button>
+      const selectedBond = resolvedSelectedFamilyBondFor(me.name);
+      const selectedFamName = selectedBond ? bondOtherName(selectedBond, me.name) : null;
+      const showingBindForm = col === "operate" && (S.famIsAdding || !confirmed.length) && canSendMore;
+
+      if (col === "operate" && S.proxyEditorDraft && selectedFamName) {
+        const d = S.proxyEditorDraft;
+        const isEdit = d.mode === "edit";
+        const catOpts = [
+          ["monitoring", "测血压"],
+          ["medication", "服药"],
+          ["exercise", "运动"],
+          ["diet", "饮食"],
+          ["rest", "作息"],
+          ["appointment", "复查"],
+        ];
+        const hourOpts = [6, 7, 8, 9, 10, 12, 13, 15, 18, 19, 20, 21, 22];
+        const minOpts = [0, 15, 30, 45];
+        return `
+        <div class="page">
+          ${navBar(cap(I.chevL, "返回", "", "closeProxyTaskEditor"), isEdit ? "编辑计划" : "添加计划")}
+          <div class="scroll px24" style="padding-top:20px;padding-bottom:24px">
+            <div class="field-label">计划类别</div>
+            <div class="chips">${catOpts.map(([k, lab]) => `<button class="chip ${d.cat === k ? "on" : ""}" data-act="pickProxyCat" data-cat="${k}" type="button">${lab}</button>`).join("")}</div>
+            <div class="field-label mt16">计划名称</div>
+            <input class="field" name="proxyTitle" placeholder="输入计划名称" value="${esc(d.title || "")}" />
+            <div class="field-label mt16">计划时间（${pad(d.hour)}:${pad(d.min)}）</div>
+            <div class="chips">${hourOpts.map((h) => `<button class="chip ${Number(d.hour) === h ? "on" : ""}" data-act="pickProxyHour" data-h="${h}" type="button">${pad(h)}时</button>`).join("")}</div>
+            <div class="chips" style="margin-top:8px">${minOpts.map((m) => `<button class="chip ${Number(d.min) === m ? "on" : ""}" data-act="pickProxyMin" data-m="${m}" type="button">${pad(m)}分</button>`).join("")}</div>
+            <div class="field-label mt16">执行周期</div>
+            <div class="chips">
+              <button class="chip ${d.cycle ? "on" : ""}" data-act="pickProxyCycle" data-v="1" type="button">循环计划</button>
+              <button class="chip ${!d.cycle ? "on" : ""}" data-act="pickProxyCycle" data-v="0" type="button">单日计划</button>
+            </div>
+            ${d.cycle ? `
+              <div class="chips" style="margin-top:8px">
+                ${[["daily", "每日"], ["weekly", "每周"], ["monthly", "每月"]].map(([r, lab]) => `<button class="chip ${(d.rule || "daily") === r ? "on" : ""}" data-act="pickProxyRule" data-r="${r}" type="button">${lab}</button>`).join("")}
               </div>
-              ${d.cycle ? `
-                <div class="chips" style="margin-top:8px">
-                  ${[["daily", "每日"], ["weekly", "每周"], ["monthly", "每月"]].map(([r, lab]) => `<button class="chip ${(d.rule || "daily") === r ? "on" : ""}" data-act="pickProxyRule" data-r="${r}" type="button">${lab}</button>`).join("")}
+            ` : ""}
+            <div class="field-label mt16">备注说明</div>
+            <input class="field" name="proxyNote" placeholder="选填：剂量、时长或注意事项" value="${esc(d.note || "")}" />
+            ${isEdit ? `
+              <button class="cta-line mt16" data-act="askProxyDeleteTask" type="button" style="color:#DC3C3C;border-color:rgba(220,60,60,.25);background:rgba(220,60,60,.08)">删除该计划（需对方接受）</button>
+            ` : ""}
+          </div>
+          <div class="px24 flex gap8" style="padding-bottom:28px">
+            <button class="cta grow" data-act="submitProxyTaskEditor" type="button">${isEdit ? `发送修改给${esc(selectedFamName)}确认` : `发送给${esc(selectedFamName)}确认`}</button>
+          </div>
+        </div>`;
+      }
+
+      const columnSwitcherHTML = `
+        <div class="flex gap10">
+          <button type="button" data-act="pickFamCol" data-col="operate" style="flex:1;height:50px;border-radius:16px;border:0;background:${col === "operate" ? "var(--blue)" : "#fff"};color:${col === "operate" ? "#fff" : "var(--blue)"};font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(16,84,224,${col === "operate" ? ".18" : ".05"})">帮家属操作</button>
+          <button type="button" data-act="pickFamCol" data-col="notices" style="flex:1;height:50px;border-radius:16px;border:0;background:${col === "notices" ? "var(--blue)" : "#fff"};color:${col === "notices" ? "#fff" : "var(--blue)"};font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 12px rgba(16,84,224,${col === "notices" ? ".18" : ".05"})">
+            <span>收家属通知</span>
+            ${totalNotices > 0 ? `<span style="font-size:12px;font-weight:800;padding:2px 7px;border-radius:999px;background:${col === "notices" ? "#fff" : "#D97706"};color:${col === "notices" ? "var(--blue)" : "#fff"}">${totalNotices}</span>` : ""}
+          </button>
+        </div>`;
+
+      let operateBodyHTML = "";
+      if (col === "operate") {
+        const selectorStripHTML = confirmed.length ? `
+          <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:2px;margin-top:16px">
+            ${confirmed.map((b) => {
+              const other = bondOtherName(b, me.name);
+              const rel = bondRelationForViewer(b, me.name);
+              const on = !S.famIsAdding && selectedFamName === other;
+              return `<button type="button" data-act="selectActiveFam" data-name="${esc(other)}" style="flex-shrink:0;height:44px;padding:0 16px;border-radius:14px;border:0;background:${on ? "var(--blue)" : "#fff"};color:${on ? "#fff" : "var(--blue)"};font-size:15.5px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;box-shadow:0 3px 10px rgba(16,84,224,${on ? ".18" : ".05"})">
+                <span>${esc(other)}</span>
+                <span style="font-size:13px;font-weight:600;opacity:${on ? ".9" : ".72"}">${esc(rel)}</span>
+              </button>`;
+            }).join("")}
+            ${canSendMore ? `
+              <button type="button" data-act="toggleAddFamForm" style="flex-shrink:0;height:44px;padding:0 14px;border-radius:14px;border:0;background:${S.famIsAdding ? "var(--blue)" : "#fff"};color:${S.famIsAdding ? "#fff" : "var(--blue)"};font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 3px 10px rgba(16,84,224,${S.famIsAdding ? ".18" : ".05"})">${S.famIsAdding ? "× 收起绑定" : "+ 绑定家属"}</button>
+            ` : ""}
+          </div>` : "";
+
+        const outgoingRowsHTML = outgoing.map((b) => {
+          const other = bondOtherName(b, me.name);
+          const rel = bondRelationForViewer(b, me.name);
+          const ph = bondOtherPhone(b, me.name);
+          return `
+            <div class="plan-row mt12">
+              <div class="grow">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span class="s18 fb t">${esc(other)}</span>
+                  <span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:2px 8px;border-radius:999px">待对方确认</span>
                 </div>
-              ` : ""}
-              <div class="field-label mt16">备注说明</div>
-              <input class="field" name="proxyNote" placeholder="选填：剂量、时长或注意事项" value="${esc(d.note || "")}" />
-              ${isEdit ? `
-                <button class="cta-line mt16" data-act="askProxyDeleteTask" type="button" style="color:#DC3C3C;border-color:rgba(220,60,60,.25);background:rgba(220,60,60,.08)">删除该计划（需对方接受）</button>
-              ` : ""}
-            </div>
-            <div class="px24 flex gap8" style="padding-bottom:28px">
-              <button class="cta grow" data-act="submitProxyTaskEditor" type="button">${isEdit ? `发送修改给${esc(famName)}确认` : `发送给${esc(famName)}确认`}</button>
-            </div>
-          </div>`;
-        } else {
-          const bucket = ensurePersonStore(famName);
+                <div class="s14 t-sec" style="margin-top:2px">${esc(rel)}　${esc(ph)}</div>
+              </div>
+              <button class="cap blue" data-act="askRemoveCareBond" data-id="${b.id}" type="button">撤回</button>
+            </div>`;
+        }).join("");
+
+        if (showingBindForm) {
+          operateBodyHTML = `
+            ${selectorStripHTML}
+            ${outgoingRowsHTML}
+            <div style="margin-top:16px">
+              <div class="field-label">姓名</div>
+              <input class="field" name="fname" placeholder="姓名" value="${esc(S.famDraftName || "")}" />
+              <div class="field-label mt16">关系</div>
+              <div class="chips">${["配偶", "子女", "父母", "其他"].map((r) => `<button class="chip ${(S.famRel || "配偶") === r ? "on" : ""}" data-act="pickRel" data-r="${r}" type="button">${r}</button>`).join("")}</div>
+              <div class="field-label mt16">手机号</div>
+              <input class="field" name="fphone" maxlength="11" placeholder="11 位手机号" value="${esc(S.famDraftPhone || "")}" />
+            </div>`;
+        } else if (selectedBond && selectedFamName) {
+          const rel = bondRelationForViewer(selectedBond, me.name);
+          const ph = bondOtherPhone(selectedBond, me.name);
+          const activeFamHeaderHTML = `
+            <div class="plan-row mt12">
+              <div class="grow">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span class="s18 fb t">${esc(selectedFamName)}</span>
+                  <span style="font-size:11px;font-weight:700;color:#1AA64A;background:rgba(26,166,74,.12);padding:2px 8px;border-radius:999px">已绑定</span>
+                </div>
+                <div class="s14 t-sec" style="margin-top:2px">${esc(rel)}　${esc(ph)}</div>
+              </div>
+              <button class="cap blue" data-act="askRemoveCareBond" data-id="${selectedBond.id}" type="button">解除</button>
+            </div>`;
+
+          const pendingCreates = outgoingPendingProxyFor(me.name, selectedFamName).filter((r) => r.kind === "createPlan");
+          const pendingCreateRowsHTML = pendingCreates.map((r) => {
+            const snap = r.taskSnapshot || {};
+            const hm = `${pad(snap.h ?? 8)}:${pad(snap.m ?? 0)}`;
+            const catLabel = CAT[snap.cat]?.chip || "事项";
+            return `
+              <div class="plan-row mt12">
+                <div class="grow" style="min-width:0">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <span class="s18 fb t">${hm} ${esc(snap.title || "新计划")}</span>
+                    <span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:2px 8px;border-radius:999px">新增待接受</span>
+                  </div>
+                  <div class="s14 t-sec" style="margin-top:2px">${esc(catLabel)} · ${snap.cycle === false ? "单日" : "循环"}</div>
+                </div>
+                <button class="cap blue" data-act="withdrawProxyReq" data-id="${r.id}" type="button">撤回</button>
+              </div>`;
+          }).join("");
+
+          const bucket = ensurePersonStore(selectedFamName);
           const famTasks = (bucket.tasks || []).slice().sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
           const compMap = bucket.completed || {};
-          const taskRows = famTasks.map((t) => {
+          const taskRowsHTML = famTasks.map((t) => {
             const done = !!compMap[t.id];
-            const pendingReq = pendingProxyRequestForTask(t.id, me.name, famName);
+            const pendingReq = pendingProxyRequestForTask(t.id, me.name, selectedFamName);
             const catLabel = CAT[t.cat]?.chip || "事项";
-            const cycleLabel = t.cycle === false ? "单日" : "每日";
+            const cycleLabel = t.cycle === false ? "单日" : "循环";
             const hm = `${pad(t.h ?? 8)}:${pad(t.m ?? 0)}`;
             let badgeHtml = "";
             if (done) {
               badgeHtml = `<span style="font-size:11px;font-weight:700;color:#1AA64A;background:rgba(26,166,74,.12);padding:2px 8px;border-radius:999px">已完成</span>`;
             } else if (pendingReq) {
-              badgeHtml = `<span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:2px 8px;border-radius:999px">待接受：${esc(proxyActionLabel(pendingReq.kind))}</span>`;
+              badgeHtml = `<span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:2px 8px;border-radius:999px">${esc(proxyActionLabel(pendingReq.kind))}待接受</span>`;
+            } else {
+              badgeHtml = `<span style="font-size:11px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 8px;border-radius:999px">${esc(catLabel)}</span>`;
             }
             let actionsHtml = "";
             if (pendingReq) {
@@ -9844,10 +10015,10 @@
               <div class="plan-row mt12">
                 <div class="grow" style="min-width:0">
                   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                    <span class="s18 fb t">${esc(t.title)}</span>
+                    <span class="s18 fb t">${hm} ${esc(t.title)}</span>
                     ${badgeHtml}
                   </div>
-                  <div class="s14 t-sec" style="margin-top:2px">${hm} · ${esc(catLabel)} · ${cycleLabel}</div>
+                  <div class="s14 t-sec" style="margin-top:2px">${esc(catLabel)} · ${cycleLabel}${t.note ? ` · ${esc(t.note)}` : ""}</div>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
                   ${actionsHtml}
@@ -9855,141 +10026,117 @@
               </div>`;
           }).join("");
 
-          return `
-          <div class="page">
-            ${navBar(cap(I.chevL, "返回", "", "closeFamilyProxyView"), `${esc(famName)}的计划`)}
-            <div class="scroll px24" style="padding-top:20px;padding-bottom:24px">
-              ${taskRows || `<div class="plan-row mt12"><div class="grow"><div class="s18 fb t">暂无康复计划</div><div class="s14 t-sec" style="margin-top:2px">点击下方按钮为${esc(famName)}添加计划</div></div></div>`}
-            </div>
-            <div class="px24 flex gap8" style="padding-bottom:28px">
-              <button class="cta grow" data-act="openProxyTaskEditor" type="button">添加计划</button>
-            </div>
-          </div>`;
+          operateBodyHTML = `
+            ${selectorStripHTML}
+            ${outgoingRowsHTML}
+            ${activeFamHeaderHTML}
+            ${pendingCreateRowsHTML}
+            ${taskRowsHTML}
+          `;
         }
       }
 
-      const incoming = incomingBindRequestsFor(me.name);
-      const incomingProxy = incomingProxyRequestsFor(me.name);
-      const returnedProxy = returnedProxyResultsFor(me.name);
-      const rejectedReturns = rejectedReturnedRequestsFor(me.name);
-      const outgoing = outgoingPendingRequestsFor(me.name);
-      const confirmed = confirmedFamilyBondsFor(me.name);
-      const occupied = occupiedFamilySlotsFor(me.name);
-      const canSendMore = occupied < 5;
-
-      const incomingRows = incoming.map((b) => {
-        const other = bondOtherName(b, me.name);
-        const rel = bondRelationForViewer(b, me.name);
-        const ph = bondOtherPhone(b, me.name);
-        return `
-          <div class="plan-row mt12">
-            <div class="grow">
-              <div style="display:flex;align-items:center;gap:8px">
-                <span class="s18 fb t">${esc(other)}</span>
-                <span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:2px 8px;border-radius:999px">待我确认</span>
+      let noticesBodyHTML = "";
+      if (col === "notices") {
+        const incomingRows = incoming.map((b) => {
+          const other = bondOtherName(b, me.name);
+          const rel = bondRelationForViewer(b, me.name);
+          const ph = bondOtherPhone(b, me.name);
+          return `
+            <div class="plan-row mt12">
+              <div class="grow">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span class="s18 fb t">${esc(other)}</span>
+                  <span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:2px 8px;border-radius:999px">绑定待确认</span>
+                </div>
+                <div class="s14 t-sec" style="margin-top:2px">${esc(rel)}　${esc(ph)}</div>
               </div>
-              <div class="s14 t-sec" style="margin-top:2px">${esc(rel)}　${esc(ph)}</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-              <button class="cap blue" data-act="rejectCareBond" data-id="${b.id}" type="button">不同意</button>
-              <button class="cap" data-act="acceptCareBond" data-id="${b.id}" type="button" style="background:var(--blue);color:#fff;border:0">同意</button>
-            </div>
+              <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+                <button class="cap blue" data-act="rejectCareBond" data-id="${b.id}" type="button">不同意</button>
+                <button class="cap" data-act="acceptCareBond" data-id="${b.id}" type="button" style="background:var(--blue);color:#fff;border:0">同意</button>
+              </div>
+            </div>`;
+        }).join("");
+
+        const incomingProxyRows = incomingProxy.map((r) => `
+            <div class="plan-row mt12">
+              <div class="grow" style="min-width:0">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <span class="s18 fb t">${esc(r.senderName)}</span>
+                  <span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:2px 8px;border-radius:999px">${esc(proxyActionLabel(r.kind))}</span>
+                </div>
+                <div class="s14 t-sec" style="margin-top:2px">${esc(proxyDetailLine(r))}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+                <button class="cap blue" data-act="rejectProxyReq" data-id="${r.id}" type="button">不接受</button>
+                <button class="cap" data-act="acceptProxyReq" data-id="${r.id}" type="button" style="background:var(--blue);color:#fff;border:0">接受</button>
+              </div>
+            </div>`).join("");
+
+        const returnedProxyRows = returnedProxy.map((r) => {
+          const isAcc = r.status === "accepted";
+          const badgeFg = isAcc ? "#1AA64A" : "#DC3C3C";
+          const badgeBg = isAcc ? "rgba(26,166,74,.12)" : "rgba(220,60,60,.12)";
+          return `
+            <div class="plan-row mt12">
+              <div class="grow" style="min-width:0">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <span class="s18 fb t">${esc(r.recipientName)}</span>
+                  <span style="font-size:11px;font-weight:700;color:${badgeFg};background:${badgeBg};padding:2px 8px;border-radius:999px">${isAcc ? "对方已接受" : "对方不接受"}</span>
+                </div>
+                <div class="s14 t-sec" style="margin-top:2px">${esc(proxyActionLabel(r.kind))} · ${esc(proxyDetailLine(r))}</div>
+              </div>
+              <button class="cap blue" data-act="ackProxyReturn" data-id="${r.id}" type="button">删除</button>
+            </div>`;
+        }).join("");
+
+        const rejectedRows = rejectedReturns.map((b) => {
+          const other = bondOtherName(b, me.name);
+          const rel = bondRelationForViewer(b, me.name);
+          const ph = bondOtherPhone(b, me.name);
+          return `
+            <div class="plan-row mt12">
+              <div class="grow">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span class="s18 fb t">${esc(other)}</span>
+                  <span style="font-size:11px;font-weight:700;color:#DC3C3C;background:rgba(220,60,60,.12);padding:2px 8px;border-radius:999px">对方不同意</span>
+                </div>
+                <div class="s14 t-sec" style="margin-top:2px">${esc(rel)}　${esc(ph)}</div>
+              </div>
+              <button class="cap blue" data-act="ackCareReturn" data-id="${b.id}" type="button">删除</button>
+            </div>`;
+        }).join("");
+
+        const allNoticeRows = incomingRows + incomingProxyRows + returnedProxyRows + rejectedRows;
+        noticesBodyHTML = allNoticeRows || `
+          <div class="plan-row mt12">
+            <div class="grow"><div class="s16 fb t-sec">暂无家属通知</div></div>
           </div>`;
-      }).join("");
+      }
 
-      const incomingProxyRows = incomingProxy.map((r) => `
-          <div class="plan-row mt12">
-            <div class="grow" style="min-width:0">
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                <span class="s16 fb t">${esc(proxyIncomingTitle(r))}</span>
-                <span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:2px 8px;border-radius:999px">待我确认</span>
-              </div>
-              <div class="s14 t-sec" style="margin-top:2px">${esc(proxyDetailLine(r))}</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-              <button class="cap blue" data-act="rejectProxyReq" data-id="${r.id}" type="button">不接受</button>
-              <button class="cap" data-act="acceptProxyReq" data-id="${r.id}" type="button" style="background:var(--blue);color:#fff;border:0">接受</button>
-            </div>
-          </div>`).join("");
-
-      const returnedProxyRows = returnedProxy.map((r) => {
-        const isAcc = r.status === "accepted";
-        const badgeFg = isAcc ? "#1AA64A" : "#DC3C3C";
-        const badgeBg = isAcc ? "rgba(26,166,74,.12)" : "rgba(220,60,60,.12)";
-        return `
-          <div class="plan-row mt12">
-            <div class="grow" style="min-width:0">
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                <span class="s16 fb t">${esc(proxyReturnedTitle(r))}</span>
-                <span style="font-size:11px;font-weight:700;color:${badgeFg};background:${badgeBg};padding:2px 8px;border-radius:999px">${isAcc ? "对方已接受" : "对方不接受"}</span>
-              </div>
-              <div class="s14 t-sec" style="margin-top:2px">${esc(proxyDetailLine(r))}</div>
-            </div>
-            <button class="cap blue" data-act="ackProxyReturn" data-id="${r.id}" type="button">删除</button>
-          </div>`;
-      }).join("");
-
-      const rejectedRows = rejectedReturns.map((b) => {
-        const other = bondOtherName(b, me.name);
-        const rel = bondRelationForViewer(b, me.name);
-        const ph = bondOtherPhone(b, me.name);
-        return `
-          <div class="plan-row mt12">
-            <div class="grow">
-              <div style="display:flex;align-items:center;gap:8px">
-                <span class="s18 fb t">${esc(other)}</span>
-                <span style="font-size:11px;font-weight:700;color:#DC3C3C;background:rgba(220,60,60,.12);padding:2px 8px;border-radius:999px">对方不同意</span>
-              </div>
-              <div class="s14 t-sec" style="margin-top:2px">${esc(rel)}　${esc(ph)}</div>
-            </div>
-            <button class="cap blue" data-act="ackCareReturn" data-id="${b.id}" type="button">删除</button>
-          </div>`;
-      }).join("");
-
-      const memberRows = [...outgoing.map((b) => ({ b, isConfirmed: false })), ...confirmed.map((b) => ({ b, isConfirmed: true }))].map(({ b, isConfirmed }) => {
-        const other = bondOtherName(b, me.name);
-        const rel = bondRelationForViewer(b, me.name);
-        const ph = bondOtherPhone(b, me.name);
-        const badgeText = isConfirmed ? "已绑定" : "待对方确认";
-        const badgeFg = isConfirmed ? "#1AA64A" : "#D97706";
-        const badgeBg = isConfirmed ? "rgba(26,166,74,.12)" : "rgba(245,158,11,.14)";
-        return `
-          <div class="plan-row mt12">
-            <div class="grow">
-              <div style="display:flex;align-items:center;gap:8px">
-                <span class="s18 fb t">${esc(other)}</span>
-                <span style="font-size:11px;font-weight:700;color:${badgeFg};background:${badgeBg};padding:2px 8px;border-radius:999px">${badgeText}</span>
-              </div>
-              <div class="s14 t-sec" style="margin-top:2px">${esc(rel)}　${esc(ph)}</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-              ${isConfirmed ? `<button class="cap" data-act="openFamilyProxyView" data-name="${esc(other)}" type="button" style="background:var(--blue);color:#fff;border:0">代办</button>` : ""}
-              <button class="cap blue" data-act="askRemoveCareBond" data-id="${b.id}" type="button">${isConfirmed ? "解除" : "撤回"}</button>
-            </div>
-          </div>`;
-      }).join("");
-
-      const hasList = !!(incomingRows || incomingProxyRows || returnedProxyRows || rejectedRows || memberRows);
+      let bottomDockHTML = "";
+      if (col === "operate") {
+        if (showingBindForm) {
+          bottomDockHTML = `
+            <div class="px24 flex gap8" style="padding-bottom:28px">
+              <button class="cta grow" data-act="bindFam" type="button">点击绑定</button>
+            </div>`;
+        } else if (selectedFamName) {
+          bottomDockHTML = `
+            <div class="px24 flex gap8" style="padding-bottom:28px">
+              <button class="cta grow" data-act="openProxyTaskEditor" type="button">为${esc(selectedFamName)}添加计划</button>
+            </div>`;
+        }
+      }
 
       return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回", "", "backFamily"), "家属管理")}
-        <div class="scroll px24" style="padding-top:20px;padding-bottom:24px">
-          ${canSendMore ? `
-            <div class="field-label">姓名</div>
-            <input class="field" name="fname" placeholder="姓名" value="${esc(S.famDraftName || "")}" />
-            <div class="field-label mt16">关系</div>
-            <div class="chips">${["配偶", "子女", "父母", "其他"].map((r) => `<button class="chip ${(S.famRel || "配偶") === r ? "on" : ""}" data-act="pickRel" data-r="${r}" type="button">${r}</button>`).join("")}</div>
-            <div class="field-label mt16">手机号</div>
-            <input class="field" name="fphone" maxlength="11" placeholder="11 位手机号" value="${esc(S.famDraftPhone || "")}" />
-          ` : ""}
-          ${hasList ? `<div style="${canSendMore ? "margin-top:12px" : ""}">${incomingRows}${incomingProxyRows}${returnedProxyRows}${rejectedRows}${memberRows}</div>` : ""}
+        <div class="scroll px24" style="padding-top:16px;padding-bottom:24px">
+          ${columnSwitcherHTML}
+          ${col === "operate" ? operateBodyHTML : noticesBodyHTML}
         </div>
-        ${canSendMore ? `
-          <div class="px24 flex gap8" style="padding-bottom:28px">
-            <button class="cta grow" data-act="bindFam" type="button">点击绑定</button>
-          </div>
-        ` : ""}
+        ${bottomDockHTML}
       </div>`;
     },
 
