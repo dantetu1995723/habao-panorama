@@ -2099,25 +2099,17 @@
     const nm = personName || S.currentPersonName || "李建国";
     const confirmedCount = confirmedFamilyBondsFor(nm).length;
     const incomingCount = incomingBindRequestsFor(nm).length;
-    const rejectedCount = rejectedReturnedRequestsFor(nm).length;
     const outgoingCount = outgoingPendingRequestsFor(nm).length;
     if (incomingCount > 0) {
       return confirmedCount > 0
-        ? `已绑定 ${confirmedCount}/5 人 · ${incomingCount} 条绑定请求待确认`
-        : `收到 ${incomingCount} 条家属绑定请求`;
-    }
-    if (rejectedCount > 0) {
-      return confirmedCount > 0
-        ? `已绑定 ${confirmedCount}/5 人 · 有绑定返回结果`
-        : "对方返回了不同意";
+        ? `已绑定 ${confirmedCount} 人 · ${incomingCount} 条待确认`
+        : `${incomingCount} 条绑定请求待确认`;
     }
     if (confirmedCount > 0) {
-      return outgoingCount > 0
-        ? `已绑定 ${confirmedCount}/5 人（互为家属）· ${outgoingCount} 人待对方确认`
-        : `已绑定 ${confirmedCount}/5 人 · 互为家属`;
+      return `已绑定 ${confirmedCount} 人`;
     }
     if (outgoingCount > 0) {
-      return `已发送 ${outgoingCount} 条绑定请求 · 待对方确认`;
+      return `待对方确认 ${outgoingCount} 人`;
     }
     return "尚未绑定家属";
   }
@@ -9203,179 +9195,88 @@
       ensureCareGraph();
       const me = currentDemoPerson();
       const incoming = incomingBindRequestsFor(me.name);
-      const acceptedReturns = acceptedReturnedBondsFor(me.name);
       const rejectedReturns = rejectedReturnedRequestsFor(me.name);
       const outgoing = outgoingPendingRequestsFor(me.name);
       const confirmed = confirmedFamilyBondsFor(me.name);
       const occupied = occupiedFamilySlotsFor(me.name);
       const canSendMore = occupied < 5;
 
-      const activeForMe = S.careBonds.filter((b) => b.status !== "rejected" && bondInvolves(b, me.name));
-      const candidatePresets = S.demoPeople.filter((p) =>
-        p.name !== me.name && !activeForMe.some((b) => bondOtherName(b, me.name) === p.name)
-      );
-
-      const incomingHTML = incoming.length ? `
-        <div style="margin-top:16px">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-            <span class="s17 fb t">收到绑定请求</span>
-            <span style="font-size:11px;font-weight:800;color:#fff;background:#EA580C;padding:1.5px 7px;border-radius:999px">${incoming.length}</span>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:10px">
-            ${incoming.map((b) => {
-              const reqName = b.initiatedByName || b.wardName;
-              const myRel = bondRelationForViewer(b, me.name);
-              const ph = bondOtherPhone(b, me.name);
-              return `
-                <div style="padding:14px;border-radius:16px;background:#fff;border:1.2px solid rgba(16,84,224,.18);box-shadow:0 4px 10px rgba(16,84,224,.06)">
-                  <div style="display:flex;align-items:center;gap:10px">
-                    <div style="width:40px;height:40px;border-radius:999px;background:rgba(16,84,224,.12);color:var(--blue);font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(reqName.slice(0, 1))}</div>
-                    <div style="min-width:0;flex:1">
-                      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-                        <span class="s18 fb t">${esc(reqName)}</span>
-                        <span style="font-size:11.5px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 7px;border-radius:999px">${esc(myRel)}</span>
-                        <span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.15);padding:2px 7px;border-radius:999px">绑定请求</span>
-                      </div>
-                      <div style="font-size:13px;color:var(--sec);margin-top:3px">${esc(ph)} · 请求与你绑定互为家属</div>
-                    </div>
-                  </div>
-                  <div style="display:flex;gap:10px;margin-top:12px">
-                    <button type="button" data-act="rejectCareBond" data-id="${b.id}" style="flex:1;height:42px;border-radius:12px;border:0;background:rgba(220,60,60,.10);color:#DC3C3C;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">不同意</button>
-                    <button type="button" data-act="acceptCareBond" data-id="${b.id}" style="flex:1;height:42px;border-radius:12px;border:0;background:var(--blue);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">同意</button>
-                  </div>
-                </div>`;
-            }).join("")}
-          </div>
-        </div>` : "";
-
-      const returnedHTML = (acceptedReturns.length || rejectedReturns.length) ? `
-        <div style="margin-top:16px">
-          <div class="s17 fb t" style="margin-bottom:8px">绑定请求返回结果</div>
-          <div style="display:flex;flex-direction:column;gap:10px">
-            ${acceptedReturns.map((b) => {
-              const other = bondOtherName(b, me.name);
-              return `
-                <div style="display:flex;align-items:center;gap:10px;padding:13px 14px;border-radius:16px;background:#fff;box-shadow:0 3px 8px rgba(16,84,224,.05)">
-                  <span style="color:#1AA64A;font-weight:800;font-size:18px">✓</span>
-                  <div style="min-width:0;flex:1">
-                    <div style="font-size:15px;font-weight:700;color:var(--blue)">${esc(other)}已同意你的绑定请求</div>
-                    <div style="font-size:12.5px;color:var(--sec);margin-top:2px">同意绑定后，你们双方现已互为家属</div>
-                  </div>
-                  <button type="button" data-act="ackCareReturn" data-id="${b.id}" class="cap blue">知道了</button>
-                </div>`;
-            }).join("")}
-            ${rejectedReturns.map((b) => {
-              const other = bondOtherName(b, me.name);
-              const rel = bondRelationForViewer(b, me.name);
-              const ph = bondOtherPhone(b, me.name);
-              return `
-                <div style="display:flex;align-items:center;gap:10px;padding:13px 14px;border-radius:16px;background:#fff;box-shadow:0 3px 8px rgba(16,84,224,.05)">
-                  <span style="color:#DC3C3C;font-weight:800;font-size:18px">✕</span>
-                  <div style="min-width:0;flex:1">
-                    <div style="display:flex;align-items:center;gap:6px">
-                      <span style="font-size:15.5px;font-weight:700;color:var(--blue)">${esc(other)}（${esc(rel)}）</span>
-                      <span style="font-size:11px;font-weight:700;color:#DC3C3C;background:rgba(220,60,60,.12);padding:2px 7px;border-radius:999px">不同意返回</span>
-                    </div>
-                    <div style="font-size:12.5px;color:var(--sec);margin-top:2px">${esc(ph)} · 对方返回了「不同意」，本次绑定未生效</div>
-                  </div>
-                  <button type="button" data-act="ackCareReturn" data-id="${b.id}" class="cap blue">知道了</button>
-                </div>`;
-            }).join("")}
-          </div>
-        </div>` : "";
-
-      const bondRowHTML = (b, isConfirmed) => {
+      const incomingRows = incoming.map((b) => {
         const other = bondOtherName(b, me.name);
         const rel = bondRelationForViewer(b, me.name);
         const ph = bondOtherPhone(b, me.name);
-        const badgeText = isConfirmed ? "互为家属" : "绑定请求已发 · 待对方确认";
+        return `
+          <div class="plan-row mt12">
+            <div class="grow">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span class="s18 fb t">${esc(other)}</span>
+                <span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:2px 8px;border-radius:999px">待我确认</span>
+              </div>
+              <div class="s14 t-sec" style="margin-top:2px">${esc(rel)}　${esc(ph)}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+              <button class="cap blue" data-act="rejectCareBond" data-id="${b.id}" type="button">不同意</button>
+              <button class="cap" data-act="acceptCareBond" data-id="${b.id}" type="button" style="background:var(--blue);color:#fff;border:0">同意</button>
+            </div>
+          </div>`;
+      }).join("");
+
+      const rejectedRows = rejectedReturns.map((b) => {
+        const other = bondOtherName(b, me.name);
+        const rel = bondRelationForViewer(b, me.name);
+        const ph = bondOtherPhone(b, me.name);
+        return `
+          <div class="plan-row mt12">
+            <div class="grow">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span class="s18 fb t">${esc(other)}</span>
+                <span style="font-size:11px;font-weight:700;color:#DC3C3C;background:rgba(220,60,60,.12);padding:2px 8px;border-radius:999px">对方不同意</span>
+              </div>
+              <div class="s14 t-sec" style="margin-top:2px">${esc(rel)}　${esc(ph)}</div>
+            </div>
+            <button class="cap blue" data-act="ackCareReturn" data-id="${b.id}" type="button">删除</button>
+          </div>`;
+      }).join("");
+
+      const memberRows = [...outgoing.map((b) => ({ b, isConfirmed: false })), ...confirmed.map((b) => ({ b, isConfirmed: true }))].map(({ b, isConfirmed }) => {
+        const other = bondOtherName(b, me.name);
+        const rel = bondRelationForViewer(b, me.name);
+        const ph = bondOtherPhone(b, me.name);
+        const badgeText = isConfirmed ? "已绑定" : "待对方确认";
         const badgeFg = isConfirmed ? "#1AA64A" : "#D97706";
         const badgeBg = isConfirmed ? "rgba(26,166,74,.12)" : "rgba(245,158,11,.14)";
         return `
-          <div class="plan-row" style="margin-top:0">
-            <div style="width:40px;height:40px;border-radius:999px;background:rgba(16,84,224,.10);color:var(--blue);font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:10px">${esc(other.slice(0, 1))}</div>
+          <div class="plan-row mt12">
             <div class="grow">
-              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <div style="display:flex;align-items:center;gap:8px">
                 <span class="s18 fb t">${esc(other)}</span>
-                <span style="font-size:11.5px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 7px;border-radius:999px">${esc(rel)}</span>
                 <span style="font-size:11px;font-weight:700;color:${badgeFg};background:${badgeBg};padding:2px 8px;border-radius:999px">${badgeText}</span>
               </div>
-              <div class="s14 t-sec" style="margin-top:3px">${esc(ph)}</div>
+              <div class="s14 t-sec" style="margin-top:2px">${esc(rel)}　${esc(ph)}</div>
             </div>
             <button class="cap blue" data-act="askRemoveCareBond" data-id="${b.id}" type="button">${isConfirmed ? "解除" : "撤回"}</button>
           </div>`;
-      };
+      }).join("");
+
+      const hasList = !!(incomingRows || rejectedRows || memberRows);
 
       return `
       <div class="page">
-        ${navBar(
-          cap(I.chevL, "返回", "", "backFamily"),
-          "家属管理",
-          `<button class="cap" data-act="openDemoPersonSheet" type="button" title="切换测试身份（体验本人与家属双向绑定）">测试身份：${esc(me.name)} ▾</button>`
-        )}
-        <div class="scroll px20" style="padding-top:14px;padding-bottom:24px">
-          <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;background:#fff;box-shadow:0 3px 8px rgba(16,84,224,.05)">
-            <div style="width:38px;height:38px;border-radius:999px;background:rgba(16,84,224,.10);color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0">${I.two}</div>
-            <div style="min-width:0;flex:1">
-              <div style="display:flex;align-items:center;gap:6px">
-                <span style="font-size:15px;font-weight:800;color:var(--blue)">绑定后双方互为家属</span>
-                <span style="font-size:11px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 7px;border-radius:999px">已绑 ${confirmed.length}/5</span>
-              </div>
-              <div style="font-size:12px;color:var(--sec);margin-top:3px;line-height:1.4">本人发送绑定请求 → 家属同意/不同意返回 → 同意绑定后互为家属（每人最多 5 个家属）</div>
-            </div>
-          </div>
-
-          ${incomingHTML}
-          ${returnedHTML}
-
-          <div style="margin-top:18px">
-            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
-              <span class="s17 fb t">我的家属（${confirmed.length}/5）</span>
-              <span style="font-size:12.5px;color:${outgoing.length ? "#D97706" : "var(--sec)"};font-weight:${outgoing.length ? "600" : "500"}">${outgoing.length ? `另有 ${outgoing.length} 人待对方确认` : "每人最多 5 个家属"}</span>
-            </div>
-            ${(!confirmed.length && !outgoing.length) ? `
-              <div style="padding:15px;border-radius:16px;background:#fff;color:var(--sec);font-size:14px">尚未绑定家属。在下方发起绑定请求，对方同意后双方即互为家属。</div>
-            ` : `
-              <div style="display:flex;flex-direction:column;gap:10px">
-                ${outgoing.map((b) => bondRowHTML(b, false)).join("")}
-                ${confirmed.map((b) => bondRowHTML(b, true)).join("")}
-              </div>
-            `}
-          </div>
-
+        ${navBar(cap(I.chevL, "返回", "", "backFamily"), "家属管理")}
+        <div class="scroll px24" style="padding-top:20px;padding-bottom:24px">
           ${canSendMore ? `
-            <div style="margin-top:20px">
-              <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px">
-                <span class="s17 fb t">添加家属（发送绑定请求）</span>
-                <span style="font-size:12.5px;font-weight:600;color:var(--blue)">还可绑定 ${Math.max(0, 5 - occupied)} 人</span>
-              </div>
-              ${candidatePresets.length ? `
-                <div style="margin-bottom:12px">
-                  <div style="font-size:12.5px;font-weight:600;color:var(--sec);margin-bottom:6px">快捷填入测试家属（点按自动填入，也可手动输入）</div>
-                  <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
-                    ${candidatePresets.map((p) => {
-                      const presetRel = p.name === "王芳" ? "配偶" : (p.name === "张桂兰" ? "父母" : (p.name === "李浩然" ? "子女" : "其他"));
-                      return `<button type="button" data-act="fillFamPreset" data-name="${esc(p.name)}" data-phone="${esc(p.phoneRaw)}" data-rel="${presetRel}" style="border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:999px;cursor:pointer;white-space:nowrap;font-family:inherit">+ ${esc(p.name)}（${esc(p.phone)}）</button>`;
-                    }).join("")}
-                  </div>
-                </div>
-              ` : ""}
-              <div class="field-label">家属姓名</div>
-              <input class="field" name="fname" placeholder="请输入家属姓名" value="${esc(S.famDraftName || "")}" />
-              <div class="field-label mt16">关系</div>
-              <div class="chips">${["配偶", "子女", "父母", "其他"].map((r) => `<button class="chip ${(S.famRel || "配偶") === r ? "on" : ""}" data-act="pickRel" data-r="${r}" type="button">${r}</button>`).join("")}</div>
-              <div class="field-label mt16">家属手机号</div>
-              <input class="field" name="fphone" maxlength="11" placeholder="11 位手机号" value="${esc(S.famDraftPhone || "")}" />
-            </div>
-          ` : `
-            <div style="margin-top:20px;padding:15px;border-radius:16px;background:#fff;color:var(--sec);font-size:13.5px;line-height:1.5">
-              当前已达 5 位家属上限（含待确认请求）。每个人最多只能有 5 个家属，如需添加新家属请先解除或撤回现有记录。
-            </div>
-          `}
+            <div class="field-label">姓名</div>
+            <input class="field" name="fname" placeholder="姓名" value="${esc(S.famDraftName || "")}" />
+            <div class="field-label mt16">关系</div>
+            <div class="chips">${["配偶", "子女", "父母", "其他"].map((r) => `<button class="chip ${(S.famRel || "配偶") === r ? "on" : ""}" data-act="pickRel" data-r="${r}" type="button">${r}</button>`).join("")}</div>
+            <div class="field-label mt16">手机号</div>
+            <input class="field" name="fphone" maxlength="11" placeholder="11 位手机号" value="${esc(S.famDraftPhone || "")}" />
+          ` : ""}
+          ${hasList ? `<div style="${canSendMore ? "margin-top:12px" : ""}">${incomingRows}${rejectedRows}${memberRows}</div>` : ""}
         </div>
         ${canSendMore ? `
-          <div class="px20 flex gap8" style="padding-bottom:24px">
-            <button class="cta grow" data-act="bindFam" type="button">发送绑定请求</button>
+          <div class="px24 flex gap8" style="padding-bottom:28px">
+            <button class="cta grow" data-act="bindFam" type="button">点击绑定</button>
           </div>
         ` : ""}
       </div>`;
