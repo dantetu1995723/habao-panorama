@@ -9993,7 +9993,7 @@
           <button type="button" data-act="pickFamCol" data-col="operate" style="flex:1;height:50px;border-radius:16px;border:0;background:${col === "operate" ? "var(--blue)" : "#fff"};color:${col === "operate" ? "#fff" : "var(--blue)"};font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(16,84,224,${col === "operate" ? ".18" : ".05"})">帮家属操作</button>
           <button type="button" data-act="pickFamCol" data-col="notices" style="flex:1;height:50px;border-radius:16px;border:0;background:${col === "notices" ? "var(--blue)" : "#fff"};color:${col === "notices" ? "#fff" : "var(--blue)"};font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 12px rgba(16,84,224,${col === "notices" ? ".18" : ".05"})">
             <span>收家属通知</span>
-            ${totalNotices > 0 ? `<span style="font-size:12px;font-weight:800;padding:2px 7px;border-radius:999px;background:${col === "notices" ? "#fff" : "#D97706"};color:${col === "notices" ? "var(--blue)" : "#fff"}">${totalNotices}</span>` : ""}
+            ${totalNotices > 0 ? `<span style="font-size:12px;font-weight:800;padding:2px 7px;border-radius:999px;background:${col === "notices" ? "#fff" : "var(--blue)"};color:${col === "notices" ? "var(--blue)" : "#fff"}">${totalNotices}</span>` : ""}
           </button>
         </div>`;
 
@@ -10020,10 +10020,10 @@
           </div>` : "";
 
         const noticeTopBarHTML = ({ personName, relation, actionText, statusText, statusFg, statusBg }) => `
-          <div style="display:flex;align-items:center;gap:6px;padding:11px 14px 9px;border-bottom:0.8px solid rgba(16,84,224,.08)">
-            <div style="width:24px;height:24px;border-radius:50%;background:rgba(16,84,224,.10);color:var(--blue);font-size:12px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc((personName || "家").slice(0, 1))}</div>
-            <span style="font-size:14.5px;font-weight:700;color:var(--text);white-space:nowrap">${esc(personName)}</span>
-            ${relation ? `<span style="font-size:11px;font-weight:600;color:var(--secondary);background:#EDF3FF;padding:2px 6px;border-radius:6px;white-space:nowrap">${esc(relation)}</span>` : ""}
+          <div style="display:flex;align-items:center;gap:6px;padding:11px 14px 9px;border-bottom:0.8px solid rgba(16,84,224,.08);background:rgba(16,84,224,.03)">
+            <div style="width:24px;height:24px;border-radius:50%;background:rgba(16,84,224,.12);color:var(--blue);font-size:12px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc((personName || "家").slice(0, 1))}</div>
+            <span style="font-size:14.5px;font-weight:700;color:var(--blue);white-space:nowrap">${esc(personName)}</span>
+            ${relation ? `<span style="font-size:11px;font-weight:600;color:var(--blue);background:rgba(16,84,224,.08);padding:2px 6px;border-radius:999px;white-space:nowrap">${esc(relation)}</span>` : ""}
             <span style="font-size:12.5px;font-weight:600;color:var(--secondary);white-space:nowrap">· ${esc(actionText)}</span>
             <div style="flex:1"></div>
             <span style="font-size:11.5px;font-weight:700;color:${statusFg};background:${statusBg};padding:3px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><i style="width:5.5px;height:5.5px;border-radius:50%;background:${statusFg};display:inline-block"></i>${esc(statusText)}</span>
@@ -10035,9 +10035,9 @@
           const ph = bondOtherPhone(b, me.name);
           return `
             <div class="act-card mt12">
-              ${noticeTopBarHTML({ personName: other, relation: rel, actionText: "家属绑定", statusText: "待对方确认", statusFg: "#D97706", statusBg: "rgba(245,158,11,.14)" })}
+              ${noticeTopBarHTML({ personName: other, relation: rel, actionText: "家属绑定", statusText: "待对方确认", statusFg: "var(--blue)", statusBg: "rgba(16,84,224,.10)" })}
               <div class="act-card-main">
-                <div style="width:40px;height:40px;border-radius:12px;background:rgba(16,84,224,.10);color:var(--blue);font-size:16px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc(other.slice(0, 1))}</div>
+                <div style="width:40px;height:40px;border-radius:12px;background:var(--blue);color:#fff;font-size:16px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc(other.slice(0, 1))}</div>
                 <div class="grow" style="min-width:0">
                   <div class="s15 fb t" style="line-height:1.35">已发送家属绑定邀请</div>
                   <div class="act-info">
@@ -10045,10 +10045,10 @@
                     <span class="tm">手机号 ${esc(ph)}</span>
                   </div>
                 </div>
-                <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(245,158,11,.14);color:#D97706;display:grid;place-items:center">${I.clock}</span>
+                <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.clock}</span>
               </div>
               <div class="act-card-bar">
-                <button type="button" data-act="askRemoveCareBond" data-id="${b.id}" style="font-weight:700;white-space:nowrap">${I.undo}撤回绑定申请</button>
+                <button type="button" data-act="askRemoveCareBond" data-id="${b.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.undo}撤回绑定申请</button>
               </div>
             </div>`;
         }).join("");
@@ -10095,7 +10095,6 @@
             const kind = t.cat === "appointment" ? "appointment" : (t.cat || "monitoring");
             const done = !isPendingCreate && !!compMap[t.id];
             const pendingReq = isPendingCreate ? createReq : pendingProxyRequestForTask(t.id, me.name, selectedFamName);
-            const cls = done ? "done" : kind === "appointment" ? "appt" : "";
             const chip = CAT[kind]?.name || CAT[kind]?.chip || "事项";
             const isCycle = t.cycle !== false;
             const hm = `${pad(t.h ?? 8)}:${pad(t.m ?? 0)} - ${pad(((t.h ?? 8) + 1) % 24)}:${pad(t.m ?? 0)}`;
@@ -10104,16 +10103,16 @@
 
             let pendingPill = "";
             if (isPendingCreate) {
-              pendingPill = `<span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.15);padding:2px 8px;border-radius:999px;white-space:nowrap">新增待接受</span>`;
+              pendingPill = `<span style="font-size:11px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 8px;border-radius:999px;white-space:nowrap">新增待接受</span>`;
             } else if (pendingReq) {
-              pendingPill = `<span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.15);padding:2px 8px;border-radius:999px;white-space:nowrap">${esc(proxyActionLabel(pendingReq.kind))}待接受</span>`;
+              pendingPill = `<span style="font-size:11px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 8px;border-radius:999px;white-space:nowrap">${esc(proxyActionLabel(pendingReq.kind))}待接受</span>`;
             }
 
             let rightCircle = "";
             if (done) {
-              rightCircle = `<span class="act-check on" style="cursor:default">${I.check}</span>`;
+              rightCircle = `<span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</span>`;
             } else if (pendingReq) {
-              rightCircle = `<span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(245,158,11,.14);color:#D97706;display:grid;place-items:center">${I.clock}</span>`;
+              rightCircle = `<span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.clock}</span>`;
             } else {
               rightCircle = `<button class="act-check" data-act="sendProxyCheckIn" data-id="${t.id}" type="button" title="帮${esc(selectedFamName)}打卡"></button>`;
             }
@@ -10122,13 +10121,13 @@
             if (pendingReq) {
               const withdrawLabel = isPendingCreate ? "撤回新增计划请求" : `撤回${esc(proxyActionLabel(pendingReq.kind))}通知`;
               barHTML = `
-                <div class="act-card-bar" style="background:rgba(245,158,11,.08)">
-                  <button type="button" data-act="withdrawProxyReq" data-id="${pendingReq.id}" style="color:#D97706;white-space:nowrap">${I.undo}${withdrawLabel}</button>
+                <div class="act-card-bar">
+                  <button type="button" data-act="withdrawProxyReq" data-id="${pendingReq.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.undo}${withdrawLabel}</button>
                 </div>`;
             } else if (done) {
               barHTML = `
                 <div class="act-card-bar">
-                  <button type="button" data-act="openProxyTaskEditor" data-id="${t.id}" style="white-space:nowrap">${I.pencil}编辑计划</button>
+                  <button type="button" data-act="openProxyTaskEditor" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.pencil}编辑计划</button>
                 </div>`;
             } else {
               barHTML = `
@@ -10139,13 +10138,12 @@
                 </div>`;
             }
 
-            const borderOverride = pendingReq && !done ? ' style="border-color:rgba(245,158,11,.38)"' : "";
             return `
-              <div class="act-card ${cls}"${borderOverride}>
+              <div class="act-card">
                 <div class="act-card-main">
-                  <div class="badge b40 ${cls}"><img src="${A.task[kind] || A.task.monitoring}" alt="" /></div>
+                  <div class="badge b40"><img src="${A.task[kind] || A.task.monitoring}" alt="" /></div>
                   <div class="grow" style="min-width:0">
-                    <div class="s15 fb ${done ? "t-green" : kind === "appointment" ? "t-appt" : "t"}" style="line-height:1.35;word-break:break-word">${esc(t.title || "新计划")}</div>
+                    <div class="s15 fb t" style="line-height:1.35;word-break:break-word">${esc(t.title || "新计划")}</div>
                     <div class="act-info">
                       <span class="tm">${hm}</span>
                       <span class="act-chip">${isCycle ? "循环" : "单日"}</span>
@@ -10163,7 +10161,7 @@
 
           const pendingCreateSectionHTML = pendingCreates.length ? `
             <div style="margin-bottom:14px">
-              <div class="period-h" style="margin-top:2px;color:#D97706">${I.clock}新增待对方接受<span class="s12 t-sec">${pendingCreates.length} 项</span></div>
+              <div class="period-h" style="margin-top:2px;color:var(--blue)">${I.clock}新增待对方接受<span class="s12 t-sec">${pendingCreates.length} 项</span></div>
               <div class="col gap10">
                 ${pendingCreates.map((r) => renderFamilyPlanCard(r.taskSnapshot || {}, { isPendingCreate: true, createReq: r })).join("")}
               </div>
@@ -10186,7 +10184,7 @@
                     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
                       <span style="font-size:19px;font-weight:800;color:#fff;white-space:nowrap">${esc(selectedFamName)}</span>
                       <span style="font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.20);color:#fff;white-space:nowrap">${esc(rel)}</span>
-                      <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><i style="width:6px;height:6px;border-radius:50%;background:#4ADE80;display:inline-block"></i>已绑定</span>
+                      <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><i style="width:6px;height:6px;border-radius:50%;background:#fff;display:inline-block"></i>已绑定</span>
                     </div>
                     <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,.84);margin-top:4px;font-variant-numeric:tabular-nums">手机号 ${esc(ph)}</div>
                   </div>
@@ -10196,10 +10194,10 @@
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap">
                   <span style="font-size:13.5px;font-weight:700;color:#fff;white-space:nowrap">${esc(selectedFamName)}的今日计划</span>
                   <span style="font-size:12.5px;font-weight:600;color:rgba(255,255,255,.88);font-variant-numeric:tabular-nums;white-space:nowrap">已完成 ${doneCount}/${totalCount}</span>
-                  ${pendingProxyCount > 0 ? `<span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:#FEF3C7;color:#B45309;white-space:nowrap">${pendingProxyCount}项待接受</span>` : ""}
+                  ${pendingProxyCount > 0 ? `<span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(255,255,255,.20);color:#fff;white-space:nowrap">${pendingProxyCount}项待接受</span>` : ""}
                   <div style="flex:1"></div>
                   <div style="width:56px;height:7px;border-radius:999px;background:rgba(255,255,255,.22);overflow:hidden;flex-shrink:0">
-                    <div style="width:${pct}%;height:100%;border-radius:999px;background:${doneCount === totalCount && totalCount > 0 ? "#4ADE80" : "#fff"}"></div>
+                    <div style="width:${pct}%;height:100%;border-radius:999px;background:#fff"></div>
                   </div>
                 </div>
               </div>
@@ -10221,7 +10219,7 @@
               <div class="grow">
                 <div style="display:flex;align-items:center;gap:8px">
                   <span class="s18 fb t">尚未绑定家属</span>
-                  <span style="font-size:11px;font-weight:700;color:#D97706;background:rgba(245,158,11,.14);padding:2px 8px;border-radius:999px">需 VIP 发起</span>
+                  <span style="font-size:11px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 8px;border-radius:999px">需 VIP 发起</span>
                 </div>
                 <div class="s14 t-sec" style="margin-top:6px;line-height:1.5">开通 VIP 后最多可主动绑定 5 位家属；若家属已开通 VIP 并向你发起绑定，可在「收家属通知」中直接同意并互助照护，无需重复购买 VIP。</div>
               </div>
@@ -10237,10 +10235,10 @@
           return b ? bondRelationForViewer(b, me.name) : "";
         };
         const noticeTopBar = ({ personName, relation, actionText, statusText, statusFg, statusBg }) => `
-          <div style="display:flex;align-items:center;gap:6px;padding:11px 14px 9px;border-bottom:0.8px solid rgba(16,84,224,.08)">
-            <div style="width:24px;height:24px;border-radius:50%;background:rgba(16,84,224,.10);color:var(--blue);font-size:12px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc((personName || "家").slice(0, 1))}</div>
-            <span style="font-size:14.5px;font-weight:700;color:var(--text);white-space:nowrap">${esc(personName)}</span>
-            ${relation ? `<span style="font-size:11px;font-weight:600;color:var(--secondary);background:#EDF3FF;padding:2px 6px;border-radius:6px;white-space:nowrap">${esc(relation)}</span>` : ""}
+          <div style="display:flex;align-items:center;gap:6px;padding:11px 14px 9px;border-bottom:0.8px solid rgba(16,84,224,.08);background:rgba(16,84,224,.03)">
+            <div style="width:24px;height:24px;border-radius:50%;background:rgba(16,84,224,.12);color:var(--blue);font-size:12px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc((personName || "家").slice(0, 1))}</div>
+            <span style="font-size:14.5px;font-weight:700;color:var(--blue);white-space:nowrap">${esc(personName)}</span>
+            ${relation ? `<span style="font-size:11px;font-weight:600;color:var(--blue);background:rgba(16,84,224,.08);padding:2px 6px;border-radius:999px;white-space:nowrap">${esc(relation)}</span>` : ""}
             <span style="font-size:12.5px;font-weight:600;color:var(--secondary);white-space:nowrap">· ${esc(actionText)}</span>
             <div style="flex:1"></div>
             <span style="font-size:11.5px;font-weight:700;color:${statusFg};background:${statusBg};padding:3px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><i style="width:5.5px;height:5.5px;border-radius:50%;background:${statusFg};display:inline-block"></i>${esc(statusText)}</span>
@@ -10252,9 +10250,9 @@
           const ph = bondOtherPhone(b, me.name);
           return `
             <div class="act-card mt12">
-              ${noticeTopBar({ personName: other, relation: rel, actionText: "家属绑定", statusText: "绑定待确认", statusFg: "#D97706", statusBg: "rgba(245,158,11,.14)" })}
+              ${noticeTopBar({ personName: other, relation: rel, actionText: "家属绑定", statusText: "绑定待确认", statusFg: "var(--blue)", statusBg: "rgba(16,84,224,.10)" })}
               <div class="act-card-main">
-                <div style="width:40px;height:40px;border-radius:12px;background:rgba(16,84,224,.10);color:var(--blue);font-size:16px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc(other.slice(0, 1))}</div>
+                <div style="width:40px;height:40px;border-radius:12px;background:var(--blue);color:#fff;font-size:16px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc(other.slice(0, 1))}</div>
                 <div class="grow" style="min-width:0">
                   <div class="s15 fb t" style="line-height:1.35">申请与你绑定互为家属</div>
                   <div class="act-info">
@@ -10262,7 +10260,7 @@
                     <span class="tm">手机号 ${esc(ph)}</span>
                   </div>
                 </div>
-                <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(245,158,11,.14);color:#D97706;display:grid;place-items:center">${I.clock}</span>
+                <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.clock}</span>
               </div>
               <div class="act-card-bar">
                 <button type="button" data-act="rejectCareBond" data-id="${b.id}" style="color:var(--secondary);white-space:nowrap">${I.x}不同意</button>
@@ -10282,7 +10280,7 @@
           const rel = relWith(r.senderName);
           return `
             <div class="act-card mt12">
-              ${noticeTopBar({ personName: r.senderName, relation: rel, actionText: proxyActionLabel(r.kind), statusText: "待我确认", statusFg: "#D97706", statusBg: "rgba(245,158,11,.14)" })}
+              ${noticeTopBar({ personName: r.senderName, relation: rel, actionText: proxyActionLabel(r.kind), statusText: "待我确认", statusFg: "var(--blue)", statusBg: "rgba(16,84,224,.10)" })}
               <div class="act-card-main">
                 <div class="badge b40"><img src="${A.task[kind] || A.task.monitoring}" alt="" /></div>
                 <div class="grow" style="min-width:0">
@@ -10294,7 +10292,7 @@
                   </div>
                   <div class="act-dates">${rangeText}</div>
                 </div>
-                <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(245,158,11,.14);color:#D97706;display:grid;place-items:center">${I.clock}</span>
+                <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.clock}</span>
               </div>
               ${notes}
               <div class="act-card-bar">
@@ -10306,8 +10304,8 @@
 
         const returnedProxyRows = returnedProxy.map((r) => {
           const isAcc = r.status === "accepted";
-          const badgeFg = isAcc ? "#1AA64A" : "#DC3C3C";
-          const badgeBg = isAcc ? "rgba(26,166,74,.12)" : "rgba(220,60,60,.12)";
+          const badgeFg = "var(--blue)";
+          const badgeBg = "rgba(16,84,224,.10)";
           const snap = r.taskSnapshot || {};
           const kind = snap.cat === "appointment" ? "appointment" : (snap.cat || "monitoring");
           const chip = CAT[kind]?.name || CAT[kind]?.chip || "事项";
@@ -10317,15 +10315,15 @@
           const notes = snap.note ? `<div class="act-notes">${cardNote(I.alignLeft, esc(snap.note))}</div>` : "";
           const rel = relWith(r.recipientName);
           const rightCircle = isAcc
-            ? `<span class="act-check on" style="cursor:default">${I.check}</span>`
-            : `<span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(220,60,60,.12);color:#DC3C3C;display:grid;place-items:center">${I.x}</span>`;
+            ? `<span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</span>`
+            : `<span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.x}</span>`;
           return `
-            <div class="act-card ${isAcc ? "done" : ""} mt12">
+            <div class="act-card mt12">
               ${noticeTopBar({ personName: r.recipientName, relation: rel, actionText: proxyActionLabel(r.kind), statusText: isAcc ? "对方已接受" : "对方不接受", statusFg: badgeFg, statusBg: badgeBg })}
               <div class="act-card-main">
-                <div class="badge b40 ${isAcc ? "done" : ""}"><img src="${A.task[kind] || A.task.monitoring}" alt="" /></div>
+                <div class="badge b40"><img src="${A.task[kind] || A.task.monitoring}" alt="" /></div>
                 <div class="grow" style="min-width:0">
-                  <div class="s15 fb ${isAcc ? "t-green" : "t"}" style="line-height:1.35;word-break:break-word">${esc(snap.title || proxyDetailLine(r))}</div>
+                  <div class="s15 fb t" style="line-height:1.35;word-break:break-word">${esc(snap.title || proxyDetailLine(r))}</div>
                   <div class="act-info">
                     <span class="tm">${hm}</span>
                     <span class="act-chip">${isCycle ? "循环" : "单日"}</span>
@@ -10337,7 +10335,7 @@
               </div>
               ${notes}
               <div class="act-card-bar">
-                <button type="button" data-act="ackProxyReturn" data-id="${r.id}" style="font-weight:700;white-space:nowrap">${I.trash}删除通知</button>
+                <button type="button" data-act="ackProxyReturn" data-id="${r.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.trash}删除通知</button>
               </div>
             </div>`;
         }).join("");
@@ -10348,9 +10346,9 @@
           const ph = bondOtherPhone(b, me.name);
           return `
             <div class="act-card mt12">
-              ${noticeTopBar({ personName: other, relation: rel, actionText: "家属绑定", statusText: "对方不同意", statusFg: "#DC3C3C", statusBg: "rgba(220,60,60,.12)" })}
+              ${noticeTopBar({ personName: other, relation: rel, actionText: "家属绑定", statusText: "对方不同意", statusFg: "var(--blue)", statusBg: "rgba(16,84,224,.10)" })}
               <div class="act-card-main">
-                <div style="width:40px;height:40px;border-radius:12px;background:rgba(220,60,60,.10);color:#DC3C3C;font-size:16px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc(other.slice(0, 1))}</div>
+                <div style="width:40px;height:40px;border-radius:12px;background:var(--blue);color:#fff;font-size:16px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc(other.slice(0, 1))}</div>
                 <div class="grow" style="min-width:0">
                   <div class="s15 fb t" style="line-height:1.35">未同意本次家属绑定申请</div>
                   <div class="act-info">
@@ -10358,10 +10356,10 @@
                     <span class="tm">手机号 ${esc(ph)}</span>
                   </div>
                 </div>
-                <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(220,60,60,.12);color:#DC3C3C;display:grid;place-items:center">${I.x}</span>
+                <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.x}</span>
               </div>
               <div class="act-card-bar">
-                <button type="button" data-act="ackCareReturn" data-id="${b.id}" style="font-weight:700;white-space:nowrap">${I.trash}删除通知</button>
+                <button type="button" data-act="ackCareReturn" data-id="${b.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.trash}删除通知</button>
               </div>
             </div>`;
         }).join("");
