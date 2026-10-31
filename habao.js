@@ -65,6 +65,7 @@
     bell: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a6 6 0 0 1 6 6v5l1.6 2.4H4.4L6 14V9a6 6 0 0 1 6-6Zm-2.2 16h4.4A2.2 2.2 0 0 1 12 21a2.2 2.2 0 0 1-2.2-2Z"/></svg>`,
     bellSlash: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a6 6 0 0 1 6 6v5l1.6 2.4H4.4L6 14V9a6 6 0 0 1 6-6Zm-2.2 16h4.4A2.2 2.2 0 0 1 12 21a2.2 2.2 0 0 1-2.2-2Z" opacity=".38"/><path d="M4.3 3.1 3.1 4.3l16.6 16.6 1.2-1.2z"/></svg>`,
     two: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 11a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 8 11Zm8 1.2a3 3 0 1 0-3-3 3 3 0 0 0 3 3ZM2.5 19v-1.2C2.5 15.6 5.4 14 8 14s5.5 1.6 5.5 3.8V19Zm9.2 0v-1.2c0-1.4.6-2.6 1.6-3.5A7 7 0 0 1 21.5 18V19Z"/></svg>`,
+    personPlus: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 11.5a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2.2c-3.4 0-7.2 1.7-7.2 5v1.3h14.4v-1.3c0-3.3-3.8-5-7.2-5Zm9.5-5.7V5h-2v3h-3v2h3v3h2v-3h3V8Z"/></svg>`,
     steth: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h2v7a3 3 0 0 0 6 0V3h2v7a5 5 0 0 1-4 4.9V17a4 4 0 1 0 8 0v-1.1A3.5 3.5 0 1 0 16.5 12H15v2h1.5a1.5 1.5 0 1 1 0 3 2 2 0 1 1-4 0v-2.1A5 5 0 0 1 6 10V3Z"/></svg>`,
     grid: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h6v6h-6v-6Z"/></svg>`,
     clock: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm1 5v5.2l3.6 2.2-.9 1.5L11 13V7Z"/></svg>`,
@@ -1085,6 +1086,7 @@
     "walk>walk-records": "cover",
     "consult>consult-history": "cover",
     "profile>health-record": "cover",
+    "profile>family-add": "cover",
     "profile>family": "cover",
     "profile>notify": "cover",
     "profile>hardware": "cover",
@@ -1132,6 +1134,7 @@
       { id: "consult-history", t: "历史记录", code: "ConsultHistoryView", how: "cover" },
       { id: "health-record", t: "健康档案", code: "HealthRecordView", how: "cover" },
       { id: "patient-edit", t: "患者信息", code: "PatientProfileEditView", how: "cover" },
+      { id: "family-add", t: "添加家属", code: "FamilyAddView", how: "cover" },
       { id: "family", t: "家属管理", code: "FamilyManageView", how: "cover" },
       { id: "notify", t: "打卡通知", code: "CheckInNotificationView", how: "cover" },
       { id: "hardware", t: "硬件管理", code: "HardwareManageView", how: "cover" },
@@ -1176,7 +1179,9 @@
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。V0.1 + VIP 且采纳过方案时，标题下方多一张「方案章卡」：7 个日格（🌸 满日 / ◐ 部分 / ○ 空或未到 / 休 = 当天没排方案计划，算满日；今天蓝描边，点日格换日）、右上「本期已集 X/Y 章」、鼓励语（再集满 N 天拿金章 / 银章，只奖不罚）与「本期计划 ›」展开清单（调整 / 新增 / 保留 + 医嘱标）。其它状态：待采纳「📮 去采纳」、本期结束待交反馈（七格定格 + 期章 + 蓝色「交反馈」开期末反馈弹窗）、已交反馈下一期待采纳（「下一期方案已送达 去看看 ›」）。章卡下一行「我的期章」横排期章（金 ≥6 满日 / 银 4–5 / 铜 ≤3 且打过卡），点开看该期小结。海报日期下加「第 N 期康复方案 · 第 D 天 · 满日 X/7」（已结束带期章）。只有方案里的计划计入章卡，家属代打卡同样点亮，海报不带操作人。V0.0 / V0.2 / 未开通 VIP 只显示日章。" },
     consult: { code: "SmartConsultChatView", note: "纯粹的 AI 问诊对话界面（所有入口始终可点击进入）：顶部导航左「返回」、居中「哈宝医生」；中间消息区在未发消息时展示问候卡（你好，这里是哈宝医生 / 有不适或用药疑问，都可以问我）；VIP 用户发送消息后以左右纯文本/图片气泡进行问答交流，非 VIP 用户发送消息后弹出「需购买 VIP 才能使用哈宝问诊」提示对话卡（可一键跳转 VIP 会员页开通，已购买 VIP 后自动转为哈宝医生打招呼气泡以便正式聊天问诊）；底部主输入框默认为「长按说话」按钮（按住说话、上滑取消、松开发送），左侧为键盘切换按钮（点击切换为文字输入框），右侧为「+」号功能面板（仅保留拍照、相册，已移除 AI 电话）。" },
-    profile: { code: "ServiceView", note: "Hero 健康档案 + 打卡通知/协议。V0.0 不出现家属管理、操作记录、硬件管理、VIP，也没有右上身份胶囊，档案标「本人」。V0.1 在档案卡下加 VIP 控制区（¥2400 / 年）；未开通时家属管理、操作记录、硬件管理仍在列表里，副说明「开通 VIP 后可用」、右侧皇冠图标，整行不可点击（开通 VIP 通过上方蓝色 Hero 卡的「购买 ›」进入）。开通后这三行恢复可点击进入，身份胶囊、通知家属和问诊一起放开。记录和绑定仍在，取消订阅只重新上锁、不删数据。身份胶囊仍决定写入归属，但不再在卡片上盖章。" },
+    profile: { code: "ServiceView", note: "Hero 健康档案 + VIP 权益区 + 功能列表（VIP 专区「添加家属 / 硬件管理 / 操作记录」与免费基础区「家属管理 / 打卡通知 / 隐私协议 / 服务协议」清晰分流）。将「添加家属」与「家属管理」两个动作彻底拆分并列在个人中心：1)「添加家属 [VIP]」归入上方蓝色 VIP 专区，未开通 VIP 时显示「开通 VIP 后可用」+ 右侧皇冠锁（与硬件管理、操作记录完全统一），开通 VIP 后显示剩余可添加名额并进入独立的「添加家属」页；2)「家属管理」归入下方免费基础功能区（中性石板灰图标、不带 VIP 徽标、右侧常驻箭头），对免费用户和 VIP 用户 100% 开放，方便免费用户随时接收绑定请求、处理代办通知并与已绑定的 VIP 家属互助照护。" },
+    "family-add": { code: "FamilyAddView", note: "VIP 专属「添加家属」独立页：顶部左「返回」+ 居中「添加家属」；下方 24pt 边距展示三字段绑定表单（姓名、关系四选一、11 位手机号）与底部通栏「点击绑定」按钮；已发出的待确认请求以全蓝色三层同构卡片展示在表单下方并支持「撤回绑定申请」；满 5 位上限时提示「已达 5 位家属上限」。" },
+    family: { code: "FamilyManageView", note: "免费开放的「家属管理」独立页（剥离主动添加表单，专注存量家属互助与通知处理）：顶部并列「帮家属操作 ｜ 收家属通知」双栏目；「帮家属操作」顶部仅展示已绑定家属切换胶囊，下方为全蓝色「家属照护一体舱」（人物档案头 + 分时段计划操作卡）与底栏「为{姓名}添加计划」；「收家属通知」统一处理绑定申请（不同意/同意绑定）、代办请求（不接受/接受）与结果回执（删除通知）。" },
     vip: { code: "VIPView", note: "仅从 V0.1 入口进来。Hero 写哈宝 VIP 与 ¥2400 / 年，下面五项完整详情：家属管理、硬件管理、操作记录、哈宝医生（AI+真人医生前端统一为哈宝医生主体），以及支架保险理赔服务。底栏「立即开通」先确认，演示不扣款，开通后有效期一年；已开通可「取消订阅」，确认后四项功能重新上锁、服务权益同步终止，家属、记录和硬件绑定留在本机。注销清空开通状态，退出登录保留。" },
     hardware: { code: "HardwareManageView", note: "仅 V0.1（V0.0 个人中心没有这一行）。两张设备模块卡：未绑定写「未绑定」、右端挂「扫码绑定」浅蓝胶囊；已绑定写绿色「已绑定 · 编号」、右端箭头。点未绑定卡进扫码页，点已绑定卡进设备页。副说明按已绑定的名字拼，两台齐了写「两台都已绑定」。绑定留在本机，切回 V0.0 只藏入口。" },
     "hardware-scan": { code: "HardwareScanView", note: "V10.128：深蓝黑底全屏扫码页——264pt 取景框 + 青色扫描线，约 1.5 秒识别到对应哈宝设备（血压计 3086 / 手表 1172），四角转绿、白卡上浮，「绑定这台」或「重新扫描」，绑定后回列表。已绑定页显示编号和绑定日，解除要确认、确认后回列表。不调用摄像头，测量不写进血压监测。退出保留，注销清空。" },
@@ -2351,25 +2356,38 @@
       + incomingProxyRequestsFor(personName).length
       + returnedProxyResultsFor(personName).length;
   }
+  function familyAddCaptionFor(personName) {
+    const nm = personName || S.currentPersonName || "李建国";
+    const confirmedCount = confirmedFamilyBondsFor(nm).length;
+    const outgoingCount = outgoingPendingRequestsFor(nm).length;
+    const remaining = Math.max(0, 5 - confirmedCount - outgoingCount);
+    if (remaining === 0) {
+      return outgoingCount > 0
+        ? `已满 5 人上限 · ${outgoingCount} 人待对方确认`
+        : "已绑满 5/5 人";
+    }
+    if (outgoingCount > 0) {
+      return `还可添加 ${remaining} 人 · ${outgoingCount} 人待对方确认`;
+    }
+    return `还可添加 ${remaining} 人 · 最多 5 人`;
+  }
   function familyManageCaptionFor(personName) {
     const nm = personName || S.currentPersonName || "李建国";
     const confirmedCount = confirmedFamilyBondsFor(nm).length;
     const incomingCount = incomingBindRequestsFor(nm).length + incomingProxyRequestsFor(nm).length;
     const returnedCount = returnedProxyResultsFor(nm).length + rejectedReturnedRequestsFor(nm).length;
-    const outgoingCount = outgoingPendingRequestsFor(nm).length;
     if (incomingCount > 0) {
       return confirmedCount > 0
         ? `已绑定 ${confirmedCount} 人 · ${incomingCount} 条待确认`
         : `${incomingCount} 条请求待确认`;
     }
-    if (returnedCount > 0 && confirmedCount > 0) {
-      return `已绑定 ${confirmedCount} 人 · ${returnedCount} 条回执`;
+    if (returnedCount > 0) {
+      return confirmedCount > 0
+        ? `已绑定 ${confirmedCount} 人 · ${returnedCount} 条通知回执`
+        : `${returnedCount} 条通知回执`;
     }
     if (confirmedCount > 0) {
       return `已绑定 ${confirmedCount} 人`;
-    }
-    if (outgoingCount > 0) {
-      return `待对方确认 ${outgoingCount} 人`;
     }
     return "尚未绑定家属";
   }
@@ -2614,6 +2632,7 @@
   }
   const PROFILE_CONTEXT_SCREENS = new Set([
     "profile",
+    "family-add",
     "family",
     "health-record",
     "patient-edit",
@@ -3594,6 +3613,7 @@
       vip: [...home, C("profile"), C("vip")],
       "health-record": [...home, C("profile"), C("health-record")],
       "patient-edit": [...home, C("profile"), C("health-record"), C("patient-edit")],
+      "family-add": [...home, C("profile"), C("family-add")],
       family: [...home, C("profile"), C("family")],
       notify: [...home, C("profile"), C("notify")],
       hardware: [...home, C("profile"), C("hardware")],
@@ -9739,10 +9759,15 @@
           </div>
           <div class="list-island mt16">
             ${[
-              ["family", I.two, "家属管理", familyManageCaptionFor(curPerson.name)],
+              ["family-add", I.personPlus, "添加家属", familyAddCaptionFor(curPerson.name)],
               ["hardware", I.waves, "硬件管理", hwCaption()],
               ["activity", I.clock, "操作记录", (S.ops && S.ops[0]) ? opHeadlineHTML(S.ops[0]) : "还没有记录"],
             ].map(([id, ico, t, s]) => vipFeatureRowHTML(id, ico, t, s)).join("")}
+            <button class="list-row base-feature-row" data-go="family" type="button">
+              <div class="well neutral-well">${I.two}</div>
+              <div class="grow"><h4 class="neutral-title">家属管理</h4><p>${familyManageCaptionFor(curPerson.name)}</p></div>
+              <span class="neutral-chev">${I.chevR}</span>
+            </button>
             <button class="list-row base-feature-row" data-go="notify" type="button">
               <div class="well neutral-well">${I.bell}</div>
               <div class="grow"><h4 class="neutral-title">打卡通知</h4><p>${notifyCaption()}</p></div>
@@ -9923,6 +9948,81 @@
         </div>
       </div>`,
 
+    "family-add": () => {
+      ensureCareGraph();
+      const me = currentDemoPerson();
+      const outgoing = outgoingPendingRequestsFor(me.name);
+      const occupied = occupiedFamilySlotsFor(me.name);
+      const canSendMore = occupied < 5;
+
+      const noticeTopBarHTML = ({ personName, relation, actionText, statusText, statusFg, statusBg }) => `
+        <div style="display:flex;align-items:center;gap:6px;padding:11px 14px 9px;border-bottom:0.8px solid rgba(16,84,224,.08);background:rgba(16,84,224,.03)">
+          <div style="width:24px;height:24px;border-radius:50%;background:rgba(16,84,224,.12);color:var(--blue);font-size:12px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc((personName || "家").slice(0, 1))}</div>
+          <span style="font-size:14.5px;font-weight:700;color:var(--blue);white-space:nowrap">${esc(personName)}</span>
+          ${relation ? `<span style="font-size:11px;font-weight:600;color:var(--blue);background:rgba(16,84,224,.08);padding:2px 6px;border-radius:999px;white-space:nowrap">${esc(relation)}</span>` : ""}
+          <span style="font-size:12.5px;font-weight:600;color:var(--secondary);white-space:nowrap">· ${esc(actionText)}</span>
+          <div style="flex:1"></div>
+          <span style="font-size:11.5px;font-weight:700;color:${statusFg};background:${statusBg};padding:3px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><i style="width:5.5px;height:5.5px;border-radius:50%;background:${statusFg};display:inline-block"></i>${esc(statusText)}</span>
+        </div>`;
+
+      const outgoingRowsHTML = outgoing.map((b) => {
+        const other = bondOtherName(b, me.name);
+        const rel = bondRelationForViewer(b, me.name);
+        const ph = bondOtherPhone(b, me.name);
+        return `
+          <div class="act-card mt12">
+            ${noticeTopBarHTML({ personName: other, relation: rel, actionText: "家属绑定", statusText: "待对方确认", statusFg: "var(--blue)", statusBg: "rgba(16,84,224,.10)" })}
+            <div class="act-card-main">
+              <div style="width:40px;height:40px;border-radius:12px;background:var(--blue);color:#fff;font-size:16px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc(other.slice(0, 1))}</div>
+              <div class="grow" style="min-width:0">
+                <div class="s15 fb t" style="line-height:1.35">已发送家属绑定邀请</div>
+                <div class="act-info">
+                  <span class="act-chip">关系：${esc(rel)}</span>
+                  <span class="tm">手机号 ${esc(ph)}</span>
+                </div>
+              </div>
+              <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.clock}</span>
+            </div>
+            <div class="act-card-bar">
+              <button type="button" data-act="askRemoveCareBond" data-id="${b.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.undo}撤回绑定申请</button>
+            </div>
+          </div>`;
+      }).join("");
+
+      const formOrCapHTML = canSendMore ? `
+        <div>
+          <div class="field-label">姓名</div>
+          <input class="field" name="fname" placeholder="姓名" value="${esc(S.famDraftName || "")}" />
+          <div class="field-label mt16">关系</div>
+          <div class="chips">${["配偶", "子女", "父母", "其他"].map((r) => `<button class="chip ${(S.famRel || "配偶") === r ? "on" : ""}" data-act="pickRel" data-r="${r}" type="button">${r}</button>`).join("")}</div>
+          <div class="field-label mt16">手机号</div>
+          <input class="field" name="fphone" maxlength="11" placeholder="11 位手机号" value="${esc(S.famDraftPhone || "")}" />
+        </div>
+      ` : `
+        <div class="plan-row">
+          <div class="grow">
+            <div class="s18 fb t">已达 5 位家属上限</div>
+            <div class="s14 t-sec" style="margin-top:6px;line-height:1.5">每人最多可绑定 5 位家属（含待对方确认的绑定请求）。如需添加新的家属，请先前往「家属管理」解除或撤回现有家属。</div>
+          </div>
+        </div>
+      `;
+
+      const bottomDockHTML = canSendMore ? `
+        <div class="px24 flex gap8" style="padding-bottom:28px">
+          <button class="cta grow" data-act="bindFam" type="button">点击绑定</button>
+        </div>` : "";
+
+      return `
+      <div class="page">
+        ${navBar(cap(I.chevL, "返回"), "添加家属")}
+        <div class="scroll px24" style="padding-top:16px;padding-bottom:24px">
+          ${formOrCapHTML}
+          ${outgoingRowsHTML ? `<div style="margin-top:16px">${outgoingRowsHTML}</div>` : ""}
+        </div>
+        ${bottomDockHTML}
+      </div>`;
+    },
+
     family: () => {
       ensureCareGraph();
       const me = currentDemoPerson();
@@ -9933,14 +10033,10 @@
       const rejectedReturns = rejectedReturnedRequestsFor(me.name);
       const outgoing = outgoingPendingRequestsFor(me.name);
       const confirmed = confirmedFamilyBondsFor(me.name);
-      const occupied = occupiedFamilySlotsFor(me.name);
-      const canSendMore = occupied < 5;
       const totalNotices = incoming.length + incomingProxy.length + returnedProxy.length + rejectedReturns.length;
 
-      const isSelfVip = genHasVip();
       const selectedBond = resolvedSelectedFamilyBondFor(me.name);
       const selectedFamName = selectedBond ? bondOtherName(selectedBond, me.name) : null;
-      const showingBindForm = col === "operate" && (S.famIsAdding || !confirmed.length) && canSendMore;
 
       if (col === "operate" && S.proxyEditorDraft && selectedFamName) {
         const d = S.proxyEditorDraft;
@@ -9999,87 +10095,20 @@
 
       let operateBodyHTML = "";
       if (col === "operate") {
-        const isAddingExpanded = !!S.famIsAdding;
         const selectorStripHTML = confirmed.length ? `
           <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:2px;margin-top:14px">
             ${confirmed.map((b) => {
               const other = bondOtherName(b, me.name);
               const rel = bondRelationForViewer(b, me.name);
-              const on = !isAddingExpanded && selectedFamName === other;
+              const on = selectedFamName === other;
               return `<button type="button" data-act="selectActiveFam" data-name="${esc(other)}" style="flex-shrink:0;white-space:nowrap;height:42px;padding:0 15px;border-radius:14px;border:${on ? "0" : "0.8px solid rgba(16,84,224,.12)"};background:${on ? "var(--blue)" : "#fff"};color:${on ? "#fff" : "var(--blue)"};font-size:15.5px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;box-shadow:0 3px 10px rgba(16,84,224,${on ? ".20" : ".05"})">
                 <span>${esc(other)}</span>
                 <span style="font-size:12.5px;font-weight:600;opacity:${on ? ".92" : ".72"}">${esc(rel)}</span>
               </button>`;
             }).join("")}
-            ${canSendMore ? `
-              <button type="button" data-act="toggleAddFamForm" style="flex-shrink:0;white-space:nowrap;height:42px;padding:0 14px;border-radius:14px;border:${isAddingExpanded ? "0" : "0.8px solid rgba(16,84,224,.12)"};background:${isAddingExpanded ? "var(--blue)" : "#fff"};color:${isAddingExpanded ? "#fff" : "var(--blue)"};font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;box-shadow:0 3px 10px rgba(16,84,224,${isAddingExpanded ? ".18" : ".05"})">
-                <span>${isAddingExpanded ? "× 收起绑定" : "+ 绑定家属"}</span>
-                ${!isSelfVip ? `<span style="padding:1.5px 6px;border-radius:999px;background:${isAddingExpanded ? "#fff" : "#FEF3C7"};color:${isAddingExpanded ? "var(--blue)" : "#B45309"};font-size:10.5px;font-weight:800;display:inline-flex;align-items:center;gap:2px">👑 VIP</span>` : ""}
-              </button>
-            ` : ""}
           </div>` : "";
 
-        const noticeTopBarHTML = ({ personName, relation, actionText, statusText, statusFg, statusBg }) => `
-          <div style="display:flex;align-items:center;gap:6px;padding:11px 14px 9px;border-bottom:0.8px solid rgba(16,84,224,.08);background:rgba(16,84,224,.03)">
-            <div style="width:24px;height:24px;border-radius:50%;background:rgba(16,84,224,.12);color:var(--blue);font-size:12px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc((personName || "家").slice(0, 1))}</div>
-            <span style="font-size:14.5px;font-weight:700;color:var(--blue);white-space:nowrap">${esc(personName)}</span>
-            ${relation ? `<span style="font-size:11px;font-weight:600;color:var(--blue);background:rgba(16,84,224,.08);padding:2px 6px;border-radius:999px;white-space:nowrap">${esc(relation)}</span>` : ""}
-            <span style="font-size:12.5px;font-weight:600;color:var(--secondary);white-space:nowrap">· ${esc(actionText)}</span>
-            <div style="flex:1"></div>
-            <span style="font-size:11.5px;font-weight:700;color:${statusFg};background:${statusBg};padding:3px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><i style="width:5.5px;height:5.5px;border-radius:50%;background:${statusFg};display:inline-block"></i>${esc(statusText)}</span>
-          </div>`;
-
-        const outgoingRowsHTML = outgoing.map((b) => {
-          const other = bondOtherName(b, me.name);
-          const rel = bondRelationForViewer(b, me.name);
-          const ph = bondOtherPhone(b, me.name);
-          return `
-            <div class="act-card mt12">
-              ${noticeTopBarHTML({ personName: other, relation: rel, actionText: "家属绑定", statusText: "待对方确认", statusFg: "var(--blue)", statusBg: "rgba(16,84,224,.10)" })}
-              <div class="act-card-main">
-                <div style="width:40px;height:40px;border-radius:12px;background:var(--blue);color:#fff;font-size:16px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc(other.slice(0, 1))}</div>
-                <div class="grow" style="min-width:0">
-                  <div class="s15 fb t" style="line-height:1.35">已发送家属绑定邀请</div>
-                  <div class="act-info">
-                    <span class="act-chip">关系：${esc(rel)}</span>
-                    <span class="tm">手机号 ${esc(ph)}</span>
-                  </div>
-                </div>
-                <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.clock}</span>
-              </div>
-              <div class="act-card-bar">
-                <button type="button" data-act="askRemoveCareBond" data-id="${b.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.undo}撤回绑定申请</button>
-              </div>
-            </div>`;
-        }).join("");
-
-        const vipBindBannerHTML = !isSelfVip ? `
-          <div data-go="vip" role="button" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:16px;background:#fff;border:1px solid rgba(245,158,11,.32);box-shadow:0 4px 12px rgba(16,84,224,.06);margin-top:16px;cursor:pointer">
-            <div style="width:44px;height:44px;border-radius:999px;background:#FEF3C7;color:#B45309;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0">👑</div>
-            <div style="min-width:0;flex:1">
-              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-                <span class="s18 fb t">主动添加家属</span>
-                <span style="padding:2px 8px;border-radius:999px;background:#FEF3C7;color:#B45309;font-size:11px;font-weight:800;white-space:nowrap">👑 VIP 专属</span>
-              </div>
-              <div class="s13 t-sec" style="margin-top:4px;line-height:1.45">免费用户可接受家属绑定并与已绑定家属互助；主动添加新家属（最多 5 人）需开通 VIP 会员。</div>
-            </div>
-            <span style="padding:6px 11px;border-radius:999px;background:var(--blue);color:#fff;font-size:12.5px;font-weight:700;flex-shrink:0;white-space:nowrap">去开通 ›</span>
-          </div>` : "";
-
-        if (showingBindForm) {
-          operateBodyHTML = `
-            ${selectorStripHTML}
-            ${outgoingRowsHTML}
-            ${vipBindBannerHTML}
-            <div style="margin-top:16px">
-              <div class="field-label">姓名</div>
-              <input class="field" name="fname" placeholder="姓名" value="${esc(S.famDraftName || "")}" />
-              <div class="field-label mt16">关系</div>
-              <div class="chips">${["配偶", "子女", "父母", "其他"].map((r) => `<button class="chip ${(S.famRel || "配偶") === r ? "on" : ""}" data-act="pickRel" data-r="${r}" type="button">${r}</button>`).join("")}</div>
-              <div class="field-label mt16">手机号</div>
-              <input class="field" name="fphone" maxlength="11" placeholder="11 位手机号" value="${esc(S.famDraftPhone || "")}" />
-            </div>`;
-        } else if (selectedBond && selectedFamName) {
+        if (selectedBond && selectedFamName) {
           const rel = bondRelationForViewer(selectedBond, me.name);
           const ph = bondOtherPhone(selectedBond, me.name);
           const pendingCreates = outgoingPendingProxyFor(me.name, selectedFamName).filter((r) => r.kind === "createPlan");
@@ -10209,19 +10238,14 @@
 
           operateBodyHTML = `
             ${selectorStripHTML}
-            ${outgoingRowsHTML}
             ${unifiedCabinHTML}
           `;
-        } else if (!isSelfVip) {
+        } else {
           operateBodyHTML = `
-            ${outgoingRowsHTML}
             <div class="plan-row mt12">
               <div class="grow">
-                <div style="display:flex;align-items:center;gap:8px">
-                  <span class="s18 fb t">尚未绑定家属</span>
-                  <span style="font-size:11px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 8px;border-radius:999px">需 VIP 发起</span>
-                </div>
-                <div class="s14 t-sec" style="margin-top:6px;line-height:1.5">开通 VIP 后最多可主动绑定 5 位家属；若家属已开通 VIP 并向你发起绑定，可在「收家属通知」中直接同意并互助照护，无需重复购买 VIP。</div>
+                <div class="s18 fb t">暂无已绑定的家属</div>
+                <div class="s14 t-sec" style="margin-top:6px;line-height:1.5">若家属向你发送了绑定邀请，可在「收家属通知」中直接同意并开始互助照护；如需主动添加新的家属，请在个人中心使用 VIP 专属「添加家属」功能。</div>
               </div>
             </div>
           `;
@@ -10364,7 +10388,31 @@
             </div>`;
         }).join("");
 
-        const allNoticeRows = incomingRows + incomingProxyRows + returnedProxyRows + rejectedRows;
+        const outgoingNoticeRows = outgoing.map((b) => {
+          const other = bondOtherName(b, me.name);
+          const rel = bondRelationForViewer(b, me.name);
+          const ph = bondOtherPhone(b, me.name);
+          return `
+            <div class="act-card mt12">
+              ${noticeTopBar({ personName: other, relation: rel, actionText: "家属绑定", statusText: "待对方确认", statusFg: "var(--blue)", statusBg: "rgba(16,84,224,.10)" })}
+              <div class="act-card-main">
+                <div style="width:40px;height:40px;border-radius:12px;background:var(--blue);color:#fff;font-size:16px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc(other.slice(0, 1))}</div>
+                <div class="grow" style="min-width:0">
+                  <div class="s15 fb t" style="line-height:1.35">已发送家属绑定邀请</div>
+                  <div class="act-info">
+                    <span class="act-chip">关系：${esc(rel)}</span>
+                    <span class="tm">手机号 ${esc(ph)}</span>
+                  </div>
+                </div>
+                <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.clock}</span>
+              </div>
+              <div class="act-card-bar">
+                <button type="button" data-act="askRemoveCareBond" data-id="${b.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.undo}撤回绑定申请</button>
+              </div>
+            </div>`;
+        }).join("");
+
+        const allNoticeRows = incomingRows + incomingProxyRows + returnedProxyRows + rejectedRows + outgoingNoticeRows;
         noticesBodyHTML = allNoticeRows || `
           <div class="plan-row mt12">
             <div class="grow"><div class="s16 fb t-sec">暂无家属通知</div></div>
@@ -10372,30 +10420,11 @@
       }
 
       let bottomDockHTML = "";
-      if (col === "operate") {
-        if (showingBindForm) {
-          if (isSelfVip) {
-            bottomDockHTML = `
-              <div class="px24 flex gap8" style="padding-bottom:28px">
-                <button class="cta grow" data-act="bindFam" type="button">点击绑定</button>
-              </div>`;
-          } else {
-            bottomDockHTML = `
-              <div class="px24 flex gap8" style="padding-bottom:28px">
-                <button class="cta grow" data-act="askVipForFamily" type="button" style="display:flex;align-items:center;justify-content:center;gap:8px"><span style="color:#FFDC6E;display:inline-flex">${I.crown}</span><span>开通 VIP 绑定家属</span><span style="padding:2px 7px;border-radius:999px;background:rgba(255,255,255,.22);color:#FFDC6E;font-size:11px;font-weight:800">VIP</span></button>
-              </div>`;
-          }
-        } else if (selectedFamName) {
-          bottomDockHTML = `
-            <div class="px24 flex gap8" style="padding-bottom:28px">
-              <button class="cta grow" data-act="openProxyTaskEditor" type="button">为${esc(selectedFamName)}添加计划</button>
-            </div>`;
-        } else if (!confirmed.length && !isSelfVip) {
-          bottomDockHTML = `
-            <div class="px24 flex gap8" style="padding-bottom:28px">
-              <button class="cta grow" data-act="askVipForFamily" type="button" style="display:flex;align-items:center;justify-content:center;gap:8px"><span style="color:#FFDC6E;display:inline-flex">${I.crown}</span><span>开通 VIP 绑定家属</span><span style="padding:2px 7px;border-radius:999px;background:rgba(255,255,255,.22);color:#FFDC6E;font-size:11px;font-weight:800">VIP</span></button>
-            </div>`;
-        }
+      if (col === "operate" && selectedFamName) {
+        bottomDockHTML = `
+          <div class="px24 flex gap8" style="padding-bottom:28px">
+            <button class="cta grow" data-act="openProxyTaskEditor" type="button">为${esc(selectedFamName)}添加计划</button>
+          </div>`;
       }
 
       return `
@@ -12820,18 +12849,11 @@
       <span class="vip-cap${on ? " on" : ""}">${cap}</span>
     </button>`;
   }
-  /// VIP 专区功能行（家属管理 / 硬件管理 / 操作记录）：纯正蓝色视觉设计；未开通时不可点击（家属管理除外：对非 VIP 亦开放进入以接收邀请和互助）
+  /// VIP 专区功能行（添加家属 / 硬件管理 / 操作记录）：纯正蓝色视觉设计；未开通时统一展示「开通 VIP 后可用」+ 皇冠锁，不可点击
   function vipFeatureRowHTML(id, ico, title, caption) {
-    const isFamily = id === "family";
-    const locked = !genHasVip() && !isFamily;
-    const sub = locked
-      ? "开通 VIP 后可用"
-      : isFamily && !genHasVip()
-        ? hasAnyFamilyOrNoticeFor(S.currentPersonName)
-          ? `${caption} · 添加家属需 VIP`
-          : "开通 VIP 后可绑定家属"
-        : caption;
-    const subMuted = locked || (isFamily && !genHasVip() && !hasAnyFamilyOrNoticeFor(S.currentPersonName));
+    const locked = !genHasVip();
+    const sub = locked ? "开通 VIP 后可用" : caption;
+    const subMuted = locked;
     const tail = locked ? `<span class="vip-lock">${I.crown}</span>` : `<span class="vip-chev">${I.chevR}</span>`;
     const tag = locked ? "div" : "button";
     const attrs = locked
