@@ -1185,7 +1185,7 @@
     vip: { code: "VIPView", note: "仅从 V0.1 入口进来。Hero 写哈宝 VIP 与 ¥2400 / 年，下面五项完整详情：家属管理、硬件管理、操作记录、哈宝医生（AI+真人医生前端统一为哈宝医生主体），以及支架保险理赔服务。底栏「立即开通」先确认，演示不扣款，开通后有效期一年；已开通可「取消订阅」，确认后四项功能重新上锁、服务权益同步终止，家属、记录和硬件绑定留在本机。注销清空开通状态，退出登录保留。" },
     hardware: { code: "HardwareManageView", note: "仅 V0.1（V0.0 个人中心没有这一行）。两张设备模块卡：未绑定写「未绑定」、右端挂「扫码绑定」浅蓝胶囊；已绑定写绿色「已绑定 · 编号」、右端箭头。点未绑定卡进扫码页，点已绑定卡进设备页。副说明按已绑定的名字拼，两台齐了写「两台都已绑定」。绑定留在本机，切回 V0.0 只藏入口。" },
     "hardware-scan": { code: "HardwareScanView", note: "V10.128：深蓝黑底全屏扫码页——264pt 取景框 + 青色扫描线，约 1.5 秒识别到对应哈宝设备（血压计 3086 / 手表 1172），四角转绿、白卡上浮，「绑定这台」或「重新扫描」，绑定后回列表。已绑定页显示编号和绑定日，解除要确认、确认后回列表。不调用摄像头，测量不写进血压监测。退出保留，注销清空。" },
-    activity: { code: "ActivityLogView", note: "仅 V0.1（V0.0 个人中心没有这一行）。一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内遵循 Who / Where / When / What / How 大一统规则字段：以 When（时刻 + 细分隔线）做块头，块内白卡只展示一句话 = [Who 人名浅蓝胶囊] + 在 + [Where 界面白底蓝框胶囊] + [What 粗体蓝字动作] + [How 浅蓝底圆角内容色块]，个人中心入口与记录页共用同一句式（入口处 How 单行省略）。首次创建、更新用药与复查、生成运动计划、上传资料、测血压打卡、散步各只写一条；顺带完成的打卡并进同一条 How；只补资料写「（计划本次未动）」。How 只读不跳模块；页顶搜索框搜记录内容；长按一条出「改归属 / 删除这条记录」，超 300 条丢过更早记录时最早那页页脚提示。" },
+    activity: { code: "ActivityLogView", note: "仅 V0.1（V0.0 个人中心没有这一行）。一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内遵循 Who / Where / When / What / How 大一统规则字段，并全面适配「互为家属」与「家属管理」协同逻辑：以 When（时刻 + 细分隔线）做块头，人物胶囊内嵌二元身份标签（本人为 [👤 姓名 · 我]，亲属统一为 [👤 姓名 · 家属]，解绑后追加灰签「已解绑」）；仅展示与当前登录人「我」相关的记录（我自己操作的 + 我在家属管理帮家属操作的 + 家属在家属管理帮我操作的）；跨人代打卡、新增/修改/删除计划在接收方点击「接受」生效时同步写入双方账本，发送提醒在发出时写入（撤回时移除），入口统一记为「家属管理」；长按记录仅提供「删除这条记录」（移除单机时代过时的「改归属」）。" },
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.98：用药与复查有存量也直接落本页，存量组列在底部组轨道。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "按组分区预览。与首次上传、身体报告·基础报告共用同一份存量。入组可改类别 / 删组（必传出院记录至少留一组）；复查不改类别。右上入组「解析」、存档「提交」。无存量时空态只留文案，拍资料走左上「拍摄」，页内不再放「拍摄资料」钮。" },
@@ -2220,16 +2220,65 @@
     const extra = r.summaryNote ? ` · ${r.summaryNote}` : "";
     return `${hm} · ${catName}${extra}`;
   }
+  function logFamilyCollaborateOp({ entryId, actorName, targetName, action, how }) {
+    if (!actorName || !targetName) return;
+    ensureCareGraph();
+    const bond = confirmedFamilyBondsFor(actorName).find((b) => bondOtherName(b, actorName) === targetName);
+    const opItem = {
+      id: entryId || `op_fam_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      at: Date.now(),
+      role: "family",
+      actor: actorName,
+      actorId: bond ? bond.id : null,
+      targetName,
+      action,
+      place: "家属管理",
+      how: String(how || "").trim(),
+      notifiedNames: [],
+    };
+    const participants = [actorName, targetName];
+    participants.forEach((pName) => {
+      const bucket = ensurePersonStore(pName);
+      if (!bucket.ops) bucket.ops = [];
+      bucket.ops = bucket.ops.filter((x) => String(x.id) !== String(opItem.id));
+      bucket.ops.unshift({ ...opItem });
+      if (bucket.ops.length > 300) bucket.ops.length = 300;
+      if ((S.boundPersonKey || "李建国") === pName) {
+        if (!S.ops) S.ops = [];
+        S.ops = S.ops.filter((x) => String(x.id) !== String(opItem.id));
+        S.ops.unshift({ ...opItem });
+        if (S.ops.length > 300) { S.ops.length = 300; S.opDropped = true; }
+      }
+    });
+  }
+  function removeFamilyCollaborateOp(entryId, actorName, targetName) {
+    if (!entryId) return;
+    [actorName, targetName].filter(Boolean).forEach((pName) => {
+      const bucket = ensurePersonStore(pName);
+      if (bucket.ops) {
+        bucket.ops = bucket.ops.filter((x) => String(x.id) !== String(entryId));
+      }
+      if ((S.boundPersonKey || "李建国") === pName && S.ops) {
+        S.ops = S.ops.filter((x) => String(x.id) !== String(entryId));
+      }
+    });
+  }
   function sendProxyRequestFor({ senderName, recipientName, kind, targetTaskId, taskSnapshot, summaryNote }) {
     ensureCareGraph();
     const effId = targetTaskId || taskSnapshot?.id;
-    S.careProxyRequests = S.careProxyRequests.filter((r) => !(
+    const staleList = (S.careProxyRequests || []).filter((r) => (
       r.senderName === senderName &&
       r.recipientName === recipientName &&
       r.kind === kind &&
       r.status === "pending" &&
       (String(r.targetTaskId) === String(effId) || String(r.taskSnapshot?.id) === String(effId))
     ));
+    staleList.forEach((oldReq) => {
+      if (oldReq.kind === "remind") {
+        removeFamilyCollaborateOp(oldReq.id, oldReq.senderName, oldReq.recipientName);
+      }
+    });
+    S.careProxyRequests = S.careProxyRequests.filter((r) => !staleList.includes(r));
     const req = {
       id: `pr_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       senderName,
@@ -2243,6 +2292,15 @@
       createdAt: Date.now(),
     };
     S.careProxyRequests.unshift(req);
+    if (kind === "remind") {
+      logFamilyCollaborateOp({
+        entryId: req.id,
+        actorName: senderName,
+        targetName: recipientName,
+        action: "提醒了",
+        how: taskSnapshot?.title || "",
+      });
+    }
     return req;
   }
   function applyAcceptedProxyMutationInStore(req) {
@@ -2481,10 +2539,10 @@
           { title: "第二次复查", pages: 1 },
         ],
         ops: [
-          { id: "op_zgl_0", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "打卡了", place: "首页", at: baseHour - 900000, how: "服用利伐沙班片", notifiedNames: ["张桂兰"] },
-          { id: "op_zgl_1", role: "patient", actor: "张桂兰", targetName: "张桂兰", action: "打卡了", place: "首页", at: baseHour - 1800000, how: "服用苯磺酸氨氯地平片", notifiedNames: ["李建国"] },
-          { id: "op_zgl_2", role: "patient", actor: "张桂兰", targetName: "张桂兰", action: "同步了血压", place: "血压监测", at: baseHour - 3600000, how: "哈宝血压计，血压 134/83，心率 76 bpm", notifiedNames: ["李建国"] },
-          { id: "op_zgl_3", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "提醒了", place: "首页", at: baseHour - 86400000, how: "傍晚复测血压", notifiedNames: ["张桂兰"] },
+          { id: "pr_preset_2", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "打卡了", place: "家属管理", at: baseHour - 900000, how: "晨起测血压与心率", notifiedNames: [] },
+          { id: "op_zgl_1", role: "patient", actor: "张桂兰", targetName: "张桂兰", action: "打卡了", place: "首页", at: baseHour - 1800000, how: "服用苯磺酸氨氯地平片", notifiedNames: [] },
+          { id: "op_zgl_2", role: "patient", actor: "张桂兰", targetName: "张桂兰", action: "同步了血压", place: "血压监测", at: baseHour - 3600000, how: "哈宝血压计，血压 134/83，心率 76 bpm", notifiedNames: [] },
+          { id: "op_zgl_3", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "提醒了", place: "家属管理", at: baseHour - 86400000, how: "傍晚复测血压", notifiedNames: [] },
         ],
       };
     }
@@ -2544,12 +2602,11 @@
           { title: "第一次复查", pages: 1 },
         ],
         ops: [
-          { id: "op_wf_0", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "打卡了", place: "首页", at: baseHour - 600000, how: "晨起温水", notifiedNames: ["李建国"] },
-          { id: "op_wf_1", role: "patient", actor: "李建国", targetName: "李建国", action: "完成了散步", place: "运动", at: baseHour - 1800000, how: "1.24 公里（晨间散步 已完成）", notifiedNames: ["王芳"] },
+          { id: "op_wf_0", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "打卡了", place: "家属管理", at: baseHour - 600000, how: "晨起温水", notifiedNames: [] },
+          { id: "op_wf_1", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "修改了计划", place: "家属管理", at: baseHour - 2400000, how: "晚间散步", notifiedNames: [] },
           { id: "op_wf_2", role: "patient", actor: "王芳", targetName: "王芳", action: "打卡了", place: "首页", at: baseHour - 3600000, how: "服用辅酶Q10胶囊", notifiedNames: [] },
-          { id: "op_wf_3", role: "patient", actor: "李建国", targetName: "李建国", action: "打卡了", place: "首页", at: baseHour - 5400000, how: "服用阿司匹林肠溶片", notifiedNames: ["王芳"] },
-          { id: "op_wf_4", role: "patient", actor: "王芳", targetName: "王芳", action: "同步了血压", place: "血压监测", at: baseHour - 7200000, how: "血压 112/70，心率 64 bpm", notifiedNames: [] },
-          { id: "op_wf_5", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "提醒了", place: "首页", at: baseHour - 86400000, how: "晚间散步", notifiedNames: ["李建国"] },
+          { id: "op_wf_4", role: "patient", actor: "王芳", targetName: "王芳", action: "同步了血压", place: "血压监测", at: baseHour - 7200000, how: "血压 114/72，心率 66 bpm", notifiedNames: [] },
+          { id: "op_wf_5", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "提醒了", place: "家属管理", at: baseHour - 86400000, how: "晚间散步", notifiedNames: [] },
         ],
       };
     }
@@ -2582,14 +2639,14 @@
       ],
       archiveReview: [],
       ops: [
-        { id: "op_ljg_0", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "打卡了", place: "首页", at: baseHour - 600000, how: "晨起温水", notifiedNames: ["李建国"] },
-        { id: "op_ljg_1", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "打卡了", place: "首页", at: baseHour - 900000, how: "服用利伐沙班片", notifiedNames: ["张桂兰"] },
-        { id: "op_ljg_2", role: "patient", actor: "李建国", targetName: "李建国", action: "完成了散步", place: "运动", at: baseHour - 1800000, how: "1.24 公里（晨间散步 已完成）", notifiedNames: ["王芳"] },
-        { id: "op_ljg_3", role: "patient", actor: "张桂兰", targetName: "张桂兰", action: "打卡了", place: "首页", at: baseHour - 3000000, how: "服用苯磺酸氨氯地平片", notifiedNames: ["李建国"] },
-        { id: "op_ljg_4", role: "patient", actor: "李建国", targetName: "李建国", action: "打卡了", place: "首页", at: baseHour - 5400000, how: "服用阿司匹林肠溶片", notifiedNames: ["王芳"] },
-        { id: "op_ljg_5", role: "patient", actor: "李建国", targetName: "李建国", action: "同步了血压", place: "血压监测", at: baseHour - 7200000, how: "哈宝血压计，血压 122/76，心率 70 bpm", notifiedNames: ["王芳"] },
-        { id: "op_ljg_6", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "提醒了", place: "首页", at: baseHour - 86400000, how: "晚间散步", notifiedNames: ["李建国"] },
-        { id: "op_ljg_7", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "提醒了", place: "首页", at: baseHour - 90000000, how: "傍晚复测血压", notifiedNames: ["张桂兰"] },
+        { id: "op_ljg_0", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "打卡了", place: "家属管理", at: baseHour - 600000, how: "晨起温水", notifiedNames: [] },
+        { id: "pr_preset_2", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "打卡了", place: "家属管理", at: baseHour - 900000, how: "晨起测血压与心率", notifiedNames: [] },
+        { id: "op_ljg_2", role: "patient", actor: "李建国", targetName: "李建国", action: "完成了散步", place: "运动", at: baseHour - 1800000, how: "1.24 公里（晨间散步 已完成）", notifiedNames: [] },
+        { id: "op_ljg_3", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "修改了计划", place: "家属管理", at: baseHour - 2400000, how: "晚间散步", notifiedNames: [] },
+        { id: "op_ljg_4", role: "patient", actor: "李建国", targetName: "李建国", action: "打卡了", place: "首页", at: baseHour - 5400000, how: "服用阿司匹林肠溶片", notifiedNames: [] },
+        { id: "op_ljg_5", role: "patient", actor: "李建国", targetName: "李建国", action: "同步了血压", place: "血压监测", at: baseHour - 7200000, how: "哈宝血压计，血压 122/76，心率 70 bpm", notifiedNames: [] },
+        { id: "op_ljg_6", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "提醒了", place: "家属管理", at: baseHour - 86400000, how: "晚间散步", notifiedNames: [] },
+        { id: "op_ljg_7", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "提醒了", place: "家属管理", at: baseHour - 90000000, how: "傍晚复测血压", notifiedNames: [] },
       ],
     };
   }
@@ -6500,6 +6557,9 @@
         const rid = el.dataset.id;
         const req = (S.careProxyRequests || []).find((r) => String(r.id) === String(rid));
         if (!req) return;
+        if (req.kind === "remind") {
+          removeFamilyCollaborateOp(req.id, req.senderName, req.recipientName);
+        }
         S.careProxyRequests = S.careProxyRequests.filter((r) => String(r.id) !== String(rid));
         toast(`已撤回「${proxyActionLabel(req.kind)}」请求`);
         render();
@@ -6512,6 +6572,20 @@
         applyAcceptedProxyMutationInStore(req);
         req.status = "accepted";
         req.senderAcknowledged = false;
+        const actionMap = {
+          remind: "提醒了",
+          checkIn: "打卡了",
+          createPlan: "新建了计划",
+          updatePlan: "修改了计划",
+          deletePlan: "删除了计划",
+        };
+        logFamilyCollaborateOp({
+          entryId: req.id,
+          actorName: req.senderName,
+          targetName: req.recipientName,
+          action: actionMap[req.kind] || "打卡了",
+          how: req.taskSnapshot?.title || "",
+        });
         toast(`已接受${req.senderName}的${proxyActionLabel(req.kind)}，并通知对方`);
         render();
       },
@@ -9760,7 +9834,7 @@
           <div class="list-island mt16">
             ${[
               ["hardware", I.waves, "硬件管理", hwCaption()],
-              ["activity", I.clock, "操作记录", (S.ops && S.ops[0]) ? opHeadlineHTML(S.ops[0]) : "还没有记录"],
+              ["activity", I.clock, "操作记录", (() => { const latest = opVisibleOps()[0]; return latest ? opHeadlineHTML(latest) : "还没有记录"; })()],
               ["family-add", I.personPlus, "添加家属", familyAddCaptionFor(curPerson.name)],
             ].map(([id, ico, t, s]) => vipFeatureRowHTML(id, ico, t, s)).join("")}
             <button class="list-row base-feature-row" data-go="family" type="button">
@@ -13085,20 +13159,7 @@
   }
   function opHowText(op) {
     const raw = typeof op.how === "string" ? op.how : opNormalizeHow(op.action || op.kind || "", op.lines);
-    if (!genHasFamily()) return raw;
-    if (/已通知|已发送/.test(raw)) return raw;
-    const viewer = S.currentPersonName || S.name || "李建国";
-    const isRemind = op.action === "提醒了" || op.action === "提醒了患者" || op.kind === "提醒患者";
-    if (isRemind) {
-      const target = opResolvedTarget(op) || viewer;
-      const who = target === viewer ? "我" : target;
-      return raw ? `${raw}（已通知${who}）` : `已通知${who}`;
-    }
-    const notified = (op.notifiedNames || []).map((n) => String(n || "").trim()).filter(Boolean);
-    if (!notified.length) return raw;
-    const mapped = [...new Set(notified.map((n) => (n === viewer ? "我" : n)))];
-    const note = `已通知${mapped.join("、")}`;
-    return raw ? `${raw}（${note}）` : note;
+    return String(raw || "").trim();
   }
   function opActorName(op) {
     return String(op.actor || op.actorName || "我").trim();
@@ -13115,16 +13176,14 @@
     const viewer = S.currentPersonName || S.name || "李建国";
     const clean = String(personName || "").trim();
     if (!clean || clean === viewer || clean === "本人" || clean === "我") return "我";
-    if (myGuardiansList(viewer).some((b) => b.guardianName === clean)) return "守护我的人";
-    if (myWardsList(viewer).some((b) => b.wardName === clean)) return "被我守护的人";
-    if (op) {
-      const t = String(op.targetName || "").trim();
-      const a = opActorName(op);
-      if (t === viewer && a === clean) return "守护我的人";
-      if (a === viewer && t === clean) return "被我守护的人";
-      if ((op.notifiedNames || []).includes(viewer) && a === clean) return "被我守护的人";
-    }
-    return op && op.role === "family" ? "守护我的人" : "我";
+    return "家属";
+  }
+  function opIsPersonUnbound(personName) {
+    ensureCareGraph();
+    const viewer = S.currentPersonName || S.name || "李建国";
+    const clean = String(personName || "").trim();
+    if (!clean || clean === viewer || clean === "本人" || clean === "我") return false;
+    return !confirmedFamilyBondsFor(viewer).some((b) => bondOtherName(b, viewer) === clean);
   }
   function opResolvedTarget(op) {
     const actor = opActorName(op);
@@ -13134,8 +13193,8 @@
     if (act === "提醒了") {
       if (rawTarget) return rawTarget;
       if (actor === viewer) {
-        const w = myWardsList(viewer)[0];
-        return w ? w.wardName : "李建国";
+        const b = confirmedFamilyBondsFor(viewer)[0];
+        return b ? bondOtherName(b, viewer) : "王芳";
       }
       return viewer;
     }
@@ -13170,19 +13229,17 @@
   function opHeadlineHTML(op) {
     const actor = opActorName(op);
     const act = opActionName(op);
-    const viewer = S.currentPersonName || S.name || "李建国";
-    const unbound = genHasFamily() && op.actorId
-      && actor !== viewer
-      && !(S.careBonds || []).some((b) => b.confirmed && (b.guardianName === actor || b.wardName === actor || String(b.id) === String(op.actorId)))
-      && !(S.family || []).some((m) => String(m.id) === String(op.actorId));
-    const name = `${opPersonChipHTML(actor, op)}${unbound ? `<span class="op-unbound">已解绑</span>` : ""}`;
+    const actorUnbound = genHasFamily() && opIsPersonUnbound(actor);
+    const name = `${opPersonChipHTML(actor, op)}${actorUnbound ? `<span class="op-unbound">已解绑</span>` : ""}`;
     const placePart = op.place ? `<span class="op-plain">在</span><span class="op-place">${esc(op.place)}</span>` : "";
     const target = genHasFamily() ? opResolvedTarget(op) : "";
+    const targetUnbound = genHasFamily() && target && opIsPersonUnbound(target);
+    const targetChip = target ? `${opPersonChipHTML(target, op)}${targetUnbound ? `<span class="op-unbound">已解绑</span>` : ""}` : "";
     let middlePart = `<span class="op-plain">${esc(act)}</span>`;
     if (act === "提醒了" && target) {
-      middlePart = `<span class="op-plain">${esc(act)}</span>${opPersonChipHTML(target, op)}`;
+      middlePart = `<span class="op-plain">${esc(act)}</span>${targetChip}`;
     } else if (target) {
-      middlePart = `<span class="op-plain">帮</span>${opPersonChipHTML(target, op)}<span class="op-plain">${esc(act)}</span>`;
+      middlePart = `<span class="op-plain">帮</span>${targetChip}<span class="op-plain">${esc(act)}</span>`;
     }
     const how = opHowText(op);
     const howBadge = how ? `<span class="op-how">${esc(how)}</span>` : "";
@@ -14902,30 +14959,8 @@
       <div class="scrim center" data-act="close">
         <div class="popup" style="padding:8px 0 12px" onclick="event.stopPropagation()">
           <div class="s13 t-sec ta-c" style="padding:6px 16px 10px">${esc(opActorName(op))}${esc(opActionName(op))}</div>
-          <button class="op-actor-row" data-act="opReassign" data-id="${op.id}" type="button"><span>改归属</span></button>
           <button class="op-actor-row" data-act="opDel" data-id="${op.id}" type="button"><span style="color:var(--appt)">删除这条记录</span></button>
           <button class="op-actor-row" data-act="close" type="button"><span style="color:var(--secondary)">取消</span></button>
-        </div>
-      </div>`;
-    },
-    opActor: () => {
-      const op = (S.ops || []).find((x) => x.id === S.overlayData.id) || {};
-      ensureCareGraph();
-      const me = S.currentPersonName || S.name || "李建国";
-      const guardians = myGuardiansList(me).filter((b) => b.confirmed);
-      const wards = myWardsList(me).filter((b) => b.confirmed);
-      const rows = [{ id: "", name: me, rel: "我" }]
-        .concat(guardians.map((b) => ({ id: b.id, name: b.guardianName, rel: `守护我的人 · ${b.relation || "家人"}` })))
-        .concat(wards.map((b) => ({ id: b.id, name: b.wardName, rel: `被我守护的人 · ${b.relation || "家人"}` })));
-      const none = (guardians.length || wards.length) ? "" : `<div class="s15 t-sec" style="padding:6px 16px 0">还没有添加守护我的人或被我守护的人</div>`;
-      const curActor = opActorName(op);
-      return `
-      <div class="scrim bottom" data-act="close">
-        <div class="sheet" onclick="event.stopPropagation()">
-          <div class="grab"></div>
-          <div class="s20 fb t" style="margin:2px 16px 12px">这条记录算谁的</div>
-          ${rows.map((r) => `<button class="op-actor-row${curActor === r.name ? " on" : ""}" data-act="opPickActor" data-id="${r.id}" data-name="${escAttr(r.name)}" type="button"><span>${esc(r.name)}</span><span class="s13 t-sec">${esc(r.rel)}</span></button>`).join("")}
-          ${none}
         </div>
       </div>`;
     },
