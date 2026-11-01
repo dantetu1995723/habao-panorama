@@ -9759,9 +9759,9 @@
           </div>
           <div class="list-island mt16">
             ${[
-              ["family-add", I.personPlus, "添加家属", familyAddCaptionFor(curPerson.name)],
               ["hardware", I.waves, "硬件管理", hwCaption()],
               ["activity", I.clock, "操作记录", (S.ops && S.ops[0]) ? opHeadlineHTML(S.ops[0]) : "还没有记录"],
+              ["family-add", I.personPlus, "添加家属", familyAddCaptionFor(curPerson.name)],
             ].map(([id, ico, t, s]) => vipFeatureRowHTML(id, ico, t, s)).join("")}
             <button class="list-row base-feature-row" data-go="family" type="button">
               <div class="well neutral-well">${I.two}</div>
@@ -10084,30 +10084,34 @@
         </div>`;
       }
 
+      const selectorStripHTML = (col === "operate" && confirmed.length) ? `
+        <div style="height:0.8px;background:rgba(16,84,224,.08);margin:10px 0"></div>
+        <div style="display:flex;gap:8px;overflow-x:auto">
+          ${confirmed.map((b) => {
+            const other = bondOtherName(b, me.name);
+            const rel = bondRelationForViewer(b, me.name);
+            const on = selectedFamName === other;
+            return `<button type="button" data-act="selectActiveFam" data-name="${esc(other)}" style="flex-shrink:0;white-space:nowrap;height:38px;padding:0 14px;border-radius:12px;border:${on ? "0" : "0.8px solid rgba(16,84,224,.12)"};background:${on ? "var(--blue)" : "rgba(16,84,224,.06)"};color:${on ? "#fff" : "var(--blue)"};font-size:15.5px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;box-shadow:${on ? "0 3px 10px rgba(16,84,224,.16)" : "none"}">
+              <span>${esc(other)}</span>
+              <span style="font-size:12px;font-weight:600;opacity:${on ? ".92" : ".72"}">${esc(rel)}</span>
+            </button>`;
+          }).join("")}
+        </div>` : "";
+
       const columnSwitcherHTML = `
-        <div class="flex gap10">
-          <button type="button" data-act="pickFamCol" data-col="operate" style="flex:1;height:50px;border-radius:16px;border:0;background:${col === "operate" ? "var(--blue)" : "#fff"};color:${col === "operate" ? "#fff" : "var(--blue)"};font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(16,84,224,${col === "operate" ? ".18" : ".05"})">帮家属操作</button>
-          <button type="button" data-act="pickFamCol" data-col="notices" style="flex:1;height:50px;border-radius:16px;border:0;background:${col === "notices" ? "var(--blue)" : "#fff"};color:${col === "notices" ? "#fff" : "var(--blue)"};font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 12px rgba(16,84,224,${col === "notices" ? ".18" : ".05"})">
-            <span>收家属通知</span>
-            ${totalNotices > 0 ? `<span style="font-size:12px;font-weight:800;padding:2px 7px;border-radius:999px;background:${col === "notices" ? "#fff" : "var(--blue)"};color:${col === "notices" ? "var(--blue)" : "#fff"}">${totalNotices}</span>` : ""}
-          </button>
+        <div style="padding:8px;border-radius:20px;background:#fff;border:0.8px solid rgba(16,84,224,.10);box-shadow:0 4px 12px rgba(16,84,224,.06)">
+          <div style="display:flex;gap:6px">
+            <button type="button" data-act="pickFamCol" data-col="operate" style="flex:1;height:44px;border-radius:14px;border:0;background:${col === "operate" ? "var(--blue)" : "rgba(16,84,224,.05)"};color:${col === "operate" ? "#fff" : "var(--blue)"};font-size:16.5px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:${col === "operate" ? "0 3px 10px rgba(16,84,224,.18)" : "none"}">帮家属操作</button>
+            <button type="button" data-act="pickFamCol" data-col="notices" style="flex:1;height:44px;border-radius:14px;border:0;background:${col === "notices" ? "var(--blue)" : "rgba(16,84,224,.05)"};color:${col === "notices" ? "#fff" : "var(--blue)"};font-size:16.5px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:${col === "notices" ? "0 3px 10px rgba(16,84,224,.18)" : "none"}">
+              <span>收家属通知</span>
+              ${totalNotices > 0 ? `<span style="font-size:12px;font-weight:800;padding:2px 7px;border-radius:999px;background:${col === "notices" ? "#fff" : "var(--blue)"};color:${col === "notices" ? "var(--blue)" : "#fff"}">${totalNotices}</span>` : ""}
+            </button>
+          </div>
+          ${selectorStripHTML}
         </div>`;
 
       let operateBodyHTML = "";
       if (col === "operate") {
-        const selectorStripHTML = confirmed.length ? `
-          <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:2px;margin-top:14px">
-            ${confirmed.map((b) => {
-              const other = bondOtherName(b, me.name);
-              const rel = bondRelationForViewer(b, me.name);
-              const on = selectedFamName === other;
-              return `<button type="button" data-act="selectActiveFam" data-name="${esc(other)}" style="flex-shrink:0;white-space:nowrap;height:42px;padding:0 15px;border-radius:14px;border:${on ? "0" : "0.8px solid rgba(16,84,224,.12)"};background:${on ? "var(--blue)" : "#fff"};color:${on ? "#fff" : "var(--blue)"};font-size:15.5px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;box-shadow:0 3px 10px rgba(16,84,224,${on ? ".20" : ".05"})">
-                <span>${esc(other)}</span>
-                <span style="font-size:12.5px;font-weight:600;opacity:${on ? ".92" : ".72"}">${esc(rel)}</span>
-              </button>`;
-            }).join("")}
-          </div>` : "";
-
         if (selectedBond && selectedFamName) {
           const rel = bondRelationForViewer(selectedBond, me.name);
           const ph = bondOtherPhone(selectedBond, me.name);
@@ -10237,7 +10241,6 @@
             </div>`;
 
           operateBodyHTML = `
-            ${selectorStripHTML}
             ${unifiedCabinHTML}
           `;
         } else {
