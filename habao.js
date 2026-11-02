@@ -6779,14 +6779,21 @@
         render();
       },
       askProxyDeleteTask() {
+        ensureCareGraph();
         const me = currentDemoPerson();
         const famName = resolvedSelectedFamilyNameFor(me.name);
-        if (!S.proxyEditorDraft || !famName || !S.proxyEditorDraft.taskId) return;
+        if (!famName) return;
+        const tid = el.dataset.id || (S.proxyEditorDraft && S.proxyEditorDraft.taskId);
+        if (!tid) return;
+        const bucket = ensurePersonStore(famName);
+        const existing = (bucket.tasks || []).find((t) => String(t.id) === String(tid));
+        const title = existing ? existing.title : (S.proxyEditorDraft ? S.proxyEditorDraft.title : "该计划");
+        S.pendingProxyDeleteTaskId = tid;
         openOverlay("confirm", {
-          title: "删除家属计划",
-          body: `确定申请删除${famName}的「${S.proxyEditorDraft.title}」吗？需对方在「家属管理」点击接受后才会正式删除。`,
+          title: "删除计划",
+          body: `确认向${famName}发送删除「${title}」的通知吗？对方点击接受后正式删除。`,
           cancel: "取消",
-          ok: "发送删除请求",
+          ok: "发送删除通知",
           danger: true,
           action: "doProxyDeleteTask",
         });
@@ -6795,25 +6802,34 @@
         closeOverlay();
         const me = currentDemoPerson();
         const famName = resolvedSelectedFamilyNameFor(me.name);
-        if (!S.proxyEditorDraft || !famName || !S.proxyEditorDraft.taskId) return;
+        const tid = S.pendingProxyDeleteTaskId || (S.proxyEditorDraft && S.proxyEditorDraft.taskId);
+        if (!famName || !tid) return;
+        const bucket = ensurePersonStore(famName);
+        const existing = (bucket.tasks || []).find((t) => String(t.id) === String(tid));
         const d = S.proxyEditorDraft;
-        const taskSnap = {
-          id: d.taskId,
-          title: String(d.title || "").trim(),
-          cat: d.cat,
-          h: d.hour,
-          m: d.min,
-          cycle: !!d.cycle,
-          note: String(d.note || "").trim(),
-        };
+        const taskSnap = existing
+          ? { ...existing }
+          : d
+            ? {
+                id: d.taskId,
+                title: String(d.title || "").trim(),
+                cat: d.cat,
+                h: d.hour,
+                m: d.min,
+                cycle: !!d.cycle,
+                note: String(d.note || "").trim(),
+              }
+            : null;
+        if (!taskSnap) return;
         sendProxyRequestFor({
           senderName: me.name,
           recipientName: famName,
           kind: "deletePlan",
-          targetTaskId: d.taskId,
+          targetTaskId: tid,
           taskSnapshot: taskSnap,
           summaryNote: "申请删除该计划",
         });
+        S.pendingProxyDeleteTaskId = null;
         S.proxyEditorDraft = null;
         toast(`已向${famName}发送删除计划通知，待对方接受`);
         render();
@@ -10158,30 +10174,13 @@
         </div>`;
       }
 
-      const selectorStripHTML = (col === "operate" && confirmed.length) ? `
-        <div style="height:0.8px;background:rgba(16,84,224,.08);margin:10px 0"></div>
-        <div style="display:flex;gap:8px;overflow-x:auto">
-          ${confirmed.map((b) => {
-            const other = bondOtherName(b, me.name);
-            const rel = bondRelationForViewer(b, me.name);
-            const on = selectedFamName === other;
-            return `<button type="button" data-act="selectActiveFam" data-name="${esc(other)}" style="flex-shrink:0;white-space:nowrap;height:38px;padding:0 14px;border-radius:12px;border:${on ? "0" : "0.8px solid rgba(16,84,224,.12)"};background:${on ? "var(--blue)" : "rgba(16,84,224,.06)"};color:${on ? "#fff" : "var(--blue)"};font-size:15.5px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;box-shadow:${on ? "0 3px 10px rgba(16,84,224,.16)" : "none"}">
-              <span>${esc(other)}</span>
-              <span style="font-size:12px;font-weight:600;opacity:${on ? ".92" : ".72"}">${esc(rel)}</span>
-            </button>`;
-          }).join("")}
-        </div>` : "";
-
       const columnSwitcherHTML = `
-        <div style="padding:8px;border-radius:20px;background:#fff;border:0.8px solid rgba(16,84,224,.10);box-shadow:0 4px 12px rgba(16,84,224,.06)">
-          <div style="display:flex;gap:6px">
-            <button type="button" data-act="pickFamCol" data-col="operate" style="flex:1;height:44px;border-radius:14px;border:0;background:${col === "operate" ? "var(--blue)" : "rgba(16,84,224,.05)"};color:${col === "operate" ? "#fff" : "var(--blue)"};font-size:16.5px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:${col === "operate" ? "0 3px 10px rgba(16,84,224,.18)" : "none"}">帮家属操作</button>
-            <button type="button" data-act="pickFamCol" data-col="notices" style="flex:1;height:44px;border-radius:14px;border:0;background:${col === "notices" ? "var(--blue)" : "rgba(16,84,224,.05)"};color:${col === "notices" ? "#fff" : "var(--blue)"};font-size:16.5px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:${col === "notices" ? "0 3px 10px rgba(16,84,224,.18)" : "none"}">
-              <span>收家属通知</span>
-              ${totalNotices > 0 ? `<span style="font-size:12px;font-weight:800;padding:2px 7px;border-radius:999px;background:${col === "notices" ? "#fff" : "var(--blue)"};color:${col === "notices" ? "var(--blue)" : "#fff"}">${totalNotices}</span>` : ""}
-            </button>
-          </div>
-          ${selectorStripHTML}
+        <div style="padding:5px;border-radius:18px;background:#fff;border:0.8px solid rgba(16,84,224,.10);box-shadow:0 4px 12px rgba(16,84,224,.06);display:flex;gap:6px">
+          <button type="button" data-act="pickFamCol" data-col="operate" style="flex:1;height:44px;border-radius:14px;border:0;background:${col === "operate" ? "var(--blue)" : "transparent"};color:${col === "operate" ? "#fff" : "var(--blue)"};font-size:16.5px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:${col === "operate" ? "0 3px 10px rgba(16,84,224,.20)" : "none"}">帮家属操作</button>
+          <button type="button" data-act="pickFamCol" data-col="notices" style="flex:1;height:44px;border-radius:14px;border:0;background:${col === "notices" ? "var(--blue)" : "transparent"};color:${col === "notices" ? "#fff" : "var(--blue)"};font-size:16.5px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:${col === "notices" ? "0 3px 10px rgba(16,84,224,.20)" : "none"}">
+            <span>收家属通知</span>
+            ${totalNotices > 0 ? `<span style="font-size:12px;font-weight:800;padding:2px 7px;border-radius:999px;background:${col === "notices" ? "#fff" : "var(--blue)"};color:${col === "notices" ? "var(--blue)" : "#fff"}">${totalNotices}</span>` : ""}
+          </button>
         </div>`;
 
       let operateBodyHTML = "";
@@ -10216,12 +10215,22 @@
             }
 
             let rightCircle = "";
-            if (done) {
-              rightCircle = `<span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</span>`;
-            } else if (pendingReq) {
-              rightCircle = `<span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.clock}</span>`;
+            if (pendingReq) {
+              rightCircle = `<span style="width:36px;height:36px;border-radius:50%;flex:0 0 36px;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.clock}</span>`;
+            } else if (done) {
+              rightCircle = `<span style="width:36px;height:36px;border-radius:50%;flex:0 0 36px;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</span>`;
             } else {
-              rightCircle = `<button class="act-check" data-act="sendProxyCheckIn" data-id="${t.id}" type="button" title="帮${esc(selectedFamName)}打卡"></button>`;
+              rightCircle = `
+                <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+                  <button type="button" data-act="sendProxyRemind" data-id="${t.id}" title="提醒${esc(selectedFamName)}" style="width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(16,84,224,.35);background:rgba(16,84,224,.06);color:var(--blue);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;cursor:pointer;font-family:inherit;flex-shrink:0">
+                    <span style="width:11px;height:11px;display:grid;place-items:center">${I.bell}</span>
+                    <span style="font-size:9.5px;font-weight:800;line-height:1">提醒</span>
+                  </button>
+                  <button type="button" data-act="sendProxyCheckIn" data-id="${t.id}" title="帮${esc(selectedFamName)}打卡" style="width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(16,84,224,.35);background:rgba(16,84,224,.06);color:var(--blue);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;cursor:pointer;font-family:inherit;flex-shrink:0">
+                    <span style="width:11px;height:11px;display:grid;place-items:center">${I.check}</span>
+                    <span style="font-size:9.5px;font-weight:800;line-height:1">打卡</span>
+                  </button>
+                </div>`;
             }
 
             let barHTML = "";
@@ -10231,17 +10240,11 @@
                 <div class="act-card-bar">
                   <button type="button" data-act="withdrawProxyReq" data-id="${pendingReq.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.undo}${withdrawLabel}</button>
                 </div>`;
-            } else if (done) {
-              barHTML = `
-                <div class="act-card-bar">
-                  <button type="button" data-act="openProxyTaskEditor" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.pencil}编辑计划</button>
-                </div>`;
             } else {
               barHTML = `
-                <div class="act-card-bar triple">
-                  <button type="button" data-act="sendProxyRemind" data-id="${t.id}" style="white-space:nowrap">${I.bell}提醒</button>
-                  <button type="button" data-act="sendProxyCheckIn" data-id="${t.id}" style="font-weight:700;white-space:nowrap">${I.check}打卡</button>
-                  <button type="button" data-act="openProxyTaskEditor" data-id="${t.id}" style="white-space:nowrap">${I.pencil}编辑</button>
+                <div class="act-card-bar">
+                  <button type="button" data-act="openProxyTaskEditor" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.pencil}编辑</button>
+                  <button type="button" data-act="askProxyDeleteTask" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.trash}删除</button>
                 </div>`;
             }
 
@@ -10282,9 +10285,24 @@
             </div>
           `).join("");
 
+          const cabinSelectorHTML = confirmed.length > 1 ? `
+            <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
+              ${confirmed.map((b) => {
+                const other = bondOtherName(b, me.name);
+                const rTitle = bondRelationForViewer(b, me.name);
+                const on = selectedFamName === other;
+                return `<button type="button" data-act="selectActiveFam" data-name="${esc(other)}" style="flex-shrink:0;white-space:nowrap;height:34px;padding:0 13px;border-radius:999px;border:${on ? "0" : "0.8px solid rgba(255,255,255,.28)"};background:${on ? "#fff" : "rgba(255,255,255,.16)"};color:${on ? "var(--blue)" : "#fff"};font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;box-shadow:${on ? "0 2px 6px rgba(0,0,0,.10)" : "none"}">
+                  <span>${esc(other)}</span>
+                  <span style="font-size:11.5px;font-weight:600;opacity:${on ? ".90" : ".80"}">${esc(rTitle)}</span>
+                </button>`;
+              }).join("")}
+            </div>
+            <div style="height:1px;background:rgba(255,255,255,.18);margin:12px 0"></div>` : "";
+
           const unifiedCabinHTML = `
-            <div style="margin-top:14px;border-radius:24px;overflow:hidden;border:1px solid rgba(16,84,224,.16);box-shadow:0 6px 18px rgba(16,84,224,.08);background:rgba(238,244,255,.88)">
+            <div style="margin-top:16px;border-radius:24px;overflow:hidden;border:1px solid rgba(16,84,224,.16);box-shadow:0 6px 18px rgba(16,84,224,.08);background:rgba(238,244,255,.88)">
               <div style="padding:16px 16px 14px;background:linear-gradient(135deg,#2268F2 0%,#1054E0 100%);color:#fff">
+                ${cabinSelectorHTML}
                 <div style="display:flex;align-items:center;gap:12px">
                   <div style="width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.20);border:1.2px solid rgba(255,255,255,.36);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;color:#fff;flex-shrink:0">${esc(selectedFamName.slice(0, 1))}</div>
                   <div style="min-width:0;flex:1">
