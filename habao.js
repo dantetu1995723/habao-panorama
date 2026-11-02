@@ -594,6 +594,20 @@
   // 打字只落草稿 + 更新候选行、**不整体重绘**（否则输入框当场丢焦点）；
   // 点这一块的「确认」才回写（真机：改动先落草稿，不再收起键盘即生效）。
   document.addEventListener("input", (event) => {
+    if (event.target instanceof HTMLInputElement) {
+      if (event.target.name === "fname") {
+        S.famDraftName = event.target.value;
+        return;
+      }
+      if (event.target.name === "fphone") {
+        const filtered = event.target.value.replace(/\D/g, "").slice(0, 11);
+        if (event.target.value !== filtered) {
+          event.target.value = filtered;
+        }
+        S.famDraftPhone = filtered;
+        return;
+      }
+    }
     const target = event.target instanceof Element ? event.target.closest(".basis-input") : null;
     if (!target) return;
     stashBasisDraft(target.id.replace("basis-input-", ""), target.value);
@@ -7971,7 +7985,14 @@
         S.family = S.family.filter((x) => String(x.id) !== String(id));
         closeOverlay();
       },
-      pickRel() { S.famRel = el.dataset.r; render(); },
+      pickRel() {
+        const fn = $("input[name=fname]");
+        if (fn) S.famDraftName = fn.value;
+        const fp = $("input[name=fphone]");
+        if (fp) S.famDraftPhone = fp.value.replace(/\D/g, "").slice(0, 11);
+        S.famRel = el.dataset.r;
+        render();
+      },
       pickMyFamRel() {
         const inp = $("input[name=myFamName]");
         if (inp) S.myFamNameDraft = inp.value;
