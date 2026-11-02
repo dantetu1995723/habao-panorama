@@ -3138,6 +3138,188 @@
     }
     S.unreadConsultByPerson = {};
     S.pendingPersonPopups = {};
+    ensureDoctorPushSeed(false);
+  }
+  function defaultDoctorPushMessages() {
+    return [
+      {
+        id: "dp-plan-1",
+        who: "ai",
+        t: "李叔您好，后台康复医生查阅了您近一周的晚间血压记录，为您新增了一条晚间血压监测计划，请确认是否接受：",
+        doctorPushCard: {
+          kind: "planProposal",
+          doctorTitle: "心内康复主治医师 · 推送新计划",
+          pushedAtLabel: "今天 09:20",
+          planTitle: "睡前复测血压",
+          planCategory: "monitoring",
+          planHour: 20,
+          planMinute: 30,
+          planRecurrenceText: "每日",
+          planNote: "静坐休息 5 分钟后测量右臂血压，记录收缩压与舒张压",
+          planReason: "您近期晨起血压平稳，但傍晚偶有轻微头胀，补充晚间 20:30 血压监测有助于评估全天血压波动。",
+          planDecision: "pending"
+        }
+      },
+      {
+        id: "dp-followup-1",
+        who: "ai",
+        t: "李叔，您的月度心脏康复随访问卷已开启。完成随访有助于后台医生评估您的胸闷症状、睡眠与运动耐量恢复情况。",
+        doctorPushCard: {
+          kind: "followUpReminder",
+          doctorTitle: "随访管理医生 · 随访提醒",
+          pushedAtLabel: "今天 10:05",
+          followUpPeriodTitle: "本月定期康复随访问卷",
+          followUpSubtitle: "共 51 题 · 预计用时 3–5 分钟，涵括症状、作息、运动与心理状态评估。",
+          followUpCompleted: false
+        }
+      },
+      {
+        id: "dp-edu-1",
+        who: "ai",
+        t: "今日康复宣教：为您整理了冠心病支架术后服用他汀类药物的饮食注意事项，请查阅。",
+        doctorPushCard: {
+          kind: "dailyEducation",
+          doctorTitle: "心脏康复团队 · 日常宣教",
+          pushedAtLabel: "今天 11:00",
+          educationTag: "用药安全",
+          educationTitle: "支架术后吃他汀，为什么不能碰西柚？",
+          educationSummary: "阿托伐他汀、瑞舒伐他汀等药物在体内代谢时，西柚（葡萄柚）中的呋喃香豆素会抑制肝脏代谢酶，导致药物在血液中浓度成倍升高。",
+          educationTips: [
+            "服药期间避免食用西柚、葡萄柚及饮用西柚汁",
+            "普通蜜柚、沙田柚虽含量较低，也建议与服药间隔 4 小时以上",
+            "如出现不明原因肌肉酸痛或乏力，请及时在哈宝医生留言反馈"
+          ],
+          educationFollowUpPrompt: "我晚上吃阿托伐他汀钙片，平时吃橙子或者橘子会有影响吗？",
+          educationRead: false
+        }
+      }
+    ];
+  }
+  function ensureDoctorPushSeed(forceReset) {
+    if (!S.consultFilter) S.consultFilter = "all";
+    if (!Array.isArray(S.messages)) S.messages = [];
+    const hasSeed = S.messages.some((m) => m && m.doctorPushCard);
+    if (forceReset || !hasSeed) {
+      const rest = forceReset ? [] : S.messages.filter((m) => !m.doctorPushCard);
+      S.messages = [...defaultDoctorPushMessages(), ...rest];
+    }
+  }
+  function consultDoctorPushCardHTML(m) {
+    const c = m.doctorPushCard;
+    if (!c) return "";
+    const statusPill = (() => {
+      if (c.kind === "planProposal") {
+        if (c.planDecision === "accepted") return `<span style="font-size:12px;font-weight:700;color:#fff;background:#1054E0;padding:3px 9px;border-radius:99px">已接受</span>`;
+        if (c.planDecision === "rejected") return `<span style="font-size:12px;font-weight:700;color:#6E7D96;background:rgba(16,84,224,.06);padding:3px 9px;border-radius:99px">已拒绝</span>`;
+        return `<span style="font-size:12px;font-weight:700;color:#1054E0;background:rgba(16,84,224,.10);padding:3px 9px;border-radius:99px">待确认</span>`;
+      }
+      if (c.kind === "followUpReminder") {
+        if (c.followUpCompleted) return `<span style="font-size:12px;font-weight:700;color:#fff;background:#1054E0;padding:3px 9px;border-radius:99px">已完成</span>`;
+        return `<span style="font-size:12px;font-weight:700;color:#1054E0;background:rgba(16,84,224,.10);padding:3px 9px;border-radius:99px">待随访</span>`;
+      }
+      if (c.educationRead) return `<span style="font-size:12px;font-weight:700;color:#1054E0;background:rgba(16,84,224,.08);padding:3px 9px;border-radius:99px">已读</span>`;
+      return `<span style="font-size:12px;font-weight:700;color:#1054E0;background:rgba(16,84,224,.10);padding:3px 9px;border-radius:99px">${esc(c.educationTag || "日常宣教")}</span>`;
+    })();
+    const badgeIcon = c.kind === "planProposal" ? I.cal : c.kind === "followUpReminder" ? I.doc : I.spark;
+    let bodyHTML = "";
+    if (c.kind === "planProposal") {
+      const catMeta = CAT[c.planCategory] || CAT.monitoring;
+      const pad2 = (n) => String(n).padStart(2, "0");
+      const timeText = `${pad2(c.planHour)}:${pad2(c.planMinute)}`;
+      const actionsHTML = c.planDecision === "pending" ? `
+        <div style="display:flex;gap:10px;margin-top:10px">
+          <button type="button" data-act="rejectDoctorPlan" data-id="${esc(m.id)}" style="flex:1;height:40px;border-radius:99px;border:1px solid rgba(16,84,224,.18);background:rgba(16,84,224,.05);color:#5A6882;font-size:14.5px;font-weight:700;cursor:pointer">拒绝</button>
+          <button type="button" data-act="acceptDoctorPlan" data-id="${esc(m.id)}" style="flex:1.35;height:40px;border-radius:99px;border:none;background:#1054E0;color:#fff;font-size:14.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px">✓ 接受计划</button>
+        </div>
+      ` : c.planDecision === "accepted" ? `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid rgba(16,84,224,.08)">
+          <span style="font-size:13.5px;font-weight:700;color:#1054E0">✓ 已接受并加入计划</span>
+          <button type="button" data-act="openConsultSchedule" style="border:none;background:rgba(16,84,224,.09);color:#1054E0;font-size:13px;font-weight:700;padding:6px 12px;border-radius:99px;cursor:pointer">查看健康计划 ›</button>
+        </div>
+      ` : `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid rgba(16,84,224,.08)">
+          <span style="font-size:13.5px;font-weight:600;color:#6E7D96">✕ 已拒绝该计划建议</span>
+          <button type="button" data-act="acceptDoctorPlan" data-id="${esc(m.id)}" style="border:none;background:rgba(16,84,224,.08);color:#1054E0;font-size:13px;font-weight:700;padding:6px 12px;border-radius:99px;cursor:pointer">重新接受</button>
+        </div>
+      `;
+      bodyHTML = `
+        <div style="background:rgba(16,84,224,.045);border:1px solid rgba(16,84,224,.12);border-radius:14px;padding:11px;margin-top:8px">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <img src="${A.task[c.planCategory] || A.task.monitoring}" alt="" style="width:38px;height:38px;border-radius:10px;background:#fff;padding:4px;border:1px solid rgba(16,84,224,.10);flex-shrink:0" />
+            <div style="min-width:0;flex:1">
+              <div style="font-size:15px;font-weight:700;color:#1A2947">${esc(c.planTitle)}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px">
+                <span style="font-size:12px;font-weight:700;color:#1054E0;background:rgba(16,84,224,.10);padding:2px 8px;border-radius:99px">${timeText}</span>
+                <span style="font-size:12px;font-weight:600;color:#5A6882;background:#fff;padding:2px 8px;border-radius:99px">${esc(c.planRecurrenceText)}</span>
+                <span style="font-size:12px;font-weight:600;color:#5A6882;background:#fff;padding:2px 8px;border-radius:99px">${esc(catMeta.name)}</span>
+              </div>
+              ${c.planNote ? `<div style="font-size:13px;color:#5A6882;margin-top:5px;line-height:1.4">${esc(c.planNote)}</div>` : ""}
+            </div>
+          </div>
+        </div>
+        ${c.planReason ? `<div style="font-size:13px;color:#5A6882;margin-top:8px;line-height:1.45">${esc(c.planReason)}</div>` : ""}
+        ${actionsHTML}
+      `;
+    } else if (c.kind === "followUpReminder") {
+      const answered = Object.keys(S.qAns || {}).length;
+      const progressText = c.followUpCompleted
+        ? "本期已提交归档"
+        : answered > 0
+          ? `已答 ${answered}/51 题 · 可继续作答`
+          : "共 51 题 · 尚未开始";
+      bodyHTML = `
+        <div style="background:rgba(16,84,224,.045);border:1px solid rgba(16,84,224,.12);border-radius:14px;padding:11px;margin-top:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:38px;height:38px;border-radius:10px;background:rgba(16,84,224,.10);color:#1054E0;display:flex;align-items:center;justify-content:center;flex-shrink:0">${I.doc}</div>
+            <div style="min-width:0;flex:1">
+              <div style="font-size:15px;font-weight:700;color:#1A2947">${esc(c.followUpPeriodTitle)}</div>
+              <div style="font-size:12.5px;font-weight:600;color:#1054E0;margin-top:3px">${progressText}</div>
+            </div>
+          </div>
+          <div style="font-size:13px;color:#5A6882;margin-top:8px;line-height:1.45">${esc(c.followUpSubtitle)}</div>
+        </div>
+        ${c.followUpCompleted ? `
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid rgba(16,84,224,.08)">
+            <span style="font-size:13.5px;font-weight:700;color:#1054E0">✓ 已完成本期随访</span>
+            <button type="button" data-act="openConsultReport" style="border:none;background:rgba(16,84,224,.09);color:#1054E0;font-size:13px;font-weight:700;padding:6px 12px;border-radius:99px;cursor:pointer">查看身体报告 ›</button>
+          </div>
+        ` : `
+          <button type="button" data-act="goDoctorFollowUp" data-id="${esc(m.id)}" style="width:100%;height:40px;margin-top:10px;border-radius:99px;border:none;background:#1054E0;color:#fff;font-size:14.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">${answered > 0 ? "继续完成随访 ›" : "去完成随访 ›"}</button>
+        `}
+      `;
+    } else {
+      const tipsHTML = (c.educationTips || []).map((tip, idx) => `
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-top:${idx === 0 ? 0 : 6}px">
+          <span style="width:19px;height:19px;border-radius:50%;background:rgba(16,84,224,.12);color:#1054E0;font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${idx + 1}</span>
+          <span style="font-size:13.5px;color:#1A2947;line-height:1.42">${esc(tip)}</span>
+        </div>
+      `).join("");
+      bodyHTML = `
+        <div style="font-size:15.5px;font-weight:700;color:#1A2947;margin-top:8px;line-height:1.35">${esc(c.educationTitle)}</div>
+        <div style="font-size:13.5px;color:#5A6882;margin-top:5px;line-height:1.45">${esc(c.educationSummary)}</div>
+        <div style="background:rgba(16,84,224,.045);border-radius:12px;padding:10px;margin-top:8px">${tipsHTML}</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+          <button type="button" data-act="askEduQuestion" data-id="${esc(m.id)}" style="flex:1;height:38px;border-radius:99px;border:1px solid rgba(16,84,224,.22);background:rgba(16,84,224,.07);color:#1054E0;font-size:13.5px;font-weight:700;cursor:pointer">就此提问</button>
+          ${c.educationRead ? `
+            <span style="flex:1;text-align:center;font-size:13.5px;font-weight:700;color:#1054E0">✓ 已读 · 记住了</span>
+          ` : `
+            <button type="button" data-act="markEduRead" data-id="${esc(m.id)}" style="flex:1;height:38px;border-radius:99px;border:none;background:#1054E0;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer">✓ 知道了</button>
+          `}
+        </div>
+      `;
+    }
+    return `
+      <div style="background:#fff;border:1px solid rgba(16,84,224,.14);border-radius:18px;padding:13px;margin-top:6px;box-shadow:0 4px 12px rgba(16,84,224,.05)">
+        <div style="display:flex;align-items:center;gap:8px;padding-bottom:8px;border-bottom:1px solid rgba(16,84,224,.08)">
+          <div style="width:26px;height:26px;border-radius:50%;background:rgba(16,84,224,.10);color:#1054E0;display:flex;align-items:center;justify-content:center;flex-shrink:0">${badgeIcon}</div>
+          <div style="min-width:0;flex:1">
+            <div style="font-size:13.5px;font-weight:700;color:#1A2947">${esc(c.doctorTitle)}</div>
+            <div style="font-size:11.5px;color:#6E7D96">${esc(c.pushedAtLabel)}</div>
+          </div>
+          ${statusPill}
+        </div>
+        ${bodyHTML}
+      </div>`;
   }
   function presentUnreadCareNoticeForPerson(personName) {
     // 守护人概念重构中：不再触发待读守护通知
@@ -5960,6 +6142,82 @@
         S.pendingImage = false;
         S.inputMode = "voice";
         S.consultKeyboard = false;
+        render();
+      },
+      setConsultFilter() {
+        S.consultFilter = el.dataset.f || "all";
+        render();
+      },
+      resetConsultDemo() {
+        ensureDoctorPushSeed(true);
+        S.consultFilter = "all";
+        toast("已重置哈宝问诊 3 类医生推送状况");
+        render();
+      },
+      acceptDoctorPlan() {
+        const id = el.dataset.id;
+        const msg = (S.messages || []).find((m) => m.id === id);
+        if (!msg || !msg.doctorPushCard) return;
+        const c = msg.doctorPushCard;
+        c.planDecision = "accepted";
+        const exists = SEED.some((t) => t.title === c.planTitle && t.h === c.planHour && t.m === c.planMinute);
+        if (!exists) {
+          SEED.push({
+            id: nextTaskId(),
+            title: c.planTitle,
+            h: c.planHour,
+            m: c.planMinute,
+            cat: c.planCategory || "monitoring",
+            note: c.planNote || "",
+            rx: true
+          });
+        }
+        const pad2 = (n) => String(n).padStart(2, "0");
+        logOp("采纳了方案", "哈宝医生", `${c.planTitle}（${c.planRecurrenceText} ${pad2(c.planHour)}:${pad2(c.planMinute)}）`);
+        toast(`已接受并加入健康计划：${c.planTitle}`);
+        render();
+      },
+      rejectDoctorPlan() {
+        const id = el.dataset.id;
+        const msg = (S.messages || []).find((m) => m.id === id);
+        if (!msg || !msg.doctorPushCard) return;
+        msg.doctorPushCard.planDecision = "rejected";
+        toast("已拒绝该计划建议");
+        render();
+      },
+      openConsultSchedule() {
+        go("schedule", "cover");
+      },
+      goDoctorFollowUp() {
+        const id = el.dataset.id;
+        const msg = (S.messages || []).find((m) => m.id === id);
+        if (msg && msg.doctorPushCard) {
+          msg.doctorPushCard.followUpCompleted = true;
+        }
+        go("questionnaire", "cover");
+      },
+      openConsultReport() {
+        go("report", "cover");
+      },
+      markEduRead() {
+        const id = el.dataset.id;
+        const msg = (S.messages || []).find((m) => m.id === id);
+        if (msg && msg.doctorPushCard) {
+          msg.doctorPushCard.educationRead = true;
+        }
+        render();
+      },
+      askEduQuestion() {
+        const id = el.dataset.id;
+        const msg = (S.messages || []).find((m) => m.id === id);
+        const prompt = msg?.doctorPushCard?.educationFollowUpPrompt || "请问这条日常宣教有哪些需要注意的细节？";
+        if (msg && msg.doctorPushCard) {
+          msg.doctorPushCard.educationRead = true;
+        }
+        S.consultFilter = "all";
+        S.messages.push({ who: "user", t: prompt });
+        const routed = routeFreeConsultTurn(prompt, false);
+        S.messages.push({ who: "ai", t: routed.reply });
         render();
       },
       toggleInput() {
@@ -9973,7 +10231,7 @@
       </div>`;
     },
 
-    // 纯粹的对话问诊页：空态只有 Logo 问候，下方一条输入框（点按打字，长按把语音流进框里）和一枚加号（拍照 / 相册 / AI电话）。
+    // 哈宝医生对话问诊页：支持后台医生推送新计划（接受/拒绝）、提醒完成随访、日常康复宣教三类状况及自由问诊。
     consult: () => {
       ensureCareGraph();
       ensureSeededCareNotices();
@@ -9982,14 +10240,33 @@
       const curPerson = S.currentPersonName || "李建国";
       if (!S.unreadConsultByPerson) S.unreadConsultByPerson = {};
       S.unreadConsultByPerson[curPerson] = false;
-      const visibleMessages = S.messages.filter(
+      const curFilter = S.consultFilter || "all";
+      const allVisible = S.messages.filter(
         (m) => !m.isCareBubble && m.who !== "notice"
       );
+      const visibleMessages = allVisible.filter((m) => {
+        if (curFilter === "all") return true;
+        if (!m.doctorPushCard) return false;
+        if (curFilter === "planPush") return m.doctorPushCard.kind === "planProposal";
+        if (curFilter === "followUp") return m.doctorPushCard.kind === "followUpReminder";
+        if (curFilter === "education") return m.doctorPushCard.kind === "dailyEducation";
+        return true;
+      });
+      const filterPills = [
+        { k: "all", t: "全部" },
+        { k: "planPush", t: "医生推计划" },
+        { k: "followUp", t: "随访提醒" },
+        { k: "education", t: "日常宣教" },
+      ].map((f) => {
+        const on = curFilter === f.k;
+        return `<button type="button" data-act="setConsultFilter" data-f="${f.k}" style="height:31px;padding:0 11px;border-radius:99px;border:1px solid ${on ? "#1054E0" : "rgba(16,84,224,.14)"};background:${on ? "#1054E0" : "#fff"};color:${on ? "#fff" : "#1A2947"};font-size:13px;font-weight:${on ? 700 : 600};cursor:pointer;white-space:nowrap">${f.t}</button>`;
+      }).join("");
       const plusItem = (act, icon, label) =>
         `<button class="plus-item" type="button" data-act="${act}"><span>${icon}</span>${label}</button>`;
       return `
       <div class="page rel${S.consultKeyboard ? " consult-kb" : ""}${S.plusPanel ? " consult-panel" : ""}">
-        ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="24" height="24" alt="" />哈宝医生</span>`)}
+        ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="24" height="24" alt="" />哈宝医生</span>`, `<button class="pill-btn" type="button" data-act="resetConsultDemo" style="font-size:13px;font-weight:700;color:#1054E0;padding:0 11px;height:32px">状况</button>`)}
+        <div style="display:flex;align-items:center;gap:7px;padding:4px 16px 8px;overflow-x:auto">${filterPills}</div>
         <div class="scroll px20 grow">
           ${!visibleMessages.length ? `
             <div class="island-card ta-c" style="padding:16px;margin-top:12px;margin-bottom:10px">
@@ -10009,9 +10286,12 @@
               <div class="chat-avatar user" aria-label="我的头像">${I.person}</div>
             </div>
           ` : `
-            <div class="chat-msg-row ai">
+            <div class="chat-msg-row ai" style="align-items:flex-start">
               <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
-              <div class="bubble ai">${m.t}</div>
+              <div style="flex:1;min-width:0">
+                <div class="bubble ai">${m.t}</div>
+                ${m.doctorPushCard ? consultDoctorPushCardHTML(m) : ""}
+              </div>
             </div>
           `)).join("")}
         </div>
