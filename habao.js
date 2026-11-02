@@ -2040,8 +2040,8 @@
         { name: "张桂兰", gender: "女", age: 78, height: 158, weight: 56, phone: "137****9021", phoneRaw: "13700139021" },
       ];
     } else {
-      const presetSet = new Set(["李建国", "王芳", "张桂兰"]);
-      S.demoPeople = S.demoPeople.filter((p) => presetSet.has(p.name));
+      const retiredSet = new Set(["李浩然", "陈建华"]);
+      S.demoPeople = S.demoPeople.filter((p) => !retiredSet.has(p.name));
     }
     if (!S.careBonds) {
       S.careBonds = [
@@ -14833,7 +14833,6 @@
     },
     demoPersonSheet: () => {
       ensureCareGraph();
-      const presets = S.demoPeople.slice(0, 3);
       return `
       <div class="scrim bottom" data-act="close">
         <div class="sheet large" onclick="event.stopPropagation()">
@@ -14843,7 +14842,7 @@
             <button class="cap" data-act="close" type="button">关闭</button>
           </div>
           <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px">
-            ${presets.map((p) => {
+            ${S.demoPeople.map((p) => {
               const isCur = p.name === S.currentPersonName;
               const unread = pendingFamilyEventCountFor(p.name);
               return `
