@@ -2124,6 +2124,7 @@
     if (!S.lastProxyPopupAckAt) S.lastProxyPopupAckAt = {};
     if (typeof S.proxyPopupPage !== "number") S.proxyPopupPage = 0;
     if (typeof S.bindInvitePopupPage !== "number") S.bindInvitePopupPage = 0;
+    if (typeof S.bindAcceptedPopupPage !== "number") S.bindAcceptedPopupPage = 0;
     if (!S.boundPersonKey) {
       const initPerson = S.currentPersonName || "李建国";
       const initBucket = ensurePersonStore(initPerson);
@@ -2196,6 +2197,31 @@
     }
     return focusSender;
   }
+  function unshownAcceptedBindBondsFor(personName) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName || "李建国";
+    return S.careBonds.filter((b) => bondNeedsBindAck(b, nm) && !b.acceptedPopupShown);
+  }
+  function acknowledgeHomeBindAcceptedPopupFor(personName, preferredBondId) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName || "李建国";
+    let focusOther = null;
+    if (preferredBondId) {
+      const hit = S.careBonds.find((b) => String(b.id) === String(preferredBondId) && bondNeedsBindAck(b, nm));
+      if (hit) focusOther = bondOtherName(hit, nm);
+    }
+    S.careBonds.forEach((b) => {
+      if (bondNeedsBindAck(b, nm)) {
+        if (!focusOther) focusOther = bondOtherName(b, nm);
+        b.acceptedPopupShown = true;
+      }
+    });
+    S.bindAcceptedPopupPage = 0;
+    if (focusOther) {
+      S.selectedProxyFamilyName = focusOther;
+    }
+    return focusOther;
+  }
   function acknowledgeBindOrUnbindFor(bondId, personName) {
     ensureCareGraph();
     const nm = personName || S.currentPersonName || "李建国";
@@ -2208,6 +2234,7 @@
       b.status = "confirmed";
       b.hasUnreadAcceptReturn = true;
       b.unacknowledgedBindFor = req ? [req] : [];
+      b.acceptedPopupShown = false;
       syncLegacyListsFromBonds();
       const other = bondOtherName(b, nm);
       const rel = bondRelationForViewer(b, nm);
@@ -3515,6 +3542,21 @@
       how: `${nm}（${rel}）`,
     };
   }
+  function bondAcceptedToOpItem(b, viewerName) {
+    const nm = viewerName || S.currentPersonName || "李建国";
+    const other = bondOtherName(b, nm);
+    const rel = bondRelationForViewer(b, nm);
+    return {
+      id: b.id,
+      at: b.createdAt || Date.now(),
+      role: "family",
+      actor: other,
+      targetName: "",
+      action: "同意了家属绑定",
+      place: "家属管理",
+      how: `${nm}（${rel}）`,
+    };
+  }
   function careNoticeModalHTML() {
     if (S.screen !== "home") return "";
     ensureCareGraph();
@@ -3555,6 +3597,46 @@
             ${pagerHTML}
             <div style="width:100%;display:flex;gap:10px">
               <button type="button" data-act="goFamilyManageFromBindPopup" data-id="${curBond.id}" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">去家属管理确认</button>
+            </div>
+          </div>
+        </div>`;
+    }
+    const unshownAccepted = unshownAcceptedBindBondsFor(cur);
+    if (unshownAccepted.length > 0) {
+      const total = unshownAccepted.length;
+      const pageIdx = Math.min(Math.max(0, S.bindAcceptedPopupPage || 0), total - 1);
+      S.bindAcceptedPopupPage = pageIdx;
+      const curBond = unshownAccepted[pageIdx];
+      const prevDisabled = pageIdx <= 0;
+      const nextDisabled = pageIdx >= total - 1;
+      const dotsHTML = total > 1
+        ? Array.from({ length: Math.min(total, 8) }, (_, idx) => {
+            const active = idx === pageIdx;
+            return `<span data-act="gotoBindAcceptedPopupPage" data-idx="${idx}" style="width:${active ? 16 : 6}px;height:6px;border-radius:999px;background:${active ? "var(--blue)" : "rgba(16,84,224,.22)"};cursor:pointer;transition:all .18s ease"></span>`;
+          }).join("")
+        : "";
+      const pagerHTML = total > 1
+        ? `
+          <div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px">
+            <button type="button" data-act="prevBindAcceptedPopupPage" ${prevDisabled ? "disabled" : ""} style="height:32px;padding:0 12px;border-radius:999px;border:0;background:rgba(16,84,224,${prevDisabled ? ".04" : ".09"});color:rgba(16,84,224,${prevDisabled ? ".32" : "1"});font-size:13px;font-weight:800;cursor:${prevDisabled ? "default" : "pointer"};font-family:inherit;display:inline-flex;align-items:center;gap:4px">‹ 上一页</button>
+            <div style="display:flex;align-items:center;gap:6px">${dotsHTML}</div>
+            <button type="button" data-act="nextBindAcceptedPopupPage" ${nextDisabled ? "disabled" : ""} style="height:32px;padding:0 12px;border-radius:999px;border:0;background:rgba(16,84,224,${nextDisabled ? ".04" : ".09"});color:rgba(16,84,224,${nextDisabled ? ".32" : "1"});font-size:13px;font-weight:800;cursor:${nextDisabled ? "default" : "pointer"};font-family:inherit;display:inline-flex;align-items:center;gap:4px">下一页 ›</button>
+          </div>`
+        : "";
+      return `
+        <div class="care-notice-modal" style="position:absolute;inset:0;z-index:110;background:rgba(10,22,48,.42);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .18s ease">
+          <div style="width:100%;max-width:344px;background:#fff;border-radius:24px;border:1px solid rgba(16,84,224,.14);box-shadow:0 16px 36px rgba(10,26,68,.20);padding:22px 20px 20px;display:flex;flex-direction:column;align-items:stretch;text-align:left">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(16,84,224,.12);color:var(--blue);display:grid;place-items:center;flex-shrink:0">${I.check || I.shield}</div>
+              <div style="flex:1;min-width:0;font-size:19px;font-weight:800;color:var(--blue);line-height:1.2">家属绑定已确认</div>
+              ${total > 1 ? `<span style="padding:4px 10px;border-radius:999px;background:rgba(16,84,224,.10);border:1px solid rgba(16,84,224,.22);color:var(--blue);font-size:12.5px;font-weight:800;flex-shrink:0">${pageIdx + 1} / ${total}</span>` : ""}
+            </div>
+            <div class="op-card" data-act="goFamilyManageFromAcceptedPopup" data-id="${curBond.id}" style="width:100%;padding:15px;border-radius:16px;background:rgba(16,84,224,.05);border:1px solid rgba(16,84,224,.14);box-shadow:none;margin-bottom:${total > 1 ? "12px" : "16px"};cursor:pointer">
+              <h4>${opHeadlineHTML(bondAcceptedToOpItem(curBond, cur))}</h4>
+            </div>
+            ${pagerHTML}
+            <div style="width:100%;display:flex;gap:10px">
+              <button type="button" data-act="goFamilyManageFromAcceptedPopup" data-id="${curBond.id}" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">去家属管理确认</button>
             </div>
           </div>
         </div>`;
@@ -6973,8 +7055,12 @@
           if (bondNeedsIncomingConfirm(b, p.name)) {
             b.incomingPopupShown = false;
           }
+          if (bondNeedsBindAck(b, p.name)) {
+            b.acceptedPopupShown = false;
+          }
         });
         S.bindInvitePopupPage = 0;
+        S.bindAcceptedPopupPage = 0;
         S.role = "patient";
         S.actorId = null;
         S.phone = p.phoneRaw;
@@ -7115,6 +7201,8 @@
         bond.confirmed = true;
         bond.status = "confirmed";
         bond.hasUnreadAcceptReturn = true;
+        bond.unacknowledgedBindFor = [requester];
+        bond.acceptedPopupShown = false;
         syncLegacyListsFromBonds();
         const viewer = S.currentPersonName || "李建国";
         const requester = bondOtherName(bond, viewer);
@@ -7470,6 +7558,35 @@
         acknowledgeHomeBindInvitePopupFor(cur, bid);
         S.famIsAdding = false;
         go("family", "push");
+      },
+      goFamilyManageFromAcceptedPopup() {
+        const bid = el.dataset.id;
+        const cur = S.currentPersonName || "李建国";
+        acknowledgeHomeBindAcceptedPopupFor(cur, bid);
+        S.famIsAdding = false;
+        go("family", "push");
+      },
+      prevBindAcceptedPopupPage() {
+        const cur = S.currentPersonName || "李建国";
+        const list = unshownAcceptedBindBondsFor(cur);
+        if (!list.length) return;
+        S.bindAcceptedPopupPage = Math.max(0, (S.bindAcceptedPopupPage || 0) - 1);
+        render();
+      },
+      nextBindAcceptedPopupPage() {
+        const cur = S.currentPersonName || "李建国";
+        const list = unshownAcceptedBindBondsFor(cur);
+        if (!list.length) return;
+        S.bindAcceptedPopupPage = Math.min(list.length - 1, (S.bindAcceptedPopupPage || 0) + 1);
+        render();
+      },
+      gotoBindAcceptedPopupPage() {
+        const idx = Number(el.dataset.idx || 0);
+        const cur = S.currentPersonName || "李建国";
+        const list = unshownAcceptedBindBondsFor(cur);
+        if (!list.length) return;
+        S.bindAcceptedPopupPage = Math.min(Math.max(0, idx), list.length - 1);
+        render();
       },
       withdrawProxyReq() {
         ensureCareGraph();
