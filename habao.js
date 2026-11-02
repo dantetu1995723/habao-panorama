@@ -3265,33 +3265,19 @@
         t: "",
         doctorPushCard: {
           kind: "planProposal",
-          badgeTitle: "医生推计划",
-          doctorTitle: "王主任推送 · 近 3 天晚间血压偏高",
+          title: "后台王医生结合您近期恢复情况，为您推送了 3 项新计划：",
           pushedAtLabel: "09:45",
-          planTitle: "晚间复测血压与心率",
+          planItems: [
+            { title: "晨起测血压", category: "monitoring", hour: 6, minute: 30, timeLabel: "06:30", note: "静坐 5 分钟测量" },
+            { title: "下午温和散步", category: "exercise", hour: 16, minute: 0, timeLabel: "16:00", note: "饭后慢走 20 分钟" },
+            { title: "睡前温水泡脚", category: "rest", hour: 21, minute: 30, timeLabel: "21:30", note: "40℃ 温水助眠" }
+          ],
+          planTitle: "晨起测血压",
           planCategory: "monitoring",
-          planHour: 20,
-          planMinute: 0,
-          planRecurrenceText: "每日 20:00",
-          planNote: "晚饭后静坐 5 分钟测量",
-          planDecision: "pending"
-        }
-      },
-      {
-        id: "dp-plan-2",
-        who: "ai",
-        t: "",
-        doctorPushCard: {
-          kind: "planProposal",
-          badgeTitle: "医生推计划",
-          doctorTitle: "主诊医生推送 · 结合心超与体测恢复",
-          pushedAtLabel: "10:15",
-          planTitle: "下午温和散步 20 分钟",
-          planCategory: "exercise",
-          planHour: 16,
-          planMinute: 0,
-          planRecurrenceText: "每日 16:00",
-          planNote: "饭后平路慢走，保持微汗",
+          planHour: 6,
+          planMinute: 30,
+          planRecurrenceText: "每日 06:30",
+          planNote: "静坐 5 分钟测量",
           planDecision: "pending"
         }
       },
@@ -3301,11 +3287,12 @@
         t: "",
         doctorPushCard: {
           kind: "followUpReminder",
-          badgeTitle: "随访提醒",
-          doctorTitle: "随访管理医生 · 预计 3 分钟完成",
-          pushedAtLabel: "11:05",
-          followUpPeriodTitle: "本月术后定期随访问卷",
-          followUpSubtitle: "评估服药耐受、睡眠与体力",
+          title: "随访医生提醒您完成定期随访，提交后自动更新身体报告：",
+          pushedAtLabel: "10:15",
+          followUpItems: [
+            { title: "本月术后定期随访问卷", progressText: "待完成 · 共 51 题", isCompleted: false },
+            { title: "术后满 1 个月用药随访", progressText: "已完成 · 20/20 题", isCompleted: true }
+          ],
           followUpCompleted: false
         }
       },
@@ -3315,63 +3302,15 @@
         t: "",
         doctorPushCard: {
           kind: "dailyEducation",
-          badgeTitle: "日常宣教",
-          doctorTitle: "心脏康复团队 · 日常用药科普",
-          pushedAtLabel: "11:40",
-          educationTag: "用药贴士",
-          educationTitle: "吃他汀为什么不能碰西柚？",
-          educationSummary: "避开西柚防蓄积，苹果香蕉正常吃",
+          title: "今日日常护心宣教，为您整理了 3 条术后注意事项：",
+          pushedAtLabel: "10:40",
+          educationPoints: [
+            "用药贴士｜吃他汀避开西柚防肌痛，苹果香蕉正常吃",
+            "晨起护心｜醒后平躺 1 分钟慢起身，温水洗漱避寒风",
+            "低盐饮食｜做菜出锅前再放盐，少碰酱油咸菜隐形盐"
+          ],
           educationFollowUpPrompt: "吃他汀期间除了西柚，日常饮食和复查还有什么要注意的？",
           educationRead: false
-        }
-      },
-      {
-        id: "dp-plan-3",
-        who: "ai",
-        t: "",
-        doctorPushCard: {
-          kind: "planProposal",
-          badgeTitle: "医生推计划",
-          doctorTitle: "康复医生推送 · 改善夜间入睡偏慢",
-          pushedAtLabel: "昨天",
-          planTitle: "睡前温水泡脚 15 分钟",
-          planCategory: "rest",
-          planHour: 21,
-          planMinute: 30,
-          planRecurrenceText: "每日 21:30",
-          planNote: "40℃ 温水泡脚放松助眠",
-          planDecision: "accepted"
-        }
-      },
-      {
-        id: "dp-followup-2",
-        who: "ai",
-        t: "",
-        doctorPushCard: {
-          kind: "followUpReminder",
-          badgeTitle: "随访提醒",
-          doctorTitle: "随访中心 · 已同步至身体报告",
-          pushedAtLabel: "昨天",
-          followUpPeriodTitle: "术后满 1 个月用药随访",
-          followUpProgressText: "共 20 题 · 已归档",
-          followUpSubtitle: "阿司匹林与他汀耐受良好",
-          followUpCompleted: true
-        }
-      },
-      {
-        id: "dp-edu-2",
-        who: "ai",
-        t: "",
-        doctorPushCard: {
-          kind: "dailyEducation",
-          badgeTitle: "日常宣教",
-          doctorTitle: "心脏康复团队 · 日常护心科普",
-          pushedAtLabel: "昨天",
-          educationTag: "生活护心",
-          educationTitle: "晨起护心记住「三个慢」",
-          educationSummary: "平躺 1 分钟慢起，温水洗漱，饭后散步",
-          educationFollowUpPrompt: "早上起床后什么时候测血压和吃降压药最合适？",
-          educationRead: true
         }
       }
     ];
@@ -3380,96 +3319,102 @@
     if (!S.consultFilter) S.consultFilter = "all";
     if (!Array.isArray(S.messages)) S.messages = [];
     const seedCount = S.messages.filter((m) => m && m.doctorPushCard).length;
-    if (forceReset || seedCount < 6) {
+    if (forceReset || !S.doctorPushSeedV10236 || seedCount !== 3) {
       const rest = forceReset ? [] : S.messages.filter((m) => !m.doctorPushCard);
       S.messages = [...defaultDoctorPushMessages(), ...rest];
+      S.doctorPushSeedV10236 = true;
     }
   }
   function consultDoctorPushCardHTML(m) {
     const c = m.doctorPushCard;
     if (!c) return "";
-    const statusPill = (() => {
-      if (c.kind === "planProposal") {
-        if (c.planDecision === "accepted") return `<span style="font-size:11px;font-weight:700;color:#fff;background:#1054E0;padding:2px 7px;border-radius:99px;flex-shrink:0">✓ 已接受</span>`;
-        if (c.planDecision === "rejected") return `<span style="font-size:11px;font-weight:700;color:#6E7D96;background:rgba(110,125,150,.14);padding:2px 7px;border-radius:99px;flex-shrink:0">已拒绝</span>`;
-        return `<span style="font-size:11px;font-weight:700;color:#1054E0;background:rgba(16,84,224,.10);padding:2px 7px;border-radius:99px;flex-shrink:0">● 待确认</span>`;
-      }
-      if (c.kind === "followUpReminder") {
-        if (c.followUpCompleted) return `<span style="font-size:11px;font-weight:700;color:#fff;background:#1054E0;padding:2px 7px;border-radius:99px;flex-shrink:0">✓ 已完成</span>`;
-        return `<span style="font-size:11px;font-weight:700;color:#1054E0;background:rgba(16,84,224,.10);padding:2px 7px;border-radius:99px;flex-shrink:0">● 待随访</span>`;
-      }
-      if (c.educationRead) return `<span style="font-size:11px;font-weight:700;color:#6E7D96;background:rgba(110,125,150,.12);padding:2px 7px;border-radius:99px;flex-shrink:0">已读</span>`;
-      return `<span style="font-size:11px;font-weight:700;color:#1054E0;background:rgba(16,84,224,.10);padding:2px 7px;border-radius:99px;flex-shrink:0">未读</span>`;
-    })();
 
-    let leadingIconHTML = "";
-    let primaryTitle = "";
-    let keySummaryHTML = "";
+    let listRowsHTML = "";
     let actionsHTML = "";
 
     if (c.kind === "planProposal") {
-      const catMeta = CAT[c.planCategory] || CAT.monitoring;
-      const pad2 = (n) => String(n).padStart(2, "0");
-      const timeText = `${pad2(c.planHour)}:${pad2(c.planMinute)}`;
-      leadingIconHTML = `<img src="${A.task[c.planCategory] || A.task.monitoring}" alt="" style="width:38px;height:38px;border-radius:10px;background:#1054E0;padding:5px;flex-shrink:0" />`;
-      primaryTitle = c.planTitle || "晚间复测血压与心率";
-      keySummaryHTML = `<span style="font-weight:700;color:#1054E0">每日 ${timeText} · ${esc(catMeta.name)}</span><span style="color:#6E7D96">｜${esc(c.planNote || "")}</span>`;
+      const items = Array.isArray(c.planItems) && c.planItems.length ? c.planItems : [
+        { title: c.planTitle || "晨起测血压", timeLabel: "06:30", note: c.planNote || "按医嘱执行" }
+      ];
+      listRowsHTML = items.map((it, idx) => `
+        <div style="display:flex;align-items:center;gap:7px;padding:5px 0;${idx < items.length - 1 ? "border-bottom:1px solid rgba(16,84,224,.08);" : ""}">
+          <span style="font-size:13px;font-weight:700;color:#1054E0;font-variant-numeric:tabular-nums;width:38px;flex-shrink:0">${esc(it.timeLabel)}</span>
+          <span style="font-size:13.5px;font-weight:700;color:#1054E0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(it.title)}</span>
+          <span style="flex:1"></span>
+          <span style="font-size:12px;font-weight:500;color:#6E7D96;white-space:nowrap;flex-shrink:0">每日 · ${esc(it.note)}</span>
+        </div>
+      `).join("");
+
       actionsHTML = c.planDecision === "pending" ? `
-        <div style="display:flex;gap:6px;flex-shrink:0">
-          <button type="button" data-act="rejectDoctorPlan" data-id="${esc(m.id)}" style="height:28px;padding:0 11px;border-radius:99px;border:1px solid rgba(16,84,224,.18);background:rgba(16,84,224,.08);color:#1054E0;font-size:12.5px;font-weight:700;cursor:pointer">拒绝</button>
-          <button type="button" data-act="acceptDoctorPlan" data-id="${esc(m.id)}" style="height:28px;padding:0 12px;border-radius:99px;border:none;background:#1054E0;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer">✓ 接受</button>
+        <div style="display:flex;gap:8px">
+          <button type="button" data-act="rejectDoctorPlan" data-id="${esc(m.id)}" style="flex:1;height:32px;border-radius:99px;border:1px solid rgba(16,84,224,.16);background:rgba(16,84,224,.07);color:#1054E0;font-size:13px;font-weight:700;cursor:pointer">拒绝</button>
+          <button type="button" data-act="acceptDoctorPlan" data-id="${esc(m.id)}" style="flex:1;height:32px;border-radius:99px;border:none;background:#1054E0;color:#fff;font-size:13px;font-weight:700;cursor:pointer">✓ 接受计划</button>
         </div>
       ` : c.planDecision === "accepted" ? `
-        <button type="button" data-act="openConsultSchedule" style="height:27px;padding:0 10px;border:none;background:rgba(16,84,224,.09);color:#1054E0;font-size:12.5px;font-weight:700;border-radius:99px;cursor:pointer;flex-shrink:0">查看计划 ›</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <span style="font-size:13px;font-weight:700;color:#1054E0">✓ 已接受并加入计划</span>
+          <button type="button" data-act="openConsultSchedule" style="height:27px;padding:0 10px;border:none;background:rgba(16,84,224,.09);color:#1054E0;font-size:12.5px;font-weight:700;border-radius:99px;cursor:pointer;flex-shrink:0">查看计划 ›</button>
+        </div>
       ` : `
-        <button type="button" data-act="acceptDoctorPlan" data-id="${esc(m.id)}" style="height:27px;padding:0 10px;border:none;background:rgba(16,84,224,.09);color:#1054E0;font-size:12.5px;font-weight:700;border-radius:99px;cursor:pointer;flex-shrink:0">重新接受</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <span style="font-size:13px;font-weight:600;color:#6E7D96">已拒绝该计划</span>
+          <button type="button" data-act="acceptDoctorPlan" data-id="${esc(m.id)}" style="height:27px;padding:0 10px;border:none;background:rgba(16,84,224,.09);color:#1054E0;font-size:12.5px;font-weight:700;border-radius:99px;cursor:pointer;flex-shrink:0">重新接受</button>
+        </div>
       `;
     } else if (c.kind === "followUpReminder") {
       const answered = Object.keys(S.qAns || {}).length;
-      const progressText = c.followUpCompleted
-        ? (c.followUpProgressText || "已提交归档")
-        : answered > 0
-          ? `已答 ${answered}/51 题`
-          : "共 51 题";
-      leadingIconHTML = `<div style="width:38px;height:38px;border-radius:10px;background:#1054E0;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0">${I.doc}</div>`;
-      primaryTitle = c.followUpPeriodTitle || "本月冠心病术后定期随访问卷";
-      keySummaryHTML = `<span style="font-weight:700;color:#1054E0">${esc(progressText)}</span><span style="color:#6E7D96">｜${esc(c.followUpSubtitle || "")}</span>`;
+      const items = Array.isArray(c.followUpItems) && c.followUpItems.length ? c.followUpItems : [
+        { title: "本月术后定期随访问卷", progressText: "待完成 · 共 51 题", isCompleted: !!c.followUpCompleted }
+      ];
+      listRowsHTML = items.map((it, idx) => {
+        const isDone = (idx === 0 && c.followUpCompleted) ? true : !!it.isCompleted;
+        const rightText = idx === 0
+          ? (c.followUpCompleted ? "已完成 · 51/51 题" : (answered > 0 ? `待完成 · 已答 ${answered}/51 题` : it.progressText))
+          : it.progressText;
+        return `
+          <div style="display:flex;align-items:center;gap:6px;padding:5px 0;${idx < items.length - 1 ? "border-bottom:1px solid rgba(16,84,224,.08);" : ""}">
+            <span style="width:5px;height:5px;border-radius:50%;background:${isDone ? "rgba(16,84,224,.35)" : "#1054E0"};flex-shrink:0"></span>
+            <span style="font-size:13.5px;font-weight:700;color:#1054E0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(it.title)}</span>
+            <span style="flex:1"></span>
+            <span style="font-size:12px;font-weight:${isDone ? 500 : 700};color:${isDone ? "#6E7D96" : "#1054E0"};white-space:nowrap;flex-shrink:0">${esc(rightText)}</span>
+          </div>
+        `;
+      }).join("");
+
       actionsHTML = c.followUpCompleted ? `
-        <button type="button" data-act="openConsultReport" style="height:27px;padding:0 10px;border:none;background:rgba(16,84,224,.09);color:#1054E0;font-size:12.5px;font-weight:700;border-radius:99px;cursor:pointer;flex-shrink:0">查看报告 ›</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <span style="font-size:13px;font-weight:700;color:#1054E0">✓ 已完成本期随访</span>
+          <button type="button" data-act="openConsultReport" style="height:27px;padding:0 10px;border:none;background:rgba(16,84,224,.09);color:#1054E0;font-size:12.5px;font-weight:700;border-radius:99px;cursor:pointer;flex-shrink:0">查看报告 ›</button>
+        </div>
       ` : `
-        <button type="button" data-act="goDoctorFollowUp" data-id="${esc(m.id)}" style="height:28px;padding:0 12px;border-radius:99px;border:none;background:#1054E0;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;flex-shrink:0">${answered > 0 ? `继续随访 (${answered}/51) ›` : "去完成随访 ›"}</button>
+        <button type="button" data-act="goDoctorFollowUp" data-id="${esc(m.id)}" style="width:100%;height:32px;border-radius:99px;border:none;background:#1054E0;color:#fff;font-size:13px;font-weight:700;cursor:pointer">${answered > 0 ? `继续完成随访（已答 ${answered}/51）›` : "去完成随访（共 51 题）›"}</button>
       `;
     } else {
-      leadingIconHTML = `<div style="width:38px;height:38px;border-radius:10px;background:rgba(16,84,224,.11);color:#1054E0;display:flex;align-items:center;justify-content:center;flex-shrink:0">${I.spark}</div>`;
-      primaryTitle = c.educationTitle || "日常康复宣教";
-      keySummaryHTML = `<span style="font-weight:700;color:#1054E0">${esc(c.educationTag || "护心贴士")}</span><span style="color:#6E7D96">｜${esc(c.educationSummary || "")}</span>`;
+      const points = Array.isArray(c.educationPoints) ? c.educationPoints : [];
+      listRowsHTML = points.map((pt, idx) => `
+        <div style="display:flex;align-items:center;gap:6px;padding:5px 0;${idx < points.length - 1 ? "border-bottom:1px solid rgba(16,84,224,.08);" : ""}">
+          <span style="width:5px;height:5px;border-radius:50%;background:#1054E0;flex-shrink:0"></span>
+          <span style="font-size:13px;font-weight:500;color:rgba(16,84,224,.92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(pt)}</span>
+        </div>
+      `).join("");
+
       actionsHTML = `
-        <div style="display:flex;gap:6px;flex-shrink:0">
-          <button type="button" data-act="askEduQuestion" data-id="${esc(m.id)}" style="height:28px;padding:0 10px;border-radius:99px;border:1px solid rgba(16,84,224,.18);background:rgba(16,84,224,.08);color:#1054E0;font-size:12.5px;font-weight:700;cursor:pointer">就此提问</button>
-          ${c.educationRead ? "" : `<button type="button" data-act="markEduRead" data-id="${esc(m.id)}" style="height:28px;padding:0 11px;border-radius:99px;border:none;background:#1054E0;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer">✓ 知道了</button>`}
+        <div style="display:flex;gap:8px">
+          <button type="button" data-act="askEduQuestion" data-id="${esc(m.id)}" style="flex:1;height:32px;border-radius:99px;border:1px solid rgba(16,84,224,.16);background:rgba(16,84,224,.08);color:#1054E0;font-size:13px;font-weight:700;cursor:pointer">就此提问</button>
+          ${c.educationRead
+            ? `<div style="flex:1;height:32px;border-radius:99px;background:rgba(16,84,224,.04);color:rgba(16,84,224,.65);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center">✓ 已读</div>`
+            : `<button type="button" data-act="markEduRead" data-id="${esc(m.id)}" style="flex:1;height:32px;border-radius:99px;border:none;background:#1054E0;color:#fff;font-size:13px;font-weight:700;cursor:pointer">✓ 知道了</button>`}
         </div>
       `;
     }
 
     return `
-      <div style="background:#fff;border:1px solid rgba(16,84,224,.14);border-radius:16px;padding:10px 12px;margin-bottom:10px;box-shadow:0 2px 6px rgba(16,84,224,.05)">
-        <div style="display:flex;align-items:flex-start;gap:10px">
-          ${leadingIconHTML}
-          <div style="min-width:0;flex:1">
-            <div style="display:flex;align-items:center;gap:6px">
-              <span style="font-size:11px;font-weight:700;color:#1054E0;background:rgba(16,84,224,.10);padding:2px 6px;border-radius:99px;flex-shrink:0">${esc(c.badgeTitle || "医生推送")}</span>
-              <div style="font-size:15px;font-weight:700;color:#1054E0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">${esc(primaryTitle)}</div>
-              ${statusPill}
-            </div>
-            <div style="font-size:12.5px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${keySummaryHTML}</div>
-          </div>
-        </div>
-        <div style="height:1px;background:rgba(16,84,224,.08);margin:8px 0 7px"></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-          <div style="font-size:12px;color:#6E7D96;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.doctorTitle || "")} · ${esc(c.pushedAtLabel || "")}</div>
-          ${actionsHTML}
-        </div>
-      </div>`;
+      <div style="background:#fff;border:1px solid rgba(16,84,224,.14);border-radius:6px 20px 20px 20px;padding:11px 13px;box-shadow:0 2px 6px rgba(16,84,224,.05)">
+        <div style="font-size:14.5px;font-weight:700;color:#1054E0;line-height:1.35">${esc(c.title || "")}</div>
+        <div style="background:rgba(16,84,224,.045);border-radius:11px;padding:3px 10px;margin:8px 0">${listRowsHTML}</div>
+        ${actionsHTML}
+      </div>
+      <div style="font-size:12px;font-weight:500;color:#6E7D96;margin-top:4px;padding-left:2px">${esc(c.pushedAtLabel || "")}</div>`;
   }
   function presentUnreadCareNoticeForPerson(personName) {
     // 守护人概念重构中：不再触发待读守护通知
@@ -6348,21 +6293,26 @@
         if (!msg || !msg.doctorPushCard) return;
         const c = msg.doctorPushCard;
         c.planDecision = "accepted";
-        const exists = SEED.some((t) => t.title === c.planTitle && t.h === c.planHour && t.m === c.planMinute);
-        if (!exists) {
-          SEED.push({
-            id: nextTaskId(),
-            title: c.planTitle,
-            h: c.planHour,
-            m: c.planMinute,
-            cat: c.planCategory || "monitoring",
-            note: c.planNote || "",
-            rx: true
-          });
-        }
-        const pad2 = (n) => String(n).padStart(2, "0");
-        logOp("采纳了方案", "哈宝医生", `${c.planTitle}（${c.planRecurrenceText} ${pad2(c.planHour)}:${pad2(c.planMinute)}）`);
-        toast(`已接受并加入健康计划：${c.planTitle}`);
+        const specs = Array.isArray(c.planItems) && c.planItems.length ? c.planItems : [
+          { title: c.planTitle, hour: c.planHour, minute: c.planMinute, category: c.planCategory || "monitoring", note: c.planNote || "", timeLabel: "06:30" }
+        ];
+        specs.forEach((sp) => {
+          const exists = SEED.some((t) => t.title === sp.title);
+          if (!exists) {
+            SEED.push({
+              id: nextTaskId(),
+              title: sp.title,
+              h: sp.hour,
+              m: sp.minute,
+              cat: sp.category || "monitoring",
+              note: sp.note || "",
+              rx: true
+            });
+          }
+        });
+        const summary = specs.map((sp) => `${sp.title}（${sp.timeLabel}）`).join("、");
+        logOp("采纳了方案", "哈宝医生", summary);
+        toast(`已接受并加入 ${specs.length} 项健康计划`);
         render();
       },
       rejectDoctorPlan() {
@@ -10491,7 +10441,6 @@
       return `
       <div class="page rel${S.consultKeyboard ? " consult-kb" : ""}${S.plusPanel ? " consult-panel" : ""}">
         ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="24" height="24" alt="" />哈宝医生</span>`, `<button class="pill-btn" type="button" data-act="resetConsultDemo" style="font-size:13px;font-weight:700;color:#1054E0;padding:0 11px;height:32px">状况</button>`)}
-        <div style="display:flex;align-items:center;gap:7px;padding:4px 16px 8px;overflow-x:auto">${filterPills}</div>
         <div class="scroll px20 grow">
           ${!visibleMessages.length ? `
             <div class="island-card ta-c" style="padding:16px;margin-top:12px;margin-bottom:10px">
@@ -10511,7 +10460,12 @@
               <div class="chat-avatar user" aria-label="我的头像">${I.person}</div>
             </div>
           ` : (m.doctorPushCard && !m.t) ? `
-            ${consultDoctorPushCardHTML(m)}
+            <div class="chat-msg-row ai" style="align-items:flex-start">
+              <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
+              <div style="flex:1;min-width:0">
+                ${consultDoctorPushCardHTML(m)}
+              </div>
+            </div>
           ` : `
             <div class="chat-msg-row ai" style="align-items:flex-start">
               <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
