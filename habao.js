@@ -11700,7 +11700,7 @@
           rightNavHTML = `<button class="cap" data-act="calMode" type="button">${I.cal}${S.calMode === "week" ? "月图" : "周图"}</button>`;
         }
 
-        const cabinSelectorHTML = manageable.length > 1 ? `
+        const cabinSelectorHTML = manageable.length > 0 ? `
           <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
             ${manageable.map((b) => {
               const other = bondOtherName(b, me.name);
@@ -11718,13 +11718,13 @@
 
         const ackBannerHTML = (needsIncomingConfirm || needsBindAck || needsUnbindAck) ? `
           <div style="margin-top:12px;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:14px;background:rgba(255,255,255,.16);border:0.8px solid rgba(255,255,255,.26)">
-            <span style="width:16px;height:16px;display:grid;place-items:center;color:#fff;flex-shrink:0">${I.check}</span>
-            <span style="font-size:13.5px;font-weight:700;color:#fff;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${needsUnbindAck ? `与${esc(selectedFamName)}的家属绑定已解除` : needsIncomingConfirm ? `${esc(selectedFamName)}申请与你绑定互为家属` : `${esc(selectedFamName)}已确认与你建立家属绑定`}</span>
+            <span style="width:16px;height:16px;display:grid;place-items:center;color:#fff;flex-shrink:0">${needsUnbindAck ? (I.linkSlash || I.person) : needsIncomingConfirm ? I.personPlus : I.check}</span>
+            <span style="font-size:13.5px;font-weight:700;color:#fff;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${needsUnbindAck ? "双方家属绑定已解除" : needsIncomingConfirm ? "申请与你绑定互为家属" : "已确认与你建立家属绑定"}</span>
             <button type="button" data-act="ackBindOrUnbind" data-id="${selectedBond.id}" style="flex-shrink:0;white-space:nowrap;padding:6px 13px;border-radius:999px;border:0;background:#fff;color:${isUnbound ? "#475A7D" : "var(--blue)"};font-size:12.5px;font-weight:800;cursor:pointer;font-family:inherit">${needsIncomingConfirm ? "确认" : "知道了"}</button>
           </div>` : isOutgoingPending ? `
           <div style="margin-top:12px;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:14px;background:rgba(255,255,255,.14);border:0.8px solid rgba(255,255,255,.22)">
             <span style="width:16px;height:16px;display:grid;place-items:center;color:#fff;flex-shrink:0">${I.clock || I.cal}</span>
-            <span style="font-size:13.5px;font-weight:700;color:#fff;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">已向${esc(selectedFamName)}发起绑定，等待对方确认</span>
+            <span style="font-size:13.5px;font-weight:700;color:#fff;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">已发送绑定申请，等待对方确认</span>
             <span style="flex-shrink:0;white-space:nowrap;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.16);color:rgba(255,255,255,.85);font-size:12px;font-weight:700;user-select:none;pointer-events:none">待确认</span>
           </div>` : "";
 
@@ -11739,9 +11739,7 @@
               <div style="width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.20);border:1.2px solid rgba(255,255,255,.36);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;color:#fff;flex-shrink:0">${esc(selectedFamName.slice(0, 1))}</div>
               <div style="min-width:0;flex:1">
                 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-                  <span style="font-size:19px;font-weight:800;color:#fff;white-space:nowrap">${esc(selectedFamName)}</span>
-                  <span style="font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.20);color:#fff;white-space:nowrap">${esc(rel)}</span>
-                  <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><i style="width:6px;height:6px;border-radius:50%;background:${statusDotColor};display:inline-block"></i>${statusPillText}</span>
+                  <span style="font-size:11.5px;font-weight:700;padding:2.5px 9px;border-radius:999px;background:rgba(255,255,255,.18);color:#fff;display:inline-flex;align-items:center;gap:4.5px;white-space:nowrap"><i style="width:6px;height:6px;border-radius:50%;background:${statusDotColor};display:inline-block"></i>${statusPillText}</span>
                 </div>
                 <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,.84);margin-top:4px;font-variant-numeric:tabular-nums">手机号 ${esc(ph)}</div>
               </div>
@@ -11762,7 +11760,7 @@
               <div style="padding:18px 16px;display:flex;align-items:center;gap:12px;background:#fff">
                 <div style="width:40px;height:40px;border-radius:50%;background:rgba(16,84,224,.08);color:var(--blue);display:grid;place-items:center;flex-shrink:0">${needsIncomingConfirm ? I.personPlus : (I.clock || I.cal)}</div>
                 <div style="min-width:0;flex:1">
-                  <div style="font-size:15.5px;font-weight:800;color:var(--blue)">${needsIncomingConfirm ? `收到${esc(selectedFamName)}的家属绑定申请` : `等待${esc(selectedFamName)}确认家属绑定`}</div>
+                  <div style="font-size:15.5px;font-weight:800;color:var(--blue)">${needsIncomingConfirm ? "收到家属绑定申请" : "等待对方确认绑定"}</div>
                   <div style="font-size:13px;font-weight:500;color:var(--secondary);margin-top:3px;line-height:1.45">${needsIncomingConfirm ? "点击上方卡片中的「确认」建立绑定后，即可互相查看并管理计划" : "对方在「家属管理」中点击「确认」后，即可查看并协助管理康复计划"}</div>
                 </div>
               </div>
