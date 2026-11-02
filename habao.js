@@ -11167,7 +11167,7 @@
           : "linear-gradient(135deg,#2268F2 0%,#1054E0 100%)";
 
         const profileHeaderHTML = `
-          <div style="border-radius:24px;overflow:hidden;border:1px solid rgba(16,84,224,.16);box-shadow:0 6px 18px rgba(16,84,224,.08);padding:16px 16px 14px;background:${headerBg};color:#fff">
+          <div style="padding:16px 16px 14px;background:${headerBg};color:#fff">
             ${cabinSelectorHTML}
             <div style="display:flex;align-items:center;gap:12px">
               <div style="width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.20);border:1.2px solid rgba(255,255,255,.36);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;color:#fff;flex-shrink:0">${esc(selectedFamName.slice(0, 1))}</div>
@@ -11195,21 +11195,26 @@
 
         if (isUnbound) {
           operateBodyHTML = `
-            ${profileHeaderHTML}
-            <div style="margin-top:12px;background:#fff;border-radius:20px;border:1px solid rgba(16,84,224,.10);box-shadow:0 4px 12px rgba(16,84,224,.05);padding:16px;display:flex;align-items:center;gap:12px">
-              <div style="width:40px;height:40px;border-radius:50%;background:rgba(16,84,224,.08);color:rgba(16,84,224,.75);display:grid;place-items:center;flex-shrink:0">${I.people}</div>
-              <div style="min-width:0;flex:1">
-                <div style="font-size:15.5px;font-weight:800;color:var(--blue)">已解除与${esc(selectedFamName)}的家属绑定</div>
-                <div style="font-size:13px;font-weight:500;color:var(--secondary);margin-top:3px">点击上方卡片中的「知道了」即可从列表移除</div>
+            <div style="border-radius:24px;overflow:hidden;border:1.2px solid rgba(16,84,224,.16);box-shadow:0 6px 18px rgba(16,84,224,.08);background:#fff">
+              ${profileHeaderHTML}
+              <div style="padding:18px 16px;display:flex;align-items:center;gap:12px;background:#fff">
+                <div style="width:40px;height:40px;border-radius:50%;background:rgba(16,84,224,.08);color:rgba(16,84,224,.75);display:grid;place-items:center;flex-shrink:0">${I.people}</div>
+                <div style="min-width:0;flex:1">
+                  <div style="font-size:15.5px;font-weight:800;color:var(--blue)">已解除与${esc(selectedFamName)}的家属绑定</div>
+                  <div style="font-size:13px;font-weight:500;color:var(--secondary);margin-top:3px">点击上方卡片中的「知道了」即可从列表移除</div>
+                </div>
               </div>
             </div>`;
         } else if (allFamTasks.length === 0) {
           operateBodyHTML = `
-            ${profileHeaderHTML}
-            <div style="margin-top:12px;background:#fff;border-radius:20px;border:1px solid rgba(16,84,224,.10);padding:42px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px">
-              <div style="width:32px;height:32px;color:rgba(16,84,224,.45);display:grid;place-items:center">${I.cal}</div>
-              <div style="font-size:16px;font-weight:700;color:var(--blue)">暂未制定健康计划</div>
-              <div style="font-size:13px;font-weight:500;color:var(--secondary)">点击下方按钮即可为${esc(selectedFamName)}首次创建计划</div>
+            <div style="border-radius:24px;overflow:hidden;border:1.2px solid rgba(16,84,224,.16);box-shadow:0 6px 18px rgba(16,84,224,.08);background:#F5F9FF">
+              ${profileHeaderHTML}
+              <div style="padding:14px">
+                <div style="background:#fff;border-radius:20px;border:1px solid rgba(16,84,224,.10);padding:42px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px">
+                  <div style="width:32px;height:32px;color:rgba(16,84,224,.45);display:grid;place-items:center">${I.cal}</div>
+                  <div style="font-size:16px;font-weight:700;color:var(--blue)">暂无计划</div>
+                </div>
+              </div>
             </div>`;
         } else {
           const filteredTasks = dayTasks.filter((t) => isDoneTab ? isFamilyTaskCompletedOn(selectedFamName, t.id, selYMD) : !isFamilyTaskCompletedOn(selectedFamName, t.id, selYMD));
@@ -11274,27 +11279,31 @@
               ${g.items.map((t) => renderFamilyPlanCard(t)).join("")}
             </div>
           `).join("") : `
-            <div class="island-card ta-c t-sec s15" style="padding:20px;margin-top:14px">
+            <div class="island-card ta-c t-sec s15" style="padding:20px;margin-top:4px">
               ${isDoneTab ? "所选日期暂无已完成计划" : (totalCount > 0 ? "所选日期计划已全部完成" : "所选日期暂无计划")}
             </div>`;
 
           operateBodyHTML = `
-            ${profileHeaderHTML}
-            <div class="cal-island mt12" id="cal-swipe">
-              <div class="cal-head">
-                <button class="cal-nav" data-act="calPrev" type="button">${I.chevL}</button>
-                <div class="s17 fb t">${calHeadTitle()}</div>
-                <button class="cal-nav" data-act="calNext" type="button">${I.chevR}</button>
+            <div style="border-radius:24px;overflow:hidden;border:1.2px solid rgba(16,84,224,.16);box-shadow:0 6px 18px rgba(16,84,224,.08);background:#F5F9FF">
+              ${profileHeaderHTML}
+              <div id="cal-swipe" style="background:#fff;padding:13px 14px 12px;border-bottom:1px solid rgba(16,84,224,.09)">
+                <div class="cal-head">
+                  <button class="cal-nav" data-act="calPrev" type="button">${I.chevL}</button>
+                  <div class="s17 fb t">${calHeadTitle()}</div>
+                  <button class="cal-nav" data-act="calNext" type="button">${I.chevR}</button>
+                </div>
+                <div class="weekdays">${"日一二三四五六".split("").map((d) => `<span>${d}</span>`).join("")}</div>
+                <div class="days">${calDays(false)}</div>
               </div>
-              <div class="weekdays">${"日一二三四五六".split("").map((d) => `<span>${d}</span>`).join("")}</div>
-              <div class="days">${calDays(false)}</div>
+              <div style="padding:14px 14px 16px;display:flex;flex-direction:column;gap:12px">
+                ${hist ? `<div class="hist-bar">${I.eye}${monthDayLabel(parseYMD(selYMD)).split(" ")[0]} · 历史日期计划</div>` : ""}
+                <div class="filter">
+                  <button class="${!isDoneTab ? "on" : ""}" data-act="toggleDone" data-f="todo" type="button">未完成 ${todoCount}</button>
+                  <button class="${isDoneTab ? "on" : ""}" data-act="toggleDone" data-f="done" type="button">已完成 ${doneCount}</button>
+                </div>
+                ${groupedTasksHTML}
+              </div>
             </div>
-            ${hist ? `<div class="hist-bar mt12">${I.eye}${monthDayLabel(parseYMD(selYMD)).split(" ")[0]} · 历史日期计划</div>` : ""}
-            <div class="filter mt12">
-              <button class="${!isDoneTab ? "on" : ""}" data-act="toggleDone" data-f="todo" type="button">未完成 ${todoCount}</button>
-              <button class="${isDoneTab ? "on" : ""}" data-act="toggleDone" data-f="done" type="button">已完成 ${doneCount}</button>
-            </div>
-            ${groupedTasksHTML}
           `;
         }
 
