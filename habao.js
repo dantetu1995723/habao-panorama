@@ -11222,17 +11222,10 @@
 
             const rightCircle = done
               ? `<button type="button" data-act="toggleProxyCheckIn" data-id="${t.id}" title="取消打卡" style="width:36px;height:36px;border-radius:50%;border:0;flex:0 0 36px;background:var(--blue);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</button>`
-              : `
-                <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-                  <button type="button" data-act="sendProxyRemind" data-id="${t.id}" title="提醒${esc(selectedFamName)}" style="width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(16,84,224,.35);background:rgba(16,84,224,.06);color:var(--blue);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;cursor:pointer;font-family:inherit;flex-shrink:0">
-                    <span style="width:11px;height:11px;display:grid;place-items:center">${I.bell}</span>
-                    <span style="font-size:9.5px;font-weight:800;line-height:1">提醒</span>
-                  </button>
-                  <button type="button" data-act="sendProxyCheckIn" data-id="${t.id}" title="帮${esc(selectedFamName)}打卡" style="width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(16,84,224,.35);background:rgba(16,84,224,.06);color:var(--blue);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;cursor:pointer;font-family:inherit;flex-shrink:0">
-                    <span style="width:11px;height:11px;display:grid;place-items:center">${I.check}</span>
-                    <span style="font-size:9.5px;font-weight:800;line-height:1">打卡</span>
-                  </button>
-                </div>`;
+              : `<button type="button" data-act="sendProxyCheckIn" data-id="${t.id}" title="帮${esc(selectedFamName)}代打卡" style="height:34px;padding:0 12px;border-radius:999px;border:1.2px solid rgba(16,84,224,.32);background:rgba(16,84,224,.08);color:var(--blue);display:inline-flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap">
+                  <span style="width:12px;height:12px;display:grid;place-items:center">${I.check}</span>
+                  <span style="font-size:13px;font-weight:800;line-height:1">代打卡</span>
+                </button>`;
 
             const showDelete = !done;
             const barCls = showDelete && isCycle ? " triple" : "";
