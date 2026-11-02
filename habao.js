@@ -3474,6 +3474,28 @@
     }
     return { accent: "#1054E0", softBg: "rgba(16,84,224,.11)", border: "rgba(16,84,224,.24)", ico: I.two };
   }
+  function proxyToOpItem(r) {
+    const actionMap = {
+      remind: "提醒了",
+      inviteExerciseTest: "提醒了",
+      checkIn: "打卡了",
+      createPlan: "新建了计划",
+      firstCreatePlan: "新建了计划",
+      refreshMedicationPlan: "修改了计划",
+      updatePlan: "修改了计划",
+      deletePlan: "删除了计划",
+    };
+    return {
+      id: r.id,
+      at: r.createdAt || Date.now(),
+      role: "family",
+      actor: r.senderName,
+      targetName: r.recipientName,
+      action: actionMap[r.kind] || "操作了",
+      place: "家属管理",
+      how: r.taskSnapshot?.title || "康复计划",
+    };
+  }
   function careNoticeModalHTML() {
     if (S.screen !== "home") return "";
     ensureCareGraph();
@@ -3484,7 +3506,6 @@
       const pageIdx = Math.min(Math.max(0, S.proxyPopupPage || 0), total - 1);
       S.proxyPopupPage = pageIdx;
       const curReq = unshownProxy[pageIdx];
-      const senderNames = Array.from(new Set(unshownProxy.map((r) => r.senderName))).join("、");
       const hasExerciseInvite = unshownProxy.some((r) => r.kind === "inviteExerciseTest");
       const prevDisabled = pageIdx <= 0;
       const nextDisabled = pageIdx >= total - 1;
@@ -3506,19 +3527,12 @@
         <div class="care-notice-modal" style="position:absolute;inset:0;z-index:110;background:rgba(10,22,48,.42);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .18s ease">
           <div style="width:100%;max-width:344px;background:#fff;border-radius:24px;border:1px solid rgba(16,84,224,.14);box-shadow:0 16px 36px rgba(10,26,68,.20);padding:22px 20px 20px;display:flex;flex-direction:column;align-items:stretch;text-align:left">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-              <div style="width:38px;height:38px;border-radius:50%;background:rgba(16,84,224,.12);color:var(--blue);display:grid;place-items:center;flex-shrink:0">${I.bell || I.two}</div>
-              <div style="flex:1;min-width:0">
-                <div style="font-size:19px;font-weight:800;color:var(--blue);line-height:1.2">家属协助通知</div>
-                <div style="font-size:13px;font-weight:600;color:var(--secondary);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(total > 1 ? `${senderNames}刚刚为你新增了 ${total} 项协助操作` : `${senderNames}刚刚为你更新了健康事项`)}</div>
-              </div>
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(16,84,224,.12);color:var(--blue);display:grid;place-items:center;flex-shrink:0">${I.bell || I.two}</div>
+              <div style="flex:1;min-width:0;font-size:19px;font-weight:800;color:var(--blue);line-height:1.2">家属协助通知</div>
               ${total > 1 ? `<span style="padding:4px 10px;border-radius:999px;background:rgba(16,84,224,.10);border:1px solid rgba(16,84,224,.22);color:var(--blue);font-size:12.5px;font-weight:800;flex-shrink:0">${pageIdx + 1} / ${total}</span>` : ""}
             </div>
-            <div style="width:100%;min-height:112px;padding:14px 15px;border-radius:16px;background:rgba(16,84,224,.06);border:1px solid rgba(16,84,224,.16);display:flex;flex-direction:column;gap:10px;margin-bottom:${total > 1 ? "12px" : "16px"}">
-              <div style="display:flex;align-items:center;gap:8px">
-                <span style="padding:3px 9px;border-radius:999px;background:var(--blue);color:#fff;font-size:12px;font-weight:800">${esc(proxyKindBadgeTitle(curReq.kind))}</span>
-                <span style="font-size:12.5px;font-weight:700;color:rgba(16,84,224,.78)">来自 ${esc(curReq.senderName)}</span>
-              </div>
-              <div style="font-size:16px;font-weight:800;color:var(--blue);line-height:1.48;text-align:left">${esc(proxyHomePopupSentence(curReq))}</div>
+            <div class="op-card" style="width:100%;padding:15px;border-radius:16px;background:rgba(16,84,224,.05);border:1px solid rgba(16,84,224,.14);box-shadow:none;margin-bottom:${total > 1 ? "12px" : "16px"}">
+              <h4>${opHeadlineHTML(proxyToOpItem(curReq))}</h4>
             </div>
             ${pagerHTML}
             <div style="width:100%;display:flex;gap:10px">
