@@ -2106,17 +2106,60 @@
       }
     }
   }
+  function bondNeedsBindAck(b, viewerName) {
+    return !!(b && Array.isArray(b.unacknowledgedBindFor) && b.unacknowledgedBindFor.includes(viewerName));
+  }
+  function bondNeedsUnbindAck(b, viewerName) {
+    return !!(b && Array.isArray(b.unacknowledgedUnbindFor) && b.unacknowledgedUnbindFor.includes(viewerName));
+  }
+  function bondNeedsBindOrUnbindAck(b, viewerName) {
+    return bondNeedsBindAck(b, viewerName) || bondNeedsUnbindAck(b, viewerName);
+  }
+  function manageableFamilyBondsFor(personName) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName || "李建国";
+    return S.careBonds.filter((b) => {
+      if (!bondInvolves(b, nm)) return false;
+      if (b.status === "confirmed") return true;
+      if (b.status === "unbound" && bondNeedsUnbindAck(b, nm)) return true;
+      return false;
+    });
+  }
+  function unacknowledgedBindOrUnbindBondsFor(personName) {
+    const nm = personName || S.currentPersonName || "李建国";
+    return manageableFamilyBondsFor(nm).filter((b) => bondNeedsBindOrUnbindAck(b, nm));
+  }
+  function acknowledgeBindOrUnbindFor(bondId, personName) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName || "李建国";
+    const idx = S.careBonds.findIndex((b) => String(b.id) === String(bondId));
+    if (idx === -1) return null;
+    const b = S.careBonds[idx];
+    if (Array.isArray(b.unacknowledgedBindFor)) {
+      b.unacknowledgedBindFor = b.unacknowledgedBindFor.filter((x) => x !== nm);
+    }
+    if (Array.isArray(b.unacknowledgedUnbindFor)) {
+      b.unacknowledgedUnbindFor = b.unacknowledgedUnbindFor.filter((x) => x !== nm);
+    }
+    if (b.status === "unbound" && (!b.unacknowledgedUnbindFor || b.unacknowledgedUnbindFor.length === 0)) {
+      S.careBonds.splice(idx, 1);
+    }
+    syncLegacyListsFromBonds();
+    return b;
+  }
   function resolvedSelectedFamilyBondFor(personName) {
     ensureCareGraph();
     if (S.famIsAdding) return null;
     const nm = personName || S.currentPersonName || "李建国";
-    const confirmed = confirmedFamilyBondsFor(nm);
-    if (!confirmed.length) return null;
+    const manageable = manageableFamilyBondsFor(nm);
+    if (!manageable.length) return null;
     if (S.selectedProxyFamilyName) {
-      const hit = confirmed.find((b) => bondOtherName(b, nm) === S.selectedProxyFamilyName);
+      const hit = manageable.find((b) => bondOtherName(b, nm) === S.selectedProxyFamilyName);
       if (hit) return hit;
     }
-    return confirmed[0];
+    const unack = manageable.find((b) => bondNeedsBindOrUnbindAck(b, nm));
+    if (unack) return unack;
+    return manageable[0];
   }
   function resolvedSelectedFamilyNameFor(personName) {
     const nm = personName || S.currentPersonName || "李建国";
@@ -2141,12 +2184,12 @@
   function unseenProxyCountFrom(actorName, personName) {
     ensureCareGraph();
     const nm = personName || S.currentPersonName || "李建国";
-    return S.careProxyRequests.filter((r) => !r.recipientManageSeen && r.recipientName === nm && r.senderName === actorName).length;
+    return unacknowledgedBindOrUnbindBondsFor(nm).filter((b) => bondOtherName(b, nm) === actorName).length;
   }
   function hasUnseenFamilyRedDotFor(personName) {
     ensureCareGraph();
     const nm = personName || S.currentPersonName || "李建国";
-    return unseenProxyRequestsFor(nm).length > 0 || incomingBindRequestsFor(nm).length > 0;
+    return unacknowledgedBindOrUnbindBondsFor(nm).length > 0;
   }
   function acknowledgeHomePopupProxyRequestsFor(personName) {
     ensureCareGraph();
@@ -2566,53 +2609,42 @@
     });
   }
   function occupiedFamilySlotsFor(personName) {
-    return confirmedFamilyBondsFor(personName).length + outgoingPendingRequestsFor(personName).length;
+    return confirmedFamilyBondsFor(personName).length;
   }
   function pendingFamilyEventCountFor(personName) {
-    return incomingBindRequestsFor(personName).length
-      + rejectedReturnedRequestsFor(personName).length
-      + acceptedReturnedBondsFor(personName).length
-      + incomingProxyRequestsFor(personName).length
-      + returnedProxyResultsFor(personName).length;
+    return unacknowledgedBindOrUnbindBondsFor(personName).length;
   }
   function familyAddCaptionFor(personName) {
     const nm = personName || S.currentPersonName || "李建国";
     const confirmedCount = confirmedFamilyBondsFor(nm).length;
-    const outgoingCount = outgoingPendingRequestsFor(nm).length;
-    const remaining = Math.max(0, 5 - confirmedCount - outgoingCount);
+    const remaining = Math.max(0, 5 - confirmedCount);
     if (remaining === 0) {
-      return outgoingCount > 0
-        ? `已满 5 人上限 · ${outgoingCount} 人待对方确认`
-        : "已绑满 5/5 人";
-    }
-    if (outgoingCount > 0) {
-      return `还可添加 ${remaining} 人 · ${outgoingCount} 人待对方确认`;
+      return "已绑满 5/5 人";
     }
     return `还可添加 ${remaining} 人 · 最多 5 人`;
   }
   function familyManageCaptionFor(personName) {
     const nm = personName || S.currentPersonName || "李建国";
     const confirmedCount = confirmedFamilyBondsFor(nm).length;
-    const incomingBinds = incomingBindRequestsFor(nm).length;
-    const unseenProxy = unseenProxyRequestsFor(nm).length;
-    if (incomingBinds > 0) {
-      return `收到 ${incomingBinds} 条绑定申请 · 待确认`;
-    }
-    if (unseenProxy > 0) {
-      return `家属刚刚协助操作了 ${unseenProxy} 项计划`;
+    const unack = unacknowledgedBindOrUnbindBondsFor(nm);
+    if (unack.length > 0) {
+      const first = unack[0];
+      const other = bondOtherName(first, nm);
+      if (bondNeedsUnbindAck(first, nm)) {
+        return confirmedCount > 0
+          ? `已绑定 ${confirmedCount} 人 · 与${other}已解绑待确认`
+          : `与${other}已解除绑定 · 待确认`;
+      }
+      return `已绑定 ${confirmedCount} 人 · 新绑定${other}待确认`;
     }
     if (confirmedCount > 0) {
-      return `已绑定 ${confirmedCount} 位家属 · 互助照护中`;
+      return `已绑定 ${confirmedCount} 人`;
     }
     return "尚未绑定家属";
   }
   function hasAnyFamilyOrNoticeFor(personName) {
     const nm = personName || S.currentPersonName || "李建国";
-    return (
-      confirmedFamilyBondsFor(nm).length > 0 ||
-      outgoingPendingRequestsFor(nm).length > 0 ||
-      pendingFamilyEventCountFor(nm) > 0
-    );
+    return manageableFamilyBondsFor(nm).length > 0;
   }
   function currentDemoPerson() {
     ensureCareGraph();
@@ -3169,26 +3201,6 @@
             <div style="width:100%;display:flex;gap:10px">
               ${hasExerciseInvite ? `<button type="button" data-act="ackHomeProxyPopupAndTest" style="flex:1;height:50px;border-radius:16px;border:1.2px solid rgba(16,84,224,.28);background:rgba(16,84,224,.08);color:var(--blue);font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit">去体测</button>` : ""}
               <button type="button" data-act="ackHomeProxyPopup" style="flex:1;height:50px;border-radius:16px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">知道了</button>
-            </div>
-          </div>
-        </div>`;
-    }
-    const incomingBinds = incomingBindRequestsFor(cur);
-    if (incomingBinds.length > 0) {
-      const b = incomingBinds[0];
-      const other = bondOtherName(b, cur);
-      const rel = bondRelationForViewer(b, cur);
-      const ph = bondOtherPhone(b, cur);
-      return `
-        <div class="care-notice-modal" style="position:absolute;inset:0;z-index:110;background:rgba(10,22,48,.38);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .18s ease">
-          <div style="width:100%;max-width:342px;background:#fff;border-radius:28px;border:1px solid rgba(16,84,224,.14);box-shadow:0 16px 36px rgba(10,26,68,.20);padding:24px 20px 20px;display:flex;flex-direction:column;align-items:center;text-align:center">
-            <div style="width:56px;height:56px;border-radius:50%;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center;margin-bottom:14px">${I.personPlus}</div>
-            <div style="font-size:20px;font-weight:800;color:var(--blue)">收到家属绑定申请</div>
-            <div style="font-size:16px;font-weight:700;color:var(--blue);margin-top:10px;line-height:1.45">${esc(other)}申请与你绑定互为家属</div>
-            <div style="font-size:13.5px;font-weight:600;color:var(--secondary);margin-top:6px;margin-bottom:18px">关系：${esc(rel)} · 手机号 ${esc(ph)}</div>
-            <div style="width:100%;display:flex;gap:10px">
-              <button type="button" data-act="rejectCareBond" data-id="${b.id}" style="flex:1;height:50px;border-radius:16px;border:0;background:rgba(16,84,224,.08);color:var(--secondary);font-size:16.5px;font-weight:700;cursor:pointer;font-family:inherit">不同意</button>
-              <button type="button" data-act="acceptCareBond" data-id="${b.id}" style="flex:1;height:50px;border-radius:16px;border:0;background:var(--blue);color:#fff;font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">同意绑定</button>
             </div>
           </div>
         </div>`;
@@ -6722,11 +6734,14 @@
         const other = bondOtherName(bond, actor);
         const rel = bondRelationForViewer(bond, actor);
         const isPending = bond.status === "pending";
-        S.careBonds = S.careBonds.filter((b) => String(b.id) !== String(bond.id));
-        syncLegacyListsFromBonds();
         if (isPending) {
+          S.careBonds = S.careBonds.filter((b) => String(b.id) !== String(bond.id));
           removeFamilyCollaborateOp(bond.id, bond.initiatedByName || actor, other);
         } else {
+          bond.confirmed = false;
+          bond.status = "unbound";
+          bond.unacknowledgedBindFor = [];
+          bond.unacknowledgedUnbindFor = [bond.guardianName, bond.wardName];
           logFamilyCollaborateOp({
             actorName: actor,
             targetName: other,
@@ -6736,8 +6751,25 @@
             includeTargetInSentence: false,
           });
         }
+        syncLegacyListsFromBonds();
         S.overlay = null;
-        toast(isPending ? `已撤回向${other}发送的绑定请求` : `已与${other}解除家属关系`);
+        toast(isPending ? `已撤回向${other}发送的绑定请求` : `已解除与${other}的绑定，请点击「知道了」确认`);
+        render();
+      },
+      ackBindOrUnbind() {
+        ensureCareGraph();
+        const bid = el.dataset.id;
+        const me = currentDemoPerson();
+        const bond = S.careBonds.find((b) => String(b.id) === String(bid));
+        if (!bond) return;
+        const other = bondOtherName(bond, me.name);
+        const wasUnbind = bondNeedsUnbindAck(bond, me.name);
+        acknowledgeBindOrUnbindFor(bid, me.name);
+        if (wasUnbind && S.selectedProxyFamilyName === other) {
+          const nextFirst = manageableFamilyBondsFor(me.name)[0];
+          S.selectedProxyFamilyName = nextFirst ? bondOtherName(nextFirst, me.name) : null;
+        }
+        toast(wasUnbind ? `已确认解除与${other}的绑定` : `已确认与${other}的家属绑定`);
         render();
       },
       openFamilyProxyView() {
@@ -7805,14 +7837,14 @@
         if (!phone || phone.length !== 11) { toast("请填写 11 位手机号"); return; }
         if (name === me.name || phone === me.phoneRaw) { toast("不能绑定本人自己的手机号"); return; }
 
-        // 清理此前被拒绝的同人记录
+        // 清理此前被拒绝或已解绑的同人记录
         S.careBonds = S.careBonds.filter((b) => !(
-          b.status === "rejected" &&
+          (b.status === "rejected" || b.status === "unbound") &&
           bondInvolves(b, me.name) &&
           (bondOtherName(b, me.name) === name || bondOtherPhoneRaw(b, me.name) === phone)
         ));
 
-        const activeForMe = S.careBonds.filter((b) => b.status !== "rejected" && bondInvolves(b, me.name));
+        const activeForMe = S.careBonds.filter((b) => b.status !== "rejected" && b.status !== "unbound" && bondInvolves(b, me.name));
         if (activeForMe.some((b) => bondOtherName(b, me.name) === name || bondOtherPhoneRaw(b, me.name) === phone)) {
           toast("该家属已在列表中，无需重复发送");
           return;
@@ -7844,11 +7876,13 @@
           wardPhone: me.phone,
           wardPhoneRaw: me.phoneRaw,
           relation: rel,
-          confirmed: false,
-          status: "pending",
+          confirmed: true,
+          status: "confirmed",
           initiatedByName: me.name,
           initiatedBy: "ward",
           hasUnreadAcceptReturn: false,
+          unacknowledgedBindFor: [me.name, targetP.name],
+          unacknowledgedUnbindFor: [],
         });
         S.famDraftName = "";
         S.famDraftPhone = "";
@@ -7858,13 +7892,13 @@
           entryId: newBondId,
           actorName: me.name,
           targetName: targetP.name,
-          action: "发起了家属绑定",
+          action: "绑定了家属",
           place: "添加家属",
           how: `${targetP.name}（${rel}）`,
           includeTargetInSentence: false,
         });
         render();
-        toast(`已向${name}发送绑定请求，请切至对方测试身份点击同意/不同意`);
+        toast(`已与${name}建立绑定，请前往「家属管理」确认`);
       },
       acceptFamInvite() {
         const mid = S.overlayData && S.overlayData.memberId;
@@ -10585,55 +10619,36 @@
         </div>
       `;
 
-      let badgeSummary = "";
-      if (noticeBonds.length > 0) {
-        if (outgoing.length > 0 && rejected.length > 0) {
-          badgeSummary = `${outgoing.length} 待确认 · ${rejected.length} 被拒绝`;
-        } else if (rejected.length > 0) {
-          badgeSummary = `${rejected.length} 条被拒绝`;
-        } else {
-          badgeSummary = `${outgoing.length} 条待确认`;
-        }
-      } else if (confirmed.length === 0) {
-        badgeSummary = "尚未添加家属";
-      } else {
-        badgeSummary = `已绑定 ${confirmed.length}/5 人`;
-      }
+      const badgeSummary = confirmed.length === 0 ? "尚未添加家属" : `已绑定 ${confirmed.length}/5 人`;
 
-      const noticeCardsHTML = noticeBonds.length > 0 ? noticeBonds.map((b) => {
+      const noticeCardsHTML = confirmed.length > 0 ? confirmed.map((b) => {
         const other = bondOtherName(b, me.name);
         const rel = bondRelationForViewer(b, me.name);
         const ph = bondOtherPhone(b, me.name);
-        const isRej = b.status === "rejected";
-        const statusText = isRej ? "对方已拒绝" : "待对方确认";
-        const statusFg = isRej ? "#DC2626" : "var(--blue)";
-        const statusBg = isRej ? "#FEF2F2" : "rgba(16,84,224,.10)";
+        const needsBindAck = bondNeedsBindAck(b, me.name);
+        const statusText = needsBindAck ? "刚绑定" : "已绑定";
+        const dotColor = needsBindAck ? "#EF4444" : "var(--blue)";
         return `
-          <div style="background:#fff;border-radius:16px;border:1px solid ${isRej ? "rgba(220,38,38,.22)" : "rgba(16,84,224,.12)"};box-shadow:0 3px 8px rgba(16,84,224,.05);padding:12px 14px;display:flex;align-items:center;gap:12px">
-            <div style="width:40px;height:40px;border-radius:50%;background:${statusBg};color:${statusFg};font-size:16px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc((other || "家").slice(0, 1))}</div>
+          <div style="background:#fff;border-radius:16px;border:1px solid rgba(16,84,224,.12);box-shadow:0 3px 8px rgba(16,84,224,.05);padding:12px 14px;display:flex;align-items:center;gap:12px">
+            <div style="width:40px;height:40px;border-radius:50%;background:rgba(16,84,224,.10);color:var(--blue);font-size:16px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc((other || "家").slice(0, 1))}</div>
             <div style="min-width:0;flex:1">
               <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
                 <span style="font-size:16px;font-weight:800;color:var(--blue);white-space:nowrap">${esc(other)}</span>
                 <span style="font-size:11px;font-weight:600;color:var(--blue);background:rgba(16,84,224,.08);padding:2px 6px;border-radius:999px;white-space:nowrap">${esc(rel)}</span>
-                <span style="font-size:11px;font-weight:700;color:${statusFg};background:${statusBg};padding:2px 7px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><i style="width:5px;height:5px;border-radius:50%;background:${statusFg};display:inline-block"></i>${statusText}</span>
+                <span style="font-size:11px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 7px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><i style="width:5px;height:5px;border-radius:50%;background:${dotColor};display:inline-block"></i>${statusText}</span>
               </div>
               <div style="font-size:12.5px;font-weight:500;color:var(--secondary);margin-top:3px">${esc(ph)}</div>
             </div>
-            ${isRej ? `
-              <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-                ${canSendMore ? `<button type="button" data-act="resendCareBond" data-id="${b.id}" style="border:0;background:var(--blue);color:#fff;font-size:12.5px;font-weight:700;padding:7px 11px;border-radius:999px;cursor:pointer;font-family:inherit;white-space:nowrap">重发</button>` : ""}
-                <button type="button" data-act="ackCareReturn" data-id="${b.id}" style="border:0;background:${statusBg};color:${statusFg};font-size:12.5px;font-weight:700;padding:7px 11px;border-radius:999px;cursor:pointer;font-family:inherit;white-space:nowrap">删除</button>
-              </div>
-            ` : `
-              <button type="button" data-act="askRemoveCareBond" data-id="${b.id}" style="border:0;background:rgba(16,84,224,.09);color:var(--blue);font-size:13px;font-weight:700;padding:7px 12px;border-radius:999px;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">撤回</button>
-            `}
+            ${needsBindAck ? `
+              <button type="button" data-act="ackBindOrUnbind" data-id="${b.id}" style="border:0;background:var(--blue);color:#fff;font-size:12.5px;font-weight:700;padding:7px 12px;border-radius:999px;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">确认</button>
+            ` : ""}
           </div>`;
       }).join("") : `
         <div style="background:#fff;border-radius:16px;border:1px solid rgba(16,84,224,.10);box-shadow:0 3px 8px rgba(16,84,224,.05);padding:14px;display:flex;align-items:center;gap:12px">
-          <div style="width:38px;height:38px;border-radius:50%;background:rgba(16,84,224,.08);color:var(--blue);display:grid;place-items:center;flex-shrink:0">${confirmed.length === 0 ? I.personPlus : I.bell}</div>
+          <div style="width:38px;height:38px;border-radius:50%;background:rgba(16,84,224,.08);color:var(--blue);display:grid;place-items:center;flex-shrink:0">${I.personPlus}</div>
           <div style="min-width:0;flex:1">
-            <div style="font-size:15px;font-weight:800;color:var(--blue)">${confirmed.length === 0 ? "尚未添加任何家属" : "暂无待处理的绑定通知"}</div>
-            <div style="font-size:12.5px;font-weight:500;color:var(--secondary);margin-top:3px;line-height:1.45">${confirmed.length === 0 ? "在上方填写姓名与手机号发起绑定，待确认与被拒绝状态将在此展示" : `当前已绑定 ${confirmed.length} 位家属，新发起的绑定申请状态将在此展示`}</div>
+            <div style="font-size:15px;font-weight:800;color:var(--blue)">尚未添加任何家属</div>
+            <div style="font-size:12.5px;font-weight:500;color:var(--secondary);margin-top:3px;line-height:1.45">在上方填写姓名与手机号点击绑定后，双方可在「家属管理」中确认并管理计划</div>
           </div>
         </div>
       `;
@@ -10645,7 +10660,7 @@
           ${formModuleHTML}
           <div style="display:flex;flex-direction:column;gap:10px">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px">
-              <span style="font-size:15px;font-weight:800;color:var(--blue)">绑定通知</span>
+              <span style="font-size:15px;font-weight:800;color:var(--blue)">已绑定家属</span>
               <span style="font-size:12px;font-weight:600;color:var(--blue);background:rgba(16,84,224,.08);padding:3px 9px;border-radius:999px">${esc(badgeSummary)}</span>
             </div>
             <div style="display:flex;flex-direction:column;gap:10px">
@@ -10659,7 +10674,7 @@
     family: () => {
       ensureCareGraph();
       const me = currentDemoPerson();
-      const confirmed = confirmedFamilyBondsFor(me.name);
+      const manageable = manageableFamilyBondsFor(me.name);
       const selectedBond = resolvedSelectedFamilyBondFor(me.name);
       const selectedFamName = selectedBond ? bondOtherName(selectedBond, me.name) : null;
       if (selectedFamName) {
@@ -10822,6 +10837,11 @@
       if (selectedBond && selectedFamName) {
         const rel = bondRelationForViewer(selectedBond, me.name);
         const ph = bondOtherPhone(selectedBond, me.name);
+        const isUnbound = selectedBond.status === "unbound";
+        const needsBindAck = bondNeedsBindAck(selectedBond, me.name);
+        const needsUnbindAck = bondNeedsUnbindAck(selectedBond, me.name);
+        const statusPillText = isUnbound ? "刚解绑" : (needsBindAck ? "刚绑定" : "已绑定");
+        const statusDotColor = (needsBindAck || needsUnbindAck) ? "#FF7070" : "#fff";
         const bucket = ensurePersonStore(selectedFamName);
         const allFamTasks = bucket.tasks || [];
         const todayYMD = toYMD(demoDate());
@@ -10835,17 +10855,17 @@
         const pct = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
         const selDayLabel = selYMD === todayYMD ? "今日计划" : `${monthDayLabel(parseYMD(selYMD)).split(" ")[0]}计划`;
 
-        if (allFamTasks.length > 0) {
+        if (!isUnbound && allFamTasks.length > 0) {
           rightNavHTML = `<button class="cap" data-act="calMode" type="button">${I.cal}${S.calMode === "week" ? "月图" : "周图"}</button>`;
         }
 
-        const cabinSelectorHTML = confirmed.length > 1 ? `
+        const cabinSelectorHTML = manageable.length > 1 ? `
           <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
-            ${confirmed.map((b) => {
+            ${manageable.map((b) => {
               const other = bondOtherName(b, me.name);
               const rTitle = bondRelationForViewer(b, me.name);
               const on = selectedFamName === other;
-              const hasDot = unseenProxyCountFrom(other, me.name) > 0;
+              const hasDot = bondNeedsBindOrUnbindAck(b, me.name);
               return `<button type="button" data-act="selectActiveFam" data-name="${esc(other)}" style="flex-shrink:0;white-space:nowrap;height:34px;padding:0 13px;border-radius:999px;border:${on ? "0" : "0.8px solid rgba(255,255,255,.28)"};background:${on ? "#fff" : "rgba(255,255,255,.16)"};color:${on ? "var(--blue)" : "#fff"};font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;box-shadow:${on ? "0 2px 6px rgba(0,0,0,.10)" : "none"}">
                 <span>${esc(other)}</span>
                 <span style="font-size:11.5px;font-weight:600;opacity:${on ? ".90" : ".80"}">${esc(rTitle)}</span>
@@ -10855,8 +10875,19 @@
           </div>
           <div style="height:1px;background:rgba(255,255,255,.18);margin:12px 0"></div>` : "";
 
+        const ackBannerHTML = (needsBindAck || needsUnbindAck) ? `
+          <div style="margin-top:12px;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:14px;background:rgba(255,255,255,.16);border:0.8px solid rgba(255,255,255,.26)">
+            <span style="width:16px;height:16px;display:grid;place-items:center;color:#fff;flex-shrink:0">${I.check}</span>
+            <span style="font-size:13.5px;font-weight:700;color:#fff;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${needsUnbindAck ? `与${esc(selectedFamName)}的家属绑定已解除` : `已与${esc(selectedFamName)}建立家属绑定`}</span>
+            <button type="button" data-act="ackBindOrUnbind" data-id="${selectedBond.id}" style="flex-shrink:0;white-space:nowrap;padding:6px 13px;border-radius:999px;border:0;background:#fff;color:${isUnbound ? "#475A7D" : "var(--blue)"};font-size:12.5px;font-weight:800;cursor:pointer;font-family:inherit">${needsUnbindAck ? "知道了" : "确认"}</button>
+          </div>` : "";
+
+        const headerBg = isUnbound
+          ? "linear-gradient(135deg,#5C7094 0%,#475A7D 100%)"
+          : "linear-gradient(135deg,#2268F2 0%,#1054E0 100%)";
+
         const profileHeaderHTML = `
-          <div style="border-radius:24px;overflow:hidden;border:1px solid rgba(16,84,224,.16);box-shadow:0 6px 18px rgba(16,84,224,.08);padding:16px 16px 14px;background:linear-gradient(135deg,#2268F2 0%,#1054E0 100%);color:#fff">
+          <div style="border-radius:24px;overflow:hidden;border:1px solid rgba(16,84,224,.16);box-shadow:0 6px 18px rgba(16,84,224,.08);padding:16px 16px 14px;background:${headerBg};color:#fff">
             ${cabinSelectorHTML}
             <div style="display:flex;align-items:center;gap:12px">
               <div style="width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.20);border:1.2px solid rgba(255,255,255,.36);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;color:#fff;flex-shrink:0">${esc(selectedFamName.slice(0, 1))}</div>
@@ -10864,22 +10895,35 @@
                 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
                   <span style="font-size:19px;font-weight:800;color:#fff;white-space:nowrap">${esc(selectedFamName)}</span>
                   <span style="font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.20);color:#fff;white-space:nowrap">${esc(rel)}</span>
-                  <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><i style="width:6px;height:6px;border-radius:50%;background:#fff;display:inline-block"></i>已绑定</span>
+                  <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><i style="width:6px;height:6px;border-radius:50%;background:${statusDotColor};display:inline-block"></i>${statusPillText}</span>
                 </div>
                 <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,.84);margin-top:4px;font-variant-numeric:tabular-nums">手机号 ${esc(ph)}</div>
               </div>
-              <button type="button" data-act="askRemoveCareBond" data-id="${selectedBond.id}" style="flex-shrink:0;white-space:nowrap;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.18);border:0.8px solid rgba(255,255,255,.28);color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit">解除</button>
+              ${isUnbound ? "" : `<button type="button" data-act="askRemoveCareBond" data-id="${selectedBond.id}" style="flex-shrink:0;white-space:nowrap;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.18);border:0.8px solid rgba(255,255,255,.28);color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit">解除</button>`}
             </div>
-            <div style="height:1px;background:rgba(255,255,255,.18);margin:12px 0"></div>
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap">
-              <span style="font-size:13.5px;font-weight:700;color:#fff;white-space:nowrap">${esc(selectedFamName)}的${esc(selDayLabel)}</span>
-              <span style="font-size:12.5px;font-weight:600;color:rgba(255,255,255,.88);font-variant-numeric:tabular-nums;white-space:nowrap">${totalCount > 0 ? `已完成 ${doneCount}/${totalCount}` : "暂未制定计划"}</span>
-              <div style="flex:1"></div>
-              ${totalCount > 0 ? `<div style="width:56px;height:7px;border-radius:999px;background:rgba(255,255,255,.22);overflow:hidden;flex-shrink:0"><div style="width:${pct}%;height:100%;border-radius:999px;background:#fff"></div></div>` : ""}
-            </div>
+            ${ackBannerHTML}
+            ${isUnbound ? "" : `
+              <div style="height:1px;background:rgba(255,255,255,.18);margin:12px 0"></div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap">
+                <span style="font-size:13.5px;font-weight:700;color:#fff;white-space:nowrap">${esc(selectedFamName)}的${esc(selDayLabel)}</span>
+                <span style="font-size:12.5px;font-weight:600;color:rgba(255,255,255,.88);font-variant-numeric:tabular-nums;white-space:nowrap">${totalCount > 0 ? `已完成 ${doneCount}/${totalCount}` : "暂未制定计划"}</span>
+                <div style="flex:1"></div>
+                ${totalCount > 0 ? `<div style="width:56px;height:7px;border-radius:999px;background:rgba(255,255,255,.22);overflow:hidden;flex-shrink:0"><div style="width:${pct}%;height:100%;border-radius:999px;background:#fff"></div></div>` : ""}
+              </div>
+            `}
           </div>`;
 
-        if (allFamTasks.length === 0) {
+        if (isUnbound) {
+          operateBodyHTML = `
+            ${profileHeaderHTML}
+            <div style="margin-top:12px;background:#fff;border-radius:20px;border:1px solid rgba(16,84,224,.10);box-shadow:0 4px 12px rgba(16,84,224,.05);padding:16px;display:flex;align-items:center;gap:12px">
+              <div style="width:40px;height:40px;border-radius:50%;background:rgba(16,84,224,.08);color:rgba(16,84,224,.75);display:grid;place-items:center;flex-shrink:0">${I.people}</div>
+              <div style="min-width:0;flex:1">
+                <div style="font-size:15.5px;font-weight:800;color:var(--blue)">已解除与${esc(selectedFamName)}的家属绑定</div>
+                <div style="font-size:13px;font-weight:500;color:var(--secondary);margin-top:3px">点击上方卡片中的「知道了」即可从列表移除</div>
+              </div>
+            </div>`;
+        } else if (allFamTasks.length === 0) {
           operateBodyHTML = `
             ${profileHeaderHTML}
             <div style="margin-top:12px;background:#fff;border-radius:20px;border:1px solid rgba(16,84,224,.10);padding:42px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px">
@@ -10975,7 +11019,7 @@
         }
 
         const famHasPlans = allFamTasks.length > 0;
-        bottomDockHTML = `
+        bottomDockHTML = isUnbound ? "" : `
           <div class="px20 flex gap8" style="padding-bottom:28px">
             <button class="cta grow" data-act="${hist ? "today" : "openProxyTaskEditor"}" type="button">
               ${hist ? `${I.undo}回到今天` : `${I.plus}${famHasPlans ? `为${esc(selectedFamName)}添加计划` : `为${esc(selectedFamName)}首次创建计划`}`}
