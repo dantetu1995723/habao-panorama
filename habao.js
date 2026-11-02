@@ -2038,17 +2038,10 @@
         { name: "李建国", gender: "男", age: 58, height: 170, weight: 75, phone: "138****5678", phoneRaw: "13800135678" },
         { name: "王芳", gender: "女", age: 55, height: 162, weight: 58, phone: "139****2210", phoneRaw: "13900132210" },
         { name: "张桂兰", gender: "女", age: 78, height: 158, weight: 56, phone: "137****9021", phoneRaw: "13700139021" },
-        { name: "李浩然", gender: "男", age: 32, height: 176, weight: 70, phone: "136****4512", phoneRaw: "13600134512" },
-        { name: "陈建华", gender: "男", age: 60, height: 172, weight: 68, phone: "135****7788", phoneRaw: "13500137788" },
       ];
     } else {
-      const extras = [
-        { name: "李浩然", gender: "男", age: 32, height: 176, weight: 70, phone: "136****4512", phoneRaw: "13600134512" },
-        { name: "陈建华", gender: "男", age: 60, height: 172, weight: 68, phone: "135****7788", phoneRaw: "13500137788" },
-      ];
-      extras.forEach((ex) => {
-        if (!S.demoPeople.some((p) => p.name === ex.name)) S.demoPeople.push(ex);
-      });
+      const presetSet = new Set(["李建国", "王芳", "张桂兰"]);
+      S.demoPeople = S.demoPeople.filter((p) => presetSet.has(p.name));
     }
     if (!S.careBonds) {
       S.careBonds = [
@@ -14840,42 +14833,27 @@
     },
     demoPersonSheet: () => {
       ensureCareGraph();
+      const presets = S.demoPeople.slice(0, 3);
       return `
       <div class="scrim bottom" data-act="close">
-        <div class="sheet" onclick="event.stopPropagation()">
+        <div class="sheet large" onclick="event.stopPropagation()">
           <div class="grab"></div>
           <div style="display:flex;align-items:center;justify-content:space-between">
-            <div>
-              <div class="s20 fb t">切换测试身份</div>
-              <div class="s13 t-sec" style="margin-top:2px">仅用于 Demo 测试：切换当前使用 App 的主角（「我」），个人中心始终以所选主角为第一人称展示</div>
-            </div>
+            <div class="s20 fb t">切换测试身份</div>
             <button class="cap" data-act="close" type="button">关闭</button>
           </div>
-          <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
-            ${S.demoPeople.map((p) => {
+          <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px">
+            ${presets.map((p) => {
               const isCur = p.name === S.currentPersonName;
               const unread = pendingFamilyEventCountFor(p.name);
-              const famCount = confirmedFamilyBondsFor(p.name).length;
-              const pVip = personHasVip(p.name);
               return `
-                <button type="button" data-act="switchDemoPerson" data-name="${esc(p.name)}" style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;border:${isCur ? "1.5px solid rgba(16,84,224,.32)" : "1px solid transparent"};background:${isCur ? "rgba(16,84,224,.10)" : "#F5F8FF"};cursor:pointer;text-align:left;font-family:inherit;width:100%">
-                  <div style="width:42px;height:42px;border-radius:999px;background:${isCur ? "var(--blue)" : "rgba(16,84,224,.12)"};color:${isCur ? "#fff" : "var(--blue)"};font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(p.name.slice(0, 1))}</div>
-                  <div style="min-width:0;flex:1">
-                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-                      <span class="s17 fb t">${esc(p.name)}</span>
-                      <span style="font-size:12px;font-weight:600;color:var(--sec)">${esc(p.gender)} · ${p.age}岁</span>
-                      ${pVip
-                        ? `<span style="padding:2px 7px;border-radius:999px;background:#FEF3C7;color:#B45309;font-size:10.5px;font-weight:700">👑 VIP</span>`
-                        : `<span style="padding:2px 7px;border-radius:999px;background:#F1F5F9;color:#475569;font-size:10.5px;font-weight:700">免费用户</span>`}
-                      ${isCur ? `<span style="padding:2px 7px;border-radius:999px;background:var(--blue);color:#fff;font-size:11px;font-weight:700">当前主角</span>` : ""}
-                      ${unread > 0 ? `<span style="padding:2px 7px;border-radius:999px;background:#EF4444;color:#fff;font-size:11px;font-weight:700">${unread} 条待处理</span>` : ""}
-                    </div>
-                    <div style="display:flex;align-items:center;gap:8px;margin-top:3px">
-                      <span style="font-size:12.5px;font-weight:500;color:var(--sec)">${esc(p.phone)}</span>
-                      <span style="font-size:12px;font-weight:700;color:var(--blue)">互为家属 ${famCount}/5</span>
-                    </div>
+                <button type="button" data-act="switchDemoPerson" data-name="${esc(p.name)}" style="display:flex;align-items:center;gap:14px;padding:15px 16px;border-radius:16px;border:${isCur ? "1.5px solid var(--blue)" : "1px solid rgba(16,84,224,.10)"};background:#fff;box-shadow:0 3px 10px rgba(16,84,224,.05);cursor:pointer;text-align:left;font-family:inherit;width:100%">
+                  <div style="width:44px;height:44px;border-radius:999px;background:${isCur ? "var(--blue)" : "rgba(16,84,224,.10)"};color:${isCur ? "#fff" : "var(--blue)"};font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(p.name.slice(0, 1))}</div>
+                  <div style="min-width:0;flex:1;display:flex;align-items:center;gap:8px">
+                    <span class="s18 fb t">${esc(p.name)}</span>
+                    ${unread > 0 ? `<span style="padding:2px 8px;border-radius:999px;background:#EF4444;color:#fff;font-size:11px;font-weight:700">${unread} 条待处理</span>` : ""}
                   </div>
-                  ${isCur ? `<span style="color:var(--blue);font-weight:800;font-size:16px">✓</span>` : `<span class="neutral-chev">${I.chevR}</span>`}
+                  ${isCur ? `<span style="width:22px;height:22px;border-radius:999px;background:var(--blue);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0">✓</span>` : `<span class="neutral-chev">${I.chevR}</span>`}
                 </button>`;
             }).join("")}
           </div>
