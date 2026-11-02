@@ -2105,18 +2105,24 @@
           summaryNote: "代为完成打卡",
           status: "accepted",
           senderAcknowledged: true,
-          recipientPopupShown: false,
-          recipientManageSeen: false,
+          recipientPopupShown: true,
+          recipientManageSeen: true,
           createdAt: Date.now() - 1800000,
         },
       ];
     } else {
       S.careProxyRequests.forEach((r) => {
         if (!r.status || r.status === "pending") r.status = "accepted";
+        if (r.id === "pr_preset_2") {
+          r.recipientPopupShown = true;
+          r.recipientManageSeen = true;
+        }
         if (r.recipientPopupShown === undefined) r.recipientPopupShown = false;
         if (r.recipientManageSeen === undefined) r.recipientManageSeen = false;
       });
     }
+    if (!S.lastProxyPopupAckAt) S.lastProxyPopupAckAt = {};
+    if (typeof S.proxyPopupPage !== "number") S.proxyPopupPage = 0;
     if (!S.boundPersonKey) {
       const initPerson = S.currentPersonName || "李建国";
       const initBucket = ensurePersonStore(initPerson);
@@ -2224,12 +2230,14 @@
   function incomingProxyRequestsFor(personName) {
     ensureCareGraph();
     const nm = personName || S.currentPersonName || "李建国";
-    return S.careProxyRequests.filter((r) => !r.recipientPopupShown && r.recipientName === nm);
+    const cutoff = (S.lastProxyPopupAckAt && S.lastProxyPopupAckAt[nm]) || 0;
+    return S.careProxyRequests.filter((r) => !r.recipientPopupShown && r.recipientName === nm && (r.createdAt || 0) > cutoff);
   }
   function unshownPopupProxyRequestsFor(personName) {
     ensureCareGraph();
     const nm = personName || S.currentPersonName || "李建国";
-    return S.careProxyRequests.filter((r) => !r.recipientPopupShown && r.recipientName === nm);
+    const cutoff = (S.lastProxyPopupAckAt && S.lastProxyPopupAckAt[nm]) || 0;
+    return S.careProxyRequests.filter((r) => !r.recipientPopupShown && r.recipientName === nm && (r.createdAt || 0) > cutoff);
   }
   function unseenProxyRequestsFor(personName) {
     ensureCareGraph();
@@ -2249,9 +2257,28 @@
   function acknowledgeHomePopupProxyRequestsFor(personName) {
     ensureCareGraph();
     const nm = personName || S.currentPersonName || "李建国";
+    if (!S.lastProxyPopupAckAt) S.lastProxyPopupAckAt = {};
+    S.lastProxyPopupAckAt[nm] = Date.now();
+    S.proxyPopupPage = 0;
     S.careProxyRequests.forEach((r) => {
-      if (r.recipientName === nm) r.recipientPopupShown = true;
+      if (r.recipientName === nm) {
+        r.recipientPopupShown = true;
+        r.recipientManageSeen = true;
+      }
     });
+  }
+  function proxyKindBadgeTitle(kind) {
+    const map = {
+      remind: "提醒",
+      checkIn: "代打卡",
+      createPlan: "新增计划",
+      firstCreatePlan: "首次创建计划",
+      refreshMedicationPlan: "用药与复查",
+      inviteExerciseTest: "运动体测邀请",
+      updatePlan: "修改计划",
+      deletePlan: "删除计划",
+    };
+    return map[kind] || "协助操作";
   }
   function markFamilyManageSeenFor(personName, actorName) {
     ensureCareGraph();
@@ -2429,6 +2456,23 @@
   function sendProxyRequestFor({ senderName, recipientName, kind, targetTaskId, taskSnapshot, batchTasks, summaryNote, onYMD, skipDirectMutation }) {
     ensureCareGraph();
     const effId = targetTaskId || taskSnapshot?.id;
+    // 节点 ①（未读期合并/抵消）：若同一计划在 B 点「知道了」确认前被重复修改或删除，先合并替换未读通知
+    if (kind !== "createPlan") {
+      S.careProxyRequests = (S.careProxyRequests || []).filter((existing) => {
+        if (existing.senderName !== senderName || existing.recipientName !== recipientName || existing.recipientPopupShown) {
+          return true;
+        }
+        if (kind === "firstCreatePlan" || kind === "refreshMedicationPlan" || kind === "inviteExerciseTest") {
+          return existing.kind !== kind;
+        }
+        const sameTask = String(existing.targetTaskId || existing.taskSnapshot?.id) === String(effId);
+        if (!sameTask) return true;
+        if (kind === "deletePlan") {
+          return !(existing.kind === "deletePlan" || existing.kind === "updatePlan" || existing.kind === "checkIn");
+        }
+        return existing.kind !== kind;
+      });
+    }
     const req = {
       id: `pr_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       senderName,
@@ -2443,12 +2487,13 @@
       senderAcknowledged: true,
       recipientPopupShown: false,
       recipientManageSeen: false,
-      createdAt: Date.now(),
+      createdAt: Date.now() + 1,
     };
     if (!skipDirectMutation) {
       applyAcceptedProxyMutationInStore(req);
     }
     S.careProxyRequests.unshift(req);
+    S.proxyPopupPage = 0;
     const actionMap = {
       remind: "提醒了",
       inviteExerciseTest: "提醒了",
@@ -3435,26 +3480,50 @@
     const cur = S.currentPersonName || "李建国";
     const unshownProxy = unshownPopupProxyRequestsFor(cur);
     if (unshownProxy.length > 0) {
+      const total = unshownProxy.length;
+      const pageIdx = Math.min(Math.max(0, S.proxyPopupPage || 0), total - 1);
+      S.proxyPopupPage = pageIdx;
+      const curReq = unshownProxy[pageIdx];
       const senderNames = Array.from(new Set(unshownProxy.map((r) => r.senderName))).join("、");
       const hasExerciseInvite = unshownProxy.some((r) => r.kind === "inviteExerciseTest");
-      const rowsHTML = unshownProxy.slice(0, 4).map((r) => `
-        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:16px;background:rgba(16,84,224,.06)">
-          <span style="width:7px;height:7px;border-radius:50%;background:var(--blue);margin-top:7px;flex-shrink:0"></span>
-          <div style="font-size:15px;font-weight:700;color:var(--blue);line-height:1.45;text-align:left">${esc(proxyHomePopupSentence(r))}</div>
-        </div>
-      `).join("");
+      const prevDisabled = pageIdx <= 0;
+      const nextDisabled = pageIdx >= total - 1;
+      const dotsHTML = total > 1
+        ? Array.from({ length: Math.min(total, 8) }, (_, idx) => {
+            const active = idx === pageIdx;
+            return `<span data-act="gotoProxyPopupPage" data-idx="${idx}" style="width:${active ? 16 : 6}px;height:6px;border-radius:999px;background:${active ? "var(--blue)" : "rgba(16,84,224,.22)"};cursor:pointer;transition:all .18s ease"></span>`;
+          }).join("")
+        : "";
+      const pagerHTML = total > 1
+        ? `
+          <div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px">
+            <button type="button" data-act="prevProxyPopupPage" ${prevDisabled ? "disabled" : ""} style="height:32px;padding:0 12px;border-radius:999px;border:0;background:rgba(16,84,224,${prevDisabled ? ".04" : ".09"});color:rgba(16,84,224,${prevDisabled ? ".32" : "1"});font-size:13px;font-weight:800;cursor:${prevDisabled ? "default" : "pointer"};font-family:inherit;display:inline-flex;align-items:center;gap:4px">‹ 上一页</button>
+            <div style="display:flex;align-items:center;gap:6px">${dotsHTML}</div>
+            <button type="button" data-act="nextProxyPopupPage" ${nextDisabled ? "disabled" : ""} style="height:32px;padding:0 12px;border-radius:999px;border:0;background:rgba(16,84,224,${nextDisabled ? ".04" : ".09"});color:rgba(16,84,224,${nextDisabled ? ".32" : "1"});font-size:13px;font-weight:800;cursor:${nextDisabled ? "default" : "pointer"};font-family:inherit;display:inline-flex;align-items:center;gap:4px">下一页 ›</button>
+          </div>`
+        : "";
       return `
-        <div class="care-notice-modal" style="position:absolute;inset:0;z-index:110;background:rgba(10,22,48,.38);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .18s ease">
-          <div style="width:100%;max-width:342px;background:#fff;border-radius:28px;border:1px solid rgba(16,84,224,.14);box-shadow:0 16px 36px rgba(10,26,68,.20);padding:24px 20px 20px;display:flex;flex-direction:column;align-items:center;text-align:center">
-            <div style="width:56px;height:56px;border-radius:50%;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center;margin-bottom:14px">${I.two}</div>
-            <div style="font-size:20px;font-weight:800;color:var(--blue)">家属协助通知</div>
-            <div style="font-size:14px;font-weight:600;color:var(--secondary);margin-top:4px">${esc(senderNames)}刚刚为你操作了以下事项：</div>
-            <div style="width:100%;display:flex;flex-direction:column;gap:8px;margin-top:16px;margin-bottom:18px">
-              ${rowsHTML}
+        <div class="care-notice-modal" style="position:absolute;inset:0;z-index:110;background:rgba(10,22,48,.42);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .18s ease">
+          <div style="width:100%;max-width:344px;background:#fff;border-radius:24px;border:1px solid rgba(16,84,224,.14);box-shadow:0 16px 36px rgba(10,26,68,.20);padding:22px 20px 20px;display:flex;flex-direction:column;align-items:stretch;text-align:left">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+              <div style="width:38px;height:38px;border-radius:50%;background:rgba(16,84,224,.12);color:var(--blue);display:grid;place-items:center;flex-shrink:0">${I.bell || I.two}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:19px;font-weight:800;color:var(--blue);line-height:1.2">家属协助通知</div>
+                <div style="font-size:13px;font-weight:600;color:var(--secondary);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(total > 1 ? `${senderNames}刚刚为你新增了 ${total} 项协助操作` : `${senderNames}刚刚为你更新了健康事项`)}</div>
+              </div>
+              ${total > 1 ? `<span style="padding:4px 10px;border-radius:999px;background:rgba(16,84,224,.10);border:1px solid rgba(16,84,224,.22);color:var(--blue);font-size:12.5px;font-weight:800;flex-shrink:0">${pageIdx + 1} / ${total}</span>` : ""}
             </div>
+            <div style="width:100%;min-height:112px;padding:14px 15px;border-radius:16px;background:rgba(16,84,224,.06);border:1px solid rgba(16,84,224,.16);display:flex;flex-direction:column;gap:10px;margin-bottom:${total > 1 ? "12px" : "16px"}">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="padding:3px 9px;border-radius:999px;background:var(--blue);color:#fff;font-size:12px;font-weight:800">${esc(proxyKindBadgeTitle(curReq.kind))}</span>
+                <span style="font-size:12.5px;font-weight:700;color:rgba(16,84,224,.78)">来自 ${esc(curReq.senderName)}</span>
+              </div>
+              <div style="font-size:16px;font-weight:800;color:var(--blue);line-height:1.48;text-align:left">${esc(proxyHomePopupSentence(curReq))}</div>
+            </div>
+            ${pagerHTML}
             <div style="width:100%;display:flex;gap:10px">
-              ${hasExerciseInvite ? `<button type="button" data-act="ackHomeProxyPopupAndTest" style="flex:1;height:50px;border-radius:16px;border:1.2px solid rgba(16,84,224,.28);background:rgba(16,84,224,.08);color:var(--blue);font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit">去体测</button>` : ""}
-              <button type="button" data-act="ackHomeProxyPopup" style="flex:1;height:50px;border-radius:16px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">知道了</button>
+              ${hasExerciseInvite ? `<button type="button" data-act="ackHomeProxyPopupAndTest" style="flex:1;height:48px;border-radius:14px;border:1.2px solid rgba(16,84,224,.28);background:rgba(16,84,224,.08);color:var(--blue);font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit">去体测</button>` : ""}
+              <button type="button" data-act="ackHomeProxyPopup" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">知道了</button>
             </div>
           </div>
         </div>`;
@@ -7211,6 +7280,14 @@
         const wasDone = isFamilyTaskCompletedOn(famName, tid, ymd);
         if (wasDone) {
           setFamilyTaskCompletedOn(famName, tid, ymd, false);
+          // 节点 ①（未读期抵消）：若 B 尚未点「知道了」确认该条代打卡通知，A 取消打卡时同步撤消该条未读通知
+          S.careProxyRequests = (S.careProxyRequests || []).filter((r) => !(
+            r.senderName === me.name &&
+            r.recipientName === famName &&
+            r.kind === "checkIn" &&
+            String(r.targetTaskId || r.taskSnapshot?.id) === String(tid) &&
+            !r.recipientPopupShown
+          ));
           toast(`已取消「${task.title}」打卡`);
         } else {
           sendProxyRequestFor({
@@ -7248,6 +7325,28 @@
           skipDirectMutation: true,
         });
         toast(`已为${famName}仅删除当日「${task.title}」`);
+        render();
+      },
+      prevProxyPopupPage() {
+        const cur = S.currentPersonName || "李建国";
+        const list = unshownPopupProxyRequestsFor(cur);
+        if (!list.length) return;
+        S.proxyPopupPage = Math.max(0, (S.proxyPopupPage || 0) - 1);
+        render();
+      },
+      nextProxyPopupPage() {
+        const cur = S.currentPersonName || "李建国";
+        const list = unshownPopupProxyRequestsFor(cur);
+        if (!list.length) return;
+        S.proxyPopupPage = Math.min(list.length - 1, (S.proxyPopupPage || 0) + 1);
+        render();
+      },
+      gotoProxyPopupPage() {
+        const idx = Number(el.dataset.idx || 0);
+        const cur = S.currentPersonName || "李建国";
+        const list = unshownPopupProxyRequestsFor(cur);
+        if (!list.length) return;
+        S.proxyPopupPage = Math.min(Math.max(0, idx), list.length - 1);
         render();
       },
       ackHomeProxyPopup() {
