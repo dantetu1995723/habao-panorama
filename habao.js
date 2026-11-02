@@ -2617,6 +2617,32 @@
         ],
       };
     }
+    if (personName !== "李建国") {
+      return {
+        tasks: [],
+        completed: {},
+        completedBy: {},
+        remindedTasks: {},
+        vitalsWeek: [],
+        vitalsLog: [],
+        walkRecords: [],
+        recentWalkText: "暂无散步记录",
+        report: {
+          overall: "暂未录入康复档案与计划。",
+          baseline: "尚未上传出院或基础病历资料。",
+          visit: "尚无复查批次。",
+          followupDate: "暂无",
+          followupPrevDate: "暂无",
+          followupPrevSummary: "暂无随访记录。",
+          analysisBaseline: "尚未上传基础档案。",
+          analysisVisit: "尚无复查批次。",
+          analysisFollowup: "暂无随访记录。",
+        },
+        archiveBaseline: [],
+        archiveReview: [],
+        ops: [],
+      };
+    }
     return {
       tasks: SEED0.map((t) => ({ ...t })),
       completed: { t1: true, t2: true },
@@ -10391,12 +10417,27 @@
             </div>` : "";
 
           const groups = groupByPeriod(famTasks, (t) => t.h ?? 8);
-          const groupedTasksHTML = groups.map((g, gi) => `
+          const groupedTasksHTML = groups.length ? groups.map((g, gi) => `
             <div class="period-h" style="${gi === 0 && !pendingCreates.length ? "margin-top:2px" : ""}">${I[g.icon] || ""}${g.title}<span class="s12 t-sec">${g.items.length} 项</span></div>
             <div class="col gap10">
               ${g.items.map((t) => renderFamilyPlanCard(t)).join("")}
             </div>
-          `).join("");
+          `).join("") : (!pendingCreates.length ? `
+            <div style="background:#fff;border-radius:20px;border:1px solid rgba(16,84,224,.12);box-shadow:0 4px 12px rgba(16,84,224,.05);padding:26px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px">
+              <div style="width:60px;height:60px;border-radius:50%;background:rgba(16,84,224,.08);display:grid;place-items:center">
+                <div style="width:40px;height:40px;border-radius:14px;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 3px 8px rgba(16,84,224,.22)">${I.cal}</div>
+              </div>
+              <div style="padding:0 8px">
+                <div style="font-size:17px;font-weight:800;color:var(--blue)">${esc(selectedFamName)}暂无今日康复计划</div>
+                <div style="font-size:13px;font-weight:500;color:var(--secondary);margin-top:6px;line-height:1.5">可点击下方按钮为${esc(selectedFamName)}代为添加测血压、服药、运动或饮食计划，对方在「收家属通知」中接受后即可生效。</div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap">
+                ${["测血压", "服药", "运动", "饮食"].map((lbl) => `
+                  <button type="button" data-act="openProxyTaskEditor" style="border:0;background:rgba(16,84,224,.08);color:var(--blue);font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;cursor:pointer;font-family:inherit">+ ${lbl}</button>
+                `).join("")}
+              </div>
+            </div>
+          ` : "");
 
           const cabinSelectorHTML = confirmed.length > 1 ? `
             <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
@@ -10431,12 +10472,10 @@
                 <div style="height:1px;background:rgba(255,255,255,.18);margin:12px 0"></div>
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap">
                   <span style="font-size:13.5px;font-weight:700;color:#fff;white-space:nowrap">${esc(selectedFamName)}的今日计划</span>
-                  <span style="font-size:12.5px;font-weight:600;color:rgba(255,255,255,.88);font-variant-numeric:tabular-nums;white-space:nowrap">已完成 ${doneCount}/${totalCount}</span>
+                  <span style="font-size:12.5px;font-weight:600;color:rgba(255,255,255,.88);font-variant-numeric:tabular-nums;white-space:nowrap">${totalCount > 0 ? `已完成 ${doneCount}/${totalCount}` : "暂未制定计划"}</span>
                   ${pendingProxyCount > 0 ? `<span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(255,255,255,.20);color:#fff;white-space:nowrap">${pendingProxyCount}项待接受</span>` : ""}
                   <div style="flex:1"></div>
-                  <div style="width:56px;height:7px;border-radius:999px;background:rgba(255,255,255,.22);overflow:hidden;flex-shrink:0">
-                    <div style="width:${pct}%;height:100%;border-radius:999px;background:#fff"></div>
-                  </div>
+                  ${totalCount > 0 ? `<div style="width:56px;height:7px;border-radius:999px;background:rgba(255,255,255,.22);overflow:hidden;flex-shrink:0"><div style="width:${pct}%;height:100%;border-radius:999px;background:#fff"></div></div>` : ""}
                 </div>
               </div>
               <div style="padding:12px">
