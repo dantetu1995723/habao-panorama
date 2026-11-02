@@ -11167,7 +11167,7 @@
           : "linear-gradient(135deg,#2268F2 0%,#1054E0 100%)";
 
         const profileHeaderHTML = `
-          <div style="padding:16px 16px 14px;background:${headerBg};color:#fff">
+          <div style="padding:16px;background:${headerBg};color:#fff">
             ${cabinSelectorHTML}
             <div style="display:flex;align-items:center;gap:12px">
               <div style="width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.20);border:1.2px solid rgba(255,255,255,.36);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;color:#fff;flex-shrink:0">${esc(selectedFamName.slice(0, 1))}</div>
@@ -11182,15 +11182,6 @@
               ${isUnbound ? "" : `<button type="button" data-act="askRemoveCareBond" data-id="${selectedBond.id}" style="flex-shrink:0;white-space:nowrap;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.18);border:0.8px solid rgba(255,255,255,.28);color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit">解除</button>`}
             </div>
             ${ackBannerHTML}
-            ${isUnbound ? "" : `
-              <div style="height:1px;background:rgba(255,255,255,.18);margin:12px 0"></div>
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap">
-                <span style="font-size:13.5px;font-weight:700;color:#fff;white-space:nowrap">${esc(selectedFamName)}的${esc(selDayLabel)}</span>
-                <span style="font-size:12.5px;font-weight:600;color:rgba(255,255,255,.88);font-variant-numeric:tabular-nums;white-space:nowrap">${totalCount > 0 ? `已完成 ${doneCount}/${totalCount}` : "暂未制定计划"}</span>
-                <div style="flex:1"></div>
-                ${totalCount > 0 ? `<div style="width:56px;height:7px;border-radius:999px;background:rgba(255,255,255,.22);overflow:hidden;flex-shrink:0"><div style="width:${pct}%;height:100%;border-radius:999px;background:#fff"></div></div>` : ""}
-              </div>
-            `}
           </div>`;
 
         if (isUnbound) {
@@ -11279,28 +11270,29 @@
               ${g.items.map((t) => renderFamilyPlanCard(t)).join("")}
             </div>
           `).join("") : `
-            <div class="island-card ta-c t-sec s15" style="padding:20px;margin-top:4px">
-              ${isDoneTab ? "所选日期暂无已完成计划" : (totalCount > 0 ? "所选日期计划已全部完成" : "所选日期暂无计划")}
+            <div class="island-card ta-c t-sec s15" style="padding:24px 20px;background:#fff">
+              ${isDoneTab ? "暂无已完成计划" : (totalCount > 0 ? "计划已全部完成" : "暂无计划")}
             </div>`;
 
           operateBodyHTML = `
             <div style="border-radius:24px;overflow:hidden;border:1.2px solid rgba(16,84,224,.16);box-shadow:0 6px 18px rgba(16,84,224,.08);background:#F5F9FF">
               ${profileHeaderHTML}
-              <div id="cal-swipe" style="background:#fff;padding:13px 14px 12px;border-bottom:1px solid rgba(16,84,224,.09)">
-                <div class="cal-head">
-                  <button class="cal-nav" data-act="calPrev" type="button">${I.chevL}</button>
-                  <div class="s17 fb t">${calHeadTitle()}</div>
-                  <button class="cal-nav" data-act="calNext" type="button">${I.chevR}</button>
+              <div id="cal-swipe" style="background:#fff;padding:14px;border-bottom:1px solid rgba(16,84,224,.09);display:flex;flex-direction:column;gap:14px">
+                <div>
+                  <div class="cal-head" style="justify-content:space-between">
+                    <button class="cal-nav" data-act="calPrev" type="button">${I.chevL}</button>
+                    <div class="s16 fb t">${calHeadTitle()}</div>
+                    <button class="cal-nav" data-act="calNext" type="button">${I.chevR}</button>
+                  </div>
+                  <div class="weekdays">${"日一二三四五六".split("").map((d) => `<span>${d}</span>`).join("")}</div>
+                  <div class="days">${calDays(false)}</div>
                 </div>
-                <div class="weekdays">${"日一二三四五六".split("").map((d) => `<span>${d}</span>`).join("")}</div>
-                <div class="days">${calDays(false)}</div>
-              </div>
-              <div style="padding:14px 14px 16px;display:flex;flex-direction:column;gap:12px">
-                ${hist ? `<div class="hist-bar">${I.eye}${monthDayLabel(parseYMD(selYMD)).split(" ")[0]} · 历史日期计划</div>` : ""}
                 <div class="filter">
                   <button class="${!isDoneTab ? "on" : ""}" data-act="toggleDone" data-f="todo" type="button">未完成 ${todoCount}</button>
                   <button class="${isDoneTab ? "on" : ""}" data-act="toggleDone" data-f="done" type="button">已完成 ${doneCount}</button>
                 </div>
+              </div>
+              <div style="padding:14px 14px 16px;display:flex;flex-direction:column;gap:12px">
                 ${groupedTasksHTML}
               </div>
             </div>
@@ -11310,8 +11302,8 @@
         const famHasPlans = allFamTasks.length > 0;
         bottomDockHTML = isUnbound ? "" : `
           <div class="px20 flex gap8" style="padding-bottom:28px">
-            <button class="cta grow" data-act="${hist ? "today" : "openProxyTaskEditor"}" type="button">
-              ${hist ? `${I.undo}回到今天` : `${I.plus}${famHasPlans ? `为${esc(selectedFamName)}添加计划` : `为${esc(selectedFamName)}首次创建计划`}`}
+            <button class="cta grow" data-act="openProxyTaskEditor" type="button">
+              ${I.plus}${famHasPlans ? `为${esc(selectedFamName)}添加计划` : `为${esc(selectedFamName)}首次创建计划`}
             </button>
           </div>`;
       } else {
