@@ -1170,7 +1170,7 @@
     privacy: { code: "LegalAgreementDetailSheet(.privacy)", note: "《哈宝隐私保护政策》详情页（iOS / Android 通用合规口径）：涵盖收集与使用范围、系统权限用时方申请原则（相机/定位/麦克风/蓝牙/通知）、全程加密与家属共享规则、查阅/撤回授权/永久注销账号权利。首次进入弹窗、登录页协议行与个人中心列表共用。" },
     "service-terms": { code: "LegalAgreementDetailSheet(.service)", note: "《哈宝用户服务协议》详情页：涵盖院外心肺康复管理服务范围、非急诊医疗安全免责声明（剧烈胸痛或危急血压请立即拨打 120）、账号与家庭守护规范、VIP 会员随患者档案生效与退订保留规则。首次进入弹窗、登录页协议行与个人中心列表共用。" },
     home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 196–206，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。每张计划卡展示标题、提醒时间（或已完成）及「开始日期 – 结束日期」起止区间。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页；底坞中圆哈宝医生始终常亮可点击进入问诊页（非 VIP 发送消息后在聊天流内弹出 VIP 购买提示对话卡）。打卡不再在卡片上盖家属章；谁打的记在 V0.1 个人中心「操作记录」，V0.0 没有这一页。" },
-    schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行展示时刻与单日/循环/类别胶囊，下方展示「开始日期 – 结束日期」起止区间；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上更新才进编辑。切「已完成」整页绿白。" },
+    schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行展示时刻与单日/循环/类别胶囊，下方展示「开始日期 – 结束日期」起止区间；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上更新才进编辑。未完成与已完成全程统一采用蓝白色系（去绿改蓝白）。" },
     vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。底栏「进入哈宝医生」始终可点击进入问诊页（非 VIP 发送消息后弹出 VIP 购买提示对话卡）。" },
     report: { code: "FollowUpModuleView", note: "综合结论 + 三等分入口 + 底栏「进入哈宝医生」始终可点击进入问诊页（非 VIP 发送消息后弹出 VIP 购买提示对话卡）。" },
     "report-sub": { code: "BodyReportSubReportView", note: "V10.61：顶栏两枚 Tab「AI 解读 / 资料合集」，默认落 AI 解读；资料合集只读。底栏「新增报告资料」不论有无存量都直接进拍摄页（不再先落资料详情）。拍完提交：基础按类别追加、复查新开一次。复诊打卡形态在主钮下多一颗「返回首页」。" },
@@ -1181,7 +1181,7 @@
     consult: { code: "SmartConsultChatView", note: "纯粹的 AI 问诊对话界面（所有入口始终可点击进入）：顶部导航左「返回」、居中「哈宝医生」；中间消息区在未发消息时展示问候卡（你好，这里是哈宝医生 / 有不适或用药疑问，都可以问我）；VIP 用户发送消息后以左右纯文本/图片气泡进行问答交流，非 VIP 用户发送消息后弹出「需购买 VIP 才能使用哈宝问诊」提示对话卡（可一键跳转 VIP 会员页开通，已购买 VIP 后自动转为哈宝医生打招呼气泡以便正式聊天问诊）；底部主输入框默认为「长按说话」按钮（按住说话、上滑取消、松开发送），左侧为键盘切换按钮（点击切换为文字输入框），右侧为「+」号功能面板（仅保留拍照、相册，已移除 AI 电话）。" },
     profile: { code: "ServiceView", note: "Hero 健康档案 + VIP 权益区 + 功能列表（VIP 专区「添加家属 / 硬件管理 / 操作记录」与免费基础区「家属管理 / 打卡通知 / 隐私协议 / 服务协议」清晰分流）。将「添加家属」与「家属管理」两个动作彻底拆分并列在个人中心：1)「添加家属 [VIP]」归入上方蓝色 VIP 专区，未开通 VIP 时显示「开通 VIP 后可用」+ 右侧皇冠锁（与硬件管理、操作记录完全统一），开通 VIP 后显示剩余可添加名额并进入独立的「添加家属」页；2)「家属管理」归入下方免费基础功能区（中性石板灰图标、不带 VIP 徽标、右侧常驻箭头），对免费用户和 VIP 用户 100% 开放，方便免费用户随时接收绑定请求、处理代办通知并与已绑定的 VIP 家属互助照护。" },
     "family-add": { code: "FamilyAddView", note: "VIP 专属「添加家属」独立页：顶部左「返回」+ 居中「添加家属」；下方 24pt 边距展示三字段绑定表单（姓名、关系四选一、11 位手机号）与底部通栏「点击绑定」按钮；已发出的待确认请求以全蓝色三层同构卡片展示在表单下方并支持「撤回绑定申请」；满 5 位上限时提示「已达 5 位家属上限」。" },
-    family: { code: "FamilyManageView", note: "免费开放的「家属管理」独立页（剥离主动添加表单，专注存量家属互助与通知处理）：顶部并列「帮家属操作 ｜ 收家属通知」双栏目；「帮家属操作」顶部仅展示已绑定家属切换胶囊，下方为全蓝色「家属照护一体舱」（人物档案头 + 分时段计划操作卡）与底栏「为{姓名}添加计划」；「收家属通知」统一处理绑定申请（不同意/同意绑定）、代办请求（不接受/接受）与结果回执（删除通知）。" },
+    family: { code: "FamilyManageView", note: "免费开放的「家属管理」独立页（移除「收家属通知」栏目与代操作待接受/撤回步骤）：本人为家属执行的任何代操作立即生效落库；家属进入首页直接收到居中弹窗通知（文字表述刚才家属做了什么事，点击「知道了」确认），并在首页右上角个人中心、家属管理入口及家属切换胶囊上展示舒适通知红点。页面内嵌与「健康计划」同款的整体计划管理（顶部深蓝家属档案头 + 周/月日历选日期 + 未完成/已完成切换 + 全蓝白色调分时段操作卡）。" },
     vip: { code: "VIPView", note: "仅从 V0.1 入口进来。Hero 写哈宝 VIP 与 ¥2400 / 年，下面五项完整详情：家属管理、硬件管理、操作记录、哈宝医生（AI+真人医生前端统一为哈宝医生主体），以及支架保险理赔服务。底栏「立即开通」先确认，演示不扣款，开通后有效期一年；已开通可「取消订阅」，确认后四项功能重新上锁、服务权益同步终止，家属、记录和硬件绑定留在本机。注销清空开通状态，退出登录保留。" },
     hardware: { code: "HardwareManageView", note: "仅 V0.1（V0.0 个人中心没有这一行）。两张设备模块卡：未绑定写「未绑定」、右端挂「扫码绑定」浅蓝胶囊；已绑定写绿色「已绑定 · 编号」、右端箭头。点未绑定卡进扫码页，点已绑定卡进设备页。副说明按已绑定的名字拼，两台齐了写「两台都已绑定」。绑定留在本机，切回 V0.0 只藏入口。" },
     "hardware-scan": { code: "HardwareScanView", note: "V10.128：深蓝黑底全屏扫码页——264pt 取景框 + 青色扫描线，约 1.5 秒识别到对应哈宝设备（血压计 3086 / 手表 1172），四角转绿、白卡上浮，「绑定这台」或「重新扫描」，绑定后回列表。已绑定页显示编号和绑定日，解除要确认、确认后回列表。不调用摄像头，测量不写进血压监测。退出保留，注销清空。" },
@@ -2069,8 +2069,10 @@
           targetTaskId: "t14",
           taskSnapshot: { id: "t14", title: "晚间散步", cat: "exercise", h: 19, m: 30, cycle: true, note: "饭后半小时慢走 20 分钟" },
           summaryNote: "按时提醒",
-          status: "pending",
-          senderAcknowledged: false,
+          status: "accepted",
+          senderAcknowledged: true,
+          recipientPopupShown: true,
+          recipientManageSeen: false,
           createdAt: Date.now() - 600000,
         },
         {
@@ -2082,10 +2084,18 @@
           taskSnapshot: { id: "zgl_t1", title: "晨起测血压与心率", cat: "monitoring", h: 6, m: 45, cycle: true, note: "晨起静坐5分钟后测量" },
           summaryNote: "代为完成打卡",
           status: "accepted",
-          senderAcknowledged: false,
+          senderAcknowledged: true,
+          recipientPopupShown: false,
+          recipientManageSeen: false,
           createdAt: Date.now() - 1800000,
         },
       ];
+    } else {
+      S.careProxyRequests.forEach((r) => {
+        if (!r.status || r.status === "pending") r.status = "accepted";
+        if (r.recipientPopupShown === undefined) r.recipientPopupShown = false;
+        if (r.recipientManageSeen === undefined) r.recipientManageSeen = false;
+      });
     }
     if (!S.boundPersonKey) {
       const initPerson = S.currentPersonName || "李建国";
@@ -2116,20 +2126,66 @@
   function incomingProxyRequestsFor(personName) {
     ensureCareGraph();
     const nm = personName || S.currentPersonName || "李建国";
-    return S.careProxyRequests.filter((r) => r.status === "pending" && r.recipientName === nm);
+    return S.careProxyRequests.filter((r) => !r.recipientPopupShown && r.recipientName === nm);
   }
-  function returnedProxyResultsFor(personName) {
+  function unshownPopupProxyRequestsFor(personName) {
     ensureCareGraph();
     const nm = personName || S.currentPersonName || "李建国";
-    return S.careProxyRequests.filter((r) => r.status !== "pending" && !r.senderAcknowledged && r.senderName === nm);
+    return S.careProxyRequests.filter((r) => !r.recipientPopupShown && r.recipientName === nm);
+  }
+  function unseenProxyRequestsFor(personName) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName || "李建国";
+    return S.careProxyRequests.filter((r) => !r.recipientManageSeen && r.recipientName === nm);
+  }
+  function unseenProxyCountFrom(actorName, personName) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName || "李建国";
+    return S.careProxyRequests.filter((r) => !r.recipientManageSeen && r.recipientName === nm && r.senderName === actorName).length;
+  }
+  function hasUnseenFamilyRedDotFor(personName) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName || "李建国";
+    return unseenProxyRequestsFor(nm).length > 0 || incomingBindRequestsFor(nm).length > 0;
+  }
+  function acknowledgeHomePopupProxyRequestsFor(personName) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName || "李建国";
+    S.careProxyRequests.forEach((r) => {
+      if (r.recipientName === nm) r.recipientPopupShown = true;
+    });
+  }
+  function markFamilyManageSeenFor(personName, actorName) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName || "李建国";
+    S.careProxyRequests.forEach((r) => {
+      if (r.recipientName === nm && (!actorName || r.senderName === actorName)) {
+        r.recipientManageSeen = true;
+      }
+    });
+  }
+  function proxyHomePopupSentence(r) {
+    const snap = r.taskSnapshot || {};
+    const hm = `${pad(snap.h ?? 8)}:${pad(snap.m ?? 0)}`;
+    const t = snap.title || "康复计划";
+    if (r.kind === "remind") return `${r.senderName}提醒你按时完成「${hm} ${t}」`;
+    if (r.kind === "checkIn") return `${r.senderName}刚刚帮你完成了「${hm} ${t}」打卡`;
+    if (r.kind === "createPlan") return `${r.senderName}为你新增了康复计划「${hm} ${t}」`;
+    if (r.kind === "firstCreatePlan") return `${r.senderName}已为你首次创建了全天康复计划${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
+    if (r.kind === "refreshMedicationPlan") return `${r.senderName}已为你更新了用药与复查计划${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
+    if (r.kind === "inviteExerciseTest") return `${r.senderName}提醒你完成运动体测，评估后即可生成专属运动计划`;
+    if (r.kind === "updatePlan") return `${r.senderName}帮你调整了计划「${hm} ${t}」${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
+    if (r.kind === "deletePlan") return `${r.senderName}帮你删除了计划「${hm} ${t}」${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
+    return `${r.senderName}帮你操作了「${t}」`;
+  }
+  function returnedProxyResultsFor(personName) {
+    return [];
   }
   function outgoingPendingProxyFor(senderName, recipientName) {
-    ensureCareGraph();
-    const s = senderName || S.currentPersonName || "李建国";
-    return S.careProxyRequests.filter((r) => r.status === "pending" && r.senderName === s && (!recipientName || r.recipientName === recipientName));
+    return [];
   }
   function pendingProxyRequestForTask(taskId, senderName, recipientName) {
-    return outgoingPendingProxyFor(senderName, recipientName).find((r) => String(r.targetTaskId) === String(taskId) || String(r.taskSnapshot?.id) === String(taskId)) || null;
+    return null;
   }
   function evaluatePlanRiskFor({ personName, cat, title, hour, min, cycle, rule, editingTaskId, isProxyAction }) {
     ensureCareGraph();
@@ -2272,23 +2328,9 @@
       }
     });
   }
-  function sendProxyRequestFor({ senderName, recipientName, kind, targetTaskId, taskSnapshot, batchTasks, summaryNote }) {
+  function sendProxyRequestFor({ senderName, recipientName, kind, targetTaskId, taskSnapshot, batchTasks, summaryNote, onYMD, skipDirectMutation }) {
     ensureCareGraph();
     const effId = targetTaskId || taskSnapshot?.id;
-    const staleList = kind !== "createPlan"
-      ? (S.careProxyRequests || []).filter((r) => (
-          r.senderName === senderName &&
-          r.recipientName === recipientName &&
-          r.status === "pending" &&
-          (["firstCreatePlan", "refreshMedicationPlan", "inviteExerciseTest"].includes(kind)
-            ? r.kind === kind
-            : (String(r.targetTaskId) === String(effId) || String(r.taskSnapshot?.id) === String(effId)))
-        ))
-      : [];
-    staleList.forEach((oldReq) => {
-      removeFamilyCollaborateOp(oldReq.id, oldReq.senderName, oldReq.recipientName);
-    });
-    S.careProxyRequests = S.careProxyRequests.filter((r) => !staleList.includes(r));
     const req = {
       id: `pr_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       senderName,
@@ -2298,10 +2340,16 @@
       taskSnapshot: { ...taskSnapshot },
       batchTasks: Array.isArray(batchTasks) ? batchTasks.map((t) => ({ ...t })) : null,
       summaryNote: summaryNote || "",
-      status: "pending",
-      senderAcknowledged: false,
+      onYMD: onYMD || S.calSelYMD || toYMD(demoDate()),
+      status: "accepted",
+      senderAcknowledged: true,
+      recipientPopupShown: false,
+      recipientManageSeen: false,
       createdAt: Date.now(),
     };
+    if (!skipDirectMutation) {
+      applyAcceptedProxyMutationInStore(req);
+    }
     S.careProxyRequests.unshift(req);
     const actionMap = {
       remind: "提醒了",
@@ -2322,6 +2370,71 @@
     });
     return req;
   }
+  function familyLiveTasksFor(personName, ymd = toYMD(demoDate())) {
+    ensureCareGraph();
+    const bucket = ensurePersonStore(personName);
+    const skip = (bucket.skippedDays && bucket.skippedDays[ymd]) || [];
+    const list = (bucket.tasks || []).filter((t) => {
+      if (skip.includes(t.id)) return false;
+      if (t.onceDate && ymd < t.onceDate) return false;
+      if (t.cycle === false && t.onceDate && ymd !== t.onceDate) return false;
+      if (t.endDate && ymd > t.endDate) return false;
+      return true;
+    });
+    return list.slice().sort((a, b) => (a.h ?? 8) * 60 + (a.m ?? 0) - ((b.h ?? 8) * 60 + (b.m ?? 0)));
+  }
+  function isFamilyTaskCompletedOn(personName, taskId, ymd = toYMD(demoDate())) {
+    const bucket = ensurePersonStore(personName);
+    const todayYMD = toYMD(demoDate());
+    if (bucket.completedByDate && bucket.completedByDate[ymd] && taskId in bucket.completedByDate[ymd]) {
+      return !!bucket.completedByDate[ymd][taskId];
+    }
+    if (ymd === todayYMD) {
+      return !!(bucket.completed && bucket.completed[taskId]);
+    }
+    return false;
+  }
+  function setFamilyTaskCompletedOn(personName, taskId, ymd, val, actorName) {
+    const bucket = ensurePersonStore(personName);
+    const todayYMD = toYMD(demoDate());
+    if (!bucket.completedByDate) bucket.completedByDate = {};
+    if (!bucket.completedByDate[ymd]) bucket.completedByDate[ymd] = {};
+    if (val) {
+      bucket.completedByDate[ymd][taskId] = true;
+    } else {
+      delete bucket.completedByDate[ymd][taskId];
+    }
+    if (ymd === todayYMD) {
+      if (!bucket.completed) bucket.completed = {};
+      if (!bucket.completedBy) bucket.completedBy = {};
+      if (val) {
+        bucket.completed[taskId] = true;
+        if (actorName) bucket.completedBy[taskId] = actorName;
+      } else {
+        delete bucket.completed[taskId];
+        delete bucket.completedBy[taskId];
+      }
+      if ((S.boundPersonKey || "李建国") === personName) {
+        if (val) {
+          S.completed[taskId] = true;
+          if (actorName) S.completedBy[taskId] = actorName;
+        } else {
+          delete S.completed[taskId];
+          delete S.completedBy[taskId];
+        }
+      }
+    }
+  }
+  function skipFamilyTaskOn(personName, taskId, ymd) {
+    const bucket = ensurePersonStore(personName);
+    if (!bucket.skippedDays) bucket.skippedDays = {};
+    if (!bucket.skippedDays[ymd]) bucket.skippedDays[ymd] = [];
+    if (!bucket.skippedDays[ymd].includes(taskId)) bucket.skippedDays[ymd].push(taskId);
+    setFamilyTaskCompletedOn(personName, taskId, ymd, false);
+    if ((S.boundPersonKey || "李建国") === personName) {
+      addSkipped(ymd, taskId);
+    }
+  }
   function applyAcceptedProxyMutationInStore(req) {
     const target = req.recipientName;
     const bucket = ensurePersonStore(target);
@@ -2330,14 +2443,14 @@
     const compMap = isCurrentBound ? S.completed : (bucket.completed || (bucket.completed = {}));
     const compByMap = isCurrentBound ? S.completedBy : (bucket.completedBy || (bucket.completedBy = {}));
     const remMap = isCurrentBound ? S.remindedTasks : (bucket.remindedTasks || (bucket.remindedTasks = {}));
+    const ymd = req.onYMD || S.calSelYMD || toYMD(demoDate());
 
     const tid = req.targetTaskId || req.taskSnapshot?.id;
     if (req.kind === "remind" || req.kind === "inviteExerciseTest") {
       if (tid && req.kind === "remind") remMap[tid] = true;
     } else if (req.kind === "checkIn") {
       if (tid) {
-        compMap[tid] = true;
-        compByMap[tid] = req.senderName;
+        setFamilyTaskCompletedOn(target, tid, ymd, true, req.senderName);
       }
     } else if (req.kind === "createPlan") {
       const nt = { ...req.taskSnapshot, id: tid || `proxy_${Date.now()}` };
@@ -2480,20 +2593,16 @@
   function familyManageCaptionFor(personName) {
     const nm = personName || S.currentPersonName || "李建国";
     const confirmedCount = confirmedFamilyBondsFor(nm).length;
-    const incomingCount = incomingBindRequestsFor(nm).length + incomingProxyRequestsFor(nm).length;
-    const returnedCount = returnedProxyResultsFor(nm).length + rejectedReturnedRequestsFor(nm).length;
-    if (incomingCount > 0) {
-      return confirmedCount > 0
-        ? `已绑定 ${confirmedCount} 人 · ${incomingCount} 条待确认`
-        : `${incomingCount} 条请求待确认`;
+    const incomingBinds = incomingBindRequestsFor(nm).length;
+    const unseenProxy = unseenProxyRequestsFor(nm).length;
+    if (incomingBinds > 0) {
+      return `收到 ${incomingBinds} 条绑定申请 · 待确认`;
     }
-    if (returnedCount > 0) {
-      return confirmedCount > 0
-        ? `已绑定 ${confirmedCount} 人 · ${returnedCount} 条通知回执`
-        : `${returnedCount} 条通知回执`;
+    if (unseenProxy > 0) {
+      return `家属刚刚协助操作了 ${unseenProxy} 项计划`;
     }
     if (confirmedCount > 0) {
-      return `已绑定 ${confirmedCount} 人`;
+      return `已绑定 ${confirmedCount} 位家属 · 互助照护中`;
     }
     return "尚未绑定家属";
   }
@@ -3035,6 +3144,55 @@
     return { accent: "#1054E0", softBg: "rgba(16,84,224,.11)", border: "rgba(16,84,224,.24)", ico: I.two };
   }
   function careNoticeModalHTML() {
+    if (S.screen !== "home") return "";
+    ensureCareGraph();
+    const cur = S.currentPersonName || "李建国";
+    const unshownProxy = unshownPopupProxyRequestsFor(cur);
+    if (unshownProxy.length > 0) {
+      const senderNames = Array.from(new Set(unshownProxy.map((r) => r.senderName))).join("、");
+      const hasExerciseInvite = unshownProxy.some((r) => r.kind === "inviteExerciseTest");
+      const rowsHTML = unshownProxy.slice(0, 4).map((r) => `
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:16px;background:rgba(16,84,224,.06)">
+          <span style="width:7px;height:7px;border-radius:50%;background:var(--blue);margin-top:7px;flex-shrink:0"></span>
+          <div style="font-size:15px;font-weight:700;color:var(--blue);line-height:1.45;text-align:left">${esc(proxyHomePopupSentence(r))}</div>
+        </div>
+      `).join("");
+      return `
+        <div class="care-notice-modal" style="position:absolute;inset:0;z-index:110;background:rgba(10,22,48,.38);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .18s ease">
+          <div style="width:100%;max-width:342px;background:#fff;border-radius:28px;border:1px solid rgba(16,84,224,.14);box-shadow:0 16px 36px rgba(10,26,68,.20);padding:24px 20px 20px;display:flex;flex-direction:column;align-items:center;text-align:center">
+            <div style="width:56px;height:56px;border-radius:50%;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center;margin-bottom:14px">${I.two}</div>
+            <div style="font-size:20px;font-weight:800;color:var(--blue)">家属协助通知</div>
+            <div style="font-size:14px;font-weight:600;color:var(--secondary);margin-top:4px">${esc(senderNames)}刚刚为你操作了以下事项：</div>
+            <div style="width:100%;display:flex;flex-direction:column;gap:8px;margin-top:16px;margin-bottom:18px">
+              ${rowsHTML}
+            </div>
+            <div style="width:100%;display:flex;gap:10px">
+              ${hasExerciseInvite ? `<button type="button" data-act="ackHomeProxyPopupAndTest" style="flex:1;height:50px;border-radius:16px;border:1.2px solid rgba(16,84,224,.28);background:rgba(16,84,224,.08);color:var(--blue);font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit">去体测</button>` : ""}
+              <button type="button" data-act="ackHomeProxyPopup" style="flex:1;height:50px;border-radius:16px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">知道了</button>
+            </div>
+          </div>
+        </div>`;
+    }
+    const incomingBinds = incomingBindRequestsFor(cur);
+    if (incomingBinds.length > 0) {
+      const b = incomingBinds[0];
+      const other = bondOtherName(b, cur);
+      const rel = bondRelationForViewer(b, cur);
+      const ph = bondOtherPhone(b, cur);
+      return `
+        <div class="care-notice-modal" style="position:absolute;inset:0;z-index:110;background:rgba(10,22,48,.38);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .18s ease">
+          <div style="width:100%;max-width:342px;background:#fff;border-radius:28px;border:1px solid rgba(16,84,224,.14);box-shadow:0 16px 36px rgba(10,26,68,.20);padding:24px 20px 20px;display:flex;flex-direction:column;align-items:center;text-align:center">
+            <div style="width:56px;height:56px;border-radius:50%;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center;margin-bottom:14px">${I.personPlus}</div>
+            <div style="font-size:20px;font-weight:800;color:var(--blue)">收到家属绑定申请</div>
+            <div style="font-size:16px;font-weight:700;color:var(--blue);margin-top:10px;line-height:1.45">${esc(other)}申请与你绑定互为家属</div>
+            <div style="font-size:13.5px;font-weight:600;color:var(--secondary);margin-top:6px;margin-bottom:18px">关系：${esc(rel)} · 手机号 ${esc(ph)}</div>
+            <div style="width:100%;display:flex;gap:10px">
+              <button type="button" data-act="rejectCareBond" data-id="${b.id}" style="flex:1;height:50px;border-radius:16px;border:0;background:rgba(16,84,224,.08);color:var(--secondary);font-size:16.5px;font-weight:700;cursor:pointer;font-family:inherit">不同意</button>
+              <button type="button" data-act="acceptCareBond" data-id="${b.id}" style="flex:1;height:50px;border-radius:16px;border:0;background:var(--blue);color:#fff;font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">同意绑定</button>
+            </div>
+          </div>
+        </div>`;
+    }
     return "";
   }
   function currentHomeNotices() {
@@ -6336,8 +6494,7 @@
         syncLegacyListsFromBonds();
         syncActivePersonContext(p.name);
         closeOverlay();
-        presentUnreadCareNoticeForPerson(p.name);
-        render();
+        go("home", "root");
         toast(`已切换至「${p.name}」（${personHasVip(p.name) ? "VIP 会员" : "免费用户"}）`);
       },
       openAddGuardianSheet() {
@@ -6606,6 +6763,7 @@
         S.famIsAdding = false;
         S.selectedProxyFamilyName = famName;
         S.proxyEditorDraft = null;
+        markFamilyManageSeenFor(S.currentPersonName || "李建国", famName);
         render();
       },
       toggleAddFamForm() {
@@ -6652,8 +6810,9 @@
           targetTaskId: task.id,
           taskSnapshot: task,
           summaryNote: "按时提醒",
+          onYMD: S.calSelYMD || toYMD(demoDate()),
         });
-        toast(`已向${famName}发送提醒通知，待对方接受`);
+        toast(`已提醒${famName}按时完成「${task.title}」，对方进入首页将收到弹窗通知`);
         render();
       },
       sendProxyCheckIn() {
@@ -6672,9 +6831,70 @@
           targetTaskId: task.id,
           taskSnapshot: task,
           summaryNote: "代为完成打卡",
+          onYMD: S.calSelYMD || toYMD(demoDate()),
         });
-        toast(`已向${famName}发送代打卡通知，待对方接受`);
+        toast(`已帮${famName}完成「${task.title}」打卡，对方进入首页将收到弹窗通知`);
         render();
+      },
+      toggleProxyCheckIn() {
+        ensureCareGraph();
+        const me = currentDemoPerson();
+        const famName = resolvedSelectedFamilyNameFor(me.name);
+        const tid = el.dataset.id;
+        if (!famName || !tid) return;
+        const ymd = S.calSelYMD || toYMD(demoDate());
+        const bucket = ensurePersonStore(famName);
+        const task = (bucket.tasks || []).find((t) => String(t.id) === String(tid));
+        if (!task) return;
+        const wasDone = isFamilyTaskCompletedOn(famName, tid, ymd);
+        if (wasDone) {
+          setFamilyTaskCompletedOn(famName, tid, ymd, false);
+          toast(`已取消「${task.title}」打卡`);
+        } else {
+          sendProxyRequestFor({
+            senderName: me.name,
+            recipientName: famName,
+            kind: "checkIn",
+            targetTaskId: task.id,
+            taskSnapshot: task,
+            summaryNote: "代为完成打卡",
+            onYMD: ymd,
+          });
+          toast(`已帮${famName}完成「${task.title}」打卡，对方进入首页将收到弹窗通知`);
+        }
+        render();
+      },
+      proxySkipTaskToday() {
+        ensureCareGraph();
+        const me = currentDemoPerson();
+        const famName = resolvedSelectedFamilyNameFor(me.name);
+        const tid = el.dataset.id;
+        if (!famName || !tid) return;
+        const ymd = S.calSelYMD || toYMD(demoDate());
+        const bucket = ensurePersonStore(famName);
+        const task = (bucket.tasks || []).find((t) => String(t.id) === String(tid));
+        if (!task) return;
+        skipFamilyTaskOn(famName, tid, ymd);
+        sendProxyRequestFor({
+          senderName: me.name,
+          recipientName: famName,
+          kind: "deletePlan",
+          targetTaskId: task.id,
+          taskSnapshot: task,
+          summaryNote: `仅删除 ${monthDayLabel(parseYMD(ymd)).split(" ")[0]} 当次`,
+          onYMD: ymd,
+          skipDirectMutation: true,
+        });
+        toast(`已为${famName}仅删除当日「${task.title}」`);
+        render();
+      },
+      ackHomeProxyPopup() {
+        acknowledgeHomePopupProxyRequestsFor(S.currentPersonName || "李建国");
+        render();
+      },
+      ackHomeProxyPopupAndTest() {
+        acknowledgeHomePopupProxyRequestsFor(S.currentPersonName || "李建国");
+        go("ex-screen");
       },
       withdrawProxyReq() {
         ensureCareGraph();
@@ -6870,7 +7090,7 @@
           summaryNote,
         });
         S.proxyEditorDraft = null;
-        toast(isFirstCreate ? `已向${famName}发送首次创建计划通知` : `已向${famName}发送用药与复查计划通知`);
+        toast(isFirstCreate ? `已为${famName}首次创建计划（共 ${batch.length} 项），对方进入首页将收到弹窗通知` : `已为${famName}更新用药与复查计划，对方进入首页将收到弹窗通知`);
         render();
       },
       submitProxyExerciseInvite() {
@@ -6897,7 +7117,7 @@
           summaryNote: "3 分钟踏步 / 1 分钟起坐体测",
         });
         S.proxyEditorDraft = null;
-        toast(`已向${famName}发送运动体测邀请`);
+        toast(`已向${famName}发送运动体测提醒，对方进入首页将收到弹窗通知`);
         render();
       },
       closeProxyTaskEditor() {
@@ -7035,7 +7255,7 @@
             : `新增 ${pad(d.hour)}:${pad(d.min)} · ${d.cycle ? "循环" : "单日"}`,
         });
         S.proxyEditorDraft = null;
-        toast(isEdit ? `已向${famName}发送修改计划通知，待对方接受` : `已向${famName}发送新增计划通知，待对方接受`);
+        toast(isEdit ? `已帮${famName}保存计划修改，对方进入首页将收到弹窗通知` : `已为${famName}添加新计划，对方进入首页将收到弹窗通知`);
         render();
       },
       askProxyDeleteTask() {
@@ -7048,12 +7268,13 @@
         const bucket = ensurePersonStore(famName);
         const existing = (bucket.tasks || []).find((t) => String(t.id) === String(tid));
         const title = existing ? existing.title : (S.proxyEditorDraft ? S.proxyEditorDraft.title : "该计划");
+        const isCycle = existing ? existing.cycle !== false : true;
         S.pendingProxyDeleteTaskId = tid;
         openOverlay("confirm", {
-          title: "删除计划",
-          body: `确认向${famName}发送删除「${title}」的通知吗？对方点击接受后正式删除。`,
+          title: isCycle ? "长期删除计划" : "删除计划",
+          body: `确认帮${famName}删除「${title}」吗？删除后将立即生效，${famName}进入首页时会收到弹窗通知。`,
           cancel: "取消",
-          ok: "发送删除通知",
+          ok: isCycle ? "长期删除" : "确认删除",
           danger: true,
           action: "doProxyDeleteTask",
         });
@@ -7087,11 +7308,11 @@
           kind: "deletePlan",
           targetTaskId: tid,
           taskSnapshot: taskSnap,
-          summaryNote: "申请删除该计划",
+          summaryNote: taskSnap.cycle !== false ? "长期删除该计划" : "删除单日计划",
         });
         S.pendingProxyDeleteTaskId = null;
         S.proxyEditorDraft = null;
-        toast(`已向${famName}发送删除计划通知，待对方接受`);
+        toast(`已帮${famName}删除「${taskSnap.title}」，对方进入首页将收到弹窗通知`);
         render();
       },
       askForceContinueExercise() {
@@ -8928,7 +9149,10 @@
             </div>
             <div class="flex gap10 center">
               <button class="circle-btn dbg-btn" data-act="openDebug" type="button" aria-label="开发菜单">${I.ellipsis}</button>
-              <button class="circle-btn" data-go="profile" type="button">${I.person}</button>
+              <button class="circle-btn" data-go="profile" type="button" style="position:relative">
+                ${I.person}
+                ${hasUnseenFamilyRedDotFor(S.currentPersonName) ? `<span style="position:absolute;top:1px;right:1px;width:10px;height:10px;border-radius:50%;background:#FF4048;border:2px solid #fff;box-shadow:0 2px 4px rgba(255,64,72,.35)"></span>` : ""}
+              </button>
             </div>
           </div>
           <div class="entry-strip">
@@ -8967,7 +9191,7 @@
     },
 
     schedule: () => {
-      const green = S.scheduleFilter === "done";
+      const isDoneTab = S.scheduleFilter === "done";
       const todayYMD = toYMD(demoDate());
       const hist = S.calSelYMD < todayYMD;
       // 子计划过滤：总计划 = 全部，其余按分类集合
@@ -8980,29 +9204,29 @@
       // 计数随子计划过滤（与真机一致：未完成 / 已完成按当前 tab 统计）
       const todoCount = scoped.filter((t) => !S.completed[t.id]).length;
       const doneCount = scoped.filter((t) => S.completed[t.id]).length;
-      const list = scoped.filter((t) => green ? S.completed[t.id] : !S.completed[t.id]);
+      const list = scoped.filter((t) => isDoneTab ? S.completed[t.id] : !S.completed[t.id]);
       const groups = PERIODS.map((p) => ({
         ...p,
         items: list.filter((t) => (t.h >= p.from && t.h < p.to) || (p.title === "夜间" && (t.h >= 21 || t.h < 6))),
       })).filter((g) => g.items.length);
       return `
         <div class="page">
-          ${navBar(cap(I.chevL, "返回", green ? "green" : ""), `<span data-act="openScope">${S.scheduleScope} ▾</span>`,
-            `<button class="cap ${green ? "green" : ""}" data-act="calMode" type="button">${I.cal}${S.calMode === "week" ? "月图" : "周图"}</button>`)}
+          ${navBar(cap(I.chevL, "返回"), `<span data-act="openScope">${S.scheduleScope} ▾</span>`,
+            `<button class="cap" data-act="calMode" type="button">${I.cal}${S.calMode === "week" ? "月图" : "周图"}</button>`)}
           <div class="scroll px20" style="padding-top:8px">
-            <div class="cal-island ${green ? "green" : ""}" id="cal-swipe">
+            <div class="cal-island" id="cal-swipe">
               <div class="cal-head">
                 <button class="cal-nav" data-act="calPrev" type="button">${I.chevL}</button>
-                <div class="s17 fb t ${green ? "t-green" : ""}">${calHeadTitle()}</div>
+                <div class="s17 fb t">${calHeadTitle()}</div>
                 <button class="cal-nav" data-act="calNext" type="button">${I.chevR}</button>
               </div>
               <div class="weekdays">${"日一二三四五六".split("").map((d) => `<span>${d}</span>`).join("")}</div>
-              <div class="days">${calDays(green)}</div>
+              <div class="days">${calDays(false)}</div>
             </div>
             ${hist ? `<div class="hist-bar mt12">${I.eye}${monthDayLabel(parseYMD(S.calSelYMD)).split(" ")[0]} · 历史记录，仅可查看</div>` : ""}
-            <div class="filter ${green ? "green" : ""} mt12">
-              <button class="${!green ? "on" : ""}" data-act="toggleDone" data-f="todo" type="button">未完成 ${todoCount}</button>
-              <button class="${green ? "on" : ""}" data-act="toggleDone" data-f="done" type="button">已完成 ${doneCount}</button>
+            <div class="filter mt12">
+              <button class="${!isDoneTab ? "on" : ""}" data-act="toggleDone" data-f="todo" type="button">未完成 ${todoCount}</button>
+              <button class="${isDoneTab ? "on" : ""}" data-act="toggleDone" data-f="done" type="button">已完成 ${doneCount}</button>
             </div>
             ${groups.length ? groups.map((g) => `
               <div class="period-h">${I[g.icon] || ""}${g.title}<span class="s12 t-sec">${g.items.length} 项</span></div>
@@ -9015,7 +9239,7 @@
               })).join("")}</div>
             `).join("") : `<div class="island-card ta-c t-sec s15" style="padding:16px;margin-top:16px">${emptyPlanText()}</div>`}
           </div>
-          <button class="fab ${green ? "" : ""}" style="${green ? "background:#1AA64A" : ""}" data-act="${hist ? "today" : "addPlan"}" type="button">
+          <button class="fab" data-act="${hist ? "today" : "addPlan"}" type="button">
             ${hist ? `${I.undo}回到今天` : `${I.plus}添加健康计划`}
           </button>
         </div>`;
@@ -10130,8 +10354,12 @@
               ["family-add", I.personPlus, "添加家属", familyAddCaptionFor(curPerson.name)],
             ].map(([id, ico, t, s]) => vipFeatureRowHTML(id, ico, t, s)).join("")}
             <button class="list-row base-feature-row" data-go="family" type="button">
-              <div class="well neutral-well">${I.two}</div>
+              <div class="well neutral-well" style="position:relative">
+                ${I.two}
+                ${hasUnseenFamilyRedDotFor(curPerson.name) ? `<span style="position:absolute;top:-2px;right:-2px;width:9px;height:9px;border-radius:50%;background:#FF4048;border:1.8px solid #fff"></span>` : ""}
+              </div>
               <div class="grow"><h4 class="neutral-title">家属管理</h4><p>${familyManageCaptionFor(curPerson.name)}</p></div>
+              ${hasUnseenFamilyRedDotFor(curPerson.name) ? `<span style="width:9px;height:9px;border-radius:50%;background:#FF4048;box-shadow:0 2px 4px rgba(255,64,72,.30);margin-right:4px"></span>` : ""}
               <span class="neutral-chev">${I.chevR}</span>
             </button>
             <button class="list-row base-feature-row" data-go="notify" type="button">
@@ -10431,19 +10659,14 @@
     family: () => {
       ensureCareGraph();
       const me = currentDemoPerson();
-      const col = S.famCol || "operate";
-      const incoming = incomingBindRequestsFor(me.name);
-      const incomingProxy = incomingProxyRequestsFor(me.name);
-      const returnedProxy = returnedProxyResultsFor(me.name);
-      const rejectedReturns = rejectedReturnedRequestsFor(me.name);
-      const outgoing = outgoingPendingRequestsFor(me.name);
       const confirmed = confirmedFamilyBondsFor(me.name);
-      const totalNotices = incoming.length + incomingProxy.length + returnedProxy.length + rejectedReturns.length;
-
       const selectedBond = resolvedSelectedFamilyBondFor(me.name);
       const selectedFamName = selectedBond ? bondOtherName(selectedBond, me.name) : null;
+      if (selectedFamName) {
+        markFamilyManageSeenFor(me.name, selectedFamName);
+      }
 
-      if (col === "operate" && S.proxyEditorDraft && selectedFamName) {
+      if (S.proxyEditorDraft && selectedFamName) {
         const d = S.proxyEditorDraft;
         if (d.mode === "first-rest" && d.step === "rest") {
           const restRows = (d.restItems || []).map((item) => `
@@ -10492,14 +10715,14 @@
               `).join("")}
             </div>
             <div class="px24 flex gap8" style="padding-bottom:28px">
-              <button class="cta grow" data-act="submitProxyFirstCreateOrMed" type="button">${isFirst ? `确认并发送给${esc(selectedFamName)}` : `确认并发送给${esc(selectedFamName)}`}</button>
+              <button class="cta grow" data-act="submitProxyFirstCreateOrMed" type="button">${isFirst ? `确认并为${esc(selectedFamName)}创建` : `确认并为${esc(selectedFamName)}更新`}</button>
             </div>
           </div>`;
         }
         if (d.mode === "type-pick") {
           const profTypes = [
             { key: "medication", title: "用药与复查", sub: "上传病历 / 处方解析生成", cat: "medication" },
-            { key: "exercise", title: "运动", sub: `向${selectedFamName}发送运动体测邀请`, cat: "exercise" },
+            { key: "exercise", title: "运动", sub: `提醒${selectedFamName}完成运动体测`, cat: "exercise" },
           ];
           const dailyTypes = [
             { key: "monitoring", title: "测血压", sub: "设置每日测量提醒", cat: "monitoring" },
@@ -10537,13 +10760,13 @@
         if (d.mode === "exercise-invite") {
           return `
           <div class="page">
-            ${navBar(cap(I.chevL, "返回", "", "proxyBackToTypePick"), "运动体测邀请")}
+            ${navBar(cap(I.chevL, "返回", "", "proxyBackToTypePick"), "运动体测提醒")}
             <div class="scroll px24" style="padding-top:32px;padding-bottom:24px">
               <div style="background:#fff;border-radius:24px;border:1px solid rgba(16,84,224,.14);box-shadow:0 6px 18px rgba(16,84,224,.08);padding:26px 22px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px">
                 <div class="badge b40" style="width:64px;height:64px"><img src="${A.task.exercise}" alt="" style="width:64px;height:64px" /></div>
-                <div style="font-size:20px;font-weight:800;color:var(--blue)">邀请${esc(selectedFamName)}完成运动体测</div>
-                <div style="font-size:14px;font-weight:500;color:var(--secondary);line-height:1.55">运动计划需根据本人 3 分钟踏步或 1 分钟起坐体测心率生成。发送邀请后，${esc(selectedFamName)}可在「家属管理 → 收家属通知」中直接开始体测并生成运动计划。</div>
-                <button class="cta" data-act="submitProxyExerciseInvite" type="button" style="width:100%;margin-top:8px">发送运动体测邀请</button>
+                <div style="font-size:20px;font-weight:800;color:var(--blue)">提醒${esc(selectedFamName)}完成运动体测</div>
+                <div style="font-size:14px;font-weight:500;color:var(--secondary);line-height:1.55">运动计划需根据本人 3 分钟踏步或 1 分钟起坐体测心率生成。发送后，${esc(selectedFamName)}进入首页时将直接收到弹窗通知并可开始体测。</div>
+                <button class="cta" data-act="submitProxyExerciseInvite" type="button" style="width:100%;margin-top:8px">发送运动体测提醒</button>
               </div>
             </div>
           </div>`;
@@ -10583,62 +10806,103 @@
             <div class="field-label mt16">备注说明</div>
             <input class="field" name="proxyNote" placeholder="选填：剂量、时长或注意事项" value="${esc(d.note || "")}" />
             ${isEdit ? `
-              <button class="cta-line mt16" data-act="askProxyDeleteTask" type="button" style="color:#DC3C3C;border-color:rgba(220,60,60,.25);background:rgba(220,60,60,.08)">删除该计划（需对方接受）</button>
+              <button class="cta-line mt16" data-act="askProxyDeleteTask" type="button" style="color:var(--blue);border-color:rgba(16,84,224,.25);background:rgba(16,84,224,.06)">删除该计划</button>
             ` : ""}
           </div>
           <div class="px24 flex gap8" style="padding-bottom:28px">
-            <button class="cta grow" data-act="submitProxyTaskEditor" type="button">${isEdit ? `发送修改给${esc(selectedFamName)}确认` : `发送给${esc(selectedFamName)}确认`}</button>
+            <button class="cta grow" data-act="submitProxyTaskEditor" type="button">${isEdit ? "保存修改" : `确认并为${esc(selectedFamName)}添加`}</button>
           </div>
         </div>`;
       }
 
-      const columnSwitcherHTML = `
-        <div style="padding:5px;border-radius:18px;background:#fff;border:0.8px solid rgba(16,84,224,.10);box-shadow:0 4px 12px rgba(16,84,224,.06);display:flex;gap:6px">
-          <button type="button" data-act="pickFamCol" data-col="operate" style="flex:1;height:44px;border-radius:14px;border:0;background:${col === "operate" ? "var(--blue)" : "transparent"};color:${col === "operate" ? "#fff" : "var(--blue)"};font-size:16.5px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:${col === "operate" ? "0 3px 10px rgba(16,84,224,.20)" : "none"}">帮家属操作</button>
-          <button type="button" data-act="pickFamCol" data-col="notices" style="flex:1;height:44px;border-radius:14px;border:0;background:${col === "notices" ? "var(--blue)" : "transparent"};color:${col === "notices" ? "#fff" : "var(--blue)"};font-size:16.5px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:${col === "notices" ? "0 3px 10px rgba(16,84,224,.20)" : "none"}">
-            <span>收家属通知</span>
-            ${totalNotices > 0 ? `<span style="font-size:12px;font-weight:800;padding:2px 7px;border-radius:999px;background:${col === "notices" ? "#fff" : "var(--blue)"};color:${col === "notices" ? "var(--blue)" : "#fff"}">${totalNotices}</span>` : ""}
-          </button>
-        </div>`;
-
       let operateBodyHTML = "";
-      if (col === "operate") {
-        if (selectedBond && selectedFamName) {
-          const rel = bondRelationForViewer(selectedBond, me.name);
-          const ph = bondOtherPhone(selectedBond, me.name);
-          const pendingCreates = outgoingPendingProxyFor(me.name, selectedFamName).filter((r) => ["createPlan", "firstCreatePlan", "refreshMedicationPlan", "inviteExerciseTest"].includes(r.kind));
-          const bucket = ensurePersonStore(selectedFamName);
-          const famTasks = (bucket.tasks || []).slice().sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
-          const compMap = bucket.completed || {};
-          const doneCount = famTasks.filter((t) => !!compMap[t.id]).length;
-          const totalCount = famTasks.length;
-          const pendingProxyCount = pendingCreates.length + famTasks.filter((t) => !!pendingProxyRequestForTask(t.id, me.name, selectedFamName)).length;
-          const pct = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+      let bottomDockHTML = "";
+      let rightNavHTML = "";
 
-          const renderFamilyPlanCard = (t, { isPendingCreate = false, createReq = null } = {}) => {
+      if (selectedBond && selectedFamName) {
+        const rel = bondRelationForViewer(selectedBond, me.name);
+        const ph = bondOtherPhone(selectedBond, me.name);
+        const bucket = ensurePersonStore(selectedFamName);
+        const allFamTasks = bucket.tasks || [];
+        const todayYMD = toYMD(demoDate());
+        const selYMD = S.calSelYMD || todayYMD;
+        const hist = selYMD < todayYMD;
+        const isDoneTab = S.scheduleFilter === "done";
+        const dayTasks = familyLiveTasksFor(selectedFamName, selYMD);
+        const doneCount = dayTasks.filter((t) => isFamilyTaskCompletedOn(selectedFamName, t.id, selYMD)).length;
+        const todoCount = dayTasks.length - doneCount;
+        const totalCount = dayTasks.length;
+        const pct = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+        const selDayLabel = selYMD === todayYMD ? "今日计划" : `${monthDayLabel(parseYMD(selYMD)).split(" ")[0]}计划`;
+
+        if (allFamTasks.length > 0) {
+          rightNavHTML = `<button class="cap" data-act="calMode" type="button">${I.cal}${S.calMode === "week" ? "月图" : "周图"}</button>`;
+        }
+
+        const cabinSelectorHTML = confirmed.length > 1 ? `
+          <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
+            ${confirmed.map((b) => {
+              const other = bondOtherName(b, me.name);
+              const rTitle = bondRelationForViewer(b, me.name);
+              const on = selectedFamName === other;
+              const hasDot = unseenProxyCountFrom(other, me.name) > 0;
+              return `<button type="button" data-act="selectActiveFam" data-name="${esc(other)}" style="flex-shrink:0;white-space:nowrap;height:34px;padding:0 13px;border-radius:999px;border:${on ? "0" : "0.8px solid rgba(255,255,255,.28)"};background:${on ? "#fff" : "rgba(255,255,255,.16)"};color:${on ? "var(--blue)" : "#fff"};font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;box-shadow:${on ? "0 2px 6px rgba(0,0,0,.10)" : "none"}">
+                <span>${esc(other)}</span>
+                <span style="font-size:11.5px;font-weight:600;opacity:${on ? ".90" : ".80"}">${esc(rTitle)}</span>
+                ${hasDot ? `<span style="width:7px;height:7px;border-radius:50%;background:#FF4048;border:1.5px solid #fff"></span>` : ""}
+              </button>`;
+            }).join("")}
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,.18);margin:12px 0"></div>` : "";
+
+        const profileHeaderHTML = `
+          <div style="border-radius:24px;overflow:hidden;border:1px solid rgba(16,84,224,.16);box-shadow:0 6px 18px rgba(16,84,224,.08);padding:16px 16px 14px;background:linear-gradient(135deg,#2268F2 0%,#1054E0 100%);color:#fff">
+            ${cabinSelectorHTML}
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.20);border:1.2px solid rgba(255,255,255,.36);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;color:#fff;flex-shrink:0">${esc(selectedFamName.slice(0, 1))}</div>
+              <div style="min-width:0;flex:1">
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                  <span style="font-size:19px;font-weight:800;color:#fff;white-space:nowrap">${esc(selectedFamName)}</span>
+                  <span style="font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.20);color:#fff;white-space:nowrap">${esc(rel)}</span>
+                  <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><i style="width:6px;height:6px;border-radius:50%;background:#fff;display:inline-block"></i>已绑定</span>
+                </div>
+                <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,.84);margin-top:4px;font-variant-numeric:tabular-nums">手机号 ${esc(ph)}</div>
+              </div>
+              <button type="button" data-act="askRemoveCareBond" data-id="${selectedBond.id}" style="flex-shrink:0;white-space:nowrap;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.18);border:0.8px solid rgba(255,255,255,.28);color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit">解除</button>
+            </div>
+            <div style="height:1px;background:rgba(255,255,255,.18);margin:12px 0"></div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap">
+              <span style="font-size:13.5px;font-weight:700;color:#fff;white-space:nowrap">${esc(selectedFamName)}的${esc(selDayLabel)}</span>
+              <span style="font-size:12.5px;font-weight:600;color:rgba(255,255,255,.88);font-variant-numeric:tabular-nums;white-space:nowrap">${totalCount > 0 ? `已完成 ${doneCount}/${totalCount}` : "暂未制定计划"}</span>
+              <div style="flex:1"></div>
+              ${totalCount > 0 ? `<div style="width:56px;height:7px;border-radius:999px;background:rgba(255,255,255,.22);overflow:hidden;flex-shrink:0"><div style="width:${pct}%;height:100%;border-radius:999px;background:#fff"></div></div>` : ""}
+            </div>
+          </div>`;
+
+        if (allFamTasks.length === 0) {
+          operateBodyHTML = `
+            ${profileHeaderHTML}
+            <div style="margin-top:12px;background:#fff;border-radius:20px;border:1px solid rgba(16,84,224,.10);padding:42px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px">
+              <div style="width:32px;height:32px;color:rgba(16,84,224,.45);display:grid;place-items:center">${I.cal}</div>
+              <div style="font-size:16px;font-weight:700;color:var(--blue)">暂未制定健康计划</div>
+              <div style="font-size:13px;font-weight:500;color:var(--secondary)">点击下方按钮即可为${esc(selectedFamName)}首次创建计划</div>
+            </div>`;
+        } else {
+          const filteredTasks = dayTasks.filter((t) => isDoneTab ? isFamilyTaskCompletedOn(selectedFamName, t.id, selYMD) : !isFamilyTaskCompletedOn(selectedFamName, t.id, selYMD));
+          const groups = groupByPeriod(filteredTasks, (t) => t.h ?? 8);
+
+          const renderFamilyPlanCard = (t) => {
             const kind = t.cat === "appointment" ? "appointment" : (t.cat || "monitoring");
-            const done = !isPendingCreate && !!compMap[t.id];
-            const pendingReq = isPendingCreate ? createReq : pendingProxyRequestForTask(t.id, me.name, selectedFamName);
+            const done = isFamilyTaskCompletedOn(selectedFamName, t.id, selYMD);
             const chip = CAT[kind]?.name || CAT[kind]?.chip || "事项";
             const isCycle = t.cycle !== false;
             const hm = `${pad(t.h ?? 8)}:${pad(t.m ?? 0)} - ${pad(((t.h ?? 8) + 1) % 24)}:${pad(t.m ?? 0)}`;
             const rangeText = taskDateRangeLabel({ ...t, cycle: isCycle });
             const notes = t.note ? `<div class="act-notes">${cardNote(I.alignLeft, esc(t.note))}</div>` : "";
 
-            let pendingPill = "";
-            if (isPendingCreate && createReq) {
-              pendingPill = `<span style="font-size:11px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 8px;border-radius:999px;white-space:nowrap">${esc(proxyActionLabel(createReq.kind))}待接受</span>`;
-            } else if (pendingReq) {
-              pendingPill = `<span style="font-size:11px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 8px;border-radius:999px;white-space:nowrap">${esc(proxyActionLabel(pendingReq.kind))}待接受</span>`;
-            }
-
-            let rightCircle = "";
-            if (pendingReq) {
-              rightCircle = `<span style="width:36px;height:36px;border-radius:50%;flex:0 0 36px;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.clock}</span>`;
-            } else if (done) {
-              rightCircle = `<span style="width:36px;height:36px;border-radius:50%;flex:0 0 36px;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</span>`;
-            } else {
-              rightCircle = `
+            const rightCircle = done
+              ? `<button type="button" data-act="toggleProxyCheckIn" data-id="${t.id}" title="取消打卡" style="width:36px;height:36px;border-radius:50%;border:0;flex:0 0 36px;background:var(--blue);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</button>`
+              : `
                 <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
                   <button type="button" data-act="sendProxyRemind" data-id="${t.id}" title="提醒${esc(selectedFamName)}" style="width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(16,84,224,.35);background:rgba(16,84,224,.06);color:var(--blue);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;cursor:pointer;font-family:inherit;flex-shrink:0">
                     <span style="width:11px;height:11px;display:grid;place-items:center">${I.bell}</span>
@@ -10649,22 +10913,13 @@
                     <span style="font-size:9.5px;font-weight:800;line-height:1">打卡</span>
                   </button>
                 </div>`;
-            }
 
-            let barHTML = "";
-            if (pendingReq) {
-              const withdrawLabel = isPendingCreate ? `撤回${esc(proxyActionLabel(pendingReq.kind))}请求` : `撤回${esc(proxyActionLabel(pendingReq.kind))}通知`;
-              barHTML = `
-                <div class="act-card-bar">
-                  <button type="button" data-act="withdrawProxyReq" data-id="${pendingReq.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.undo}${withdrawLabel}</button>
-                </div>`;
-            } else {
-              barHTML = `
-                <div class="act-card-bar">
-                  <button type="button" data-act="openProxyTaskEditor" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.pencil}编辑</button>
-                  <button type="button" data-act="askProxyDeleteTask" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.trash}删除</button>
-                </div>`;
-            }
+            const showDelete = !done;
+            const barCls = showDelete && isCycle ? " triple" : "";
+            const delBtns = !showDelete ? "" : isCycle
+              ? `<button type="button" data-act="proxySkipTaskToday" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.trash}仅删本次</button>
+                 <button type="button" data-act="askProxyDeleteTask" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.trash}长期删除</button>`
+              : `<button type="button" data-act="askProxyDeleteTask" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.trash}删除</button>`;
 
             return `
               <div class="act-card">
@@ -10676,280 +10931,71 @@
                       <span class="tm">${hm}</span>
                       <span class="act-chip">${isCycle ? "循环" : "单日"}</span>
                       <span class="act-chip">${esc(chip)}</span>
-                      ${pendingPill}
                     </div>
                     <div class="act-dates">${rangeText}</div>
                   </div>
                   ${rightCircle}
                 </div>
                 ${notes}
-                ${barHTML}
+                <div class="act-card-bar${barCls}">
+                  <button type="button" data-act="openProxyTaskEditor" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.pencil}编辑</button>
+                  ${delBtns}
+                </div>
               </div>`;
           };
 
-          const pendingCreateSectionHTML = pendingCreates.length ? `
-            <div style="margin-bottom:14px">
-              <div class="period-h" style="margin-top:2px;color:var(--blue)">${I.clock}新增待对方接受<span class="s12 t-sec">${pendingCreates.length} 项</span></div>
-              <div class="col gap10">
-                ${pendingCreates.map((r) => renderFamilyPlanCard(r.taskSnapshot || {}, { isPendingCreate: true, createReq: r })).join("")}
-              </div>
-            </div>` : "";
-
-          const groups = groupByPeriod(famTasks, (t) => t.h ?? 8);
-          const groupedTasksHTML = groups.length ? groups.map((g, gi) => `
-            <div class="period-h" style="${gi === 0 && !pendingCreates.length ? "margin-top:2px" : ""}">${I[g.icon] || ""}${g.title}<span class="s12 t-sec">${g.items.length} 项</span></div>
+          const groupedTasksHTML = groups.length ? groups.map((g) => `
+            <div class="period-h">${I[g.icon] || ""}${g.title}<span class="s12 t-sec">${g.items.length} 项</span></div>
             <div class="col gap10">
               ${g.items.map((t) => renderFamilyPlanCard(t)).join("")}
             </div>
-          `).join("") : (!pendingCreates.length ? `
-            <div style="background:#fff;border-radius:20px;border:1px solid rgba(16,84,224,.10);padding:36px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px">
-              <div style="width:28px;height:28px;color:rgba(16,84,224,.45);display:grid;place-items:center">${I.cal}</div>
-              <div style="font-size:15px;font-weight:600;color:var(--secondary)">暂无计划</div>
-            </div>
-          ` : "");
-
-          const cabinSelectorHTML = confirmed.length > 1 ? `
-            <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
-              ${confirmed.map((b) => {
-                const other = bondOtherName(b, me.name);
-                const rTitle = bondRelationForViewer(b, me.name);
-                const on = selectedFamName === other;
-                return `<button type="button" data-act="selectActiveFam" data-name="${esc(other)}" style="flex-shrink:0;white-space:nowrap;height:34px;padding:0 13px;border-radius:999px;border:${on ? "0" : "0.8px solid rgba(255,255,255,.28)"};background:${on ? "#fff" : "rgba(255,255,255,.16)"};color:${on ? "var(--blue)" : "#fff"};font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;box-shadow:${on ? "0 2px 6px rgba(0,0,0,.10)" : "none"}">
-                  <span>${esc(other)}</span>
-                  <span style="font-size:11.5px;font-weight:600;opacity:${on ? ".90" : ".80"}">${esc(rTitle)}</span>
-                </button>`;
-              }).join("")}
-            </div>
-            <div style="height:1px;background:rgba(255,255,255,.18);margin:12px 0"></div>` : "";
-
-          const unifiedCabinHTML = `
-            <div style="margin-top:16px;border-radius:24px;overflow:hidden;border:1px solid rgba(16,84,224,.16);box-shadow:0 6px 18px rgba(16,84,224,.08);background:rgba(238,244,255,.88)">
-              <div style="padding:16px 16px 14px;background:linear-gradient(135deg,#2268F2 0%,#1054E0 100%);color:#fff">
-                ${cabinSelectorHTML}
-                <div style="display:flex;align-items:center;gap:12px">
-                  <div style="width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.20);border:1.2px solid rgba(255,255,255,.36);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;color:#fff;flex-shrink:0">${esc(selectedFamName.slice(0, 1))}</div>
-                  <div style="min-width:0;flex:1">
-                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-                      <span style="font-size:19px;font-weight:800;color:#fff;white-space:nowrap">${esc(selectedFamName)}</span>
-                      <span style="font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.20);color:#fff;white-space:nowrap">${esc(rel)}</span>
-                      <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><i style="width:6px;height:6px;border-radius:50%;background:#fff;display:inline-block"></i>已绑定</span>
-                    </div>
-                    <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,.84);margin-top:4px;font-variant-numeric:tabular-nums">手机号 ${esc(ph)}</div>
-                  </div>
-                  <button type="button" data-act="askRemoveCareBond" data-id="${selectedBond.id}" style="flex-shrink:0;white-space:nowrap;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.18);border:0.8px solid rgba(255,255,255,.28);color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit">解除</button>
-                </div>
-                <div style="height:1px;background:rgba(255,255,255,.18);margin:12px 0"></div>
-                <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap">
-                  <span style="font-size:13.5px;font-weight:700;color:#fff;white-space:nowrap">${esc(selectedFamName)}的今日计划</span>
-                  <span style="font-size:12.5px;font-weight:600;color:rgba(255,255,255,.88);font-variant-numeric:tabular-nums;white-space:nowrap">${totalCount > 0 ? `已完成 ${doneCount}/${totalCount}` : "暂未制定计划"}</span>
-                  ${pendingProxyCount > 0 ? `<span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(255,255,255,.20);color:#fff;white-space:nowrap">${pendingProxyCount}项待接受</span>` : ""}
-                  <div style="flex:1"></div>
-                  ${totalCount > 0 ? `<div style="width:56px;height:7px;border-radius:999px;background:rgba(255,255,255,.22);overflow:hidden;flex-shrink:0"><div style="width:${pct}%;height:100%;border-radius:999px;background:#fff"></div></div>` : ""}
-                </div>
-              </div>
-              <div style="padding:12px">
-                ${pendingCreateSectionHTML}
-                ${groupedTasksHTML}
-              </div>
+          `).join("") : `
+            <div class="island-card ta-c t-sec s15" style="padding:20px;margin-top:14px">
+              ${isDoneTab ? "所选日期暂无已完成计划" : (totalCount > 0 ? "所选日期计划已全部完成" : "所选日期暂无计划")}
             </div>`;
 
           operateBodyHTML = `
-            ${unifiedCabinHTML}
-          `;
-        } else {
-          operateBodyHTML = `
-            <div class="plan-row mt12">
-              <div class="grow">
-                <div class="s18 fb t">暂无已绑定的家属</div>
-                <div class="s14 t-sec" style="margin-top:6px;line-height:1.5">若家属向你发送了绑定邀请，可在「收家属通知」中直接同意并开始互助照护；如需主动添加新的家属，请在个人中心使用 VIP 专属「添加家属」功能。</div>
+            ${profileHeaderHTML}
+            <div class="cal-island mt12" id="cal-swipe">
+              <div class="cal-head">
+                <button class="cal-nav" data-act="calPrev" type="button">${I.chevL}</button>
+                <div class="s17 fb t">${calHeadTitle()}</div>
+                <button class="cal-nav" data-act="calNext" type="button">${I.chevR}</button>
               </div>
+              <div class="weekdays">${"日一二三四五六".split("").map((d) => `<span>${d}</span>`).join("")}</div>
+              <div class="days">${calDays(false)}</div>
             </div>
+            ${hist ? `<div class="hist-bar mt12">${I.eye}${monthDayLabel(parseYMD(selYMD)).split(" ")[0]} · 历史日期计划</div>` : ""}
+            <div class="filter mt12">
+              <button class="${!isDoneTab ? "on" : ""}" data-act="toggleDone" data-f="todo" type="button">未完成 ${todoCount}</button>
+              <button class="${isDoneTab ? "on" : ""}" data-act="toggleDone" data-f="done" type="button">已完成 ${doneCount}</button>
+            </div>
+            ${groupedTasksHTML}
           `;
         }
-      }
 
-      let noticesBodyHTML = "";
-      if (col === "notices") {
-        const relWith = (otherName) => {
-          const b = active.find((x) => bondOtherName(x, me.name) === otherName);
-          return b ? bondRelationForViewer(b, me.name) : "";
-        };
-        const noticeTopBar = ({ personName, relation, actionText, statusText, statusFg, statusBg }) => `
-          <div style="display:flex;align-items:center;gap:6px;padding:11px 14px 9px;border-bottom:0.8px solid rgba(16,84,224,.08);background:rgba(16,84,224,.03)">
-            <div style="width:24px;height:24px;border-radius:50%;background:rgba(16,84,224,.12);color:var(--blue);font-size:12px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc((personName || "家").slice(0, 1))}</div>
-            <span style="font-size:14.5px;font-weight:700;color:var(--blue);white-space:nowrap">${esc(personName)}</span>
-            ${relation ? `<span style="font-size:11px;font-weight:600;color:var(--blue);background:rgba(16,84,224,.08);padding:2px 6px;border-radius:999px;white-space:nowrap">${esc(relation)}</span>` : ""}
-            <span style="font-size:12.5px;font-weight:600;color:var(--secondary);white-space:nowrap">· ${esc(actionText)}</span>
-            <div style="flex:1"></div>
-            <span style="font-size:11.5px;font-weight:700;color:${statusFg};background:${statusBg};padding:3px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><i style="width:5.5px;height:5.5px;border-radius:50%;background:${statusFg};display:inline-block"></i>${esc(statusText)}</span>
-          </div>`;
-
-        const incomingRows = incoming.map((b) => {
-          const other = bondOtherName(b, me.name);
-          const rel = bondRelationForViewer(b, me.name);
-          const ph = bondOtherPhone(b, me.name);
-          return `
-            <div class="act-card mt12">
-              ${noticeTopBar({ personName: other, relation: rel, actionText: "家属绑定", statusText: "绑定待确认", statusFg: "var(--blue)", statusBg: "rgba(16,84,224,.10)" })}
-              <div class="act-card-main">
-                <div style="width:40px;height:40px;border-radius:12px;background:var(--blue);color:#fff;font-size:16px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc(other.slice(0, 1))}</div>
-                <div class="grow" style="min-width:0">
-                  <div class="s15 fb t" style="line-height:1.35">申请与你绑定互为家属</div>
-                  <div class="act-info">
-                    <span class="act-chip">关系：${esc(rel)}</span>
-                    <span class="tm">手机号 ${esc(ph)}</span>
-                  </div>
-                </div>
-                <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.clock}</span>
-              </div>
-              <div class="act-card-bar">
-                <button type="button" data-act="rejectCareBond" data-id="${b.id}" style="color:var(--secondary);white-space:nowrap">${I.x}不同意</button>
-                <button type="button" data-act="acceptCareBond" data-id="${b.id}" style="font-weight:700;white-space:nowrap">${I.check}同意绑定</button>
-              </div>
-            </div>`;
-        }).join("");
-
-        const incomingProxyRows = incomingProxy.map((r) => {
-          const snap = r.taskSnapshot || {};
-          const kind = snap.cat === "appointment" ? "appointment" : (snap.cat || "monitoring");
-          const chip = CAT[kind]?.name || CAT[kind]?.chip || "事项";
-          const isCycle = snap.cycle !== false;
-          const hm = `${pad(snap.h ?? 8)}:${pad(snap.m ?? 0)} - ${pad(((snap.h ?? 8) + 1) % 24)}:${pad(snap.m ?? 0)}`;
-          const rangeText = taskDateRangeLabel({ ...snap, cycle: isCycle });
-          const notes = snap.note ? `<div class="act-notes">${cardNote(I.alignLeft, esc(snap.note))}</div>` : "";
-          const rel = relWith(r.senderName);
-          return `
-            <div class="act-card mt12">
-              ${noticeTopBar({ personName: r.senderName, relation: rel, actionText: proxyActionLabel(r.kind), statusText: "待我确认", statusFg: "var(--blue)", statusBg: "rgba(16,84,224,.10)" })}
-              <div class="act-card-main">
-                <div class="badge b40"><img src="${A.task[kind] || A.task.monitoring}" alt="" /></div>
-                <div class="grow" style="min-width:0">
-                  <div class="s15 fb t" style="line-height:1.35;word-break:break-word">${esc(snap.title || proxyDetailLine(r))}</div>
-                  <div class="act-info">
-                    <span class="tm">${hm}</span>
-                    <span class="act-chip">${isCycle ? "循环" : "单日"}</span>
-                    <span class="act-chip">${esc(chip)}</span>
-                  </div>
-                  <div class="act-dates">${rangeText}</div>
-                </div>
-                <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.clock}</span>
-              </div>
-              ${notes}
-              <div class="act-card-bar">
-                <button type="button" data-act="rejectProxyReq" data-id="${r.id}" style="color:var(--secondary);white-space:nowrap">${I.x}不接受</button>
-                <button type="button" data-act="acceptProxyReq" data-id="${r.id}" style="font-weight:700;white-space:nowrap">${I.check}${r.kind === "inviteExerciseTest" ? "去体测" : "接受"}</button>
-              </div>
-            </div>`;
-        }).join("");
-
-        const returnedProxyRows = returnedProxy.map((r) => {
-          const isAcc = r.status === "accepted";
-          const badgeFg = "var(--blue)";
-          const badgeBg = "rgba(16,84,224,.10)";
-          const snap = r.taskSnapshot || {};
-          const kind = snap.cat === "appointment" ? "appointment" : (snap.cat || "monitoring");
-          const chip = CAT[kind]?.name || CAT[kind]?.chip || "事项";
-          const isCycle = snap.cycle !== false;
-          const hm = `${pad(snap.h ?? 8)}:${pad(snap.m ?? 0)} - ${pad(((snap.h ?? 8) + 1) % 24)}:${pad(snap.m ?? 0)}`;
-          const rangeText = taskDateRangeLabel({ ...snap, cycle: isCycle });
-          const notes = snap.note ? `<div class="act-notes">${cardNote(I.alignLeft, esc(snap.note))}</div>` : "";
-          const rel = relWith(r.recipientName);
-          const rightCircle = isAcc
-            ? `<span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</span>`
-            : `<span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.x}</span>`;
-          return `
-            <div class="act-card mt12">
-              ${noticeTopBar({ personName: r.recipientName, relation: rel, actionText: proxyActionLabel(r.kind), statusText: isAcc ? "对方已接受" : "对方不接受", statusFg: badgeFg, statusBg: badgeBg })}
-              <div class="act-card-main">
-                <div class="badge b40"><img src="${A.task[kind] || A.task.monitoring}" alt="" /></div>
-                <div class="grow" style="min-width:0">
-                  <div class="s15 fb t" style="line-height:1.35;word-break:break-word">${esc(snap.title || proxyDetailLine(r))}</div>
-                  <div class="act-info">
-                    <span class="tm">${hm}</span>
-                    <span class="act-chip">${isCycle ? "循环" : "单日"}</span>
-                    <span class="act-chip">${esc(chip)}</span>
-                  </div>
-                  <div class="act-dates">${rangeText}</div>
-                </div>
-                ${rightCircle}
-              </div>
-              ${notes}
-              <div class="act-card-bar">
-                <button type="button" data-act="ackProxyReturn" data-id="${r.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.trash}删除通知</button>
-              </div>
-            </div>`;
-        }).join("");
-
-        const rejectedRows = rejectedReturns.map((b) => {
-          const other = bondOtherName(b, me.name);
-          const rel = bondRelationForViewer(b, me.name);
-          const ph = bondOtherPhone(b, me.name);
-          return `
-            <div class="act-card mt12">
-              ${noticeTopBar({ personName: other, relation: rel, actionText: "家属绑定", statusText: "对方不同意", statusFg: "var(--blue)", statusBg: "rgba(16,84,224,.10)" })}
-              <div class="act-card-main">
-                <div style="width:40px;height:40px;border-radius:12px;background:var(--blue);color:#fff;font-size:16px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc(other.slice(0, 1))}</div>
-                <div class="grow" style="min-width:0">
-                  <div class="s15 fb t" style="line-height:1.35">未同意本次家属绑定申请</div>
-                  <div class="act-info">
-                    <span class="act-chip">关系：${esc(rel)}</span>
-                    <span class="tm">手机号 ${esc(ph)}</span>
-                  </div>
-                </div>
-                <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.x}</span>
-              </div>
-              <div class="act-card-bar">
-                <button type="button" data-act="ackCareReturn" data-id="${b.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.trash}删除通知</button>
-              </div>
-            </div>`;
-        }).join("");
-
-        const outgoingNoticeRows = outgoing.map((b) => {
-          const other = bondOtherName(b, me.name);
-          const rel = bondRelationForViewer(b, me.name);
-          const ph = bondOtherPhone(b, me.name);
-          return `
-            <div class="act-card mt12">
-              ${noticeTopBar({ personName: other, relation: rel, actionText: "家属绑定", statusText: "待对方确认", statusFg: "var(--blue)", statusBg: "rgba(16,84,224,.10)" })}
-              <div class="act-card-main">
-                <div style="width:40px;height:40px;border-radius:12px;background:var(--blue);color:#fff;font-size:16px;font-weight:800;display:grid;place-items:center;flex-shrink:0">${esc(other.slice(0, 1))}</div>
-                <div class="grow" style="min-width:0">
-                  <div class="s15 fb t" style="line-height:1.35">已发送家属绑定邀请</div>
-                  <div class="act-info">
-                    <span class="act-chip">关系：${esc(rel)}</span>
-                    <span class="tm">手机号 ${esc(ph)}</span>
-                  </div>
-                </div>
-                <span style="width:32px;height:32px;border-radius:50%;flex:0 0 32px;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.clock}</span>
-              </div>
-              <div class="act-card-bar">
-                <button type="button" data-act="askRemoveCareBond" data-id="${b.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.undo}撤回绑定申请</button>
-              </div>
-            </div>`;
-        }).join("");
-
-        const allNoticeRows = incomingRows + incomingProxyRows + returnedProxyRows + rejectedRows + outgoingNoticeRows;
-        noticesBodyHTML = allNoticeRows || `
-          <div class="plan-row mt12">
-            <div class="grow"><div class="s16 fb t-sec">暂无家属通知</div></div>
-          </div>`;
-      }
-
-      let bottomDockHTML = "";
-      if (col === "operate" && selectedFamName) {
-        const famHasPlans = ((ensurePersonStore(selectedFamName).tasks) || []).length > 0;
+        const famHasPlans = allFamTasks.length > 0;
         bottomDockHTML = `
-          <div class="px24 flex gap8" style="padding-bottom:28px">
-            <button class="cta grow" data-act="openProxyTaskEditor" type="button">${famHasPlans ? `为${esc(selectedFamName)}添加计划` : `为${esc(selectedFamName)}首次创建计划`}</button>
+          <div class="px20 flex gap8" style="padding-bottom:28px">
+            <button class="cta grow" data-act="${hist ? "today" : "openProxyTaskEditor"}" type="button">
+              ${hist ? `${I.undo}回到今天` : `${I.plus}${famHasPlans ? `为${esc(selectedFamName)}添加计划` : `为${esc(selectedFamName)}首次创建计划`}`}
+            </button>
+          </div>`;
+      } else {
+        operateBodyHTML = `
+          <div class="plan-row mt12">
+            <div class="grow">
+              <div class="s18 fb t">暂无已绑定的家属</div>
+              <div class="s14 t-sec" style="margin-top:6px;line-height:1.5">若家属向你发送了绑定邀请，进入首页即可直接弹窗确认并开始互助照护；如需主动添加新的家属，请在个人中心使用 VIP 专属「添加家属」功能。</div>
+            </div>
           </div>`;
       }
 
       return `
       <div class="page">
-        ${navBar(cap(I.chevL, "返回", "", "backFamily"), "家属管理")}
-        <div class="scroll px24" style="padding-top:16px;padding-bottom:24px">
-          ${columnSwitcherHTML}
-          ${col === "operate" ? operateBodyHTML : noticesBodyHTML}
+        ${navBar(cap(I.chevL, "返回", "", "backFamily"), "家属管理", rightNavHTML)}
+        <div class="scroll px20" style="padding-top:10px;padding-bottom:24px">
+          ${operateBodyHTML}
         </div>
         ${bottomDockHTML}
       </div>`;
@@ -14226,9 +14272,9 @@
     const rangeText = seedTask ? taskDateRangeLabel(seedTask) : taskDateRangeLabel({ cycle: isCycle });
     return `<div class="act-card ${cls}">
       <div class="act-card-main">
-        <div class="badge b40 ${cls}"><img src="${A.task[kind]}" alt="" /></div>
+        <div class="badge b40"><img src="${A.task[kind]}" alt="" /></div>
         <div class="grow">
-          <div class="s15 fb ${done ? "t-green" : kind === "appointment" ? "t-appt" : "t"}">${title}</div>
+          <div class="s15 fb t">${title}</div>
           <div class="act-info"><span class="tm">${time}</span>${dose ? `<span class="act-chip">${dose}</span>` : ""}<span class="act-chip">${isCycle ? "循环" : "单日"}</span><span class="act-chip">${chip}</span></div>
           <div class="act-dates">${rangeText}</div>
         </div>
