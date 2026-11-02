@@ -1485,6 +1485,7 @@
     ARCHIVE_DEMO.review.groups.length = 0;
     ARCHIVE_DEMO0.review.forEach((g) => ARCHIVE_DEMO.review.groups.push({ ...g }));
     taskSeq = 0;
+    ensureCareGraph();
   }
 
   /* ─────────────────────────── 真机模拟 ───────────────────────────
@@ -2093,6 +2094,14 @@
         },
       ];
     }
+    if (!S.boundPersonKey) {
+      const initPerson = S.currentPersonName || "李建国";
+      const initBucket = ensurePersonStore(initPerson);
+      S.boundPersonKey = initPerson;
+      if ((!S.ops || !S.ops.length) && S.enrolled !== false && !S.opCleared) {
+        S.ops = (initBucket.ops || []).map((o) => ({ ...o }));
+      }
+    }
   }
   function resolvedSelectedFamilyBondFor(personName) {
     ensureCareGraph();
@@ -2220,9 +2229,10 @@
     const extra = r.summaryNote ? ` · ${r.summaryNote}` : "";
     return `${hm} · ${catName}${extra}`;
   }
-  function logFamilyCollaborateOp({ entryId, actorName, targetName, action, how }) {
+  function logFamilyCollaborateOp({ entryId, actorName, targetName, action, place, how, includeTargetInSentence = true }) {
     if (!actorName || !targetName) return;
     ensureCareGraph();
+    S.opCleared = false;
     const bond = confirmedFamilyBondsFor(actorName).find((b) => bondOtherName(b, actorName) === targetName);
     const opItem = {
       id: entryId || `op_fam_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
@@ -2230,9 +2240,9 @@
       role: "family",
       actor: actorName,
       actorId: bond ? bond.id : null,
-      targetName,
+      targetName: includeTargetInSentence ? targetName : "",
       action,
-      place: "家属管理",
+      place: place || "家属管理",
       how: String(how || "").trim(),
       notifiedNames: [],
     };
@@ -2266,17 +2276,16 @@
   function sendProxyRequestFor({ senderName, recipientName, kind, targetTaskId, taskSnapshot, summaryNote }) {
     ensureCareGraph();
     const effId = targetTaskId || taskSnapshot?.id;
-    const staleList = (S.careProxyRequests || []).filter((r) => (
-      r.senderName === senderName &&
-      r.recipientName === recipientName &&
-      r.kind === kind &&
-      r.status === "pending" &&
-      (String(r.targetTaskId) === String(effId) || String(r.taskSnapshot?.id) === String(effId))
-    ));
+    const staleList = kind !== "createPlan"
+      ? (S.careProxyRequests || []).filter((r) => (
+          r.senderName === senderName &&
+          r.recipientName === recipientName &&
+          r.status === "pending" &&
+          (String(r.targetTaskId) === String(effId) || String(r.taskSnapshot?.id) === String(effId))
+        ))
+      : [];
     staleList.forEach((oldReq) => {
-      if (oldReq.kind === "remind") {
-        removeFamilyCollaborateOp(oldReq.id, oldReq.senderName, oldReq.recipientName);
-      }
+      removeFamilyCollaborateOp(oldReq.id, oldReq.senderName, oldReq.recipientName);
     });
     S.careProxyRequests = S.careProxyRequests.filter((r) => !staleList.includes(r));
     const req = {
@@ -2292,15 +2301,20 @@
       createdAt: Date.now(),
     };
     S.careProxyRequests.unshift(req);
-    if (kind === "remind") {
-      logFamilyCollaborateOp({
-        entryId: req.id,
-        actorName: senderName,
-        targetName: recipientName,
-        action: "提醒了",
-        how: taskSnapshot?.title || "",
-      });
-    }
+    const actionMap = {
+      remind: "提醒了",
+      checkIn: "打卡了",
+      createPlan: "新建了计划",
+      updatePlan: "修改了计划",
+      deletePlan: "删除了计划",
+    };
+    logFamilyCollaborateOp({
+      entryId: req.id,
+      actorName: senderName,
+      targetName: recipientName,
+      action: actionMap[kind] || "打卡了",
+      how: taskSnapshot?.title || "",
+    });
     return req;
   }
   function applyAcceptedProxyMutationInStore(req) {
@@ -2606,7 +2620,7 @@
           { id: "op_wf_1", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "修改了计划", place: "家属管理", at: baseHour - 2400000, how: "晚间散步", notifiedNames: [] },
           { id: "op_wf_2", role: "patient", actor: "王芳", targetName: "王芳", action: "打卡了", place: "首页", at: baseHour - 3600000, how: "服用辅酶Q10胶囊", notifiedNames: [] },
           { id: "op_wf_4", role: "patient", actor: "王芳", targetName: "王芳", action: "同步了血压", place: "血压监测", at: baseHour - 7200000, how: "血压 114/72，心率 66 bpm", notifiedNames: [] },
-          { id: "op_wf_5", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "提醒了", place: "家属管理", at: baseHour - 86400000, how: "晚间散步", notifiedNames: [] },
+          { id: "pr_preset_1", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "提醒了", place: "家属管理", at: baseHour - 86400000, how: "晚间散步", notifiedNames: [] },
         ],
       };
     }
@@ -2644,8 +2658,9 @@
         { id: "op_ljg_2", role: "patient", actor: "李建国", targetName: "李建国", action: "完成了散步", place: "运动", at: baseHour - 1800000, how: "1.24 公里（晨间散步 已完成）", notifiedNames: [] },
         { id: "op_ljg_3", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "修改了计划", place: "家属管理", at: baseHour - 2400000, how: "晚间散步", notifiedNames: [] },
         { id: "op_ljg_4", role: "patient", actor: "李建国", targetName: "李建国", action: "打卡了", place: "首页", at: baseHour - 5400000, how: "服用阿司匹林肠溶片", notifiedNames: [] },
+        { id: "op_ljg_bp1", role: "patient", actor: "李建国", targetName: "李建国", action: "打卡了", place: "首页", at: baseHour - 6600000, how: "起床测血压（哈宝血压计，血压 126/78，心率 72 bpm）", notifiedNames: [] },
         { id: "op_ljg_5", role: "patient", actor: "李建国", targetName: "李建国", action: "同步了血压", place: "血压监测", at: baseHour - 7200000, how: "哈宝血压计，血压 122/76，心率 70 bpm", notifiedNames: [] },
-        { id: "op_ljg_6", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "提醒了", place: "家属管理", at: baseHour - 86400000, how: "晚间散步", notifiedNames: [] },
+        { id: "pr_preset_1", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "提醒了", place: "家属管理", at: baseHour - 86400000, how: "晚间散步", notifiedNames: [] },
         { id: "op_ljg_7", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "提醒了", place: "家属管理", at: baseHour - 90000000, how: "傍晚复测血压", notifiedNames: [] },
       ],
     };
@@ -2708,8 +2723,8 @@
   function syncActivePersonContext(nextActivePersonName) {
     ensureCareGraph();
     if (!S.personStoreMap) S.personStoreMap = {};
-    const prevKey = S.boundPersonKey || "李建国";
-    if (S.personStoreMap[prevKey]) {
+    const prevKey = S.boundPersonKey;
+    if (prevKey && S.personStoreMap[prevKey]) {
       S.personStoreMap[prevKey].tasks = SEED.map((t) => ({ ...t }));
       S.personStoreMap[prevKey].completed = { ...(S.completed || {}) };
       S.personStoreMap[prevKey].completedBy = { ...(S.completedBy || {}) };
@@ -2717,7 +2732,9 @@
       S.personStoreMap[prevKey].vitalsLog = (S.vitalsLog || []).map((r) => ({ ...r }));
       S.personStoreMap[prevKey].archiveBaseline = (ARCHIVE_DEMO.baseline.groups || []).map((g) => ({ ...g }));
       S.personStoreMap[prevKey].archiveReview = (ARCHIVE_DEMO.review.groups || []).map((g) => ({ ...g }));
-      S.personStoreMap[prevKey].ops = (S.ops || []).map((o) => ({ ...o }));
+      if ((S.ops && S.ops.length) || S.opCleared) {
+        S.personStoreMap[prevKey].ops = (S.ops || []).map((o) => ({ ...o }));
+      }
       S.personStoreMap[prevKey].notifySelf = S.notifySelf !== false;
       S.personStoreMap[prevKey].notifyFamily = !!S.notifyFamily;
       S.personStoreMap[prevKey].cats = { ...(S.cats || {}) };
@@ -6387,7 +6404,18 @@
         bond.status = "confirmed";
         bond.hasUnreadAcceptReturn = true;
         syncLegacyListsFromBonds();
-        const requester = bond.initiatedByName || bond.wardName;
+        const viewer = S.currentPersonName || "李建国";
+        const requester = bondOtherName(bond, viewer);
+        const rel = bondRelationForViewer(bond, viewer);
+        logFamilyCollaborateOp({
+          entryId: bond.id,
+          actorName: viewer,
+          targetName: requester,
+          action: "同意了家属绑定",
+          place: "家属管理",
+          how: `${requester}（${rel}）`,
+          includeTargetInSentence: false,
+        });
         toast(`已同意绑定，与${requester}现已互为家属`);
         render();
       },
@@ -6396,11 +6424,13 @@
         const bid = el.dataset.id || (S.overlayData && S.overlayData.bondId);
         const bond = S.careBonds.find((b) => String(b.id) === String(bid)) || pendingIncomingBondFor(S.currentPersonName);
         if (!bond) { closeOverlay(); render(); return; }
-        const requester = bond.initiatedByName || bond.wardName;
+        const viewer = S.currentPersonName || "李建国";
+        const requester = bondOtherName(bond, viewer);
         bond.confirmed = false;
         bond.status = "rejected";
         bond.hasUnreadAcceptReturn = false;
         syncLegacyListsFromBonds();
+        removeFamilyCollaborateOp(bond.id, requester, viewer);
         toast(`已返回「不同意」给${requester}`);
         render();
       },
@@ -6450,11 +6480,24 @@
         const bid = S.overlayData && S.overlayData.bondId;
         const bond = S.careBonds.find((b) => String(b.id) === String(bid));
         if (!bond) { closeOverlay(); return; }
-        const actor = S.currentPersonName;
+        const actor = S.currentPersonName || "李建国";
         const other = bondOtherName(bond, actor);
+        const rel = bondRelationForViewer(bond, actor);
         const isPending = bond.status === "pending";
         S.careBonds = S.careBonds.filter((b) => String(b.id) !== String(bond.id));
         syncLegacyListsFromBonds();
+        if (isPending) {
+          removeFamilyCollaborateOp(bond.id, bond.initiatedByName || actor, other);
+        } else {
+          logFamilyCollaborateOp({
+            actorName: actor,
+            targetName: other,
+            action: "解除了家属绑定",
+            place: "家属管理",
+            how: `${other}（${rel}）`,
+            includeTargetInSentence: false,
+          });
+        }
         S.overlay = null;
         toast(isPending ? `已撤回向${other}发送的绑定请求` : `已与${other}解除家属关系`);
         render();
@@ -6557,9 +6600,7 @@
         const rid = el.dataset.id;
         const req = (S.careProxyRequests || []).find((r) => String(r.id) === String(rid));
         if (!req) return;
-        if (req.kind === "remind") {
-          removeFamilyCollaborateOp(req.id, req.senderName, req.recipientName);
-        }
+        removeFamilyCollaborateOp(req.id, req.senderName, req.recipientName);
         S.careProxyRequests = S.careProxyRequests.filter((r) => String(r.id) !== String(rid));
         toast(`已撤回「${proxyActionLabel(req.kind)}」请求`);
         render();
@@ -6596,6 +6637,9 @@
         if (!req || req.status !== "pending") return;
         req.status = "rejected";
         req.senderAcknowledged = false;
+        if (req.kind !== "remind") {
+          removeFamilyCollaborateOp(req.id, req.senderName, req.recipientName);
+        }
         toast(`已返回「不接受」给${req.senderName}`);
         render();
       },
@@ -7353,8 +7397,9 @@
           return;
         }
         const masked = phone.replace(/^(\d{3})\d{4}(\d{4})$/, "$1****$2");
+        const newBondId = `b${Date.now()}`;
         S.careBonds.unshift({
-          id: `b${Date.now()}`,
+          id: newBondId,
           guardianName: targetP.name,
           guardianPhone: masked,
           guardianPhoneRaw: phone,
@@ -7372,6 +7417,15 @@
         S.famDraftPhone = "";
         S.famIsAdding = false;
         syncLegacyListsFromBonds();
+        logFamilyCollaborateOp({
+          entryId: newBondId,
+          actorName: me.name,
+          targetName: targetP.name,
+          action: "发起了家属绑定",
+          place: "添加家属",
+          how: `${targetP.name}（${rel}）`,
+          includeTargetInSentence: false,
+        });
         render();
         toast(`已向${name}发送绑定请求，请切至对方测试身份点击同意/不同意`);
       },
@@ -7527,7 +7581,7 @@
           const targetTasks = SEED.filter((t) => (eff.title && t.title === eff.title) || (eff.cat && t.cat === eff.cat));
           if (eff.pauseTodayOnly) {
             targetTasks.forEach((t) => { delete S.completed[t.id]; });
-            logOp("删除了单次计划", "健康计划", eff.title || "今日运动计划");
+            logOp("删除了这一次", "健康计划", eff.title || "今日运动计划");
             toast("已删除今日该项计划");
           } else {
             for (let i = SEED.length - 1; i >= 0; i--) {
@@ -7535,7 +7589,7 @@
                 SEED.splice(i, 1);
               }
             }
-            logOp("删除了后续计划", "健康计划", eff.title || "运动类计划");
+            logOp("删除了计划", "健康计划", eff.title || "运动类计划");
             toast("已删除后续运动计划");
           }
         } else if (eff && eff.kind === "checkInPlan") {
@@ -7803,7 +7857,13 @@
       shareStamp() { openOverlay("share"); },
       openCal() { openOverlay("stampCal"); },
       opDel() {
-        S.ops = (S.ops || []).filter((op) => op.id !== el.dataset.id);
+        const delId = el.dataset.id;
+        S.ops = (S.ops || []).filter((op) => String(op.id) !== String(delId));
+        const curKey = S.boundPersonKey || S.currentPersonName || "李建国";
+        if (S.personStoreMap && S.personStoreMap[curKey] && S.personStoreMap[curKey].ops) {
+          S.personStoreMap[curKey].ops = S.personStoreMap[curKey].ops.filter((op) => String(op.id) !== String(delId));
+        }
+        if (!S.ops.length) S.opCleared = true;
         closeOverlay();
         render();
       },
@@ -13031,8 +13091,9 @@
     return clean.map(([k, v]) => `${k}：${v}`).join("；");
   }
   function logOp(action, place, howOrLines) {
-    if (!S.ops) S.ops = [];
     ensureCareGraph();
+    if (!S.ops) S.ops = [];
+    S.opCleared = false;
     const normalizedAction = (action === "提醒了患者" || action === "提醒患者") ? "提醒了" : action;
     const curPerson = S.currentPersonName || S.name || "李建国";
     const targetPerson = isProfileContextScreen(S.screen)
@@ -13071,6 +13132,8 @@
         hit.how = how;
         hit.notifiedNames = [];
         S.ops.sort((a, b) => b.at - a.at);
+        const curBucket = ensurePersonStore(S.boundPersonKey || curPerson);
+        curBucket.ops = S.ops.map((o) => ({ ...o }));
         const mirrorNames = new Set([actor, targetPerson]);
         mirrorNames.forEach((pName) => {
           if (!pName || pName === S.boundPersonKey) return;
@@ -13099,6 +13162,8 @@
     };
     S.ops.unshift(opItem);
     if (S.ops.length > 300) { S.ops.length = 300; S.opDropped = true; }
+    const curBucket = ensurePersonStore(S.boundPersonKey || curPerson);
+    curBucket.ops = S.ops.map((o) => ({ ...o }));
     const mirrorTargets = new Set([actor, targetPerson, ...(notifiedNames || [])]);
     mirrorTargets.forEach((pName) => {
       if (!pName || pName === S.boundPersonKey) return;
@@ -13134,7 +13199,7 @@
   }
   /// 操作记录换日（V10.109）：在「今天 → 最早一条记录那天」之间移动，真机同日翻页手势
   function opStepDay(delta) {
-    const ops = S.ops || [];
+    const ops = opVisibleOps();
     const todayYMD = toYMD(new Date());
     const earliestYMD = toYMD(new Date(ops.length ? ops[ops.length - 1].at : new Date()));
     const next = addDaysYMD(S.opDay || todayYMD, delta);
@@ -13220,7 +13285,7 @@
     return "";
   }
   function opPersonChipHTML(name, op) {
-    const roleTag = genHasFamily()
+    const roleTag = genIsV01()
       ? `<span class="op-role-tag">${esc(opIdentityFor(name, op))}</span>`
       : "";
     return `<span class="op-name">${I.person}<span>${esc(name)}</span>${roleTag}</span>`;
@@ -13228,7 +13293,7 @@
   function opSentence(op) {
     const actor = opActorName(op);
     const act = opActionName(op);
-    const target = genHasFamily() ? opResolvedTarget(op) : "";
+    const target = genIsV01() ? opResolvedTarget(op) : "";
     let headline = "";
     if (act === "提醒了" && target) {
       headline = op.place ? `${actor}在${op.place}${act}${target}` : `${actor}${act}${target}`;
@@ -13247,11 +13312,11 @@
   function opHeadlineHTML(op) {
     const actor = opActorName(op);
     const act = opActionName(op);
-    const actorUnbound = genHasFamily() && opIsPersonUnbound(actor);
+    const actorUnbound = genIsV01() && opIsPersonUnbound(actor);
     const name = `${opPersonChipHTML(actor, op)}${actorUnbound ? `<span class="op-unbound">已解绑</span>` : ""}`;
     const placePart = op.place ? `<span class="op-plain">在</span><span class="op-place">${esc(op.place)}</span>` : "";
-    const target = genHasFamily() ? opResolvedTarget(op) : "";
-    const targetUnbound = genHasFamily() && target && opIsPersonUnbound(target);
+    const target = genIsV01() ? opResolvedTarget(op) : "";
+    const targetUnbound = genIsV01() && target && opIsPersonUnbound(target);
     const targetChip = target ? `${opPersonChipHTML(target, op)}${targetUnbound ? `<span class="op-unbound">已解绑</span>` : ""}` : "";
     let middlePart = `<span class="op-plain">${esc(act)}</span>`;
     if (act === "提醒了" && target) {
@@ -13265,10 +13330,10 @@
   }
   function opText(op) {
     const actor = opActorName(op);
-    const actorRole = genHasFamily() ? `（${opIdentityFor(actor, op)}）` : "";
+    const actorRole = genIsV01() ? `（${opIdentityFor(actor, op)}）` : "";
     const act = opActionName(op);
-    const target = genHasFamily() ? opResolvedTarget(op) : "";
-    const targetRole = target && genHasFamily() ? `（${opIdentityFor(target, op)}）` : "";
+    const target = genIsV01() ? opResolvedTarget(op) : "";
+    const targetRole = target && genIsV01() ? `（${opIdentityFor(target, op)}）` : "";
     const placePart = op.place ? `在${op.place}` : "";
     const how = opHowText(op);
     if (act === "提醒了" && target) {
@@ -13297,7 +13362,8 @@
     </div>`;
   }
   function opVisibleOps() {
-    const showsFamily = genHasFamily();
+    ensureCareGraph();
+    const showsFamily = genIsV01();
     const viewer = S.currentPersonName || S.name || "李建国";
     return (S.ops || []).filter((op) => {
       if (showsFamily) return true;
@@ -15423,6 +15489,9 @@
       resetFlowFlags();
       S.loggedIn = false;
       S.enrolled = false;
+      S.opCleared = true;
+      S.ops = [];
+      if (S.personStoreMap) Object.values(S.personStoreMap).forEach((b) => { b.ops = []; });
       S.privacyAccepted = false;
       S.loginTermsChecked = false;
       S.privacyDeclinedStep = false;
@@ -15430,10 +15499,28 @@
       jump("onboard-login");
     } else if (m === "new") {
       $("#mode-new").classList.add("on");
-      resetFlowFlags(); S.loggedIn = true; S.enrolled = false; S.privacyAccepted = true; S.loginTermsChecked = true; jump("home");
+      resetFlowFlags();
+      S.loggedIn = true;
+      S.enrolled = false;
+      S.opCleared = true;
+      S.ops = [];
+      if (S.personStoreMap) Object.values(S.personStoreMap).forEach((b) => { b.ops = []; });
+      S.privacyAccepted = true;
+      S.loginTermsChecked = true;
+      jump("home");
     } else {
       $("#mode-demo").classList.add("on");
-      resetFlowFlags(); S.loggedIn = true; S.enrolled = true; S.privacyAccepted = true; S.loginTermsChecked = true; jump("home");
+      resetFlowFlags();
+      S.loggedIn = true;
+      S.enrolled = true;
+      S.opCleared = false;
+      delete S.personStoreMap;
+      delete S.boundPersonKey;
+      S.ops = [];
+      ensureCareGraph();
+      S.privacyAccepted = true;
+      S.loginTermsChecked = true;
+      jump("home");
     }
   }
 
@@ -15472,5 +15559,6 @@
   window.addEventListener("resize", scalePhone);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if (S.overlay) closeOverlay(); else back(); } });
 
+  ensureCareGraph();
   render();
 })();
