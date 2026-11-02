@@ -66,6 +66,7 @@
     bellSlash: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a6 6 0 0 1 6 6v5l1.6 2.4H4.4L6 14V9a6 6 0 0 1 6-6Zm-2.2 16h4.4A2.2 2.2 0 0 1 12 21a2.2 2.2 0 0 1-2.2-2Z" opacity=".38"/><path d="M4.3 3.1 3.1 4.3l16.6 16.6 1.2-1.2z"/></svg>`,
     two: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 11a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 8 11Zm8 1.2a3 3 0 1 0-3-3 3 3 0 0 0 3 3ZM2.5 19v-1.2C2.5 15.6 5.4 14 8 14s5.5 1.6 5.5 3.8V19Zm9.2 0v-1.2c0-1.4.6-2.6 1.6-3.5A7 7 0 0 1 21.5 18V19Z"/></svg>`,
     personPlus: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 11.5a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2.2c-3.4 0-7.2 1.7-7.2 5v1.3h14.4v-1.3c0-3.3-3.8-5-7.2-5Zm9.5-5.7V5h-2v3h-3v2h3v3h2v-3h3V8Z"/></svg>`,
+    linkSlash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/><line x1="2" y1="2" x2="22" y2="22"/></svg>`,
     steth: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h2v7a3 3 0 0 0 6 0V3h2v7a5 5 0 0 1-4 4.9V17a4 4 0 1 0 8 0v-1.1A3.5 3.5 0 1 0 16.5 12H15v2h1.5a1.5 1.5 0 1 1 0 3 2 2 0 1 1-4 0v-2.1A5 5 0 0 1 6 10V3Z"/></svg>`,
     grid: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h6v6h-6v-6Z"/></svg>`,
     clock: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm1 5v5.2l3.6 2.2-.9 1.5L11 13V7Z"/></svg>`,
@@ -2222,6 +2223,38 @@
     }
     return focusOther;
   }
+  function unshownUnboundBondsFor(personName) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName || "李建国";
+    return S.careBonds.filter((b) => {
+      if (b.status !== "unbound") return false;
+      const unack = Array.isArray(b.unacknowledgedUnbindFor) ? b.unacknowledgedUnbindFor : [];
+      if (!unack.includes(nm)) return false;
+      const shown = Array.isArray(b.unboundPopupShownFor) ? b.unboundPopupShownFor : [];
+      return !shown.includes(nm);
+    });
+  }
+  function acknowledgeHomeUnboundPopupFor(personName, preferredBondId) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName || "李建国";
+    let focusOther = null;
+    if (preferredBondId) {
+      const hit = S.careBonds.find((b) => String(b.id) === String(preferredBondId) && bondNeedsUnbindAck(b, nm));
+      if (hit) focusOther = bondOtherName(hit, nm);
+    }
+    S.careBonds.forEach((b) => {
+      if (b.status === "unbound" && Array.isArray(b.unacknowledgedUnbindFor) && b.unacknowledgedUnbindFor.includes(nm)) {
+        if (!focusOther) focusOther = bondOtherName(b, nm);
+        if (!Array.isArray(b.unboundPopupShownFor)) b.unboundPopupShownFor = [];
+        if (!b.unboundPopupShownFor.includes(nm)) b.unboundPopupShownFor.push(nm);
+      }
+    });
+    S.bindUnboundPopupPage = 0;
+    if (focusOther) {
+      S.selectedProxyFamilyName = focusOther;
+    }
+    return focusOther;
+  }
   function acknowledgeBindOrUnbindFor(bondId, personName) {
     ensureCareGraph();
     const nm = personName || S.currentPersonName || "李建国";
@@ -3557,6 +3590,23 @@
       how: `${nm}（${rel}）`,
     };
   }
+  function bondUnboundToOpItem(b, viewerName) {
+    const nm = viewerName || S.currentPersonName || "李建国";
+    const other = bondOtherName(b, nm);
+    const rel = bondRelationForViewer(b, nm);
+    const actor = b.unboundByName || other;
+    const target = actor === nm ? other : nm;
+    return {
+      id: b.id,
+      at: b.createdAt || Date.now(),
+      role: "family",
+      actor: actor,
+      targetName: "",
+      action: "解除了家属绑定",
+      place: "家属管理",
+      how: `${target}（${rel}）`,
+    };
+  }
   function careNoticeModalHTML() {
     if (S.screen !== "home") return "";
     ensureCareGraph();
@@ -3637,6 +3687,46 @@
             ${pagerHTML}
             <div style="width:100%;display:flex;gap:10px">
               <button type="button" data-act="goFamilyManageFromAcceptedPopup" data-id="${curBond.id}" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">去家属管理确认</button>
+            </div>
+          </div>
+        </div>`;
+    }
+    const unshownUnbound = unshownUnboundBondsFor(cur);
+    if (unshownUnbound.length > 0) {
+      const total = unshownUnbound.length;
+      const pageIdx = Math.min(Math.max(0, S.bindUnboundPopupPage || 0), total - 1);
+      S.bindUnboundPopupPage = pageIdx;
+      const curBond = unshownUnbound[pageIdx];
+      const prevDisabled = pageIdx <= 0;
+      const nextDisabled = pageIdx >= total - 1;
+      const dotsHTML = total > 1
+        ? Array.from({ length: Math.min(total, 8) }, (_, idx) => {
+            const active = idx === pageIdx;
+            return `<span data-act="gotoBindUnboundPopupPage" data-idx="${idx}" style="width:${active ? 16 : 6}px;height:6px;border-radius:999px;background:${active ? "var(--blue)" : "rgba(16,84,224,.22)"};cursor:pointer;transition:all .18s ease"></span>`;
+          }).join("")
+        : "";
+      const pagerHTML = total > 1
+        ? `
+          <div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px">
+            <button type="button" data-act="prevBindUnboundPopupPage" ${prevDisabled ? "disabled" : ""} style="height:32px;padding:0 12px;border-radius:999px;border:0;background:rgba(16,84,224,${prevDisabled ? ".04" : ".09"});color:rgba(16,84,224,${prevDisabled ? ".32" : "1"});font-size:13px;font-weight:800;cursor:${prevDisabled ? "default" : "pointer"};font-family:inherit;display:inline-flex;align-items:center;gap:4px">‹ 上一页</button>
+            <div style="display:flex;align-items:center;gap:6px">${dotsHTML}</div>
+            <button type="button" data-act="nextBindUnboundPopupPage" ${nextDisabled ? "disabled" : ""} style="height:32px;padding:0 12px;border-radius:999px;border:0;background:rgba(16,84,224,${nextDisabled ? ".04" : ".09"});color:rgba(16,84,224,${nextDisabled ? ".32" : "1"});font-size:13px;font-weight:800;cursor:${nextDisabled ? "default" : "pointer"};font-family:inherit;display:inline-flex;align-items:center;gap:4px">下一页 ›</button>
+          </div>`
+        : "";
+      return `
+        <div class="care-notice-modal" style="position:absolute;inset:0;z-index:110;background:rgba(10,22,48,.42);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .18s ease">
+          <div style="width:100%;max-width:344px;background:#fff;border-radius:24px;border:1px solid rgba(16,84,224,.14);box-shadow:0 16px 36px rgba(10,26,68,.20);padding:22px 20px 20px;display:flex;flex-direction:column;align-items:stretch;text-align:left">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(16,84,224,.12);color:var(--blue);display:grid;place-items:center;flex-shrink:0">${I.linkSlash || I.people}</div>
+              <div style="flex:1;min-width:0;font-size:19px;font-weight:800;color:var(--blue);line-height:1.2">收到家属解绑通知</div>
+              ${total > 1 ? `<span style="padding:4px 10px;border-radius:999px;background:rgba(16,84,224,.10);border:1px solid rgba(16,84,224,.22);color:var(--blue);font-size:12.5px;font-weight:800;flex-shrink:0">${pageIdx + 1} / ${total}</span>` : ""}
+            </div>
+            <div class="op-card" data-act="goFamilyManageFromUnboundPopup" data-id="${curBond.id}" style="width:100%;padding:15px;border-radius:16px;background:rgba(16,84,224,.05);border:1px solid rgba(16,84,224,.14);box-shadow:none;margin-bottom:${total > 1 ? "12px" : "16px"};cursor:pointer">
+              <h4>${opHeadlineHTML(bondUnboundToOpItem(curBond, cur))}</h4>
+            </div>
+            ${pagerHTML}
+            <div style="width:100%;display:flex;gap:10px">
+              <button type="button" data-act="goFamilyManageFromUnboundPopup" data-id="${curBond.id}" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">去家属管理确认</button>
             </div>
           </div>
         </div>`;
@@ -7058,9 +7148,15 @@
           if (bondNeedsBindAck(b, p.name)) {
             b.acceptedPopupShown = false;
           }
+          if (b.status === "unbound" && Array.isArray(b.unacknowledgedUnbindFor) && b.unacknowledgedUnbindFor.includes(p.name)) {
+            if (Array.isArray(b.unboundPopupShownFor)) {
+              b.unboundPopupShownFor = b.unboundPopupShownFor.filter((x) => x !== p.name);
+            }
+          }
         });
         S.bindInvitePopupPage = 0;
         S.bindAcceptedPopupPage = 0;
+        S.bindUnboundPopupPage = 0;
         S.role = "patient";
         S.actorId = null;
         S.phone = p.phoneRaw;
@@ -7312,8 +7408,10 @@
         } else {
           bond.confirmed = false;
           bond.status = "unbound";
+          bond.unboundByName = actor;
           bond.unacknowledgedBindFor = [];
           bond.unacknowledgedUnbindFor = [bond.guardianName, bond.wardName];
+          bond.unboundPopupShownFor = [];
           logFamilyCollaborateOp({
             actorName: actor,
             targetName: other,
@@ -7586,6 +7684,35 @@
         const list = unshownAcceptedBindBondsFor(cur);
         if (!list.length) return;
         S.bindAcceptedPopupPage = Math.min(Math.max(0, idx), list.length - 1);
+        render();
+      },
+      goFamilyManageFromUnboundPopup() {
+        const bid = el.dataset.id;
+        const cur = S.currentPersonName || "李建国";
+        acknowledgeHomeUnboundPopupFor(cur, bid);
+        S.famIsAdding = false;
+        go("family", "push");
+      },
+      prevBindUnboundPopupPage() {
+        const cur = S.currentPersonName || "李建国";
+        const list = unshownUnboundBondsFor(cur);
+        if (!list.length) return;
+        S.bindUnboundPopupPage = Math.max(0, (S.bindUnboundPopupPage || 0) - 1);
+        render();
+      },
+      nextBindUnboundPopupPage() {
+        const cur = S.currentPersonName || "李建国";
+        const list = unshownUnboundBondsFor(cur);
+        if (!list.length) return;
+        S.bindUnboundPopupPage = Math.min(list.length - 1, (S.bindUnboundPopupPage || 0) + 1);
+        render();
+      },
+      gotoBindUnboundPopupPage() {
+        const idx = Number(el.dataset.idx || 0);
+        const cur = S.currentPersonName || "李建国";
+        const list = unshownUnboundBondsFor(cur);
+        if (!list.length) return;
+        S.bindUnboundPopupPage = Math.min(Math.max(0, idx), list.length - 1);
         render();
       },
       withdrawProxyReq() {
