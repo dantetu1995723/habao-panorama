@@ -7410,7 +7410,8 @@
           bond.status = "unbound";
           bond.unboundByName = actor;
           bond.unacknowledgedBindFor = [];
-          bond.unacknowledgedUnbindFor = [bond.guardianName, bond.wardName];
+          // 仅被解绑人 other 需要确认知晓（进首页弹窗直达家属管理点「知道了」）；发起人 actor（B）不进待确认列表、不弹窗
+          bond.unacknowledgedUnbindFor = [other];
           bond.unboundPopupShownFor = [];
           logFamilyCollaborateOp({
             actorName: actor,
@@ -7422,8 +7423,12 @@
           });
         }
         syncLegacyListsFromBonds();
+        if (!isPending && S.selectedProxyFamilyName === other) {
+          const nextFirst = manageableFamilyBondsFor(actor)[0];
+          S.selectedProxyFamilyName = nextFirst ? bondOtherName(nextFirst, actor) : null;
+        }
         S.overlay = null;
-        toast(isPending ? `已撤回向${other}发送的绑定请求` : `已解除与${other}的绑定，请点击「知道了」确认`);
+        toast(isPending ? `已撤回向${other}发送的绑定请求` : `已解除与${other}的家属绑定`);
         render();
       },
       ackBindOrUnbind() {
