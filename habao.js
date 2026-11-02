@@ -2123,6 +2123,7 @@
     }
     if (!S.lastProxyPopupAckAt) S.lastProxyPopupAckAt = {};
     if (typeof S.proxyPopupPage !== "number") S.proxyPopupPage = 0;
+    if (typeof S.bindInvitePopupPage !== "number") S.bindInvitePopupPage = 0;
     if (!S.boundPersonKey) {
       const initPerson = S.currentPersonName || "李建国";
       const initBucket = ensurePersonStore(initPerson);
@@ -2169,6 +2170,31 @@
   function unacknowledgedBindOrUnbindBondsFor(personName) {
     const nm = personName || S.currentPersonName || "李建国";
     return manageableFamilyBondsFor(nm).filter((b) => bondNeedsBindOrUnbindAck(b, nm));
+  }
+  function unshownIncomingBindBondsFor(personName) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName || "李建国";
+    return S.careBonds.filter((b) => bondNeedsIncomingConfirm(b, nm) && !b.incomingPopupShown);
+  }
+  function acknowledgeHomeBindInvitePopupFor(personName, preferredBondId) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName || "李建国";
+    let focusSender = null;
+    if (preferredBondId) {
+      const hit = S.careBonds.find((b) => String(b.id) === String(preferredBondId) && bondNeedsIncomingConfirm(b, nm));
+      if (hit) focusSender = bondOtherName(hit, nm);
+    }
+    S.careBonds.forEach((b) => {
+      if (bondNeedsIncomingConfirm(b, nm)) {
+        if (!focusSender) focusSender = bondOtherName(b, nm);
+        b.incomingPopupShown = true;
+      }
+    });
+    S.bindInvitePopupPage = 0;
+    if (focusSender) {
+      S.selectedProxyFamilyName = focusSender;
+    }
+    return focusSender;
   }
   function acknowledgeBindOrUnbindFor(bondId, personName) {
     ensureCareGraph();
@@ -3474,10 +3500,65 @@
       how: r.taskSnapshot?.title || "康复计划",
     };
   }
+  function bondToOpItem(b, viewerName) {
+    const nm = viewerName || S.currentPersonName || "李建国";
+    const sender = bondOtherName(b, nm);
+    const rel = b.relation || "家属";
+    return {
+      id: b.id,
+      at: b.createdAt || Date.now(),
+      role: "family",
+      actor: sender,
+      targetName: "",
+      action: "发起了家属绑定",
+      place: "添加家属",
+      how: `${nm}（${rel}）`,
+    };
+  }
   function careNoticeModalHTML() {
     if (S.screen !== "home") return "";
     ensureCareGraph();
     const cur = S.currentPersonName || "李建国";
+    const unshownBonds = unshownIncomingBindBondsFor(cur);
+    if (unshownBonds.length > 0) {
+      const total = unshownBonds.length;
+      const pageIdx = Math.min(Math.max(0, S.bindInvitePopupPage || 0), total - 1);
+      S.bindInvitePopupPage = pageIdx;
+      const curBond = unshownBonds[pageIdx];
+      const prevDisabled = pageIdx <= 0;
+      const nextDisabled = pageIdx >= total - 1;
+      const dotsHTML = total > 1
+        ? Array.from({ length: Math.min(total, 8) }, (_, idx) => {
+            const active = idx === pageIdx;
+            return `<span data-act="gotoBindInvitePopupPage" data-idx="${idx}" style="width:${active ? 16 : 6}px;height:6px;border-radius:999px;background:${active ? "var(--blue)" : "rgba(16,84,224,.22)"};cursor:pointer;transition:all .18s ease"></span>`;
+          }).join("")
+        : "";
+      const pagerHTML = total > 1
+        ? `
+          <div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px">
+            <button type="button" data-act="prevBindInvitePopupPage" ${prevDisabled ? "disabled" : ""} style="height:32px;padding:0 12px;border-radius:999px;border:0;background:rgba(16,84,224,${prevDisabled ? ".04" : ".09"});color:rgba(16,84,224,${prevDisabled ? ".32" : "1"});font-size:13px;font-weight:800;cursor:${prevDisabled ? "default" : "pointer"};font-family:inherit;display:inline-flex;align-items:center;gap:4px">‹ 上一页</button>
+            <div style="display:flex;align-items:center;gap:6px">${dotsHTML}</div>
+            <button type="button" data-act="nextBindInvitePopupPage" ${nextDisabled ? "disabled" : ""} style="height:32px;padding:0 12px;border-radius:999px;border:0;background:rgba(16,84,224,${nextDisabled ? ".04" : ".09"});color:rgba(16,84,224,${nextDisabled ? ".32" : "1"});font-size:13px;font-weight:800;cursor:${nextDisabled ? "default" : "pointer"};font-family:inherit;display:inline-flex;align-items:center;gap:4px">下一页 ›</button>
+          </div>`
+        : "";
+      return `
+        <div class="care-notice-modal" style="position:absolute;inset:0;z-index:110;background:rgba(10,22,48,.42);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .18s ease">
+          <div style="width:100%;max-width:344px;background:#fff;border-radius:24px;border:1px solid rgba(16,84,224,.14);box-shadow:0 16px 36px rgba(10,26,68,.20);padding:22px 20px 20px;display:flex;flex-direction:column;align-items:stretch;text-align:left">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(16,84,224,.12);color:var(--blue);display:grid;place-items:center;flex-shrink:0">${I.personPlus || I.people}</div>
+              <div style="flex:1;min-width:0;font-size:19px;font-weight:800;color:var(--blue);line-height:1.2">收到家属绑定邀请</div>
+              ${total > 1 ? `<span style="padding:4px 10px;border-radius:999px;background:rgba(16,84,224,.10);border:1px solid rgba(16,84,224,.22);color:var(--blue);font-size:12.5px;font-weight:800;flex-shrink:0">${pageIdx + 1} / ${total}</span>` : ""}
+            </div>
+            <div class="op-card" data-act="goFamilyManageFromBindPopup" data-id="${curBond.id}" style="width:100%;padding:15px;border-radius:16px;background:rgba(16,84,224,.05);border:1px solid rgba(16,84,224,.14);box-shadow:none;margin-bottom:${total > 1 ? "12px" : "16px"};cursor:pointer">
+              <h4>${opHeadlineHTML(bondToOpItem(curBond, cur))}</h4>
+            </div>
+            ${pagerHTML}
+            <div style="width:100%;display:flex;gap:10px">
+              <button type="button" data-act="goFamilyManageFromBindPopup" data-id="${curBond.id}" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">去家属管理确认</button>
+            </div>
+          </div>
+        </div>`;
+    }
     const unshownProxy = unshownPopupProxyRequestsFor(cur);
     if (unshownProxy.length > 0) {
       const total = unshownProxy.length;
@@ -6888,6 +6969,12 @@
         if (!p) return;
         S.currentPersonName = p.name;
         S.watchingWardName = null;
+        (S.careBonds || []).forEach((b) => {
+          if (bondNeedsIncomingConfirm(b, p.name)) {
+            b.incomingPopupShown = false;
+          }
+        });
+        S.bindInvitePopupPage = 0;
         S.role = "patient";
         S.actorId = null;
         S.phone = p.phoneRaw;
@@ -7086,6 +7173,7 @@
         bond.confirmed = false;
         bond.status = "pending";
         bond.hasUnreadAcceptReturn = false;
+        bond.incomingPopupShown = false;
         const other = bondOtherName(bond, me.name);
         const rel = bondRelationForViewer(bond, me.name);
         syncLegacyListsFromBonds();
@@ -7353,6 +7441,35 @@
       ackHomeProxyPopupAndTest() {
         acknowledgeHomePopupProxyRequestsFor(S.currentPersonName || "李建国");
         go("ex-screen");
+      },
+      prevBindInvitePopupPage() {
+        const cur = S.currentPersonName || "李建国";
+        const list = unshownIncomingBindBondsFor(cur);
+        if (!list.length) return;
+        S.bindInvitePopupPage = Math.max(0, (S.bindInvitePopupPage || 0) - 1);
+        render();
+      },
+      nextBindInvitePopupPage() {
+        const cur = S.currentPersonName || "李建国";
+        const list = unshownIncomingBindBondsFor(cur);
+        if (!list.length) return;
+        S.bindInvitePopupPage = Math.min(list.length - 1, (S.bindInvitePopupPage || 0) + 1);
+        render();
+      },
+      gotoBindInvitePopupPage() {
+        const idx = Number(el.dataset.idx || 0);
+        const cur = S.currentPersonName || "李建国";
+        const list = unshownIncomingBindBondsFor(cur);
+        if (!list.length) return;
+        S.bindInvitePopupPage = Math.min(Math.max(0, idx), list.length - 1);
+        render();
+      },
+      goFamilyManageFromBindPopup() {
+        const bid = el.dataset.id;
+        const cur = S.currentPersonName || "李建国";
+        acknowledgeHomeBindInvitePopupFor(cur, bid);
+        S.famIsAdding = false;
+        go("family", "push");
       },
       withdrawProxyReq() {
         ensureCareGraph();
@@ -8316,6 +8433,7 @@
           hasUnreadAcceptReturn: false,
           unacknowledgedBindFor: [],
           unacknowledgedUnbindFor: [],
+          incomingPopupShown: false,
         });
         S.famDraftName = "";
         S.famDraftPhone = "";
