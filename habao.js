@@ -10423,19 +10423,9 @@
               ${g.items.map((t) => renderFamilyPlanCard(t)).join("")}
             </div>
           `).join("") : (!pendingCreates.length ? `
-            <div style="background:#fff;border-radius:20px;border:1px solid rgba(16,84,224,.12);box-shadow:0 4px 12px rgba(16,84,224,.05);padding:26px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px">
-              <div style="width:60px;height:60px;border-radius:50%;background:rgba(16,84,224,.08);display:grid;place-items:center">
-                <div style="width:40px;height:40px;border-radius:14px;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 3px 8px rgba(16,84,224,.22)">${I.cal}</div>
-              </div>
-              <div style="padding:0 8px">
-                <div style="font-size:17px;font-weight:800;color:var(--blue)">${esc(selectedFamName)}暂无今日康复计划</div>
-                <div style="font-size:13px;font-weight:500;color:var(--secondary);margin-top:6px;line-height:1.5">可点击下方按钮为${esc(selectedFamName)}代为添加测血压、服药、运动或饮食计划，对方在「收家属通知」中接受后即可生效。</div>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap">
-                ${["测血压", "服药", "运动", "饮食"].map((lbl) => `
-                  <button type="button" data-act="openProxyTaskEditor" style="border:0;background:rgba(16,84,224,.08);color:var(--blue);font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;cursor:pointer;font-family:inherit">+ ${lbl}</button>
-                `).join("")}
-              </div>
+            <div style="background:#fff;border-radius:20px;border:1px solid rgba(16,84,224,.10);padding:36px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px">
+              <div style="width:28px;height:28px;color:rgba(16,84,224,.45);display:grid;place-items:center">${I.cal}</div>
+              <div style="font-size:15px;font-weight:600;color:var(--secondary)">暂无计划</div>
             </div>
           ` : "");
 
