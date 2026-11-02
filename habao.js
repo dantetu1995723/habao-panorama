@@ -11752,15 +11752,8 @@
 
         if (isUnbound) {
           operateBodyHTML = `
-            <div style="border-radius:24px;overflow:hidden;border:1.2px solid rgba(16,84,224,.16);box-shadow:0 6px 18px rgba(16,84,224,.08);background:#fff">
+            <div style="border-radius:24px;overflow:hidden;border:1.2px solid rgba(16,84,224,.16);box-shadow:0 6px 18px rgba(16,84,224,.08)">
               ${profileHeaderHTML}
-              <div style="padding:18px 16px;display:flex;align-items:center;gap:12px;background:#fff">
-                <div style="width:40px;height:40px;border-radius:50%;background:rgba(16,84,224,.08);color:rgba(16,84,224,.75);display:grid;place-items:center;flex-shrink:0">${I.people}</div>
-                <div style="min-width:0;flex:1">
-                  <div style="font-size:15.5px;font-weight:800;color:var(--blue)">已解除与${esc(selectedFamName)}的家属绑定</div>
-                  <div style="font-size:13px;font-weight:500;color:var(--secondary);margin-top:3px">点击上方卡片中的「知道了」即可从列表移除</div>
-                </div>
-              </div>
             </div>`;
         } else if (isPending) {
           operateBodyHTML = `
