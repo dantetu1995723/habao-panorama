@@ -2197,6 +2197,9 @@
     if (kind === "remind") return "提醒";
     if (kind === "checkIn") return "代打卡";
     if (kind === "createPlan") return "新增计划";
+    if (kind === "firstCreatePlan") return "首次创建计划";
+    if (kind === "refreshMedicationPlan") return "用药与复查";
+    if (kind === "inviteExerciseTest") return "运动体测邀请";
     if (kind === "updatePlan") return "修改计划";
     if (kind === "deletePlan") return "删除计划";
     return "代办";
@@ -2206,6 +2209,9 @@
     if (r.kind === "remind") return `${r.senderName} 提醒你完成「${t}」`;
     if (r.kind === "checkIn") return `${r.senderName} 帮你打卡「${t}」`;
     if (r.kind === "createPlan") return `${r.senderName} 为你新增计划「${t}」`;
+    if (r.kind === "firstCreatePlan") return `${r.senderName} 为你首次创建了康复计划`;
+    if (r.kind === "refreshMedicationPlan") return `${r.senderName} 为你更新了用药与复查计划`;
+    if (r.kind === "inviteExerciseTest") return `${r.senderName} 邀请你完成运动体测`;
     if (r.kind === "updatePlan") return `${r.senderName} 修改了你的计划「${t}」`;
     if (r.kind === "deletePlan") return `${r.senderName} 申请删除计划「${t}」`;
     return `${r.senderName} 发起代办「${t}」`;
@@ -2266,7 +2272,7 @@
       }
     });
   }
-  function sendProxyRequestFor({ senderName, recipientName, kind, targetTaskId, taskSnapshot, summaryNote }) {
+  function sendProxyRequestFor({ senderName, recipientName, kind, targetTaskId, taskSnapshot, batchTasks, summaryNote }) {
     ensureCareGraph();
     const effId = targetTaskId || taskSnapshot?.id;
     const staleList = kind !== "createPlan"
@@ -2274,7 +2280,9 @@
           r.senderName === senderName &&
           r.recipientName === recipientName &&
           r.status === "pending" &&
-          (String(r.targetTaskId) === String(effId) || String(r.taskSnapshot?.id) === String(effId))
+          (["firstCreatePlan", "refreshMedicationPlan", "inviteExerciseTest"].includes(kind)
+            ? r.kind === kind
+            : (String(r.targetTaskId) === String(effId) || String(r.taskSnapshot?.id) === String(effId)))
         ))
       : [];
     staleList.forEach((oldReq) => {
@@ -2288,6 +2296,7 @@
       kind,
       targetTaskId: effId,
       taskSnapshot: { ...taskSnapshot },
+      batchTasks: Array.isArray(batchTasks) ? batchTasks.map((t) => ({ ...t })) : null,
       summaryNote: summaryNote || "",
       status: "pending",
       senderAcknowledged: false,
@@ -2296,8 +2305,11 @@
     S.careProxyRequests.unshift(req);
     const actionMap = {
       remind: "提醒了",
+      inviteExerciseTest: "提醒了",
       checkIn: "打卡了",
       createPlan: "新建了计划",
+      firstCreatePlan: "新建了计划",
+      refreshMedicationPlan: "修改了计划",
       updatePlan: "修改了计划",
       deletePlan: "删除了计划",
     };
@@ -2320,8 +2332,8 @@
     const remMap = isCurrentBound ? S.remindedTasks : (bucket.remindedTasks || (bucket.remindedTasks = {}));
 
     const tid = req.targetTaskId || req.taskSnapshot?.id;
-    if (req.kind === "remind") {
-      if (tid) remMap[tid] = true;
+    if (req.kind === "remind" || req.kind === "inviteExerciseTest") {
+      if (tid && req.kind === "remind") remMap[tid] = true;
     } else if (req.kind === "checkIn") {
       if (tid) {
         compMap[tid] = true;
@@ -2333,6 +2345,35 @@
         taskList.push(nt);
         taskList.sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
       }
+      if (isCurrentBound) S.enrolled = true;
+    } else if (req.kind === "firstCreatePlan") {
+      const batch = Array.isArray(req.batchTasks) && req.batchTasks.length ? req.batchTasks : [req.taskSnapshot];
+      for (let i = taskList.length - 1; i >= 0; i--) {
+        const c = taskList[i].cat;
+        if (["medication", "appointment", "rest", "diet", "monitoring"].includes(c)) {
+          taskList.splice(i, 1);
+        }
+      }
+      batch.forEach((item, idx) => {
+        if (!item) return;
+        taskList.push({ ...item, id: item.id || `proxy_fc_${Date.now()}_${idx}` });
+      });
+      taskList.sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
+      if (isCurrentBound) S.enrolled = true;
+    } else if (req.kind === "refreshMedicationPlan") {
+      const batch = Array.isArray(req.batchTasks) && req.batchTasks.length ? req.batchTasks : [req.taskSnapshot];
+      for (let i = taskList.length - 1; i >= 0; i--) {
+        const c = taskList[i].cat;
+        if (c === "medication" || c === "appointment") {
+          taskList.splice(i, 1);
+        }
+      }
+      batch.forEach((item, idx) => {
+        if (!item) return;
+        taskList.push({ ...item, id: item.id || `proxy_med_${Date.now()}_${idx}` });
+      });
+      taskList.sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
+      if (isCurrentBound) S.enrolled = true;
     } else if (req.kind === "updatePlan") {
       const idx = taskList.findIndex((x) => String(x.id) === String(tid));
       if (idx >= 0) {
@@ -6655,8 +6696,11 @@
         req.senderAcknowledged = false;
         const actionMap = {
           remind: "提醒了",
+          inviteExerciseTest: "提醒了",
           checkIn: "打卡了",
           createPlan: "新建了计划",
+          firstCreatePlan: "新建了计划",
+          refreshMedicationPlan: "修改了计划",
           updatePlan: "修改了计划",
           deletePlan: "删除了计划",
         };
@@ -6667,6 +6711,11 @@
           action: actionMap[req.kind] || "打卡了",
           how: req.taskSnapshot?.title || "",
         });
+        if (req.kind === "inviteExerciseTest") {
+          toast(`已接受${req.senderName}的运动体测邀请，请完成运动评估`);
+          go("ex-screen");
+          return;
+        }
         toast(`已接受${req.senderName}的${proxyActionLabel(req.kind)}，并通知对方`);
         render();
       },
@@ -6677,7 +6726,7 @@
         if (!req || req.status !== "pending") return;
         req.status = "rejected";
         req.senderAcknowledged = false;
-        if (req.kind !== "remind") {
+        if (req.kind !== "remind" && req.kind !== "inviteExerciseTest") {
           removeFamilyCollaborateOp(req.id, req.senderName, req.recipientName);
         }
         toast(`已返回「不接受」给${req.senderName}`);
@@ -6696,7 +6745,8 @@
         if (!famName) return;
         const tid = el.dataset.id;
         const bucket = ensurePersonStore(famName);
-        const existing = tid ? (bucket.tasks || []).find((t) => String(t.id) === String(tid)) : null;
+        const famTasks = bucket.tasks || [];
+        const existing = tid ? famTasks.find((t) => String(t.id) === String(tid)) : null;
         if (existing) {
           S.proxyEditorDraft = {
             mode: "edit",
@@ -6709,19 +6759,145 @@
             rule: existing.rule || "daily",
             note: existing.note || "",
           };
+        } else if (famTasks.length === 0) {
+          S.proxyEditorDraft = {
+            mode: "first-rest",
+            step: "rest",
+            restItems: [
+              { id: "fc_wake", title: "起床", cat: "rest", h: 7, m: 0, cycle: true, rule: "daily", note: "" },
+              { id: "fc_breakfast", title: "早餐", cat: "diet", h: 7, m: 30, cycle: true, rule: "daily", note: "" },
+              { id: "fc_lunch", title: "午餐", cat: "diet", h: 12, m: 0, cycle: true, rule: "daily", note: "" },
+              { id: "fc_nap", title: "午休", cat: "rest", h: 13, m: 0, cycle: true, rule: "daily", note: "" },
+              { id: "fc_dinner", title: "晚餐", cat: "diet", h: 18, m: 0, cycle: true, rule: "daily", note: "" },
+              { id: "fc_sleep", title: "上床睡觉", cat: "rest", h: 22, m: 0, cycle: true, rule: "daily", note: "" },
+            ],
+          };
         } else {
           S.proxyEditorDraft = {
-            mode: "add",
-            taskId: null,
-            cat: "monitoring",
-            title: "起床测血压",
-            hour: 8,
-            min: 0,
-            cycle: true,
-            rule: "daily",
-            note: "",
+            mode: "type-pick",
           };
         }
+        render();
+      },
+      proxyNextToFirstUpload() {
+        if (!S.proxyEditorDraft) return;
+        S.proxyEditorDraft.step = "confirm";
+        render();
+      },
+      proxyPickScheduleType() {
+        if (!S.proxyEditorDraft) return;
+        const t = el.dataset.type || "monitoring";
+        if (t === "medication") {
+          S.proxyEditorDraft = { mode: "med-confirm" };
+        } else if (t === "exercise") {
+          S.proxyEditorDraft = { mode: "exercise-invite" };
+        } else {
+          const defaults = {
+            monitoring: { title: "起床测血压", h: 8, m: 0, note: "安静休息 5 分钟后测量，记录收缩压、舒张压与心率。" },
+            diet: { title: "低盐清淡饮食", h: 12, m: 0, note: "少盐少油，均衡搭配蔬菜、优质蛋白与主食。" },
+            rest: { title: "午间静卧休息", h: 13, m: 0, note: "起床、午休与入睡保持规律，避免熬夜。" },
+          };
+          const def = defaults[t] || defaults.monitoring;
+          S.proxyEditorDraft = {
+            mode: "add",
+            fromTypePick: true,
+            taskId: null,
+            cat: t,
+            title: def.title,
+            hour: def.h,
+            min: def.m,
+            cycle: true,
+            rule: "daily",
+            note: def.note,
+          };
+        }
+        render();
+      },
+      proxyBackToTypePick() {
+        if (!S.proxyEditorDraft) return;
+        if (S.proxyEditorDraft.mode === "first-rest" && S.proxyEditorDraft.step === "confirm") {
+          S.proxyEditorDraft.step = "rest";
+        } else if (S.proxyEditorDraft.mode === "med-confirm" || S.proxyEditorDraft.mode === "exercise-invite" || S.proxyEditorDraft.fromTypePick) {
+          S.proxyEditorDraft = { mode: "type-pick" };
+        } else {
+          S.proxyEditorDraft = null;
+        }
+        render();
+      },
+      submitProxyFirstCreateOrMed() {
+        ensureCareGraph();
+        const me = currentDemoPerson();
+        const famName = resolvedSelectedFamilyNameFor(me.name);
+        if (!S.proxyEditorDraft || !famName) return;
+        const isFirstCreate = S.proxyEditorDraft.mode === "first-rest";
+        const medTasks = [
+          { id: `p_m1_${Date.now()}`, title: "阿司匹林肠溶片", cat: "medication", h: 8, m: 0, cycle: true, rule: "daily", note: "100 mg · 早餐后服用" },
+          { id: `p_m2_${Date.now()}`, title: "琥珀酸美托洛尔缓释片", cat: "medication", h: 8, m: 0, cycle: true, rule: "daily", note: "47.5 mg · 早餐后服用" },
+          { id: `p_m3_${Date.now()}`, title: "阿托伐他汀钙片", cat: "medication", h: 20, m: 30, cycle: true, rule: "daily", note: "20 mg · 睡前服用" },
+        ];
+        const apptTasks = [
+          { id: `p_a1_${Date.now()}`, title: "心内科门诊复查", cat: "appointment", h: 9, m: 30, cycle: false, rule: "once", note: "携带出院小结与近期血压记录" },
+        ];
+        const bpTasks = isFirstCreate ? [
+          { id: `p_bp1_${Date.now()}`, title: "起床测血压", cat: "monitoring", h: 6, m: 30, cycle: true, rule: "daily", note: "依据出院记录，每日晨起与睡前测血压" },
+          { id: `p_bp2_${Date.now()}`, title: "睡前测血压", cat: "monitoring", h: 21, m: 30, cycle: true, rule: "daily", note: "安静休息 5 分钟后测量" },
+        ] : [];
+        const restItems = isFirstCreate ? (S.proxyEditorDraft.restItems || []) : [];
+        const batch = [...medTasks, ...apptTasks, ...bpTasks, ...restItems];
+        const summaryTitle = isFirstCreate
+          ? `首次创建康复计划（共 ${batch.length} 项）`
+          : `更新用药与复查计划（共 ${batch.length} 项）`;
+        const summaryNote = isFirstCreate
+          ? `含用药 ${medTasks.length} 项、复查 ${apptTasks.length} 项、日常与测血压 ${bpTasks.length + restItems.length} 项`
+          : `含用药 ${medTasks.length} 项、复查 ${apptTasks.length} 项`;
+        const snapshot = {
+          id: `proxy_batch_${Date.now()}`,
+          title: summaryTitle,
+          cat: "medication",
+          h: 8,
+          m: 0,
+          cycle: true,
+          rule: "daily",
+          note: summaryNote,
+        };
+        sendProxyRequestFor({
+          senderName: me.name,
+          recipientName: famName,
+          kind: isFirstCreate ? "firstCreatePlan" : "refreshMedicationPlan",
+          targetTaskId: snapshot.id,
+          taskSnapshot: snapshot,
+          batchTasks: batch,
+          summaryNote,
+        });
+        S.proxyEditorDraft = null;
+        toast(isFirstCreate ? `已向${famName}发送首次创建计划通知` : `已向${famName}发送用药与复查计划通知`);
+        render();
+      },
+      submitProxyExerciseInvite() {
+        ensureCareGraph();
+        const me = currentDemoPerson();
+        const famName = resolvedSelectedFamilyNameFor(me.name);
+        if (!famName) return;
+        const snapshot = {
+          id: `proxy_ex_${Date.now()}`,
+          title: "完成运动体测并生成运动计划",
+          cat: "exercise",
+          h: 9,
+          m: 0,
+          cycle: true,
+          rule: "daily",
+          note: "请进行 3 分钟踏步或 1 分钟起坐体测，系统将根据心率自动生成专属运动计划",
+        };
+        sendProxyRequestFor({
+          senderName: me.name,
+          recipientName: famName,
+          kind: "inviteExerciseTest",
+          targetTaskId: snapshot.id,
+          taskSnapshot: snapshot,
+          summaryNote: "3 分钟踏步 / 1 分钟起坐体测",
+        });
+        S.proxyEditorDraft = null;
+        toast(`已向${famName}发送运动体测邀请`);
         render();
       },
       closeProxyTaskEditor() {
@@ -10269,6 +10445,109 @@
 
       if (col === "operate" && S.proxyEditorDraft && selectedFamName) {
         const d = S.proxyEditorDraft;
+        if (d.mode === "first-rest" && d.step === "rest") {
+          const restRows = (d.restItems || []).map((item) => `
+            <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:0.8px solid rgba(16,84,224,.08)">
+              <div class="badge b40"><img src="${A.task[item.cat] || A.task.rest}" alt="" /></div>
+              <div class="grow" style="font-size:17px;font-weight:700;color:var(--blue)">${esc(item.title)}</div>
+              <span style="font-size:15px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.08);padding:6px 12px;border-radius:999px;font-variant-numeric:tabular-nums">${pad(item.h)}:${pad(item.m)}</span>
+            </div>
+          `).join("");
+          return `
+          <div class="page">
+            ${navBar(cap(I.chevL, "稍后", "", "closeProxyTaskEditor"), "基础作息")}
+            <div class="scroll px20" style="padding-top:16px;padding-bottom:24px">
+              <div style="background:#fff;border-radius:22px;border:1px solid rgba(16,84,224,.12);box-shadow:0 4px 12px rgba(16,84,224,.05);overflow:hidden">
+                ${restRows}
+              </div>
+            </div>
+            <div class="px24 flex gap8" style="padding-bottom:28px">
+              <button class="cta grow" data-act="proxyNextToFirstUpload" type="button">${I.camera}拍照上传病历</button>
+            </div>
+          </div>`;
+        }
+        if ((d.mode === "first-rest" && d.step === "confirm") || d.mode === "med-confirm") {
+          const isFirst = d.mode === "first-rest";
+          const previewItems = [
+            { title: "起床测血压", cat: "monitoring", h: 6, m: 30, note: "依据出院记录，每日晨起与睡前测血压" },
+            { title: "阿司匹林肠溶片", cat: "medication", h: 8, m: 0, note: "100 mg · 早餐后服用" },
+            { title: "琥珀酸美托洛尔缓释片", cat: "medication", h: 8, m: 0, note: "47.5 mg · 早餐后服用" },
+            { title: "心内科门诊复查", cat: "appointment", h: 9, m: 30, note: "携带出院小结与近期血压记录" },
+            { title: "阿托伐他汀钙片", cat: "medication", h: 20, m: 30, note: "20 mg · 睡前服用" },
+            ...(isFirst ? (d.restItems || []) : []),
+          ].filter((it) => isFirst || it.cat === "medication" || it.cat === "appointment")
+           .sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
+          return `
+          <div class="page">
+            ${navBar(cap(I.chevL, "返回", "", "proxyBackToTypePick"), "确认计划")}
+            <div class="scroll px20" style="padding-top:16px;padding-bottom:24px;display:flex;flex-direction:column;gap:10px">
+              ${previewItems.map((it) => `
+                <div style="background:#fff;border-radius:18px;border:1px solid rgba(16,84,224,.14);padding:12px 14px;display:flex;align-items:center;gap:12px">
+                  <div class="badge b40"><img src="${A.task[it.cat] || A.task.medication}" alt="" /></div>
+                  <div style="min-width:0;flex:1">
+                    <div style="font-size:15.5px;font-weight:700;color:var(--blue)">${esc(it.title)}</div>
+                    <div style="font-size:12px;color:var(--secondary);margin-top:3px">${pad(it.h)}:${pad(it.m)} · ${esc(CAT[it.cat]?.name || "计划")}${it.note ? ` · ${esc(it.note)}` : ""}</div>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+            <div class="px24 flex gap8" style="padding-bottom:28px">
+              <button class="cta grow" data-act="submitProxyFirstCreateOrMed" type="button">${isFirst ? `确认并发送给${esc(selectedFamName)}` : `确认并发送给${esc(selectedFamName)}`}</button>
+            </div>
+          </div>`;
+        }
+        if (d.mode === "type-pick") {
+          const profTypes = [
+            { key: "medication", title: "用药与复查", sub: "上传病历 / 处方解析生成", cat: "medication" },
+            { key: "exercise", title: "运动", sub: `向${selectedFamName}发送运动体测邀请`, cat: "exercise" },
+          ];
+          const dailyTypes = [
+            { key: "monitoring", title: "测血压", sub: "设置每日测量提醒", cat: "monitoring" },
+            { key: "diet", title: "饮食", sub: "设置三餐与饮水提醒", cat: "diet" },
+            { key: "rest", title: "作息", sub: "设置起床、午休与睡眠提醒", cat: "rest" },
+          ];
+          const renderTypeRow = (item, idx, total) => `
+            <button type="button" data-act="proxyPickScheduleType" data-type="${item.key}" style="width:100%;border:0;background:transparent;padding:14px 16px;display:flex;align-items:center;gap:14px;text-align:left;cursor:pointer;font-family:inherit;${idx < total - 1 ? "border-bottom:0.8px solid rgba(16,84,224,.08)" : ""}">
+              <div class="badge b40"><img src="${A.task[item.cat] || A.task.monitoring}" alt="" /></div>
+              <div style="min-width:0;flex:1">
+                <div style="font-size:16.5px;font-weight:800;color:var(--blue)">${esc(item.title)}</div>
+                <div style="font-size:12.5px;font-weight:500;color:var(--secondary);margin-top:3px">${esc(item.sub)}</div>
+              </div>
+              <span style="color:rgba(16,84,224,.45)">${I.chevR}</span>
+            </button>`;
+          return `
+          <div class="page">
+            ${navBar(cap(I.chevL, "返回", "", "closeProxyTaskEditor"), "选择类型")}
+            <div class="scroll px20" style="padding-top:16px;padding-bottom:24px;display:flex;flex-direction:column;gap:18px">
+              <div>
+                <div style="font-size:14px;font-weight:800;color:var(--blue);padding:0 4px 8px">专业康复计划 <span style="font-size:12px;font-weight:500;color:var(--secondary)">· 按病例与体测生成</span></div>
+                <div style="background:#fff;border-radius:20px;border:1px solid rgba(16,84,224,.12);box-shadow:0 4px 12px rgba(16,84,224,.05);overflow:hidden">
+                  ${profTypes.map((it, idx) => renderTypeRow(it, idx, profTypes.length)).join("")}
+                </div>
+              </div>
+              <div>
+                <div style="font-size:14px;font-weight:800;color:var(--blue);padding:0 4px 8px">普通日常计划</div>
+                <div style="background:#fff;border-radius:20px;border:1px solid rgba(16,84,224,.12);box-shadow:0 4px 12px rgba(16,84,224,.05);overflow:hidden">
+                  ${dailyTypes.map((it, idx) => renderTypeRow(it, idx, dailyTypes.length)).join("")}
+                </div>
+              </div>
+            </div>
+          </div>`;
+        }
+        if (d.mode === "exercise-invite") {
+          return `
+          <div class="page">
+            ${navBar(cap(I.chevL, "返回", "", "proxyBackToTypePick"), "运动体测邀请")}
+            <div class="scroll px24" style="padding-top:32px;padding-bottom:24px">
+              <div style="background:#fff;border-radius:24px;border:1px solid rgba(16,84,224,.14);box-shadow:0 6px 18px rgba(16,84,224,.08);padding:26px 22px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px">
+                <div class="badge b40" style="width:64px;height:64px"><img src="${A.task.exercise}" alt="" style="width:64px;height:64px" /></div>
+                <div style="font-size:20px;font-weight:800;color:var(--blue)">邀请${esc(selectedFamName)}完成运动体测</div>
+                <div style="font-size:14px;font-weight:500;color:var(--secondary);line-height:1.55">运动计划需根据本人 3 分钟踏步或 1 分钟起坐体测心率生成。发送邀请后，${esc(selectedFamName)}可在「家属管理 → 收家属通知」中直接开始体测并生成运动计划。</div>
+                <button class="cta" data-act="submitProxyExerciseInvite" type="button" style="width:100%;margin-top:8px">发送运动体测邀请</button>
+              </div>
+            </div>
+          </div>`;
+        }
         const isEdit = d.mode === "edit";
         const catOpts = [
           ["monitoring", "测血压"],
@@ -10282,7 +10561,7 @@
         const minOpts = [0, 15, 30, 45];
         return `
         <div class="page">
-          ${navBar(cap(I.chevL, "返回", "", "closeProxyTaskEditor"), isEdit ? "编辑计划" : "添加计划")}
+          ${navBar(cap(I.chevL, "返回", "", d.fromTypePick ? "proxyBackToTypePick" : "closeProxyTaskEditor"), isEdit ? "编辑计划" : "添加计划")}
           <div class="scroll px24" style="padding-top:20px;padding-bottom:24px">
             <div class="field-label">计划类别</div>
             <div class="chips">${catOpts.map(([k, lab]) => `<button class="chip ${d.cat === k ? "on" : ""}" data-act="pickProxyCat" data-cat="${k}" type="button">${lab}</button>`).join("")}</div>
@@ -10327,7 +10606,7 @@
         if (selectedBond && selectedFamName) {
           const rel = bondRelationForViewer(selectedBond, me.name);
           const ph = bondOtherPhone(selectedBond, me.name);
-          const pendingCreates = outgoingPendingProxyFor(me.name, selectedFamName).filter((r) => r.kind === "createPlan");
+          const pendingCreates = outgoingPendingProxyFor(me.name, selectedFamName).filter((r) => ["createPlan", "firstCreatePlan", "refreshMedicationPlan", "inviteExerciseTest"].includes(r.kind));
           const bucket = ensurePersonStore(selectedFamName);
           const famTasks = (bucket.tasks || []).slice().sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
           const compMap = bucket.completed || {};
@@ -10347,8 +10626,8 @@
             const notes = t.note ? `<div class="act-notes">${cardNote(I.alignLeft, esc(t.note))}</div>` : "";
 
             let pendingPill = "";
-            if (isPendingCreate) {
-              pendingPill = `<span style="font-size:11px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 8px;border-radius:999px;white-space:nowrap">新增待接受</span>`;
+            if (isPendingCreate && createReq) {
+              pendingPill = `<span style="font-size:11px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 8px;border-radius:999px;white-space:nowrap">${esc(proxyActionLabel(createReq.kind))}待接受</span>`;
             } else if (pendingReq) {
               pendingPill = `<span style="font-size:11px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 8px;border-radius:999px;white-space:nowrap">${esc(proxyActionLabel(pendingReq.kind))}待接受</span>`;
             }
@@ -10374,7 +10653,7 @@
 
             let barHTML = "";
             if (pendingReq) {
-              const withdrawLabel = isPendingCreate ? "撤回新增计划请求" : `撤回${esc(proxyActionLabel(pendingReq.kind))}通知`;
+              const withdrawLabel = isPendingCreate ? `撤回${esc(proxyActionLabel(pendingReq.kind))}请求` : `撤回${esc(proxyActionLabel(pendingReq.kind))}通知`;
               barHTML = `
                 <div class="act-card-bar">
                   <button type="button" data-act="withdrawProxyReq" data-id="${pendingReq.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.undo}${withdrawLabel}</button>
@@ -10558,7 +10837,7 @@
               ${notes}
               <div class="act-card-bar">
                 <button type="button" data-act="rejectProxyReq" data-id="${r.id}" style="color:var(--secondary);white-space:nowrap">${I.x}不接受</button>
-                <button type="button" data-act="acceptProxyReq" data-id="${r.id}" style="font-weight:700;white-space:nowrap">${I.check}接受</button>
+                <button type="button" data-act="acceptProxyReq" data-id="${r.id}" style="font-weight:700;white-space:nowrap">${I.check}${r.kind === "inviteExerciseTest" ? "去体测" : "接受"}</button>
               </div>
             </div>`;
         }).join("");
@@ -10658,9 +10937,10 @@
 
       let bottomDockHTML = "";
       if (col === "operate" && selectedFamName) {
+        const famHasPlans = ((ensurePersonStore(selectedFamName).tasks) || []).length > 0;
         bottomDockHTML = `
           <div class="px24 flex gap8" style="padding-bottom:28px">
-            <button class="cta grow" data-act="openProxyTaskEditor" type="button">为${esc(selectedFamName)}添加计划</button>
+            <button class="cta grow" data-act="openProxyTaskEditor" type="button">${famHasPlans ? `为${esc(selectedFamName)}添加计划` : `为${esc(selectedFamName)}首次创建计划`}</button>
           </div>`;
       }
 
