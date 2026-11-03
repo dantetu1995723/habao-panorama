@@ -3482,34 +3482,61 @@
           educationRead: false
         }
       },
+      ...defaultNormalChatHandoffMessages()
+    ];
+  }
+  function defaultNormalChatHandoffMessages() {
+    return [
       {
-        id: "dp-handoff-1",
+        id: "nc-u-1",
+        who: "user",
+        t: "哈宝，我今天早上吃完倍他乐克和阿司匹林，站起来的时候有点轻微头晕，下午量心率 86 次/分，要紧吗？",
+        timeLabel: "10:48"
+      },
+      {
+        id: "nc-a-1",
         who: "ai",
-        t: "",
-        doctorPushCard: {
-          kind: "humanHandoff",
-          title: "检测到您近期反馈服药后偶发头晕伴下午心率偏快，涉及个体化处方评估，建议转交后台主诊医生人工核阅：",
-          pushedAtLabel: "10:55",
-          handoffItems: [
-            "症状摘要｜服药后偶发轻微头晕，下午静息心率 86 次/分",
-            "关联用药｜每日 08:00 阿司匹林、20:00 阿托伐他汀、倍他乐克",
-            "转接团队｜心内科王主任团队（同步病历与近期血压心率曲线）"
-          ],
-          handoffDecision: "pending",
-          handoffDoctorName: "真人医生 · 王主任（心内科主诊）",
-          handoffDoctorReply: "您好，我是您的后台康复主诊王医生，已收到哈宝转交的问诊记录与近期血压心率曲线。您下午心率 86 次/分伴轻微头晕，可能与倍他乐克服药时段或午后饮水偏少有关：建议今明两天早晚静坐复测血压心率，暂勿自行加减药量；如头晕加重请随时在对话里告诉我。"
-        }
+        t: "收到。支架术后静息心率 86 次/分略偏快（理想目标通常在 55–60 次/分左右），起身轻微头晕常见于体位变化过快或血压偏低。请问您今天测过血压吗？有没有胸闷、出冷汗或眼前发黑？",
+        timeLabel: "10:49"
+      },
+      {
+        id: "nc-u-2",
+        who: "user",
+        t: "刚才测了血压是 106/64，没有胸闷出汗，就是觉得下午人有点乏，不知道晚上的药要不要减半？",
+        timeLabel: "10:51"
+      },
+      {
+        id: "nc-a-2",
+        who: "ai",
+        t: "血压 106/64 属于正常偏低范围，请先不要自行将药物减半。因为涉及倍他乐克与降压方案的剂量核对，我已为您接通后台主诊王主任为您直接解答。",
+        timeLabel: "10:52"
+      },
+      {
+        id: "nc-h-1",
+        who: "ai",
+        isHumanDoctorReply: true,
+        humanDoctorTitle: "人工医生 · 王主任",
+        t: "李叔您好，我是王医生，刚在后台看到您的留言和血压心率记录。血压 106/64 不用太担心，今晚的阿托伐他汀和明早的倍他乐克先按原剂量正常吃，千万别自己减半，起身和下床时动作放慢一点。",
+        timeLabel: "10:53"
+      },
+      {
+        id: "nc-h-2",
+        who: "ai",
+        isHumanDoctorReply: true,
+        humanDoctorTitle: "人工医生 · 王主任",
+        t: "您今明两天早晚各测一次血压和心率发在这里，我帮您盯着；要是高压连续低于 100 或者头晕加重，我再在后台给您微调处方。",
+        timeLabel: "10:54"
       }
     ];
   }
   function ensureDoctorPushSeed(forceReset) {
     if (!S.consultFilter) S.consultFilter = "all";
     if (!Array.isArray(S.messages)) S.messages = [];
-    const seedCount = S.messages.filter((m) => m && m.doctorPushCard).length;
-    if (forceReset || !S.doctorPushSeedV10251 || seedCount !== 4) {
-      const rest = forceReset ? [] : S.messages.filter((m) => !m.doctorPushCard && !m.isHumanDoctorReply);
-      S.messages = [...defaultDoctorPushMessages(), ...rest];
-      S.doctorPushSeedV10251 = true;
+    const pushCount = S.messages.filter((m) => m && m.doctorPushCard).length;
+    const hasNormalHandoff = S.messages.some((m) => m && m.isHumanDoctorReply && !m.doctorPushCard);
+    if (forceReset || !S.doctorPushSeedV10252 || pushCount !== 3 || !hasNormalHandoff) {
+      S.messages = defaultDoctorPushMessages();
+      S.doctorPushSeedV10252 = true;
     }
   }
   function consultDoctorPushCardHTML(m) {
@@ -3591,32 +3618,6 @@
           ${c.educationRead
             ? `<div style="flex:1;height:32px;border-radius:99px;background:rgba(16,84,224,.04);color:rgba(16,84,224,.65);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center">✓ 已读</div>`
             : `<button type="button" data-act="markEduRead" data-id="${esc(m.id)}" style="flex:1;height:32px;border-radius:99px;border:none;background:#1054E0;color:#fff;font-size:13px;font-weight:700;cursor:pointer">✓ 知道了</button>`}
-        </div>
-      `;
-    } else if (c.kind === "humanHandoff") {
-      const items = Array.isArray(c.handoffItems) ? c.handoffItems : [];
-      listRowsHTML = items.map((pt, idx) => `
-        <div style="display:flex;align-items:center;gap:6px;padding:5px 0;${idx < items.length - 1 ? "border-bottom:1px solid rgba(16,84,224,.08);" : ""}">
-          <span style="width:5px;height:5px;border-radius:50%;background:#1054E0;flex-shrink:0"></span>
-          <span style="font-size:13px;font-weight:500;color:rgba(16,84,224,.92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(pt)}</span>
-        </div>
-      `).join("");
-
-      const decision = c.handoffDecision || "pending";
-      actionsHTML = decision === "pending" ? `
-        <div style="display:flex;gap:8px">
-          <button type="button" data-act="dismissHumanHandoff" data-id="${esc(m.id)}" style="flex:1;height:32px;border-radius:99px;border:1px solid rgba(16,84,224,.16);background:rgba(16,84,224,.07);color:#1054E0;font-size:13px;font-weight:700;cursor:pointer">暂不转接</button>
-          <button type="button" data-act="transferHumanHandoff" data-id="${esc(m.id)}" style="flex:1;height:32px;border-radius:99px;border:none;background:#1054E0;color:#fff;font-size:13px;font-weight:700;cursor:pointer">转人工医生 ›</button>
-        </div>
-      ` : decision === "transferred" ? `
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-          <span style="font-size:13px;font-weight:700;color:#1054E0">✓ 已转交后台人工医生</span>
-          <span style="height:26px;padding:0 10px;background:rgba(16,84,224,.09);color:#1054E0;font-size:12px;font-weight:700;border-radius:99px;display:inline-flex;align-items:center;flex-shrink:0">真人医生已接力</span>
-        </div>
-      ` : `
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-          <span style="font-size:13px;font-weight:600;color:#6E7D96">暂不转接人工</span>
-          <button type="button" data-act="transferHumanHandoff" data-id="${esc(m.id)}" style="height:27px;padding:0 10px;border:none;background:rgba(16,84,224,.09);color:#1054E0;font-size:12.5px;font-weight:700;border-radius:99px;cursor:pointer;flex-shrink:0">转人工医生 ›</button>
         </div>
       `;
     }
@@ -6787,12 +6788,27 @@
         const photo = S.pendingImage ? "（图片）" : "";
         const hadImage = !!S.pendingImage;
         const userText = `${photo}${v || "请帮我看看这张图片"}`;
-        S.messages.push({ id: `msg-u-${Date.now()}`, who: "user", t: userText });
+        if (S.consultFilter === "emptyGreeting") {
+          S.consultFilter = "normalChat";
+        } else if (S.consultFilter && S.consultFilter !== "all" && S.consultFilter !== "normalChat") {
+          S.consultFilter = "all";
+        }
+        S.messages.push({ id: `msg-u-${Date.now()}`, who: "user", t: userText, timeLabel: "10:56" });
         if (!genHasVip()) {
           S.messages.push({ id: `msg-v-${Date.now()}`, who: "vip", t: "需购买 VIP 才能使用哈宝问诊" });
+        } else if (S.replyAsHumanDoctor) {
+          const shortTopic = userText.length > 16 ? `${userText.slice(0, 16)}…` : userText;
+          S.messages.push({
+            id: `msg-h-${Date.now()}`,
+            who: "ai",
+            isHumanDoctorReply: true,
+            humanDoctorTitle: "人工医生 · 王主任",
+            t: `我刚在后台看到您说的「${shortTopic}」了。结合您支架术后的恢复阶段和当前用药，目前整体情况平稳，建议今天早晚静坐复测一次血压和心率；如果还有不舒服，随时在对话里直接跟我说。`,
+            timeLabel: "10:56"
+          });
         } else {
           const routed = routeFreeConsultTurn(v || "请帮我看看这张图片", hadImage);
-          S.messages.push({ id: `msg-a-${Date.now()}`, who: "ai", t: routed.reply });
+          S.messages.push({ id: `msg-a-${Date.now()}`, who: "ai", t: routed.reply, timeLabel: "10:56" });
         }
         S.chatDraft = "";
         S.pendingImage = false;
@@ -6800,65 +6816,53 @@
         S.consultKeyboard = false;
         render();
       },
+      openConsultScenarioModal() {
+        S.consultScenarioModal = !S.consultScenarioModal;
+        render();
+      },
+      closeConsultScenarioModal() {
+        S.consultScenarioModal = false;
+        render();
+      },
       setConsultFilter() {
-        S.consultFilter = el.dataset.f || "all";
+        const nextFilter = el.dataset.f || "all";
+        S.consultFilter = nextFilter;
+        if (nextFilter === "normalChat" || nextFilter === "all") {
+          const hasNormalHandoff = (S.messages || []).some((m) => m && m.isHumanDoctorReply && !m.doctorPushCard);
+          if (!hasNormalHandoff) {
+            S.messages = [...(S.messages || []), ...defaultNormalChatHandoffMessages()];
+          }
+        }
+        S.consultScenarioModal = false;
+        render();
+      },
+      setConsultReplyMode() {
+        S.replyAsHumanDoctor = el.dataset.mode === "human";
+        render();
+      },
+      simulateHumanDoctorBubble() {
+        if (S.consultFilter !== "all" && S.consultFilter !== "normalChat") {
+          S.consultFilter = "normalChat";
+        }
+        S.replyAsHumanDoctor = true;
+        S.consultScenarioModal = false;
+        S.messages.push({
+          id: `msg-h-${Date.now()}`,
+          who: "ai",
+          isHumanDoctorReply: true,
+          humanDoctorTitle: "人工医生 · 王主任",
+          t: "李叔，我在后台看到您今天上午的对话记录了。这几天降温明显，出门散步记得戴好帽子围巾，早晚测完血压直接发在对话里就行，我随时在后台帮您看着。",
+          timeLabel: "10:58"
+        });
+        toast("已模拟后台人工医生直接发送正常聊天气泡");
         render();
       },
       resetConsultDemo() {
         ensureDoctorPushSeed(true);
         S.consultFilter = "all";
-        toast("已重置哈宝问诊 4 类状况（含气泡转人工）");
-        render();
-      },
-      transferHumanHandoff() {
-        const id = el.dataset.id;
-        const msg = (S.messages || []).find((m) => m.id === id);
-        if (!msg || !msg.doctorPushCard) return;
-        const c = msg.doctorPushCard;
-        if (c.handoffDecision === "transferred") return;
-        c.handoffDecision = "transferred";
-        S.messages.push({
-          id: `msg-human-${Date.now()}`,
-          who: "ai",
-          isHumanDoctorReply: true,
-          humanDoctorTitle: c.handoffDoctorName || "真人医生 · 王主任（心内科主诊）",
-          t: c.handoffDoctorReply || "您好，我是您的后台康复主诊王医生，已收到哈宝转交的问诊记录与近期血压心率曲线。您下午心率 86 次/分伴轻微头晕，可能与倍他乐克服药时段或午后饮水偏少有关：建议今明两天早晚静坐复测血压心率，暂勿自行加减药量；如头晕加重请随时在对话里告诉我。"
-        });
-        toast("已转交后台人工医生，王主任已介入回复");
-        render();
-      },
-      dismissHumanHandoff() {
-        const id = el.dataset.id;
-        const msg = (S.messages || []).find((m) => m.id === id);
-        if (!msg || !msg.doctorPushCard) return;
-        msg.doctorPushCard.handoffDecision = "dismissed";
-        render();
-      },
-      transferBubbleToHuman() {
-        const id = el.dataset.id;
-        const idx = (S.messages || []).findIndex((m) => m.id === id);
-        if (idx < 0) return;
-        const msg = S.messages[idx];
-        if (msg.isTransferredToHuman) return;
-        msg.isTransferredToHuman = true;
-        let latestPrompt = "";
-        for (let i = idx - 1; i >= 0; i--) {
-          if (S.messages[i] && S.messages[i].who === "user") {
-            latestPrompt = (S.messages[i].t || "").trim();
-            break;
-          }
-        }
-        const shortTopic = latestPrompt
-          ? `您刚才咨询的「${latestPrompt.slice(0, 18)}${latestPrompt.length > 18 ? "…" : ""}」`
-          : "您刚才咨询的情况";
-        S.messages.push({
-          id: `msg-human-${Date.now()}`,
-          who: "ai",
-          isHumanDoctorReply: true,
-          humanDoctorTitle: "真人医生 · 王主任（心内科主诊）",
-          t: `您好，我是您的后台康复主诊王医生，已收到哈宝转交的问诊记录。针对${shortTopic}，我已结合您的出院诊断与近期康复计划做了人工复核：目前整体恢复平稳，请继续按当前医嘱规律服药与监测；若后续出现持续不适或指标波动，可随时在此直接留言，我会为您跟进调整方案。`
-        });
-        toast("已转交后台人工医生，王主任已接力回复");
+        S.replyAsHumanDoctor = false;
+        S.consultScenarioModal = false;
+        toast("已重置哈宝问诊全部演示数据");
         render();
       },
       acceptDoctorPlan() {
@@ -11331,7 +11335,7 @@
       </div>`;
     },
 
-    // 哈宝医生对话问诊页：支持后台医生推送新计划（接受/拒绝）、提醒完成随访、日常康复宣教三类状况及自由问诊。
+    // 哈宝医生对话问诊页：支持后台医生推送新计划（接受/拒绝）、提醒完成随访、日常康复宣教三类功能气泡，以及正常多轮聊天气泡随时转人工（由右上角「状况」状态控制面板切换展示不同情形）。
     consult: () => {
       ensureCareGraph();
       ensureSeededCareNotices();
@@ -11346,31 +11350,37 @@
       );
       const visibleMessages = allVisible.filter((m, idx) => {
         if (!m.id) m.id = `msg-auto-${idx}`;
+        if (curFilter === "emptyGreeting") return false;
         if (curFilter === "all") return true;
-        if (curFilter === "humanHandoff") {
-          return (m.doctorPushCard && m.doctorPushCard.kind === "humanHandoff") || !!m.isHumanDoctorReply;
-        }
+        if (curFilter === "normalChat") return !m.doctorPushCard;
         if (!m.doctorPushCard) return false;
         if (curFilter === "planPush") return m.doctorPushCard.kind === "planProposal";
         if (curFilter === "followUp") return m.doctorPushCard.kind === "followUpReminder";
         if (curFilter === "education") return m.doctorPushCard.kind === "dailyEducation";
         return true;
       });
-      const filterPills = [
-        { k: "all", t: "全部" },
-        { k: "planPush", t: "医生推计划" },
-        { k: "followUp", t: "随访提醒" },
-        { k: "education", t: "日常宣教" },
-        { k: "humanHandoff", t: "转人工" },
-      ].map((f) => {
-        const on = curFilter === f.k;
-        return `<button type="button" data-act="setConsultFilter" data-f="${f.k}" style="height:31px;padding:0 11px;border-radius:99px;border:1px solid ${on ? "#1054E0" : "rgba(16,84,224,.14)"};background:${on ? "#1054E0" : "#fff"};color:${on ? "#fff" : "#1A2947"};font-size:13px;font-weight:${on ? 700 : 600};cursor:pointer;white-space:nowrap">${f.t}</button>`;
-      }).join("");
+      const scenarioOptions = [
+        { k: "all", short: "全部", t: "全部情形总览", sub: "同时展示 3 类功能气泡 + 正常对话随时转人工" },
+        { k: "normalChat", short: "正常对话", t: "正常对话 · 随时转人工", sub: "纯普通对话气泡：前段 AI 回复，中途转人工医生直接发普通气泡" },
+        { k: "planPush", short: "推计划", t: "后台医生推送新计划", sub: "功能气泡 1：3 项康复计划清单 + 接受/拒绝" },
+        { k: "followUp", short: "随访", t: "提醒用户完成随访", sub: "功能气泡 2：随访问卷进度清单 + 去完成随访" },
+        { k: "education", short: "宣教", t: "日常康复宣教信息", sub: "功能气泡 3：术后护心要点清单 + 就此提问/知道了" },
+        { k: "emptyGreeting", short: "空态", t: "初始空态问候", sub: "展示未发生对话时的初始问候卡" }
+      ];
+      const activeScenario = scenarioOptions.find((o) => o.k === curFilter) || scenarioOptions[0];
+      const isCustomState = !!S.consultScenarioModal || curFilter !== "all" || !!S.replyAsHumanDoctor;
+      const statusBtnLabel = (curFilter === "all" && !S.replyAsHumanDoctor)
+        ? "状况"
+        : `状况·${curFilter === "all" && S.replyAsHumanDoctor ? "人工" : activeScenario.short}`;
       const plusItem = (act, icon, label) =>
         `<button class="plus-item" type="button" data-act="${act}"><span>${icon}</span>${label}</button>`;
       return `
       <div class="page rel${S.consultKeyboard ? " consult-kb" : ""}${S.plusPanel ? " consult-panel" : ""}">
-        ${navBar(cap(I.chevL, "返回"), `<span class="flex center gap6"><img src="${A.logo}" width="24" height="24" alt="" />哈宝医生</span>`, `<button class="pill-btn" type="button" data-act="resetConsultDemo" style="font-size:13px;font-weight:700;color:#1054E0;padding:0 11px;height:32px">状况</button>`)}
+        ${navBar(
+          cap(I.chevL, "返回"),
+          `<span class="flex center gap6"><img src="${A.logo}" width="24" height="24" alt="" />哈宝医生</span>`,
+          `<button class="pill-btn" type="button" data-act="openConsultScenarioModal" style="font-size:13px;font-weight:700;color:${isCustomState ? "#fff" : "#1054E0"};background:${isCustomState ? "#1054E0" : ""};padding:0 11px;height:32px">${esc(statusBtnLabel)}</button>`
+        )}
         <div class="scroll px20 grow">
           ${!visibleMessages.length ? `
             <div class="island-card ta-c" style="padding:16px;margin-top:12px;margin-bottom:10px">
@@ -11379,52 +11389,97 @@
               <p class="s16 t-sec">有不适或用药疑问，都可以问我</p>
             </div>
           ` : ""}
-          ${visibleMessages.map((m) => (m.who === "vip" ? `
-            <div class="chat-msg-row ai">
-              <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
-              ${genHasVip() ? `<div class="bubble ai">${CONSULT_VIP_GREETING}</div>` : consultVipCardHTML()}
-            </div>
-          ` : m.who === "user" ? `
-            <div class="chat-msg-row user">
-              <div class="bubble user">${m.t}</div>
-              <div class="chat-avatar user" aria-label="我的头像">${I.person}</div>
-            </div>
-          ` : (m.doctorPushCard && !m.t) ? `
-            <div class="chat-msg-row ai" style="align-items:flex-start">
-              <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
-              <div style="flex:1;min-width:0">
-                ${consultDoctorPushCardHTML(m)}
+          ${visibleMessages.map((m, idx) => {
+            const prev = idx > 0 ? visibleMessages[idx - 1] : null;
+            const showTransitionTip = !!m.isHumanDoctorReply && (!prev || !prev.isHumanDoctorReply);
+            const transitionHTML = showTransitionTip ? `
+              <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:6px 12px;margin:4px 0 8px">
+                <span style="width:26px;height:1px;background:rgba(16,84,224,.18)"></span>
+                <span style="font-size:12px;font-weight:600;color:#6E7D96">后台人工医生（王主任）已接入对话</span>
+                <span style="width:26px;height:1px;background:rgba(16,84,224,.18)"></span>
               </div>
-            </div>
-          ` : `
-            <div class="chat-msg-row ai" style="align-items:flex-start">
-              <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
-              <div style="flex:1;min-width:0">
-                <div class="bubble ai" style="${m.isHumanDoctorReply ? "border:1.2px solid rgba(16,84,224,.22);" : ""}">
-                  ${m.isHumanDoctorReply ? `
-                    <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:5px 10px;margin-bottom:8px;border-radius:10px;background:rgba(16,84,224,.07);color:#1054E0;font-size:12.5px;font-weight:700">
-                      <span>🩺 ${esc(m.humanDoctorTitle || "真人医生 · 王主任（心内科主诊）")}</span>
-                      <span style="padding:2px 7px;border-radius:99px;background:#1054E0;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">人工接力</span>
-                    </div>
-                  ` : ""}
-                  <div>${m.t}</div>
-                  ${!m.isHumanDoctorReply && !m.doctorPushCard ? `
-                    <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(16,84,224,.08);display:flex;align-items:center;justify-content:space-between;gap:8px">
-                      ${m.isTransferredToHuman ? `
-                        <span style="font-size:12.5px;font-weight:700;color:#1054E0">✓ 已转交后台人工医生</span>
-                        <span style="font-size:11.5px;font-weight:600;color:#6E7D96">真人医生已接力</span>
-                      ` : `
-                        <span style="font-size:12.5px;font-weight:500;color:#6E7D96">需要主诊医生人工解答？</span>
-                        <button type="button" data-act="transferBubbleToHuman" data-id="${esc(m.id)}" style="height:27px;padding:0 10px;border-radius:99px;border:1px solid rgba(16,84,224,.16);background:rgba(16,84,224,.09);color:#1054E0;font-size:12.5px;font-weight:700;cursor:pointer;flex-shrink:0">转人工医生 ›</button>
-                      `}
-                    </div>
-                  ` : ""}
+            ` : "";
+            if (m.who === "vip") {
+              return `
+                <div class="chat-msg-row ai">
+                  <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
+                  ${genHasVip() ? `<div class="bubble ai">${CONSULT_VIP_GREETING}</div>` : consultVipCardHTML()}
+                </div>`;
+            }
+            if (m.who === "user") {
+              return `
+                <div class="chat-msg-row user">
+                  <div>
+                    <div class="bubble user">${m.t}</div>
+                    ${m.timeLabel ? `<div style="font-size:12px;font-weight:500;color:#6E7D96;margin-top:4px;text-align:right;padding-right:2px">${esc(m.timeLabel)}</div>` : ""}
+                  </div>
+                  <div class="chat-avatar user" aria-label="我的头像">${I.person}</div>
+                </div>`;
+            }
+            if (m.doctorPushCard && !m.t) {
+              return `
+                <div class="chat-msg-row ai" style="align-items:flex-start">
+                  <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
+                  <div style="flex:1;min-width:0">
+                    ${consultDoctorPushCardHTML(m)}
+                  </div>
+                </div>`;
+            }
+            return `
+              ${transitionHTML}
+              <div class="chat-msg-row ai" style="align-items:flex-start">
+                <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
+                <div style="flex:1;min-width:0">
+                  <div class="bubble ai">
+                    ${m.isHumanDoctorReply ? `
+                      <div style="font-size:12px;font-weight:700;color:rgba(16,84,224,.85);margin-bottom:4px">🩺 ${esc(m.humanDoctorTitle || "人工医生 · 王主任")}</div>
+                    ` : ""}
+                    <div>${m.t}</div>
+                  </div>
+                  ${m.doctorPushCard ? consultDoctorPushCardHTML(m) : ""}
+                  ${m.timeLabel ? `<div style="font-size:12px;font-weight:500;color:#6E7D96;margin-top:4px;padding-left:2px">${esc(m.timeLabel)}</div>` : ""}
                 </div>
-                ${m.doctorPushCard ? consultDoctorPushCardHTML(m) : ""}
+              </div>`;
+          }).join("")}
+        </div>
+        ${S.consultScenarioModal ? `
+          <div style="position:absolute;inset:0;z-index:90;background:rgba(15,23,42,.32);display:flex;flex-direction:column;justify-content:flex-end" data-act="closeConsultScenarioModal">
+            <div style="background:#F7FAFF;border-radius:24px 24px 0 0;padding:16px 16px 22px;box-shadow:0 -8px 28px rgba(16,84,224,.15);max-height:82%;overflow-y:auto" onclick="event.stopPropagation()">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                <div>
+                  <div style="font-size:17px;font-weight:800;color:#1054E0">哈宝医生 · 状况状态控制</div>
+                  <div style="font-size:12px;font-weight:500;color:#6E7D96;margin-top:2px">供开发与验收直接切换展示不同对话情形</div>
+                </div>
+                <button type="button" data-act="closeConsultScenarioModal" style="width:28px;height:28px;border-radius:50%;border:none;background:rgba(16,84,224,.08);color:#1054E0;font-size:14px;font-weight:700;cursor:pointer">✕</button>
+              </div>
+              <div style="font-size:12.5px;font-weight:700;color:#6E7D96;margin-bottom:6px">1. 切换页面展示情形</div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                ${scenarioOptions.map((opt) => {
+                  const sel = curFilter === opt.k;
+                  return `
+                    <button type="button" data-act="setConsultFilter" data-f="${opt.k}" style="text-align:left;padding:9px 11px;border-radius:13px;border:${sel ? "1.4px solid rgba(16,84,224,.35)" : "1px solid rgba(16,84,224,.08)"};background:${sel ? "rgba(16,84,224,.08)" : "#fff"};cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px">
+                      <div style="min-width:0;flex:1">
+                        <div style="font-size:14px;font-weight:700;color:#1054E0">${esc(opt.t)}</div>
+                        <div style="font-size:11.5px;font-weight:500;color:#6E7D96;margin-top:2px">${esc(opt.sub)}</div>
+                      </div>
+                      <span style="width:20px;height:20px;border-radius:50%;background:${sel ? "#1054E0" : "transparent"};border:${sel ? "none" : "1.5px solid rgba(16,84,224,.25)"};color:#fff;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">${sel ? "✓" : ""}</span>
+                    </button>`;
+                }).join("")}
+              </div>
+              <div style="font-size:12.5px;font-weight:700;color:#6E7D96;margin:12px 0 6px">2. 正常对话回复身份（模拟随时转人工）</div>
+              <div style="background:#fff;border:1px solid rgba(16,84,224,.10);border-radius:14px;padding:10px">
+                <div style="display:flex;gap:8px">
+                  <button type="button" data-act="setConsultReplyMode" data-mode="ai" style="flex:1;height:34px;border-radius:99px;border:${!S.replyAsHumanDoctor ? "none" : "1px solid rgba(16,84,224,.16)"};background:${!S.replyAsHumanDoctor ? "#1054E0" : "rgba(16,84,224,.06)"};color:${!S.replyAsHumanDoctor ? "#fff" : "#1054E0"};font-size:12.5px;font-weight:700;cursor:pointer">AI 自动回复气泡</button>
+                  <button type="button" data-act="setConsultReplyMode" data-mode="human" style="flex:1;height:34px;border-radius:99px;border:${S.replyAsHumanDoctor ? "none" : "1px solid rgba(16,84,224,.16)"};background:${S.replyAsHumanDoctor ? "#1054E0" : "rgba(16,84,224,.06)"};color:${S.replyAsHumanDoctor ? "#fff" : "#1054E0"};font-size:12.5px;font-weight:700;cursor:pointer">人工医生回复气泡</button>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:8px">
+                  <button type="button" data-act="simulateHumanDoctorBubble" style="flex:1;height:32px;border-radius:99px;border:none;background:rgba(16,84,224,.08);color:#1054E0;font-size:12px;font-weight:700;cursor:pointer">+ 模拟人工医生发普通气泡</button>
+                  <button type="button" data-act="resetConsultDemo" style="padding:0 12px;height:32px;border-radius:99px;border:none;background:rgba(16,84,224,.05);color:#6E7D96;font-size:12px;font-weight:700;cursor:pointer">重置默认数据</button>
+                </div>
               </div>
             </div>
-          `)).join("")}
-        </div>
+          </div>
+        ` : ""}
         ${S.pendingImage ? `<div class="consult-pending">已选 1 张图片，补充一句再发送</div>` : ""}
         <div class="listen-hint" id="listen-hint" hidden></div>
         <div class="chat-row">
