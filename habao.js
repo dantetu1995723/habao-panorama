@@ -1063,7 +1063,7 @@
   })();
 
   const HOW_LAB = { root: "根页", push: "压栈", cover: "全屏", replace: "替换", sheet: "贴底" };
-  const MODULE_COVERS = new Set(["schedule", "vitals", "report", "walk", "consult", "stamps", "profile"]);
+  const MODULE_COVERS = new Set(["schedule", "vitals", "report", "walk", "consult", "stamps", "profile", "family"]);
   const EDGE = {
     "onboard-login>onboard-profile": "push",
     "home>profile": "cover",
@@ -3869,16 +3869,25 @@
     if (S.taskId === id) S.taskId = SEED[0]?.id || "t4";
     if (S.centerStage === id) S.centerStage = null;
   }
+  function findEditableTask(id) {
+    if (S.proxyTargetPersonName) {
+      const bucket = ensurePersonStore(S.proxyTargetPersonName);
+      return (bucket.tasks || []).find((x) => String(x.id) === String(id));
+    }
+    return SEED.find((x) => String(x.id) === String(id));
+  }
   function upsertTask(id, patch) {
-    const t = SEED.find((x) => x.id === id);
+    const t = findEditableTask(id);
     if (t) Object.assign(t, patch);
     return t;
   }
-  // 编辑页草稿回写计划条目（真机 AddEditTaskView save → rehabPlanStore.update）
+  // 编辑页草稿回写计划条目（真机 AddEditTaskView save → rehabPlanStore.update / familyStore.updateProxyTask）
   function applyDraftToTask(id, d) {
     if (!d) return;
     // V0.1：用户自己改过本期的医嘱计划，期末反馈里标「自行调整」
-    if (S.plan && S.plan.cur && (S.plan.cur.ids || []).includes(id)) (S.plan.cur.selfEdited = S.plan.cur.selfEdited || {})[id] = true;
+    if (!S.proxyTargetPersonName && S.plan && S.plan.cur && (S.plan.cur.ids || []).includes(id)) {
+      (S.plan.cur.selfEdited = S.plan.cur.selfEdited || {})[id] = true;
+    }
     upsertTask(id, {
       title: d.title,
       cat: d.cat,
@@ -3895,6 +3904,11 @@
       customId: d.customId || undefined,
       onceDate: d.onceDate || undefined,
     });
+    if (S.proxyTargetPersonName) {
+      const bucket = ensurePersonStore(S.proxyTargetPersonName);
+      if (bucket.tasks) bucket.tasks.sort((a, b) => (a.h ?? 8) - (b.h ?? 8) || (a.m ?? 0) - (b.m ?? 0));
+      return;
+    }
     // 「家属通知」同样随「确认」落库（真机 familyNotificationEnabled）
     S.famOff[id] = d.famNotify === false;
     // 「本次提醒」同样随「确认」落库（真机 mutedDays）
@@ -4608,6 +4622,8 @@
     resetBasisEdits();
     S.pendingManualEnroll = false;
     S.draftReturn = null;
+    S.proxyTargetPersonName = null;
+    S.proxyIsFirstCreate = false;
     // V10.52：计划页家属「去填写」链路标记，离开即清
     S.famFillJump = false;
     // 会话归属跟着会话走：离开运动链就清掉，免得下次自由运动占用上一次的计划
@@ -5955,6 +5971,77 @@
         render();
       },
       confirmPlan() {
+        if (S.proxyTargetPersonName) {
+          ensureCareGraph();
+          const me = currentDemoPerson();
+          const famName = S.proxyTargetPersonName;
+          const isFirst = !!S.proxyIsFirstCreate;
+          const draftItems = (S.confirmDrafts || []).map((d, i) => {
+            const [hh, mm] = String(d.time || "08:00").split(":").map((n) => parseInt(n, 10) || 0);
+            return {
+              id: `p_d_${Date.now()}_${i}`,
+              title: d.title,
+              cat: d.cat || "medication",
+              h: hh,
+              m: mm,
+              cycle: d.cycle !== false,
+              rule: d.cycle === false ? "once" : "daily",
+              note: d.note || (d.cat === "medication" ? confirmMedNote(d.title) : ""),
+            };
+          });
+          const apptItems = confirmApptItems().map((a, i) => {
+            const [hh, mm] = String(a.time || "09:30").split(":").map((n) => parseInt(n, 10) || 0);
+            return {
+              id: `p_a_${Date.now()}_${i}`,
+              title: a.title,
+              cat: "appointment",
+              h: hh,
+              m: mm,
+              cycle: false,
+              rule: "once",
+              note: a.sub || "携带出院小结与近期血压记录",
+            };
+          });
+          const restItems = isFirst ? (S.restRows || []).filter((r) => !draftItems.some((d) => d.title === r.name)).map((r, i) => ({
+            id: `p_r_${Date.now()}_${i}`,
+            title: r.name,
+            cat: ["早餐", "午餐", "晚餐"].includes(r.name) ? "diet" : (r.cat || "rest"),
+            h: r.h ?? 7,
+            m: r.m ?? 0,
+            cycle: true,
+            rule: "daily",
+            note: "",
+          })) : [];
+          const batch = [...draftItems, ...apptItems, ...restItems];
+          const summaryTitle = isFirst
+            ? `首次创建康复计划（共 ${batch.length} 项）`
+            : `更新用药与复查计划（共 ${batch.length} 项）`;
+          const summaryNote = isFirst
+            ? `含用药、复查与日常作息共 ${batch.length} 项`
+            : `含用药与复查共 ${batch.length} 项`;
+          const snapshot = {
+            id: `proxy_batch_${Date.now()}`,
+            title: summaryTitle,
+            cat: "medication",
+            h: 8,
+            m: 0,
+            cycle: true,
+            rule: "daily",
+            note: summaryNote,
+          };
+          sendProxyRequestFor({
+            senderName: me.name,
+            recipientName: famName,
+            kind: isFirst ? "firstCreatePlan" : "refreshMedicationPlan",
+            targetTaskId: snapshot.id,
+            taskSnapshot: snapshot,
+            batchTasks: batch,
+            summaryNote,
+          });
+          closeFlow();
+          toast(isFirst ? `已为${famName}首次创建计划（共 ${batch.length} 项）` : `已为${famName}更新用药与复查计划（共 ${batch.length} 项）`);
+          return;
+        }
         const wasEnrolled = S.enrolled;
         // 操作记录：资料 + 各类计划合成一条（真机 recordPlanConfirmed）
         const written = [
@@ -6125,7 +6212,7 @@
       },
       draftCycle() {
         if (!S.draft || S.lockRecurrence) return;
-        const orig = SEED.find((x) => x.id === S.taskId);
+        const orig = findEditableTask(S.taskId);
         const nextCycle = el.dataset.v === "1";
         S.draft.cycle = nextCycle;
         if (S.screen === "task-edit" && orig) {
@@ -6349,7 +6436,7 @@
       },
       openOccurrenceDate() {
         if (!S.draft) return;
-        const orig = SEED.find((x) => x.id === S.taskId);
+        const orig = findEditableTask(S.taskId);
         const floor = toYMD(demoDate());
         const ymd = S.draft.occurrence || defaultNewPlanStartYmd(orig);
         openOverlay("datePick", { selected: ymd, month: ymd, kind: "occurrence", minYmd: floor });
@@ -6372,7 +6459,7 @@
         } else if (S.overlayData.kind === "occurrence" && S.draft) {
           const nextOcc = el.dataset.ymd;
           S.draft.occurrence = nextOcc;
-          const orig = SEED.find((x) => x.id === S.taskId);
+          const orig = findEditableTask(S.taskId);
           if (orig && orig.endDate && !S.draft.touchedDuration && nextOcc >= orig.endDate) {
             S.draft.endDate = null;
             S.draft.duration = "oneYear";
@@ -6410,7 +6497,7 @@
           S.overlayData.selected = ymd;
           S.overlayData.month = ymd;
           S.draft.occurrence = ymd;
-          const orig = S.tasks.find(t => t.id === S.draft.id);
+          const orig = findEditableTask(S.taskId);
           if (orig && orig.endDate && !S.draft.touchedDuration) {
             const minDays = customDurMinDays(S.draft.rule || "daily");
             const remDays = Math.floor((parseYMD(orig.endDate) - parseYMD(ymd)) / 86400000) + 1;
@@ -6743,8 +6830,16 @@
         // V10.98：有存量也直接进拍摄取景——存量组列在底部组轨道，不再先落资料详情
         replace("ocr-capture");
       },
-      // 运动链独立草稿：先清空，进确认页时再种（避免沿用用药链的草稿）
-      typeEx() { S.contra = false; S.confirmDrafts = null; replace("exercise-risk"); },
+      // 运动链独立草稿：先清空，进确认页时再种（避免沿用用药链的草稿）；家属代办时进运动体测邀请页（真机 CreateScheduleFlowView.proxyExerciseInviteStep）
+      typeEx() {
+        if (S.proxyTargetPersonName) {
+          go("proxy-exercise-invite", "push");
+          return;
+        }
+        S.contra = false;
+        S.confirmDrafts = null;
+        replace("exercise-risk");
+      },
       typeDaily() {
         const presets = {
           monitoring: { title: "", note: "安静休息 5 分钟后测量，记录收缩压、舒张压与心率。", h: 7, m: 0 },
@@ -6762,7 +6857,7 @@
         replace("task-add");
       },
       editTask() {
-        const orig = SEED.find((x) => x.id === S.taskId);
+        const orig = findEditableTask(S.taskId);
         initDraft(orig);
         if (S.draft) {
           const defaultStart = defaultNewPlanStartYmd(orig);
@@ -6776,7 +6871,7 @@
         syncDraftInputs();
         if (!S.draft?.title) { toast("请填写事项名称"); return; }
         const risk = evaluatePlanRiskFor({
-          personName: activePersonName(),
+          personName: S.proxyTargetPersonName || activePersonName(),
           cat: S.draft.cat,
           title: S.draft.title,
           hour: S.draft.hour,
@@ -6784,7 +6879,7 @@
           cycle: !!S.draft.cycle,
           rule: S.draft.rule || "daily",
           editingTaskId: S.taskId,
-          isProxyAction: false,
+          isProxyAction: !!S.proxyTargetPersonName,
         });
         if (risk.hasHardBlock) {
           toast(risk.hardBlockMessage);
@@ -6804,7 +6899,7 @@
       },
       proceedSaveTaskAfterRisk() {
         closeOverlay();
-        const orig = SEED.find((x) => x.id === S.taskId);
+        const orig = findEditableTask(S.taskId);
         const prompt = buildScheduleUpdatePrompt(orig, S.draft);
         if (prompt) {
           openOverlay("confirm", {
@@ -6819,9 +6914,55 @@
         map.commitSaveTask();
       },
       commitSaveTask() {
-        const orig = SEED.find((x) => x.id === S.taskId);
+        const orig = findEditableTask(S.taskId);
         const prompt = buildScheduleUpdatePrompt(orig, S.draft);
         closeOverlay();
+        if (S.proxyTargetPersonName && orig && S.draft) {
+          const famName = S.proxyTargetPersonName;
+          const me = currentDemoPerson();
+          const bucket = ensurePersonStore(famName);
+          const famTasks = bucket.tasks || (bucket.tasks = []);
+          const today = toYMD(demoDate());
+          let savedTask = orig;
+          if (prompt && prompt.splitsSeries) {
+            const origStart = orig.onceDate || today;
+            const origEnd = resolvedTaskEndYmd(orig);
+            const truncates = orig.cycle !== false && origEnd >= prompt.newStartYmd;
+            const cutEndYmd = truncates ? addDaysYMD(prompt.newStartYmd, -1) : origEnd;
+            if (truncates) {
+              orig.onceDate = origStart;
+              orig.endDate = cutEndYmd;
+              orig.duration = null;
+              orig.customDays = null;
+            } else if (!orig.onceDate) {
+              orig.onceDate = origStart;
+            }
+            const newId = `proxy_${Date.now()}`;
+            const splitTask = { ...orig, id: newId };
+            famTasks.push(splitTask);
+            S.draft.onceDate = prompt.newStartYmd;
+            applyDraftToTask(newId, S.draft);
+            savedTask = findEditableTask(newId) || splitTask;
+          } else {
+            if (prompt) {
+              S.draft.onceDate = prompt.newStartYmd;
+            }
+            applyDraftToTask(S.taskId, S.draft);
+            savedTask = findEditableTask(S.taskId) || orig;
+          }
+          sendProxyRequestFor({
+            senderName: me.name,
+            recipientName: famName,
+            kind: "updatePlan",
+            targetTaskId: savedTask.id,
+            taskSnapshot: { ...savedTask },
+            summaryNote: `修改为 ${pad(savedTask.h ?? 8)}:${pad(savedTask.m ?? 0)} · ${savedTask.cycle !== false ? "循环" : "单日"}`,
+            skipDirectMutation: true,
+          });
+          closeFlow();
+          toast(`已为${famName}更新计划「${savedTask.title}」`);
+          return;
+        }
         let splitLine = null;
         if (prompt && prompt.splitsSeries && orig && S.draft) {
           const today = toYMD(demoDate());
@@ -6858,7 +6999,13 @@
         logOp("修改了计划", entryPlace(), lines);
         go("task-view", "replace");
       },
-      cancelEdit() { go("task-view", "replace"); },
+      cancelEdit() {
+        if (S.proxyTargetPersonName) {
+          closeFlow();
+          return;
+        }
+        go("task-view", "replace");
+      },
       cancelAdd() {
         if (S.draftReturn || S.pendingManualEnroll) {
           S.draftReturn = null;
@@ -6874,7 +7021,7 @@
         if (!S.draft?.title) { toast("请填写事项名称"); return; }
         if (!S.pendingManualEnroll && !S.draftReturn) {
           const risk = evaluatePlanRiskFor({
-            personName: activePersonName(),
+            personName: S.proxyTargetPersonName || activePersonName(),
             cat: S.draft.cat,
             title: S.draft.title,
             hour: S.draft.hour,
@@ -6882,7 +7029,7 @@
             cycle: !!S.draft.cycle,
             rule: S.draft.rule || "daily",
             editingTaskId: null,
-            isProxyAction: false,
+            isProxyAction: !!S.proxyTargetPersonName,
           });
           if (risk.hasHardBlock) {
             toast(risk.hardBlockMessage);
@@ -6928,6 +7075,39 @@
           }
           dismissCover();
           toast("已更新草稿");
+          return;
+        }
+        if (S.proxyTargetPersonName) {
+          const famName = S.proxyTargetPersonName;
+          const me = currentDemoPerson();
+          const d = S.draft;
+          const newTask = {
+            id: `proxy_${Date.now()}`,
+            title: d.title,
+            cat: d.cat,
+            h: d.hour,
+            m: d.min,
+            note: d.note || "",
+            cycle: !!d.cycle,
+            rule: d.cycle ? (d.rule || "daily") : "once",
+            weekdays: d.cycle ? d.weekdays : null,
+            monthDays: d.cycle ? d.monthDays : null,
+            duration: d.cycle ? d.duration : null,
+            endDate: d.cycle ? (d.endDate || null) : null,
+            customDays: d.cycle ? (d.customDays || null) : null,
+            customId: d.customId || undefined,
+            onceDate: d.onceDate || toYMD(demoDate()),
+          };
+          sendProxyRequestFor({
+            senderName: me.name,
+            recipientName: famName,
+            kind: "createPlan",
+            targetTaskId: newTask.id,
+            taskSnapshot: newTask,
+            summaryNote: `新增 ${pad(d.hour)}:${pad(d.min)} · ${d.cycle ? "循环" : "单日"}`,
+          });
+          closeFlow();
+          toast(`已为${famName}添加计划「${d.title}」`);
           return;
         }
         // 真机 AddEditTaskView 添加：落成一条新计划（首页 lane / 健康计划 / 集章同源可见）
@@ -7383,11 +7563,11 @@
         const other = bondOtherName(bond, S.currentPersonName);
         const isPending = bond.status === "pending";
         openOverlay("confirm", {
-          title: isPending ? "撤回绑定请求" : "解除家属关系",
+          title: isPending ? "撤回请求" : "解除绑定",
           body: isPending
-            ? `确定撤回向「${other}」发送的家属绑定请求吗？`
-            : `确定解除与「${other}」的家属关系吗？解除后双方将不再互为家属。`,
-          ok: isPending ? "确认撤回" : "确认解除",
+            ? `确认撤回向${other}发送的绑定请求吗？`
+            : `确认解除与${other}的家属绑定吗？`,
+          ok: isPending ? "撤回" : "解除",
           danger: true,
           action: "doRemoveCareBond",
           bondId: bond.id,
@@ -7428,7 +7608,7 @@
           S.selectedProxyFamilyName = nextFirst ? bondOtherName(nextFirst, actor) : null;
         }
         S.overlay = null;
-        toast(isPending ? `已撤回向${other}发送的绑定请求` : `已解除与${other}的家属绑定`);
+        toast(isPending ? `已撤回向${other}发送的绑定申请` : `已解除与${other}的家属绑定`);
         render();
       },
       ackBindOrUnbind() {
@@ -7540,7 +7720,7 @@
           summaryNote: "代为完成打卡",
           onYMD: S.calSelYMD || toYMD(demoDate()),
         });
-        toast(`已帮${famName}完成「${task.title}」打卡，对方进入首页将收到弹窗通知`);
+        toast(`已为${famName}完成「${task.title}」代打卡`);
         render();
       },
       toggleProxyCheckIn() {
@@ -7564,7 +7744,7 @@
             String(r.targetTaskId || r.taskSnapshot?.id) === String(tid) &&
             !r.recipientPopupShown
           ));
-          toast(`已取消「${task.title}」打卡`);
+          toast(`已取消${famName}的「${task.title}」打卡`);
         } else {
           sendProxyRequestFor({
             senderName: me.name,
@@ -7575,7 +7755,7 @@
             summaryNote: "代为完成打卡",
             onYMD: ymd,
           });
-          toast(`已帮${famName}完成「${task.title}」打卡，对方进入首页将收到弹窗通知`);
+          toast(`已为${famName}完成「${task.title}」代打卡`);
         }
         render();
       },
@@ -7600,7 +7780,7 @@
           onYMD: ymd,
           skipDirectMutation: true,
         });
-        toast(`已为${famName}仅删除当日「${task.title}」`);
+        toast(`已为${famName}移除当次「${task.title}」`);
         render();
       },
       prevProxyPopupPage() {
@@ -7791,37 +7971,34 @@
         const bucket = ensurePersonStore(famName);
         const famTasks = bucket.tasks || [];
         const existing = tid ? famTasks.find((t) => String(t.id) === String(tid)) : null;
+        S.proxyEditorDraft = null;
         if (existing) {
-          S.proxyEditorDraft = {
-            mode: "edit",
-            taskId: existing.id,
-            cat: existing.cat || "monitoring",
-            title: existing.title || "",
-            hour: existing.h ?? 8,
-            min: existing.m ?? 0,
-            cycle: existing.cycle !== false,
-            rule: existing.rule || "daily",
-            note: existing.note || "",
-          };
+          S.proxyTargetPersonName = famName;
+          S.proxyIsFirstCreate = false;
+          S.taskId = existing.id;
+          S.taskOccurrence = S.calSelYMD || toYMD(demoDate());
+          S.v02Mod = 0;
+          S.lockBlock = false;
+          S.lockRecurrence = false;
+          S.lockCategory = false;
+          S.lockProfessional = false;
+          initDraft(existing);
+          if (S.draft) {
+            const defaultStart = defaultNewPlanStartYmd(existing);
+            S.draft.occurrence = defaultStart;
+            if (!S.draft.cycle) S.draft.onceDate = existing.onceDate || defaultStart;
+          }
+          go("task-edit", "cover");
         } else if (famTasks.length === 0) {
-          S.proxyEditorDraft = {
-            mode: "first-rest",
-            step: "rest",
-            restItems: [
-              { id: "fc_wake", title: "起床", cat: "rest", h: 7, m: 0, cycle: true, rule: "daily", note: "" },
-              { id: "fc_breakfast", title: "早餐", cat: "diet", h: 7, m: 30, cycle: true, rule: "daily", note: "" },
-              { id: "fc_lunch", title: "午餐", cat: "diet", h: 12, m: 0, cycle: true, rule: "daily", note: "" },
-              { id: "fc_nap", title: "午休", cat: "rest", h: 13, m: 0, cycle: true, rule: "daily", note: "" },
-              { id: "fc_dinner", title: "晚餐", cat: "diet", h: 18, m: 0, cycle: true, rule: "daily", note: "" },
-              { id: "fc_sleep", title: "上床睡觉", cat: "rest", h: 22, m: 0, cycle: true, rule: "daily", note: "" },
-            ],
-          };
+          S.proxyTargetPersonName = famName;
+          S.proxyIsFirstCreate = true;
+          S.restRows = REST_PRESET.slice(0, 6).map((x) => ({ ...x }));
+          go("first-rest", "cover");
         } else {
-          S.proxyEditorDraft = {
-            mode: "type-pick",
-          };
+          S.proxyTargetPersonName = famName;
+          S.proxyIsFirstCreate = false;
+          go("select-type", "cover");
         }
-        render();
       },
       proxyNextToFirstUpload() {
         if (!S.proxyEditorDraft) return;
@@ -7920,7 +8097,7 @@
       submitProxyExerciseInvite() {
         ensureCareGraph();
         const me = currentDemoPerson();
-        const famName = resolvedSelectedFamilyNameFor(me.name);
+        const famName = S.proxyTargetPersonName || resolvedSelectedFamilyNameFor(me.name);
         if (!famName) return;
         const snapshot = {
           id: `proxy_ex_${Date.now()}`,
@@ -7941,8 +8118,12 @@
           summaryNote: "3 分钟踏步 / 1 分钟起坐体测",
         });
         S.proxyEditorDraft = null;
-        toast(`已向${famName}发送运动体测提醒，对方进入首页将收到弹窗通知`);
-        render();
+        if (S.proxyTargetPersonName) {
+          closeFlow();
+        } else {
+          render();
+        }
+        toast(`已向${famName}发送运动体测提醒`);
       },
       closeProxyTaskEditor() {
         S.proxyEditorDraft = null;
@@ -8096,9 +8277,11 @@
         S.pendingProxyDeleteTaskId = tid;
         openOverlay("confirm", {
           title: isCycle ? "长期删除计划" : "删除计划",
-          body: `确认帮${famName}删除「${title}」吗？删除后将立即生效，${famName}进入首页时会收到弹窗通知。`,
+          body: isCycle
+            ? `确认长期删除${famName}的「${title}」吗？已打卡的历史记录将保留。`
+            : `确认删除${famName}的「${title}」吗？`,
           cancel: "取消",
-          ok: isCycle ? "长期删除" : "确认删除",
+          ok: "确认删除",
           danger: true,
           action: "doProxyDeleteTask",
         });
@@ -8136,7 +8319,7 @@
         });
         S.pendingProxyDeleteTaskId = null;
         S.proxyEditorDraft = null;
-        toast(`已帮${famName}删除「${taskSnap.title}」，对方进入首页将收到弹窗通知`);
+        toast(`已为${famName}删除计划「${taskSnap.title}」`);
         render();
       },
       askForceContinueExercise() {
@@ -8632,9 +8815,9 @@
         const phone = ($("input[name=fphone]")?.value ?? S.famDraftPhone ?? "").replace(/\D/g, "");
         const rel = S.famRel || "配偶";
         const me = currentDemoPerson();
-        if (!name) { toast("请填写家属姓名"); return; }
-        if (!phone || phone.length !== 11) { toast("请填写 11 位手机号"); return; }
-        if (name === me.name || phone === me.phoneRaw) { toast("不能绑定本人自己的手机号"); return; }
+        if (!name) { toast("请填写姓名"); return; }
+        if (!phone || phone.length !== 11) { toast("请填写手机号"); return; }
+        if (name === me.name || phone === me.phoneRaw) { toast("不能绑定自己的手机号"); return; }
 
         // 清理此前被拒绝或已解绑的同人记录
         S.careBonds = S.careBonds.filter((b) => !(
@@ -8645,11 +8828,11 @@
 
         const activeForMe = S.careBonds.filter((b) => b.status !== "rejected" && b.status !== "unbound" && bondInvolves(b, me.name));
         if (activeForMe.some((b) => bondOtherName(b, me.name) === name || bondOtherPhoneRaw(b, me.name) === phone)) {
-          toast("该家属已在列表中，无需重复发送");
+          toast("该手机号已绑定");
           return;
         }
         if (occupiedFamilySlotsFor(me.name) >= 5) {
-          toast("每个人最多只能有 5 个家属");
+          toast("最多绑定 5 位家属");
           return;
         }
         const isNewlyCreated = !(S.demoPeople || []).some((p) => p.name === name);
@@ -8661,7 +8844,7 @@
           S.vipByPerson[targetP.name] = false;
         }
         if (occupiedFamilySlotsFor(targetP.name) >= 5) {
-          toast("对方已满 5 个家属，无法继续绑定");
+          toast("对方已满 5 位家属");
           return;
         }
         const masked = phone.replace(/^(\d{3})\d{4}(\d{4})$/, "$1****$2");
@@ -10100,6 +10283,35 @@
         </div>
       </div>`,
 
+    "proxy-exercise-invite": () => {
+      const me = currentDemoPerson();
+      const famName = S.proxyTargetPersonName || resolvedSelectedFamilyNameFor(me.name) || "家属";
+      return `
+      <div class="page">
+        ${navBar(`<button class="cap" data-act="back" type="button">${I.chevL}返回</button>`, "运动体测邀请", "")}
+        <div class="scroll px24" style="padding-top:28px;padding-bottom:24px">
+          <div style="background:#fff;border-radius:22px;border:1px solid rgba(16,84,224,.12);box-shadow:0 4px 12px rgba(16,84,224,.06);padding:24px 20px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center">
+            <div style="width:68px;height:68px;border-radius:50%;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.walk}</div>
+            <div style="font-size:21px;font-weight:800;color:var(--blue)">邀请${esc(famName)}完成运动体测</div>
+            <div style="font-size:15px;font-weight:500;color:var(--secondary);line-height:1.5">运动康复计划需要根据患者本人的 3 分钟踏步或 1 分钟起坐体测心率生成。点击下方按钮将向${esc(famName)}发送体测提醒。</div>
+            <div style="width:100%;display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:16px;background:rgba(16,84,224,.05);text-align:left">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:800;display:grid;place-items:center;flex-shrink:0">1</span>
+                <span style="font-size:14px;font-weight:600;color:var(--blue)">${esc(famName)}在「家属管理 → 收家属通知」收到运动体测邀请</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:800;display:grid;place-items:center;flex-shrink:0">2</span>
+                <span style="font-size:14px;font-weight:600;color:var(--blue)">点击通知卡上的「去体测」直接开始评估并自动生成运动计划</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="px24 flex gap8" style="padding-bottom:28px">
+          <button class="cta grow" data-act="submitProxyExerciseInvite" type="button">发送运动体测提醒</button>
+        </div>
+      </div>`;
+    },
+
     // 自建类别纯管理页：只做改与删，新建仍在选择类型页底部（真机 CategoryManageView）
     "category-manage": () => {
       const cats = S.customCats || [];
@@ -11511,155 +11723,6 @@
         markFamilyManageSeenFor(me.name, selectedFamName);
       }
 
-      if (S.proxyEditorDraft && selectedFamName) {
-        const d = S.proxyEditorDraft;
-        if (d.mode === "first-rest" && d.step === "rest") {
-          const restRows = (d.restItems || []).map((item) => `
-            <div style="display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:0.8px solid rgba(16,84,224,.08)">
-              <div class="badge b40"><img src="${A.task[item.cat] || A.task.rest}" alt="" /></div>
-              <div class="grow" style="font-size:17px;font-weight:700;color:var(--blue)">${esc(item.title)}</div>
-              <span style="font-size:15px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.08);padding:6px 12px;border-radius:999px;font-variant-numeric:tabular-nums">${pad(item.h)}:${pad(item.m)}</span>
-            </div>
-          `).join("");
-          return `
-          <div class="page">
-            ${navBar(cap(I.chevL, "稍后", "", "closeProxyTaskEditor"), "基础作息")}
-            <div class="scroll px20" style="padding-top:16px;padding-bottom:24px">
-              <div style="background:#fff;border-radius:22px;border:1px solid rgba(16,84,224,.12);box-shadow:0 4px 12px rgba(16,84,224,.05);overflow:hidden">
-                ${restRows}
-              </div>
-            </div>
-            <div class="px24 flex gap8" style="padding-bottom:28px">
-              <button class="cta grow" data-act="proxyNextToFirstUpload" type="button">${I.camera}拍照上传病历</button>
-            </div>
-          </div>`;
-        }
-        if ((d.mode === "first-rest" && d.step === "confirm") || d.mode === "med-confirm") {
-          const isFirst = d.mode === "first-rest";
-          const previewItems = [
-            { title: "起床测血压", cat: "monitoring", h: 6, m: 30, note: "依据出院记录，每日晨起与睡前测血压" },
-            { title: "阿司匹林肠溶片", cat: "medication", h: 8, m: 0, note: "100 mg · 早餐后服用" },
-            { title: "琥珀酸美托洛尔缓释片", cat: "medication", h: 8, m: 0, note: "47.5 mg · 早餐后服用" },
-            { title: "心内科门诊复查", cat: "appointment", h: 9, m: 30, note: "携带出院小结与近期血压记录" },
-            { title: "阿托伐他汀钙片", cat: "medication", h: 20, m: 30, note: "20 mg · 睡前服用" },
-            ...(isFirst ? (d.restItems || []) : []),
-          ].filter((it) => isFirst || it.cat === "medication" || it.cat === "appointment")
-           .sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
-          return `
-          <div class="page">
-            ${navBar(cap(I.chevL, "返回", "", "proxyBackToTypePick"), "确认计划")}
-            <div class="scroll px20" style="padding-top:16px;padding-bottom:24px;display:flex;flex-direction:column;gap:10px">
-              ${previewItems.map((it) => `
-                <div style="background:#fff;border-radius:18px;border:1px solid rgba(16,84,224,.14);padding:12px 14px;display:flex;align-items:center;gap:12px">
-                  <div class="badge b40"><img src="${A.task[it.cat] || A.task.medication}" alt="" /></div>
-                  <div style="min-width:0;flex:1">
-                    <div style="font-size:15.5px;font-weight:700;color:var(--blue)">${esc(it.title)}</div>
-                    <div style="font-size:12px;color:var(--secondary);margin-top:3px">${pad(it.h)}:${pad(it.m)} · ${esc(CAT[it.cat]?.name || "计划")}${it.note ? ` · ${esc(it.note)}` : ""}</div>
-                  </div>
-                </div>
-              `).join("")}
-            </div>
-            <div class="px24 flex gap8" style="padding-bottom:28px">
-              <button class="cta grow" data-act="submitProxyFirstCreateOrMed" type="button">${isFirst ? `确认并为${esc(selectedFamName)}创建` : `确认并为${esc(selectedFamName)}更新`}</button>
-            </div>
-          </div>`;
-        }
-        if (d.mode === "type-pick") {
-          const profTypes = [
-            { key: "medication", title: "用药与复查", sub: "上传病历 / 处方解析生成", cat: "medication" },
-            { key: "exercise", title: "运动", sub: `提醒${selectedFamName}完成运动体测`, cat: "exercise" },
-          ];
-          const dailyTypes = [
-            { key: "monitoring", title: "测血压", sub: "设置每日测量提醒", cat: "monitoring" },
-            { key: "diet", title: "饮食", sub: "设置三餐与饮水提醒", cat: "diet" },
-            { key: "rest", title: "作息", sub: "设置起床、午休与睡眠提醒", cat: "rest" },
-          ];
-          const renderTypeRow = (item, idx, total) => `
-            <button type="button" data-act="proxyPickScheduleType" data-type="${item.key}" style="width:100%;border:0;background:transparent;padding:14px 16px;display:flex;align-items:center;gap:14px;text-align:left;cursor:pointer;font-family:inherit;${idx < total - 1 ? "border-bottom:0.8px solid rgba(16,84,224,.08)" : ""}">
-              <div class="badge b40"><img src="${A.task[item.cat] || A.task.monitoring}" alt="" /></div>
-              <div style="min-width:0;flex:1">
-                <div style="font-size:16.5px;font-weight:800;color:var(--blue)">${esc(item.title)}</div>
-                <div style="font-size:12.5px;font-weight:500;color:var(--secondary);margin-top:3px">${esc(item.sub)}</div>
-              </div>
-              <span style="color:rgba(16,84,224,.45)">${I.chevR}</span>
-            </button>`;
-          return `
-          <div class="page">
-            ${navBar(cap(I.chevL, "返回", "", "closeProxyTaskEditor"), "选择类型")}
-            <div class="scroll px20" style="padding-top:16px;padding-bottom:24px;display:flex;flex-direction:column;gap:18px">
-              <div>
-                <div style="font-size:14px;font-weight:800;color:var(--blue);padding:0 4px 8px">专业康复计划 <span style="font-size:12px;font-weight:500;color:var(--secondary)">· 按病例与体测生成</span></div>
-                <div style="background:#fff;border-radius:20px;border:1px solid rgba(16,84,224,.12);box-shadow:0 4px 12px rgba(16,84,224,.05);overflow:hidden">
-                  ${profTypes.map((it, idx) => renderTypeRow(it, idx, profTypes.length)).join("")}
-                </div>
-              </div>
-              <div>
-                <div style="font-size:14px;font-weight:800;color:var(--blue);padding:0 4px 8px">普通日常计划</div>
-                <div style="background:#fff;border-radius:20px;border:1px solid rgba(16,84,224,.12);box-shadow:0 4px 12px rgba(16,84,224,.05);overflow:hidden">
-                  ${dailyTypes.map((it, idx) => renderTypeRow(it, idx, dailyTypes.length)).join("")}
-                </div>
-              </div>
-            </div>
-          </div>`;
-        }
-        if (d.mode === "exercise-invite") {
-          return `
-          <div class="page">
-            ${navBar(cap(I.chevL, "返回", "", "proxyBackToTypePick"), "运动体测提醒")}
-            <div class="scroll px24" style="padding-top:32px;padding-bottom:24px">
-              <div style="background:#fff;border-radius:24px;border:1px solid rgba(16,84,224,.14);box-shadow:0 6px 18px rgba(16,84,224,.08);padding:26px 22px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px">
-                <div class="badge b40" style="width:64px;height:64px"><img src="${A.task.exercise}" alt="" style="width:64px;height:64px" /></div>
-                <div style="font-size:20px;font-weight:800;color:var(--blue)">提醒${esc(selectedFamName)}完成运动体测</div>
-                <div style="font-size:14px;font-weight:500;color:var(--secondary);line-height:1.55">运动计划需根据本人 3 分钟踏步或 1 分钟起坐体测心率生成。发送后，${esc(selectedFamName)}进入首页时将直接收到弹窗通知并可开始体测。</div>
-                <button class="cta" data-act="submitProxyExerciseInvite" type="button" style="width:100%;margin-top:8px">发送运动体测提醒</button>
-              </div>
-            </div>
-          </div>`;
-        }
-        const isEdit = d.mode === "edit";
-        const catOpts = [
-          ["monitoring", "测血压"],
-          ["medication", "服药"],
-          ["exercise", "运动"],
-          ["diet", "饮食"],
-          ["rest", "作息"],
-          ["appointment", "复查"],
-        ];
-        const hourOpts = [6, 7, 8, 9, 10, 12, 13, 15, 18, 19, 20, 21, 22];
-        const minOpts = [0, 15, 30, 45];
-        return `
-        <div class="page">
-          ${navBar(cap(I.chevL, "返回", "", d.fromTypePick ? "proxyBackToTypePick" : "closeProxyTaskEditor"), isEdit ? "编辑计划" : "添加计划")}
-          <div class="scroll px24" style="padding-top:20px;padding-bottom:24px">
-            <div class="field-label">计划类别</div>
-            <div class="chips">${catOpts.map(([k, lab]) => `<button class="chip ${d.cat === k ? "on" : ""}" data-act="pickProxyCat" data-cat="${k}" type="button">${lab}</button>`).join("")}</div>
-            <div class="field-label mt16">计划名称</div>
-            <input class="field" name="proxyTitle" placeholder="输入计划名称" value="${esc(d.title || "")}" />
-            <div class="field-label mt16">计划时间（${pad(d.hour)}:${pad(d.min)}）</div>
-            <div class="chips">${hourOpts.map((h) => `<button class="chip ${Number(d.hour) === h ? "on" : ""}" data-act="pickProxyHour" data-h="${h}" type="button">${pad(h)}时</button>`).join("")}</div>
-            <div class="chips" style="margin-top:8px">${minOpts.map((m) => `<button class="chip ${Number(d.min) === m ? "on" : ""}" data-act="pickProxyMin" data-m="${m}" type="button">${pad(m)}分</button>`).join("")}</div>
-            <div class="field-label mt16">执行周期</div>
-            <div class="chips">
-              <button class="chip ${d.cycle ? "on" : ""}" data-act="pickProxyCycle" data-v="1" type="button">循环计划</button>
-              <button class="chip ${!d.cycle ? "on" : ""}" data-act="pickProxyCycle" data-v="0" type="button">单日计划</button>
-            </div>
-            ${d.cycle ? `
-              <div class="chips" style="margin-top:8px">
-                ${[["daily", "每日"], ["weekly", "每周"], ["monthly", "每月"]].map(([r, lab]) => `<button class="chip ${(d.rule || "daily") === r ? "on" : ""}" data-act="pickProxyRule" data-r="${r}" type="button">${lab}</button>`).join("")}
-              </div>
-            ` : ""}
-            <div class="field-label mt16">备注说明</div>
-            <input class="field" name="proxyNote" placeholder="选填：剂量、时长或注意事项" value="${esc(d.note || "")}" />
-            ${isEdit ? `
-              <button class="cta-line mt16" data-act="askProxyDeleteTask" type="button" style="color:var(--blue);border-color:rgba(16,84,224,.25);background:rgba(16,84,224,.06)">删除该计划</button>
-            ` : ""}
-          </div>
-          <div class="px24 flex gap8" style="padding-bottom:28px">
-            <button class="cta grow" data-act="submitProxyTaskEditor" type="button">${isEdit ? "保存修改" : `确认并为${esc(selectedFamName)}添加`}</button>
-          </div>
-        </div>`;
-      }
-
       let operateBodyHTML = "";
       let bottomDockHTML = "";
       let rightNavHTML = "";
@@ -11674,9 +11737,9 @@
         const needsBindAck = bondNeedsBindAck(selectedBond, me.name);
         const needsUnbindAck = bondNeedsUnbindAck(selectedBond, me.name);
         const statusPillText = isUnbound
-          ? "刚解绑"
+          ? "已解除绑定"
           : needsIncomingConfirm
-            ? "待确认"
+            ? "待我确认"
             : isOutgoingPending
               ? "待对方确认"
               : needsBindAck
@@ -11687,14 +11750,11 @@
         const allFamTasks = bucket.tasks || [];
         const todayYMD = toYMD(demoDate());
         const selYMD = S.calSelYMD || todayYMD;
-        const hist = selYMD < todayYMD;
         const isDoneTab = S.scheduleFilter === "done";
         const dayTasks = familyLiveTasksFor(selectedFamName, selYMD);
         const doneCount = dayTasks.filter((t) => isFamilyTaskCompletedOn(selectedFamName, t.id, selYMD)).length;
         const todoCount = dayTasks.length - doneCount;
         const totalCount = dayTasks.length;
-        const pct = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
-        const selDayLabel = selYMD === todayYMD ? "今日计划" : `${monthDayLabel(parseYMD(selYMD)).split(" ")[0]}计划`;
 
         if (!isUnbound && !isPending && allFamTasks.length > 0) {
           rightNavHTML = `<button class="cap" data-act="calMode" type="button">${I.cal}${S.calMode === "week" ? "月图" : "周图"}</button>`;
@@ -11724,7 +11784,7 @@
           </div>` : isOutgoingPending ? `
           <div style="margin-top:12px;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:14px;background:rgba(255,255,255,.14);border:0.8px solid rgba(255,255,255,.22)">
             <span style="width:16px;height:16px;display:grid;place-items:center;color:#fff;flex-shrink:0">${I.clock || I.cal}</span>
-            <span style="font-size:13.5px;font-weight:700;color:#fff;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">已发送绑定申请，等待对方确认</span>
+            <span style="font-size:13.5px;font-weight:700;color:#fff;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">已向${esc(selectedFamName)}发起绑定，等待对方确认</span>
             <span style="flex-shrink:0;white-space:nowrap;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.16);color:rgba(255,255,255,.85);font-size:12px;font-weight:700;user-select:none;pointer-events:none">待确认</span>
           </div>` : "";
 
@@ -11785,7 +11845,8 @@
             const done = isFamilyTaskCompletedOn(selectedFamName, t.id, selYMD);
             const chip = CAT[kind]?.name || CAT[kind]?.chip || "事项";
             const isCycle = t.cycle !== false;
-            const hm = `${pad(t.h ?? 8)}:${pad(t.m ?? 0)} - ${pad(((t.h ?? 8) + 1) % 24)}:${pad(t.m ?? 0)}`;
+            const rulePrefix = isCycle ? (t.rule === "weekly" ? "每周 " : t.rule === "monthly" ? "每月 " : "每日 ") : "";
+            const hm = `${rulePrefix}${pad(t.h ?? 8)}:${pad(t.m ?? 0)} - ${pad(((t.h ?? 8) + 1) % 24)}:${pad(t.m ?? 0)}`;
             const rangeText = taskDateRangeLabel({ ...t, cycle: isCycle });
             const notes = t.note ? `<div class="act-notes">${cardNote(I.alignLeft, esc(t.note))}</div>` : "";
 
@@ -11796,9 +11857,8 @@
                   <span style="font-size:13px;font-weight:800;line-height:1">代打卡</span>
                 </button>`;
 
-            const showDelete = !done;
-            const barCls = showDelete && isCycle ? " triple" : "";
-            const delBtns = !showDelete ? "" : isCycle
+            const barCls = isCycle ? " triple" : "";
+            const delBtns = isCycle
               ? `<button type="button" data-act="proxySkipTaskToday" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.trash}仅删本次</button>
                  <button type="button" data-act="askProxyDeleteTask" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.trash}长期删除</button>`
               : `<button type="button" data-act="askProxyDeleteTask" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.trash}删除</button>`;
@@ -11819,39 +11879,101 @@
                   ${rightCircle}
                 </div>
                 ${notes}
-                <div class="act-card-bar${barCls}">
+                ${!done ? `<div class="act-card-bar${barCls}">
                   <button type="button" data-act="openProxyTaskEditor" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.pencil}编辑</button>
                   ${delBtns}
-                </div>
+                </div>` : ""}
               </div>`;
           };
 
+          const emptyTitle = isDoneTab ? "暂无已完成计划" : (totalCount > 0 ? "计划已全部完成" : "暂无计划");
+          const emptyIcon = isDoneTab ? I.check : (totalCount > 0 ? I.check : I.cal);
           const groupedTasksHTML = groups.length ? groups.map((g) => `
             <div class="period-h">${I[g.icon] || ""}${g.title}<span class="s12 t-sec">${g.items.length} 项</span></div>
             <div class="col gap10">
               ${g.items.map((t) => renderFamilyPlanCard(t)).join("")}
             </div>
           `).join("") : `
-            <div class="island-card ta-c t-sec s15" style="padding:24px 20px;background:#fff">
-              ${isDoneTab ? "暂无已完成计划" : (totalCount > 0 ? "计划已全部完成" : "暂无计划")}
+            <div style="background:#fff;border-radius:20px;border:1px solid rgba(16,84,224,.10);padding:42px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px">
+              <div style="width:32px;height:32px;color:rgba(16,84,224,.45);display:grid;place-items:center">${emptyIcon}</div>
+              <div style="font-size:16px;font-weight:700;color:var(--blue)">${emptyTitle}</div>
             </div>`;
+
+          const famCalHeaderTitle = (() => {
+            if (S.calMode === "month") {
+              const m = new Date(2026, 8 + S.calOffset, 1);
+              return `${m.getFullYear()}年${m.getMonth() + 1}月`;
+            }
+            const start = weekStart(S.calOffset);
+            const mid = new Date(start);
+            mid.setDate(start.getDate() + 3);
+            return `${mid.getFullYear()}年${mid.getMonth() + 1}月`;
+          })();
+
+          const famCalCellsHTML = (() => {
+            const wNames = ["日", "一", "二", "三", "四", "五", "六"];
+            const dotColorFor = (ymd, selected) => {
+              const list = familyLiveTasksFor(selectedFamName, ymd);
+              if (!list.length || selected) return "transparent";
+              const dCnt = list.filter((x) => isFamilyTaskCompletedOn(selectedFamName, x.id, ymd)).length;
+              return dCnt === list.length ? "#1054E0" : "rgba(16,84,224,.36)";
+            };
+            if (S.calMode === "week") {
+              const start = weekStart(S.calOffset);
+              const cols = [];
+              for (let i = 0; i < 7; i++) {
+                const d = new Date(start);
+                d.setDate(start.getDate() + i);
+                const ymd = toYMD(d);
+                const selected = ymd === selYMD;
+                const dotColor = dotColorFor(ymd, selected);
+                cols.push(`<button type="button" data-act="pickDay" data-ymd="${ymd}" style="border:0;cursor:pointer;font-family:inherit;padding:8px 0;border-radius:14px;background:${selected ? "var(--blue)" : "transparent"};color:${selected ? "#fff" : "var(--blue)"};display:flex;flex-direction:column;align-items:center;gap:6px">
+                  <span style="font-size:12px;font-weight:600;color:${selected ? "rgba(255,255,255,.85)" : "var(--secondary)"}">${wNames[d.getDay()]}</span>
+                  <span style="font-size:16px;font-weight:700;font-variant-numeric:tabular-nums">${d.getDate()}</span>
+                  <span style="width:5px;height:5px;border-radius:50%;background:${dotColor}"></span>
+                </button>`);
+              }
+              return `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px">${cols.join("")}</div>`;
+            }
+            const month = new Date(2026, 8 + S.calOffset, 1);
+            const padN = month.getDay();
+            const last = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+            const cells = [];
+            for (let i = 0; i < padN; i++) cells.push(`<div class="day-cell"></div>`);
+            for (let day = 1; day <= last; day++) {
+              const d = new Date(month.getFullYear(), month.getMonth(), day);
+              const ymd = toYMD(d);
+              const selected = ymd === selYMD;
+              const dotColor = dotColorFor(ymd, selected);
+              cells.push(`<div class="day-cell" data-act="pickDay" data-ymd="${ymd}" data-day="d">
+                <div class="day-num ${selected ? "on" : ""}">${d.getDate()}</div>
+                <div class="day-dot" style="background:${dotColor}"></div>
+              </div>`);
+            }
+            return `<div class="weekdays">${wNames.map((w) => `<span>${w}</span>`).join("")}</div><div class="days">${cells.join("")}</div>`;
+          })();
 
           operateBodyHTML = `
             <div style="border-radius:24px;overflow:hidden;border:1.2px solid rgba(16,84,224,.16);box-shadow:0 6px 18px rgba(16,84,224,.08);background:#F5F9FF">
               ${profileHeaderHTML}
               <div id="cal-swipe" style="background:#fff;padding:14px;border-bottom:1px solid rgba(16,84,224,.09);display:flex;flex-direction:column;gap:14px">
-                <div>
+                <div style="display:flex;flex-direction:column;gap:12px">
                   <div class="cal-head" style="justify-content:space-between">
                     <button class="cal-nav" data-act="calPrev" type="button">${I.chevL}</button>
-                    <div class="s16 fb t">${calHeadTitle()}</div>
+                    <div class="s16 fb t">${famCalHeaderTitle}</div>
                     <button class="cal-nav" data-act="calNext" type="button">${I.chevR}</button>
                   </div>
-                  <div class="weekdays">${"日一二三四五六".split("").map((d) => `<span>${d}</span>`).join("")}</div>
-                  <div class="days">${calDays(false)}</div>
+                  ${famCalCellsHTML}
                 </div>
                 <div class="filter">
-                  <button class="${!isDoneTab ? "on" : ""}" data-act="toggleDone" data-f="todo" type="button">未完成 ${todoCount}</button>
-                  <button class="${isDoneTab ? "on" : ""}" data-act="toggleDone" data-f="done" type="button">已完成 ${doneCount}</button>
+                  <button class="${!isDoneTab ? "on" : ""}" data-act="toggleDone" data-f="todo" type="button" style="display:inline-flex;align-items:center;justify-content:center;gap:6px">
+                    <span>未完成</span>
+                    <span style="padding:2px 7px;border-radius:999px;background:${!isDoneTab ? "#fff" : "rgba(16,84,224,.10)"};color:var(--blue);font-size:12px;font-weight:800;font-variant-numeric:tabular-nums">${todoCount}</span>
+                  </button>
+                  <button class="${isDoneTab ? "on" : ""}" data-act="toggleDone" data-f="done" type="button" style="display:inline-flex;align-items:center;justify-content:center;gap:6px">
+                    <span>已完成</span>
+                    <span style="padding:2px 7px;border-radius:999px;background:${isDoneTab ? "#fff" : "rgba(16,84,224,.10)"};color:var(--blue);font-size:12px;font-weight:800;font-variant-numeric:tabular-nums">${doneCount}</span>
+                  </button>
                 </div>
               </div>
               <div style="padding:14px 14px 16px;display:flex;flex-direction:column;gap:12px">
@@ -11865,15 +11987,16 @@
         bottomDockHTML = (isUnbound || isPending) ? "" : `
           <div class="px20 flex gap8" style="padding-bottom:28px">
             <button class="cta grow" data-act="openProxyTaskEditor" type="button">
-              ${I.plus}${famHasPlans ? `为${esc(selectedFamName)}添加计划` : `为${esc(selectedFamName)}首次创建计划`}
+              ${famHasPlans ? `为${esc(selectedFamName)}添加计划` : `为${esc(selectedFamName)}首次创建计划`}
             </button>
           </div>`;
       } else {
         operateBodyHTML = `
-          <div class="plan-row mt12">
-            <div class="grow">
-              <div class="s18 fb t">暂无已绑定的家属</div>
-              <div class="s14 t-sec" style="margin-top:6px;line-height:1.5">若家属向你发送了绑定邀请，进入首页即可直接弹窗确认并开始互助照护；如需主动添加新的家属，请在个人中心使用 VIP 专属「添加家属」功能。</div>
+          <div style="margin-top:8px;padding:18px 16px;border-radius:20px;background:#fff;border:1px solid rgba(16,84,224,.10);display:flex;align-items:center;gap:12px">
+            <div style="width:40px;height:40px;border-radius:50%;background:rgba(16,84,224,.08);color:var(--blue);display:grid;place-items:center;flex-shrink:0">${I.two}</div>
+            <div style="min-width:0;flex:1">
+              <div style="font-size:15.5px;font-weight:800;color:var(--blue)">暂无已绑定的家属</div>
+              <div style="font-size:12.5px;font-weight:500;color:var(--secondary);margin-top:3px">可在个人中心「添加家属」中发起绑定</div>
             </div>
           </div>`;
       }
@@ -15309,14 +15432,16 @@
   }
 
   function taskEditor(mode) {
-    const t = SEED.find((x) => x.id === S.taskId) || SEED[0] || { id: "", cat: "monitoring", h: 8, m: 0, title: "", note: "" };
+    const t = findEditableTask(S.taskId) || SEED[0] || { id: "", cat: "monitoring", h: 8, m: 0, title: "", note: "" };
     if (mode !== "view" && !S.draft) initDraft(mode === "edit" ? t : null);
     const d = mode === "view" ? taskDraftFromSeed(t) : S.draft;
     const editable = mode !== "view";
     const viewing = !editable;
     const title = mode === "view" ? "查看计划" : mode === "edit" ? "更新计划" : S.addTitle;
     const left = mode === "edit" ? cap(I.x, "取消") : cap(I.chevL, "返回");
-    const done = !!S.completed[t.id] && mode !== "add";
+    const done = (S.proxyTargetPersonName
+      ? isFamilyTaskCompletedOn(S.proxyTargetPersonName, t.id, S.taskOccurrence || toYMD(demoDate()))
+      : !!S.completed[t.id]) && mode !== "add";
     const past = mode !== "add" && (S.taskOccurrence || toYMD(demoDate())) < toYMD(demoDate());
     // 今日之前、以及该日已打卡：到点提醒和删除都不出现
     const hideRemindDelete = viewing && (past || done);
@@ -15708,7 +15833,7 @@
 
       let bottomDockHTML = "";
       if (mode === "view" && !hideRemindDelete) {
-        const persisted = SEED.find((x) => x.id === S.taskId);
+        const persisted = findEditableTask(S.taskId);
         const isRec = persisted ? persisted.cycle !== false : !!d.cycle;
         bottomDockHTML = `<div class="v02-bottom-dock">${isRec
           ? `<div class="duo-del-col">
