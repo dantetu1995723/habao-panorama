@@ -10382,22 +10382,20 @@
     const h = 200;
     const r = 256;
     const cx = w / 2;
-    const arcCy = r + 6;
-    const hubCy = h - 52;
-    const rayR = r + 80;
-    const span = 72;
-    const ptHub = (rad, deg) => {
+    const cy = r + 6;
+    const outerR = r - 1.5;
+    const innerR = r - 142;
+    const span = 60;
+    const pt = (rad, deg) => {
       const a = (deg * Math.PI) / 180;
-      return [cx + Math.sin(a) * rad, hubCy - Math.cos(a) * rad];
-    };
-    const ptArc = (rad, deg) => {
-      const a = (deg * Math.PI) / 180;
-      return [cx + Math.sin(a) * rad, arcCy - Math.cos(a) * rad];
+      return [cx + Math.sin(a) * rad, cy - Math.cos(a) * rad];
     };
     const sectorPath = (d0, d1) => {
-      const [x0, y0] = ptHub(rayR, d0);
-      const [x1, y1] = ptHub(rayR, d1);
-      return `M${cx.toFixed(1)} ${hubCy.toFixed(1)}L${x0.toFixed(1)} ${y0.toFixed(1)}A${rayR.toFixed(1)} ${rayR.toFixed(1)} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)}Z`;
+      const [ox0, oy0] = pt(outerR, d0);
+      const [ox1, oy1] = pt(outerR, d1);
+      const [ix1, iy1] = pt(innerR, d1);
+      const [ix0, iy0] = pt(innerR, d0);
+      return `M${ox0.toFixed(1)} ${oy0.toFixed(1)}A${outerR.toFixed(1)} ${outerR.toFixed(1)} 0 0 1 ${ox1.toFixed(1)} ${oy1.toFixed(1)}L${ix1.toFixed(1)} ${iy1.toFixed(1)}A${innerR.toFixed(1)} ${innerR.toFixed(1)} 0 0 0 ${ix0.toFixed(1)} ${iy0.toFixed(1)}Z`;
     };
     let sectorsHTML = "";
     let linesHTML = "";
@@ -10406,26 +10404,27 @@
 
     BLOCKS.forEach((b, idx) => {
       const centerDeg = (idx - effectiveIdx) * span;
-      if (Math.abs(centerDeg) >= 145) return;
+      if (Math.abs(centerDeg) >= 135) return;
       const focus = Math.max(0, 1 - Math.abs(centerDeg) / span);
       const smooth = focus * focus * (3 - 2 * focus);
       if (smooth > 0.01) {
         sectorsHTML += `<path d="${sectorPath(centerDeg - span / 2, centerDeg + span / 2)}" fill="url(#bwm-active-grad)" fill-opacity="${smooth.toFixed(3)}"/>`;
       }
-      const [lx, ly] = ptHub(rayR, centerDeg - span / 2);
-      const [rx, ry] = ptHub(rayR, centerDeg + span / 2);
-      linesHTML += `<line x1="${cx}" y1="${hubCy}" x2="${lx.toFixed(1)}" y2="${ly.toFixed(1)}" stroke="rgba(255,255,255,0.88)" stroke-width="1.5"/>`;
-      linesHTML += `<line x1="${cx}" y1="${hubCy}" x2="${rx.toFixed(1)}" y2="${ry.toFixed(1)}" stroke="rgba(255,255,255,0.88)" stroke-width="1.5"/>`;
+      const [ilx, ily] = pt(innerR, centerDeg - span / 2);
+      const [olx, oly] = pt(outerR, centerDeg - span / 2);
+      const [irx, iry] = pt(innerR, centerDeg + span / 2);
+      const [orx, ory] = pt(outerR, centerDeg + span / 2);
+      linesHTML += `<line x1="${ilx.toFixed(1)}" y1="${ily.toFixed(1)}" x2="${olx.toFixed(1)}" y2="${oly.toFixed(1)}" stroke="rgba(255,255,255,0.88)" stroke-width="1.5"/>`;
+      linesHTML += `<line x1="${irx.toFixed(1)}" y1="${iry.toFixed(1)}" x2="${orx.toFixed(1)}" y2="${ory.toFixed(1)}" stroke="rgba(255,255,255,0.88)" stroke-width="1.5"/>`;
 
-      const sideAlpha = isMoving ? 0.48 : 0;
+      const sideAlpha = isMoving ? 0.45 : 0;
       const alpha = Math.min(1, smooth + (1 - smooth) * sideAlpha);
       if (alpha > 0.02) {
-        const orbitDeg = centerDeg * 0.52;
-        const [tx, ty] = ptArc(r - 48, orbitDeg);
+        const [tx, ty] = pt(r - 48, centerDeg);
         const scale = (0.86 + 0.14 * smooth).toFixed(3);
         const color = smooth > 0.45 ? "#FFFFFF" : "#4A7ACC";
         labelsHTML += `
-          <g transform="translate(${tx.toFixed(1)},${ty.toFixed(1)}) rotate(${orbitDeg.toFixed(2)}) scale(${scale})" opacity="${alpha.toFixed(3)}">
+          <g transform="translate(${tx.toFixed(1)},${ty.toFixed(1)}) rotate(${centerDeg.toFixed(2)}) scale(${scale})" opacity="${alpha.toFixed(3)}">
             <g transform="translate(0,-12)">
               <path d="M-6 2 A6 6 0 0 1 6 2 Z" fill="${color}"/>
               <line x1="-11" y1="4.5" x2="11" y2="4.5" stroke="${color}" stroke-width="1.7" stroke-linecap="round"/>
@@ -10448,22 +10447,17 @@
             <stop offset="0" stop-color="#E9F1FC"/>
             <stop offset="1" stop-color="#F3F7FD"/>
           </linearGradient>
-          <linearGradient id="bwm-active-grad" x1="0.5" y1="0" x2="0.5" y2="0.75">
+          <linearGradient id="bwm-active-grad" x1="0.5" y1="0" x2="0.5" y2="0.55">
             <stop offset="0" stop-color="#4788F9"/>
             <stop offset="0.5" stop-color="#5D9AF8"/>
             <stop offset="1" stop-color="#76ACF9"/>
           </linearGradient>
-          <clipPath id="bwm-outer-clip">
-            <circle cx="${cx}" cy="${arcCy}" r="${(r - 1.5).toFixed(1)}"/>
-          </clipPath>
         </defs>
-        <circle cx="${cx}" cy="${arcCy}" r="${r}" fill="url(#bwm-base-grad)" stroke="#FFFFFF" stroke-width="3.2"/>
-        <g clip-path="url(#bwm-outer-clip)">
-          ${sectorsHTML}
-          ${linesHTML}
-          ${labelsHTML}
-        </g>
-        <circle cx="${cx}" cy="${arcCy}" r="${r}" fill="none" stroke="#FFFFFF" stroke-width="3.2"/>
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#bwm-base-grad)" stroke="#FFFFFF" stroke-width="3.2"/>
+        ${sectorsHTML}
+        ${linesHTML}
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#FFFFFF" stroke-width="3.2"/>
+        ${labelsHTML}
       </svg>`;
   }
 
