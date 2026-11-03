@@ -3508,24 +3508,8 @@
       {
         id: "nc-a-2",
         who: "ai",
-        t: "血压 106/64 属于正常偏低范围，请先不要自行将药物减半。因为涉及倍他乐克与降压方案的剂量核对，我已为您接通后台主诊王主任为您直接解答。",
+        t: "血压 106/64 属于正常偏低范围，请先不要自行将药物减半。晚上的阿托伐他汀和明早的倍他乐克建议先维持原剂量，起身时动作放慢；若需个体化调整处方剂量，可点击右下角「转人工」由主诊医生为您核对。",
         timeLabel: "10:52"
-      },
-      {
-        id: "nc-h-1",
-        who: "ai",
-        isHumanDoctorReply: true,
-        humanDoctorTitle: "人工医生 · 王主任",
-        t: "李叔您好，我是王医生，刚在后台看到您的留言和血压心率记录。血压 106/64 不用太担心，今晚的阿托伐他汀和明早的倍他乐克先按原剂量正常吃，千万别自己减半，起身和下床时动作放慢一点。",
-        timeLabel: "10:53"
-      },
-      {
-        id: "nc-h-2",
-        who: "ai",
-        isHumanDoctorReply: true,
-        humanDoctorTitle: "人工医生 · 王主任",
-        t: "您今明两天早晚各测一次血压和心率发在这里，我帮您盯着；要是高压连续低于 100 或者头晕加重，我再在后台给您微调处方。",
-        timeLabel: "10:54"
       }
     ];
   }
@@ -3533,11 +3517,25 @@
     if (!S.consultFilter) S.consultFilter = "all";
     if (!Array.isArray(S.messages)) S.messages = [];
     const pushCount = S.messages.filter((m) => m && m.doctorPushCard).length;
-    const hasNormalHandoff = S.messages.some((m) => m && m.isHumanDoctorReply && !m.doctorPushCard);
-    if (forceReset || !S.doctorPushSeedV10252 || pushCount !== 3 || !hasNormalHandoff) {
+    const hasNormalChat = S.messages.some((m) => m && m.who === "ai" && m.t && !m.doctorPushCard);
+    if (forceReset || !S.doctorPushSeedV10253 || pushCount !== 3 || !hasNormalChat) {
       S.messages = defaultDoctorPushMessages();
-      S.doctorPushSeedV10252 = true;
+      S.doctorPushSeedV10253 = true;
     }
+  }
+  function bubbleCornerHumanBtnHTML(m, readOnly) {
+    const idAttr = m && m.id ? ` data-id="${esc(m.id)}"` : "";
+    const headsetSVG = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5V8a5 5 0 0 1 10 0v1.5"/><rect x="2" y="9" width="2.6" height="4.2" rx="1.2"/><rect x="11.4" y="9" width="2.6" height="4.2" rx="1.2"/></svg>`;
+    if (m && m.isTransferredToHuman) {
+      return `<div class="bubble-corner-row"><span class="bubble-human-btn done">✓ 已转人工</span></div>`;
+    }
+    if (m && m.isHumanDoctorReply) {
+      return `<div class="bubble-corner-row"><span class="bubble-human-btn done">✓ 人工解答</span></div>`;
+    }
+    if (readOnly) {
+      return `<div class="bubble-corner-row"><span class="bubble-human-btn">${headsetSVG}<span>转人工</span></span></div>`;
+    }
+    return `<div class="bubble-corner-row"><button type="button" class="bubble-human-btn" data-act="transferBubbleToHuman"${idAttr}>${headsetSVG}<span>转人工</span></button></div>`;
   }
   function consultDoctorPushCardHTML(m) {
     const c = m.doctorPushCard;
@@ -6828,8 +6826,8 @@
         const nextFilter = el.dataset.f || "all";
         S.consultFilter = nextFilter;
         if (nextFilter === "normalChat" || nextFilter === "all") {
-          const hasNormalHandoff = (S.messages || []).some((m) => m && m.isHumanDoctorReply && !m.doctorPushCard);
-          if (!hasNormalHandoff) {
+          const hasNormalChat = (S.messages || []).some((m) => m && m.who === "ai" && m.t && !m.doctorPushCard);
+          if (!hasNormalChat) {
             S.messages = [...(S.messages || []), ...defaultNormalChatHandoffMessages()];
           }
         }
@@ -6838,6 +6836,32 @@
       },
       setConsultReplyMode() {
         S.replyAsHumanDoctor = el.dataset.mode === "human";
+        render();
+      },
+      transferBubbleToHuman() {
+        const id = el.dataset.id;
+        const msg = (S.messages || []).find((m) => m && m.id === id);
+        if (msg) {
+          if (msg.isTransferredToHuman) return;
+          msg.isTransferredToHuman = true;
+        }
+        S.replyAsHumanDoctor = true;
+        const src = (msg && msg.t) ? String(msg.t) : "";
+        let replyText = "您好，我是后台主诊王医生，已接手您的对话并查阅了刚才的问诊记录。针对您关心的问题，目前建议先按时规律服药并早晚静坐监测血压心率；若还有具体不适症状，请直接发在对话里，我为您一对一解答。";
+        if (src.includes("86") || src.includes("头晕")) {
+          replyText = "李叔您好，我是王医生，刚收到您转接的问诊。支架术后静息心率 86 次/分伴起身轻微头晕，常见于体位变化或血压偏低，建议您先静坐测一次血压发在对话里，我帮您核对倍他乐克与阿司匹林的服药反应。";
+        } else if (src.includes("106/64") || src.includes("减半")) {
+          replyText = "李叔您好，我是王医生，已接手您的问诊。血压 106/64 不用太担心，今晚的阿托伐他汀和明早的倍他乐克先按原剂量正常吃，千万别自己减半，起身和下床时动作放慢一点。";
+        }
+        S.messages.push({
+          id: `msg-h-${Date.now()}`,
+          who: "ai",
+          isHumanDoctorReply: true,
+          humanDoctorTitle: "人工医生 · 王主任",
+          t: replyText,
+          timeLabel: "10:53"
+        });
+        toast("已转接后台人工医生（王主任）");
         render();
       },
       simulateHumanDoctorBubble() {
@@ -11403,7 +11427,7 @@
               return `
                 <div class="chat-msg-row ai">
                   <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
-                  ${genHasVip() ? `<div class="bubble ai">${CONSULT_VIP_GREETING}</div>` : consultVipCardHTML()}
+                  ${genHasVip() ? `<div class="bubble ai"><div>${CONSULT_VIP_GREETING}</div>${bubbleCornerHumanBtnHTML(m)}</div>` : consultVipCardHTML()}
                 </div>`;
             }
             if (m.who === "user") {
@@ -11435,6 +11459,7 @@
                       <div style="font-size:12px;font-weight:700;color:rgba(16,84,224,.85);margin-bottom:4px">🩺 ${esc(m.humanDoctorTitle || "人工医生 · 王主任")}</div>
                     ` : ""}
                     <div>${m.t}</div>
+                    ${bubbleCornerHumanBtnHTML(m)}
                   </div>
                   ${m.doctorPushCard ? consultDoctorPushCardHTML(m) : ""}
                   ${m.timeLabel ? `<div style="font-size:12px;font-weight:500;color:#6E7D96;margin-top:4px;padding-left:2px">${esc(m.timeLabel)}</div>` : ""}
@@ -11521,7 +11546,7 @@
         ${histMessages.length ? `
         <div class="scroll px20" style="padding-top:8px">
           <div class="s18 fb t mb8">今天</div>
-          ${histMessages.map((m) => `<div class="bubble ${m.who === "vip" ? "ai" : m.who}">${m.who === "vip" && genHasVip() ? CONSULT_VIP_GREETING : m.t}</div>`).join("")}
+          ${histMessages.map((m) => `<div class="bubble ${m.who === "vip" ? "ai" : m.who}"><div>${m.who === "vip" && genHasVip() ? CONSULT_VIP_GREETING : m.t}</div>${m.who === "user" ? "" : bubbleCornerHumanBtnHTML(m, true)}</div>`).join("")}
         </div>` : `
         <div class="grow col center" style="padding:0 28px">
           <div class="hist-empty-ico">${I.clock}</div>
@@ -14539,7 +14564,7 @@
     if (m.who === "ref") return `<div class="rx-ref">${esc(m.t)}</div>`;
     if (m.who === "fb") return rxFbCardHTML(m.fb);
     if (m.who === "user") return `<div class="bubble user">${esc(m.t)}</div>`;
-    return `<div class="bubble ai">${esc(m.t)}</div>
+    return `<div class="bubble ai"><div>${esc(m.t)}</div>${bubbleCornerHumanBtnHTML(m)}</div>
       ${m.e120 ? `<button class="rx-e120" data-act="call120" type="button">${I.phone}呼叫 120</button>` : ""}
       ${m.card ? rxCardHTML(S.rxCards[m.card]) : ""}`;
   }
