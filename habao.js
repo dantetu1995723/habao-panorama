@@ -3481,6 +3481,24 @@
           educationFollowUpPrompt: "吃他汀期间除了西柚，日常饮食和复查还有什么要注意的？",
           educationRead: false
         }
+      },
+      {
+        id: "dp-handoff-1",
+        who: "ai",
+        t: "",
+        doctorPushCard: {
+          kind: "humanHandoff",
+          title: "检测到您近期反馈服药后偶发头晕伴下午心率偏快，涉及个体化处方评估，建议转交后台主诊医生人工核阅：",
+          pushedAtLabel: "10:55",
+          handoffItems: [
+            "症状摘要｜服药后偶发轻微头晕，下午静息心率 86 次/分",
+            "关联用药｜每日 08:00 阿司匹林、20:00 阿托伐他汀、倍他乐克",
+            "转接团队｜心内科王主任团队（同步病历与近期血压心率曲线）"
+          ],
+          handoffDecision: "pending",
+          handoffDoctorName: "真人医生 · 王主任（心内科主诊）",
+          handoffDoctorReply: "您好，我是您的后台康复主诊王医生，已收到哈宝转交的问诊记录与近期血压心率曲线。您下午心率 86 次/分伴轻微头晕，可能与倍他乐克服药时段或午后饮水偏少有关：建议今明两天早晚静坐复测血压心率，暂勿自行加减药量；如头晕加重请随时在对话里告诉我。"
+        }
       }
     ];
   }
@@ -3488,10 +3506,10 @@
     if (!S.consultFilter) S.consultFilter = "all";
     if (!Array.isArray(S.messages)) S.messages = [];
     const seedCount = S.messages.filter((m) => m && m.doctorPushCard).length;
-    if (forceReset || !S.doctorPushSeedV10236 || seedCount !== 3) {
-      const rest = forceReset ? [] : S.messages.filter((m) => !m.doctorPushCard);
+    if (forceReset || !S.doctorPushSeedV10251 || seedCount !== 4) {
+      const rest = forceReset ? [] : S.messages.filter((m) => !m.doctorPushCard && !m.isHumanDoctorReply);
       S.messages = [...defaultDoctorPushMessages(), ...rest];
-      S.doctorPushSeedV10236 = true;
+      S.doctorPushSeedV10251 = true;
     }
   }
   function consultDoctorPushCardHTML(m) {
@@ -3558,7 +3576,7 @@
       ` : `
         <button type="button" data-act="goDoctorFollowUp" data-id="${esc(m.id)}" style="width:100%;height:32px;border-radius:99px;border:none;background:#1054E0;color:#fff;font-size:13px;font-weight:700;cursor:pointer">${answered > 0 ? `继续完成随访（已答 ${answered}/51）›` : "去完成随访（共 51 题）›"}</button>
       `;
-    } else {
+    } else if (c.kind === "dailyEducation") {
       const points = Array.isArray(c.educationPoints) ? c.educationPoints : [];
       listRowsHTML = points.map((pt, idx) => `
         <div style="display:flex;align-items:center;gap:6px;padding:5px 0;${idx < points.length - 1 ? "border-bottom:1px solid rgba(16,84,224,.08);" : ""}">
@@ -3573,6 +3591,32 @@
           ${c.educationRead
             ? `<div style="flex:1;height:32px;border-radius:99px;background:rgba(16,84,224,.04);color:rgba(16,84,224,.65);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center">✓ 已读</div>`
             : `<button type="button" data-act="markEduRead" data-id="${esc(m.id)}" style="flex:1;height:32px;border-radius:99px;border:none;background:#1054E0;color:#fff;font-size:13px;font-weight:700;cursor:pointer">✓ 知道了</button>`}
+        </div>
+      `;
+    } else if (c.kind === "humanHandoff") {
+      const items = Array.isArray(c.handoffItems) ? c.handoffItems : [];
+      listRowsHTML = items.map((pt, idx) => `
+        <div style="display:flex;align-items:center;gap:6px;padding:5px 0;${idx < items.length - 1 ? "border-bottom:1px solid rgba(16,84,224,.08);" : ""}">
+          <span style="width:5px;height:5px;border-radius:50%;background:#1054E0;flex-shrink:0"></span>
+          <span style="font-size:13px;font-weight:500;color:rgba(16,84,224,.92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(pt)}</span>
+        </div>
+      `).join("");
+
+      const decision = c.handoffDecision || "pending";
+      actionsHTML = decision === "pending" ? `
+        <div style="display:flex;gap:8px">
+          <button type="button" data-act="dismissHumanHandoff" data-id="${esc(m.id)}" style="flex:1;height:32px;border-radius:99px;border:1px solid rgba(16,84,224,.16);background:rgba(16,84,224,.07);color:#1054E0;font-size:13px;font-weight:700;cursor:pointer">暂不转接</button>
+          <button type="button" data-act="transferHumanHandoff" data-id="${esc(m.id)}" style="flex:1;height:32px;border-radius:99px;border:none;background:#1054E0;color:#fff;font-size:13px;font-weight:700;cursor:pointer">转人工医生 ›</button>
+        </div>
+      ` : decision === "transferred" ? `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <span style="font-size:13px;font-weight:700;color:#1054E0">✓ 已转交后台人工医生</span>
+          <span style="height:26px;padding:0 10px;background:rgba(16,84,224,.09);color:#1054E0;font-size:12px;font-weight:700;border-radius:99px;display:inline-flex;align-items:center;flex-shrink:0">真人医生已接力</span>
+        </div>
+      ` : `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <span style="font-size:13px;font-weight:600;color:#6E7D96">暂不转接人工</span>
+          <button type="button" data-act="transferHumanHandoff" data-id="${esc(m.id)}" style="height:27px;padding:0 10px;border:none;background:rgba(16,84,224,.09);color:#1054E0;font-size:12.5px;font-weight:700;border-radius:99px;cursor:pointer;flex-shrink:0">转人工医生 ›</button>
         </div>
       `;
     }
@@ -6743,12 +6787,12 @@
         const photo = S.pendingImage ? "（图片）" : "";
         const hadImage = !!S.pendingImage;
         const userText = `${photo}${v || "请帮我看看这张图片"}`;
-        S.messages.push({ who: "user", t: userText });
+        S.messages.push({ id: `msg-u-${Date.now()}`, who: "user", t: userText });
         if (!genHasVip()) {
-          S.messages.push({ who: "vip", t: "需购买 VIP 才能使用哈宝问诊" });
+          S.messages.push({ id: `msg-v-${Date.now()}`, who: "vip", t: "需购买 VIP 才能使用哈宝问诊" });
         } else {
           const routed = routeFreeConsultTurn(v || "请帮我看看这张图片", hadImage);
-          S.messages.push({ who: "ai", t: routed.reply });
+          S.messages.push({ id: `msg-a-${Date.now()}`, who: "ai", t: routed.reply });
         }
         S.chatDraft = "";
         S.pendingImage = false;
@@ -6763,7 +6807,58 @@
       resetConsultDemo() {
         ensureDoctorPushSeed(true);
         S.consultFilter = "all";
-        toast("已重置哈宝问诊 3 类医生推送状况");
+        toast("已重置哈宝问诊 4 类状况（含气泡转人工）");
+        render();
+      },
+      transferHumanHandoff() {
+        const id = el.dataset.id;
+        const msg = (S.messages || []).find((m) => m.id === id);
+        if (!msg || !msg.doctorPushCard) return;
+        const c = msg.doctorPushCard;
+        if (c.handoffDecision === "transferred") return;
+        c.handoffDecision = "transferred";
+        S.messages.push({
+          id: `msg-human-${Date.now()}`,
+          who: "ai",
+          isHumanDoctorReply: true,
+          humanDoctorTitle: c.handoffDoctorName || "真人医生 · 王主任（心内科主诊）",
+          t: c.handoffDoctorReply || "您好，我是您的后台康复主诊王医生，已收到哈宝转交的问诊记录与近期血压心率曲线。您下午心率 86 次/分伴轻微头晕，可能与倍他乐克服药时段或午后饮水偏少有关：建议今明两天早晚静坐复测血压心率，暂勿自行加减药量；如头晕加重请随时在对话里告诉我。"
+        });
+        toast("已转交后台人工医生，王主任已介入回复");
+        render();
+      },
+      dismissHumanHandoff() {
+        const id = el.dataset.id;
+        const msg = (S.messages || []).find((m) => m.id === id);
+        if (!msg || !msg.doctorPushCard) return;
+        msg.doctorPushCard.handoffDecision = "dismissed";
+        render();
+      },
+      transferBubbleToHuman() {
+        const id = el.dataset.id;
+        const idx = (S.messages || []).findIndex((m) => m.id === id);
+        if (idx < 0) return;
+        const msg = S.messages[idx];
+        if (msg.isTransferredToHuman) return;
+        msg.isTransferredToHuman = true;
+        let latestPrompt = "";
+        for (let i = idx - 1; i >= 0; i--) {
+          if (S.messages[i] && S.messages[i].who === "user") {
+            latestPrompt = (S.messages[i].t || "").trim();
+            break;
+          }
+        }
+        const shortTopic = latestPrompt
+          ? `您刚才咨询的「${latestPrompt.slice(0, 18)}${latestPrompt.length > 18 ? "…" : ""}」`
+          : "您刚才咨询的情况";
+        S.messages.push({
+          id: `msg-human-${Date.now()}`,
+          who: "ai",
+          isHumanDoctorReply: true,
+          humanDoctorTitle: "真人医生 · 王主任（心内科主诊）",
+          t: `您好，我是您的后台康复主诊王医生，已收到哈宝转交的问诊记录。针对${shortTopic}，我已结合您的出院诊断与近期康复计划做了人工复核：目前整体恢复平稳，请继续按当前医嘱规律服药与监测；若后续出现持续不适或指标波动，可随时在此直接留言，我会为您跟进调整方案。`
+        });
+        toast("已转交后台人工医生，王主任已接力回复");
         render();
       },
       acceptDoctorPlan() {
@@ -6832,9 +6927,9 @@
           msg.doctorPushCard.educationRead = true;
         }
         S.consultFilter = "all";
-        S.messages.push({ who: "user", t: prompt });
+        S.messages.push({ id: `msg-u-${Date.now()}`, who: "user", t: prompt });
         const routed = routeFreeConsultTurn(prompt, false);
-        S.messages.push({ who: "ai", t: routed.reply });
+        S.messages.push({ id: `msg-a-${Date.now() + 1}`, who: "ai", t: routed.reply });
         render();
       },
       toggleInput() {
@@ -11249,8 +11344,12 @@
       const allVisible = S.messages.filter(
         (m) => !m.isCareBubble && m.who !== "notice"
       );
-      const visibleMessages = allVisible.filter((m) => {
+      const visibleMessages = allVisible.filter((m, idx) => {
+        if (!m.id) m.id = `msg-auto-${idx}`;
         if (curFilter === "all") return true;
+        if (curFilter === "humanHandoff") {
+          return (m.doctorPushCard && m.doctorPushCard.kind === "humanHandoff") || !!m.isHumanDoctorReply;
+        }
         if (!m.doctorPushCard) return false;
         if (curFilter === "planPush") return m.doctorPushCard.kind === "planProposal";
         if (curFilter === "followUp") return m.doctorPushCard.kind === "followUpReminder";
@@ -11262,6 +11361,7 @@
         { k: "planPush", t: "医生推计划" },
         { k: "followUp", t: "随访提醒" },
         { k: "education", t: "日常宣教" },
+        { k: "humanHandoff", t: "转人工" },
       ].map((f) => {
         const on = curFilter === f.k;
         return `<button type="button" data-act="setConsultFilter" data-f="${f.k}" style="height:31px;padding:0 11px;border-radius:99px;border:1px solid ${on ? "#1054E0" : "rgba(16,84,224,.14)"};background:${on ? "#1054E0" : "#fff"};color:${on ? "#fff" : "#1A2947"};font-size:13px;font-weight:${on ? 700 : 600};cursor:pointer;white-space:nowrap">${f.t}</button>`;
@@ -11300,7 +11400,26 @@
             <div class="chat-msg-row ai" style="align-items:flex-start">
               <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
               <div style="flex:1;min-width:0">
-                <div class="bubble ai">${m.t}</div>
+                <div class="bubble ai" style="${m.isHumanDoctorReply ? "border:1.2px solid rgba(16,84,224,.22);" : ""}">
+                  ${m.isHumanDoctorReply ? `
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:5px 10px;margin-bottom:8px;border-radius:10px;background:rgba(16,84,224,.07);color:#1054E0;font-size:12.5px;font-weight:700">
+                      <span>🩺 ${esc(m.humanDoctorTitle || "真人医生 · 王主任（心内科主诊）")}</span>
+                      <span style="padding:2px 7px;border-radius:99px;background:#1054E0;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">人工接力</span>
+                    </div>
+                  ` : ""}
+                  <div>${m.t}</div>
+                  ${!m.isHumanDoctorReply && !m.doctorPushCard ? `
+                    <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(16,84,224,.08);display:flex;align-items:center;justify-content:space-between;gap:8px">
+                      ${m.isTransferredToHuman ? `
+                        <span style="font-size:12.5px;font-weight:700;color:#1054E0">✓ 已转交后台人工医生</span>
+                        <span style="font-size:11.5px;font-weight:600;color:#6E7D96">真人医生已接力</span>
+                      ` : `
+                        <span style="font-size:12.5px;font-weight:500;color:#6E7D96">需要主诊医生人工解答？</span>
+                        <button type="button" data-act="transferBubbleToHuman" data-id="${esc(m.id)}" style="height:27px;padding:0 10px;border-radius:99px;border:1px solid rgba(16,84,224,.16);background:rgba(16,84,224,.09);color:#1054E0;font-size:12.5px;font-weight:700;cursor:pointer;flex-shrink:0">转人工医生 ›</button>
+                      `}
+                    </div>
+                  ` : ""}
+                </div>
                 ${m.doctorPushCard ? consultDoctorPushCardHTML(m) : ""}
               </div>
             </div>
