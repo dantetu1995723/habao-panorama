@@ -2325,6 +2325,12 @@
     const cutoff = (S.lastProxyPopupAckAt && S.lastProxyPopupAckAt[nm]) || 0;
     return S.careProxyRequests.filter((r) => !r.recipientPopupShown && r.recipientName === nm && (r.createdAt || 0) > cutoff);
   }
+  function unshownExerciseInviteRequestsFor(personName) {
+    return unshownPopupProxyRequestsFor(personName).filter((r) => r.kind === "inviteExerciseTest");
+  }
+  function unshownNormalPopupProxyRequestsFor(personName) {
+    return unshownPopupProxyRequestsFor(personName).filter((r) => r.kind !== "inviteExerciseTest");
+  }
   function unseenProxyRequestsFor(personName) {
     ensureCareGraph();
     const nm = personName || S.currentPersonName || "李建国";
@@ -3810,13 +3816,35 @@
           </div>
         </div>`;
     }
-    const unshownProxy = unshownPopupProxyRequestsFor(cur);
+    const unshownExInvites = unshownExerciseInviteRequestsFor(cur);
+    if (unshownExInvites.length > 0) {
+      const curInvite = unshownExInvites[0];
+      return `
+        <div class="care-notice-modal" style="position:absolute;inset:0;z-index:110;background:rgba(10,22,48,.42);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .18s ease">
+          <div style="width:100%;max-width:344px;background:#fff;border-radius:24px;border:1px solid rgba(16,84,224,.14);box-shadow:0 16px 36px rgba(10,26,68,.20);padding:22px 20px 20px;display:flex;flex-direction:column;align-items:stretch;text-align:left">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(16,84,224,.12);color:var(--blue);display:grid;place-items:center;flex-shrink:0">${I.walk || I.bell}</div>
+              <div style="flex:1;min-width:0;font-size:19px;font-weight:800;color:var(--blue);line-height:1.2">运动计划体测提醒</div>
+              <span style="padding:4px 10px;border-radius:999px;background:rgba(16,84,224,.10);border:1px solid rgba(16,84,224,.22);color:var(--blue);font-size:12px;font-weight:800;flex-shrink:0">需本人体测</span>
+            </div>
+            <div class="op-card" style="width:100%;padding:15px;border-radius:16px;background:rgba(16,84,224,.05);border:1px solid rgba(16,84,224,.14);box-shadow:none;margin-bottom:16px">
+              <h4>${opHeadlineHTML(proxyToOpItem(curInvite))}</h4>
+              <div style="height:1px;background:rgba(16,84,224,.10);margin:10px 0 8px"></div>
+              <div style="font-size:13px;font-weight:600;color:var(--sec);line-height:1.45">运动计划需由你本人完成体测后生成，结果将自动回执给${curInvite.senderName}。</div>
+            </div>
+            <div style="width:100%;display:flex;gap:10px">
+              <button type="button" data-act="declineHomeExerciseInvite" style="flex:1;height:48px;border-radius:14px;border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit">不创建</button>
+              <button type="button" data-act="ackHomeProxyPopupAndTest" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">去创建</button>
+            </div>
+          </div>
+        </div>`;
+    }
+    const unshownProxy = unshownNormalPopupProxyRequestsFor(cur);
     if (unshownProxy.length > 0) {
       const total = unshownProxy.length;
       const pageIdx = Math.min(Math.max(0, S.proxyPopupPage || 0), total - 1);
       S.proxyPopupPage = pageIdx;
       const curReq = unshownProxy[pageIdx];
-      const isCurrentExerciseInvite = !!(curReq && curReq.kind === "inviteExerciseTest");
       const prevDisabled = pageIdx <= 0;
       const nextDisabled = pageIdx >= total - 1;
       const dotsHTML = total > 1
@@ -3846,10 +3874,7 @@
             </div>
             ${pagerHTML}
             <div style="width:100%;display:flex;gap:10px">
-              ${isCurrentExerciseInvite
-                ? `<button type="button" data-act="declineHomeExerciseInvite" style="flex:1;height:48px;border-radius:14px;border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit">不创建</button>
-                   <button type="button" data-act="ackHomeProxyPopupAndTest" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">去创建</button>`
-                : `<button type="button" data-act="ackHomeProxyPopup" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">知道了</button>`}
+              <button type="button" data-act="ackHomeProxyPopup" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">知道了</button>
             </div>
           </div>
         </div>`;
@@ -7976,14 +8001,14 @@
       },
       prevProxyPopupPage() {
         const cur = S.currentPersonName || "李建国";
-        const list = unshownPopupProxyRequestsFor(cur);
+        const list = unshownNormalPopupProxyRequestsFor(cur);
         if (!list.length) return;
         S.proxyPopupPage = Math.max(0, (S.proxyPopupPage || 0) - 1);
         render();
       },
       nextProxyPopupPage() {
         const cur = S.currentPersonName || "李建国";
-        const list = unshownPopupProxyRequestsFor(cur);
+        const list = unshownNormalPopupProxyRequestsFor(cur);
         if (!list.length) return;
         S.proxyPopupPage = Math.min(list.length - 1, (S.proxyPopupPage || 0) + 1);
         render();
@@ -7991,7 +8016,7 @@
       gotoProxyPopupPage() {
         const idx = Number(el.dataset.idx || 0);
         const cur = S.currentPersonName || "李建国";
-        const list = unshownPopupProxyRequestsFor(cur);
+        const list = unshownNormalPopupProxyRequestsFor(cur);
         if (!list.length) return;
         S.proxyPopupPage = Math.min(Math.max(0, idx), list.length - 1);
         render();
