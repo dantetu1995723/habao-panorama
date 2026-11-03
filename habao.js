@@ -2343,15 +2343,34 @@
   function acknowledgeHomePopupProxyRequestsFor(personName) {
     ensureCareGraph();
     const nm = personName || S.currentPersonName || "李建国";
-    if (!S.lastProxyPopupAckAt) S.lastProxyPopupAckAt = {};
-    S.lastProxyPopupAckAt[nm] = Date.now();
-    S.proxyPopupPage = 0;
+    const unshown = unshownPopupProxyRequestsFor(nm);
+    const hasRemainingExerciseInvite = unshown.some((r) => r.kind === "inviteExerciseTest");
     S.careProxyRequests.forEach((r) => {
-      if (r.recipientName === nm) {
+      if (r.recipientName === nm && r.kind !== "inviteExerciseTest") {
         r.recipientPopupShown = true;
         r.recipientManageSeen = true;
       }
     });
+    if (!hasRemainingExerciseInvite) {
+      if (!S.lastProxyPopupAckAt) S.lastProxyPopupAckAt = {};
+      S.lastProxyPopupAckAt[nm] = Date.now();
+    }
+    S.proxyPopupPage = 0;
+  }
+  function acknowledgeExerciseInvitePopupRequestsFor(personName) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName || "李建国";
+    S.careProxyRequests.forEach((r) => {
+      if (r.recipientName === nm && r.kind === "inviteExerciseTest") {
+        r.recipientPopupShown = true;
+        r.recipientManageSeen = true;
+      }
+    });
+    if (unshownPopupProxyRequestsFor(nm).length === 0) {
+      if (!S.lastProxyPopupAckAt) S.lastProxyPopupAckAt = {};
+      S.lastProxyPopupAckAt[nm] = Date.now();
+    }
+    S.proxyPopupPage = 0;
   }
   function proxyKindBadgeTitle(kind) {
     const map = {
@@ -3797,7 +3816,7 @@
       const pageIdx = Math.min(Math.max(0, S.proxyPopupPage || 0), total - 1);
       S.proxyPopupPage = pageIdx;
       const curReq = unshownProxy[pageIdx];
-      const hasExerciseInvite = unshownProxy.some((r) => r.kind === "inviteExerciseTest");
+      const isCurrentExerciseInvite = !!(curReq && curReq.kind === "inviteExerciseTest");
       const prevDisabled = pageIdx <= 0;
       const nextDisabled = pageIdx >= total - 1;
       const dotsHTML = total > 1
@@ -3827,7 +3846,7 @@
             </div>
             ${pagerHTML}
             <div style="width:100%;display:flex;gap:10px">
-              ${hasExerciseInvite
+              ${isCurrentExerciseInvite
                 ? `<button type="button" data-act="declineHomeExerciseInvite" style="flex:1;height:48px;border-radius:14px;border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit">不创建</button>
                    <button type="button" data-act="ackHomeProxyPopupAndTest" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">去创建</button>`
                 : `<button type="button" data-act="ackHomeProxyPopup" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">知道了</button>`}
@@ -7989,7 +8008,7 @@
           if (r.senderName && !senders.includes(r.senderName)) senders.push(r.senderName);
         });
         S.pendingExerciseInviteSenders = null;
-        acknowledgeHomePopupProxyRequestsFor(cur);
+        acknowledgeExerciseInvitePopupRequestsFor(cur);
         senders.forEach((sender) => {
           sendExerciseInviteReceiptFor({
             responderName: cur,
@@ -8010,7 +8029,7 @@
           if (r.senderName && !senders.includes(r.senderName)) senders.push(r.senderName);
         });
         S.pendingExerciseInviteSenders = senders;
-        acknowledgeHomePopupProxyRequestsFor(cur);
+        acknowledgeExerciseInvitePopupRequestsFor(cur);
         S.proxyTargetPersonName = null;
         S.contra = !!(S.contraByPerson && S.contraByPerson[cur]);
         S.confirmDrafts = null;
