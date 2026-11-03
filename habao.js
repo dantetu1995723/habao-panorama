@@ -10458,7 +10458,15 @@
       if (Math.abs(deg) < 82) blueLabels += labelAt(b, deg, "#4788F9", Math.max(0, 1 - Math.abs(deg) / 82) * 0.9);
       if (Math.abs(deg) < 60) whiteLabels += labelAt(b, deg, "#FFFFFF", 1);
     });
-    const labelHTML = `${blueLabels}<g clip-path="url(#bwm-window-clip)">${whiteLabels}</g>`;
+    const labelHTML = `<g clip-path="url(#bwm-window-clip)">${whiteLabels}</g>`;
+    // 蓝窗两侧固定白边框：随盘白线画在蓝窗之下，转入即被遮住，从边框下滑入滑出，绝不切穿蓝块
+    const [fl0x, fl0y] = pt(innerR, -span / 2);
+    const [fo0x, fo0y] = pt(outerR, -span / 2);
+    const [fl1x, fl1y] = pt(innerR, span / 2);
+    const [fo1x, fo1y] = pt(outerR, span / 2);
+    const frameHTML = `
+      <line x1="${fl0x.toFixed(1)}" y1="${fl0y.toFixed(1)}" x2="${fo0x.toFixed(1)}" y2="${fo0y.toFixed(1)}" stroke="rgba(255,255,255,0.9)" stroke-width="1.4"/>
+      <line x1="${fl1x.toFixed(1)}" y1="${fl1y.toFixed(1)}" x2="${fo1x.toFixed(1)}" y2="${fo1y.toFixed(1)}" stroke="rgba(255,255,255,0.9)" stroke-width="1.4"/>`;
 
     return `
       <svg class="bwm-wheel-svg" viewBox="0 0 ${w} ${h}" fill="none">
@@ -10475,9 +10483,11 @@
           </linearGradient>
         </defs>
         <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#bwm-base-grad)" stroke="#FFFFFF" stroke-width="3.2"/>
-        ${activeSectorHTML}
-        ${ticksHTML}
         ${linesHTML}
+        ${blueLabels}
+        ${activeSectorHTML}
+        ${frameHTML}
+        ${ticksHTML}
         <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#FFFFFF" stroke-width="3.2"/>
         ${labelHTML}
       </svg>`;
