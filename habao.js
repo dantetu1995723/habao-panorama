@@ -10717,16 +10717,14 @@
 
     "first-rest": () => `
       <div class="page">
-        ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "基础作息",
-          `<button class="nav-text blue" data-act="addRest" type="button">添加</button>`)}
+        ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "基础作息")}
         <div class="scroll pad-16" style="padding-top:16px">
           <div class="white-island" style="padding:4px 16px">
             ${S.restRows.length ? S.restRows.map((r, i) => `
               <div class="rest-row">
-                <span class="minus" data-act="delRest" data-i="${i}">${I.minus}</span>
                 <div class="rest-name" data-act="editRestName" data-i="${i}">${r.name} <span class="t-sec" style="opacity:.45">${I.chevUD}</span></div>
                 <button class="time-cap" data-act="editRestTime" data-i="${i}" type="button">${r.t}</button>
-              </div>`).join("") : `<div class="ta-c t-sec s15" style="padding:28px 4px">暂无计划，点右上角添加</div>`}
+              </div>`).join("") : `<div class="ta-c t-sec s15" style="padding:28px 4px">暂无计划</div>`}
           </div>
         </div>
         <div class="pad-16" style="padding-bottom:36px">
