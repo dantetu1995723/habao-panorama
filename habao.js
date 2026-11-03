@@ -3816,27 +3816,6 @@
           </div>
         </div>`;
     }
-    const unshownExInvites = unshownExerciseInviteRequestsFor(cur);
-    if (unshownExInvites.length > 0) {
-      const curInvite = unshownExInvites[0];
-      return `
-        <div class="care-notice-modal" style="position:absolute;inset:0;z-index:110;background:rgba(10,22,48,.42);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .18s ease">
-          <div style="width:100%;max-width:344px;background:#fff;border-radius:24px;border:1px solid rgba(16,84,224,.14);box-shadow:0 16px 36px rgba(10,26,68,.20);padding:22px 20px 20px;display:flex;flex-direction:column;align-items:stretch;text-align:left">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-              <div style="width:36px;height:36px;border-radius:50%;background:rgba(16,84,224,.12);color:var(--blue);display:grid;place-items:center;flex-shrink:0">${I.walk || I.bell}</div>
-              <div style="flex:1;min-width:0;font-size:19px;font-weight:800;color:var(--blue);line-height:1.2">运动计划体测提醒</div>
-              <span style="padding:4px 10px;border-radius:999px;background:rgba(16,84,224,.10);border:1px solid rgba(16,84,224,.22);color:var(--blue);font-size:12px;font-weight:800;flex-shrink:0">需本人体测</span>
-            </div>
-            <div class="op-card" style="width:100%;padding:15px;border-radius:16px;background:rgba(16,84,224,.05);border:1px solid rgba(16,84,224,.14);box-shadow:none;margin-bottom:16px">
-              <h4>${opHeadlineHTML(proxyToOpItem(curInvite))}</h4>
-            </div>
-            <div style="width:100%;display:flex;gap:10px">
-              <button type="button" data-act="declineHomeExerciseInvite" style="flex:1;height:48px;border-radius:14px;border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit">不创建</button>
-              <button type="button" data-act="ackHomeProxyPopupAndTest" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">去创建</button>
-            </div>
-          </div>
-        </div>`;
-    }
     const unshownProxy = unshownNormalPopupProxyRequestsFor(cur);
     if (unshownProxy.length > 0) {
       const total = unshownProxy.length;
@@ -3873,6 +3852,27 @@
             ${pagerHTML}
             <div style="width:100%;display:flex;gap:10px">
               <button type="button" data-act="ackHomeProxyPopup" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">知道了</button>
+            </div>
+          </div>
+        </div>`;
+    }
+    const unshownExInvites = unshownExerciseInviteRequestsFor(cur);
+    if (unshownExInvites.length > 0) {
+      const curInvite = unshownExInvites[0];
+      return `
+        <div class="care-notice-modal" style="position:absolute;inset:0;z-index:110;background:rgba(10,22,48,.42);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .18s ease">
+          <div style="width:100%;max-width:344px;background:#fff;border-radius:24px;border:1px solid rgba(16,84,224,.14);box-shadow:0 16px 36px rgba(10,26,68,.20);padding:22px 20px 20px;display:flex;flex-direction:column;align-items:stretch;text-align:left">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(16,84,224,.12);color:var(--blue);display:grid;place-items:center;flex-shrink:0">${I.walk || I.bell}</div>
+              <div style="flex:1;min-width:0;font-size:19px;font-weight:800;color:var(--blue);line-height:1.2">运动计划体测提醒</div>
+              <span style="padding:4px 10px;border-radius:999px;background:rgba(16,84,224,.10);border:1px solid rgba(16,84,224,.22);color:var(--blue);font-size:12px;font-weight:800;flex-shrink:0">需本人体测</span>
+            </div>
+            <div class="op-card" style="width:100%;padding:15px;border-radius:16px;background:rgba(16,84,224,.05);border:1px solid rgba(16,84,224,.14);box-shadow:none;margin-bottom:16px">
+              <h4>${opHeadlineHTML(proxyToOpItem(curInvite))}</h4>
+            </div>
+            <div style="width:100%;display:flex;gap:10px">
+              <button type="button" data-act="declineHomeExerciseInvite" style="flex:1;height:48px;border-radius:14px;border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit">不创建</button>
+              <button type="button" data-act="ackHomeProxyPopupAndTest" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">去创建</button>
             </div>
           </div>
         </div>`;
