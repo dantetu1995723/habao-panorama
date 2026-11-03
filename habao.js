@@ -3518,9 +3518,9 @@
     if (!Array.isArray(S.messages)) S.messages = [];
     const pushCount = S.messages.filter((m) => m && m.doctorPushCard).length;
     const hasNormalChat = S.messages.some((m) => m && m.who === "ai" && m.t && !m.doctorPushCard);
-    if (forceReset || !S.doctorPushSeedV10254 || pushCount !== 3 || !hasNormalChat) {
+    if (forceReset || !S.doctorPushSeedV10256 || pushCount !== 3 || !hasNormalChat) {
       S.messages = defaultDoctorPushMessages();
-      S.doctorPushSeedV10254 = true;
+      S.doctorPushSeedV10256 = true;
     }
   }
   function bubbleCornerHumanBtnHTML(m, readOnly) {
@@ -11396,6 +11396,15 @@
         : `状况·${curFilter === "all" && S.replyAsHumanDoctor ? "人工" : activeScenario.short}`;
       const plusItem = (act, icon, label) =>
         `<button class="plus-item" type="button" data-act="${act}"><span>${icon}</span>${label}</button>`;
+      const latestAIMessageId = (() => {
+        for (let i = visibleMessages.length - 1; i >= 0; i--) {
+          const item = visibleMessages[i];
+          if (item && item.who === "ai" && !item.doctorPushCard && item.t) {
+            return item.id;
+          }
+        }
+        return null;
+      })();
       return `
       <div class="page rel${S.consultKeyboard ? " consult-kb" : ""}${S.plusPanel ? " consult-panel" : ""}">
         ${navBar(
@@ -11425,7 +11434,7 @@
               return `
                 <div class="chat-msg-row ai">
                   <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
-                  ${genHasVip() ? `<div class="bubble ai"><div>${CONSULT_VIP_GREETING}</div>${bubbleCornerHumanBtnHTML(m)}</div>` : consultVipCardHTML()}
+                  ${genHasVip() ? `<div class="bubble ai"><div>${CONSULT_VIP_GREETING}</div>${m.id === latestAIMessageId ? bubbleCornerHumanBtnHTML(m) : ""}</div>` : consultVipCardHTML()}
                 </div>`;
             }
             if (m.who === "user") {
@@ -11457,7 +11466,7 @@
                       <div style="font-size:12px;font-weight:700;color:rgba(16,84,224,.85);margin-bottom:4px">🩺 ${esc(m.humanDoctorTitle || "人工医生 · 王主任")}</div>
                     ` : ""}
                     <div>${m.t}</div>
-                    ${bubbleCornerHumanBtnHTML(m)}
+                    ${m.id === latestAIMessageId ? bubbleCornerHumanBtnHTML(m) : ""}
                   </div>
                   ${m.doctorPushCard ? consultDoctorPushCardHTML(m) : ""}
                   ${m.timeLabel ? `<div style="font-size:12px;font-weight:500;color:#6E7D96;margin-top:4px;padding-left:2px">${esc(m.timeLabel)}</div>` : ""}
@@ -14562,7 +14571,7 @@
     if (m.who === "ref") return `<div class="rx-ref">${esc(m.t)}</div>`;
     if (m.who === "fb") return rxFbCardHTML(m.fb);
     if (m.who === "user") return `<div class="bubble user">${esc(m.t)}</div>`;
-    return `<div class="bubble ai"><div>${esc(m.t)}</div>${bubbleCornerHumanBtnHTML(m)}</div>
+    return `<div class="bubble ai">${esc(m.t)}</div>
       ${m.e120 ? `<button class="rx-e120" data-act="call120" type="button">${I.phone}呼叫 120</button>` : ""}
       ${m.card ? rxCardHTML(S.rxCards[m.card]) : ""}`;
   }
