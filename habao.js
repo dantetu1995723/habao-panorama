@@ -10393,7 +10393,6 @@
     const cy = r + 6;
     const outerR = r - 1.5;
     const innerR = r - 128;
-    const halfSpan = 28.5;
     const pt = (rad, deg) => {
       const a = (deg * Math.PI) / 180;
       return [cx + Math.sin(a) * rad, cy - Math.cos(a) * rad];
@@ -10406,60 +10405,65 @@
       return `M${ox0.toFixed(1)} ${oy0.toFixed(1)}A${outerR.toFixed(1)} ${outerR.toFixed(1)} 0 0 1 ${ox1.toFixed(1)} ${oy1.toFixed(1)}L${ix1.toFixed(1)} ${iy1.toFixed(1)}A${innerR.toFixed(1)} ${innerR.toFixed(1)} 0 0 0 ${ix0.toFixed(1)} ${iy0.toFixed(1)}Z`;
     };
 
-    // 1. 顶部固定亮蓝选中扇区（[-28.5°, +28.5°]）与两侧固定白边（安静稳定不晃眼、底角绝不露出）
-    const activeSectorHTML = `<path d="${sectorPath(-halfSpan, halfSpan)}" fill="url(#bwm-active-grad)"/>`;
-    const [il0x, il0y] = pt(innerR, -halfSpan);
-    const [ol0x, ol0y] = pt(outerR, -halfSpan);
-    const [il1x, il1y] = pt(innerR, halfSpan);
-    const [ol1x, ol1y] = pt(outerR, halfSpan);
-    const linesHTML = `
-      <line x1="${il0x.toFixed(1)}" y1="${il0y.toFixed(1)}" x2="${ol0x.toFixed(1)}" y2="${ol0y.toFixed(1)}" stroke="rgba(255,255,255,0.9)" stroke-width="1.5"/>
-      <line x1="${il1x.toFixed(1)}" y1="${il1y.toFixed(1)}" x2="${ol1x.toFixed(1)}" y2="${ol1y.toFixed(1)}" stroke="rgba(255,255,255,0.9)" stroke-width="1.5"/>`;
+    // 1. 固定在正上方的蓝色取景窗（不随转动，仅一块蓝）
+    const span = 360 / BLOCKS.length;
+    const winPath = sectorPath(-span / 2, span / 2);
+    const activeSectorHTML = `<path d="${winPath}" fill="url(#bwm-active-grad)"/>`;
 
-    // 2. 弧缘 360° 随动微刻度环（低对比度细短刻度随手势平滑旋转，不抢视线不晃眼）
+    // 2. 刚体整盘旋转：7 条扇区白线随手指整体转动
+    let linesHTML = "";
+    BLOCKS.forEach((_, idx) => {
+      const edgeDeg = bwmCyclicRel(idx, effectiveStep) * span - span / 2;
+      if (Math.abs(edgeDeg) >= 80) return;
+      const [ilx, ily] = pt(innerR, edgeDeg);
+      const [olx, oly] = pt(outerR, edgeDeg);
+      linesHTML += `<line x1="${ilx.toFixed(1)}" y1="${ily.toFixed(1)}" x2="${olx.toFixed(1)}" y2="${oly.toFixed(1)}" stroke="rgba(255,255,255,0.9)" stroke-width="1.4"/>`;
+    });
+
+    // 3. 弧缘刻度同步整盘旋转
     let ticksHTML = "";
-    const rotDeg = -effectiveStep * (360 / BLOCKS.length);
+    const rotDeg = -effectiveStep * span;
     const tickOuter = outerR - 6;
     for (let i = 0; i < 60; i++) {
       let normDeg = ((i * 6 + rotDeg) % 360 + 540) % 360 - 180;
-      if (Math.abs(normDeg) > 62) continue;
+      if (Math.abs(normDeg) > 78) continue;
       const tickLen = i % 3 === 0 ? 5.0 : 3.0;
       const [tx1, ty1] = pt(tickOuter - tickLen, normDeg);
       const [tx2, ty2] = pt(tickOuter, normDeg);
-      ticksHTML += `<line x1="${tx1.toFixed(1)}" y1="${ty1.toFixed(1)}" x2="${tx2.toFixed(1)}" y2="${ty2.toFixed(1)}" stroke="rgba(255,255,255,0.28)" stroke-width="1.2" stroke-linecap="round"/>`;
+      ticksHTML += `<line x1="${tx1.toFixed(1)}" y1="${ty1.toFixed(1)}" x2="${tx2.toFixed(1)}" y2="${ty2.toFixed(1)}" stroke="rgba(255,255,255,0.5)" stroke-width="1.2" stroke-linecap="round"/>`;
     }
 
-    // 3. 中央亮蓝扇区内单一水平文案轻滑淡入淡出（全程仅 1 组图标与文字，零重叠、零倾斜、零模糊）
-    const count = BLOCKS.length;
-    const nearestStep = Math.round(effectiveStep);
-    const activeIdx = ((nearestStep % count) + count) % count;
-    const b = BLOCKS[activeIdx];
-    const frac = effectiveStep - nearestStep;
-    const edgeNorm = Math.min(1, Math.abs(frac) * 2.0);
-    const ease = Math.pow(edgeNorm, 1.75);
-    const alpha = (1.0 - ease * 0.68).toFixed(3);
-    const scale = (1.0 - ease * 0.04).toFixed(3);
-    const tx = (cx - frac * 18.0).toFixed(1);
-    const ty = (cy - (r - 48)).toFixed(1);
-
-    const labelHTML = `
-      <g transform="translate(${tx},${ty}) scale(${scale})" opacity="${alpha}">
+    // 4. 随盘转动的刚体文字：窗外柔蓝层 + 窗内纯白层（以取景窗边缘精准切色，零重叠零闪烁）
+    const labelAt = (b, deg, color, opacity) => {
+      const [lx, ly] = pt(r - 50, deg);
+      return `
+      <g transform="translate(${lx.toFixed(1)},${ly.toFixed(1)}) rotate(${deg.toFixed(2)})" opacity="${opacity.toFixed(3)}">
         <g transform="translate(0,-12)">
-          <path d="M-6 2 A6 6 0 0 1 6 2 Z" fill="#FFFFFF"/>
-          <line x1="-11" y1="4.5" x2="11" y2="4.5" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round"/>
-          <line x1="-7" y1="7.5" x2="7" y2="7.5" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" opacity="0.85"/>
-          <line x1="0" y1="-7" x2="0" y2="-9.5" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
-          <line x1="-5" y1="-5" x2="-7" y2="-7" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
-          <line x1="5" y1="-5" x2="7" y2="-7" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
-          <line x1="-8.5" y1="-1" x2="-11" y2="-2" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
-          <line x1="8.5" y1="-1" x2="11" y2="-2" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M-6 2 A6 6 0 0 1 6 2 Z" fill="${color}"/>
+          <line x1="-11" y1="4.5" x2="11" y2="4.5" stroke="${color}" stroke-width="1.7" stroke-linecap="round"/>
+          <line x1="-7" y1="7.5" x2="7" y2="7.5" stroke="${color}" stroke-width="1.5" stroke-linecap="round" opacity="0.85"/>
+          <line x1="0" y1="-7" x2="0" y2="-9.5" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="-5" y1="-5" x2="-7" y2="-7" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="5" y1="-5" x2="7" y2="-7" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="-8.5" y1="-1" x2="-11" y2="-2" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="8.5" y1="-1" x2="11" y2="-2" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/>
         </g>
-        <text x="0" y="13" text-anchor="middle" fill="#FFFFFF" font-size="16" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, sans-serif">${b.title}${b.start}:00~${b.end}:00</text>
+        <text x="0" y="13" text-anchor="middle" fill="${color}" font-size="16" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, sans-serif">${b.title}${b.start}:00~${b.end}:00</text>
       </g>`;
+    };
+    let blueLabels = "";
+    let whiteLabels = "";
+    BLOCKS.forEach((b, idx) => {
+      const deg = bwmCyclicRel(idx, effectiveStep) * span;
+      if (Math.abs(deg) < 82) blueLabels += labelAt(b, deg, "#4788F9", Math.max(0, 1 - Math.abs(deg) / 82) * 0.9);
+      if (Math.abs(deg) < 60) whiteLabels += labelAt(b, deg, "#FFFFFF", 1);
+    });
+    const labelHTML = `${blueLabels}<g clip-path="url(#bwm-window-clip)">${whiteLabels}</g>`;
 
     return `
       <svg class="bwm-wheel-svg" viewBox="0 0 ${w} ${h}" fill="none">
         <defs>
+          <clipPath id="bwm-window-clip"><path d="${winPath}"/></clipPath>
           <linearGradient id="bwm-base-grad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stop-color="#E9F1FC"/>
             <stop offset="1" stop-color="#F3F7FD"/>
