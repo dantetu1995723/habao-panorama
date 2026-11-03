@@ -10385,66 +10385,84 @@
     return diff;
   }
 
+  const BWM_PALETTES = [
+    [[56, 118, 238], [78, 138, 244], [104, 160, 248]],  // 0 凌晨
+    [[71, 136, 249], [93, 154, 248], [118, 172, 249]],  // 1 早晨（图一基准）
+    [[62, 146, 252], [86, 164, 251], [114, 182, 252]],  // 2 上午
+    [[76, 152, 252], [98, 170, 252], [124, 186, 253]],  // 3 午间
+    [[68, 138, 248], [92, 158, 249], [118, 176, 250]],  // 4 下午
+    [[60, 126, 244], [84, 146, 246], [110, 166, 248]],  // 5 傍晚
+    [[52, 114, 236], [76, 134, 242], [102, 156, 246]],  // 6 夜间
+  ];
+  function bwmLerpRGB(a, b, t) {
+    const u = Math.max(0, Math.min(1, t));
+    return [
+      Math.round(a[0] + (b[0] - a[0]) * u),
+      Math.round(a[1] + (b[1] - a[1]) * u),
+      Math.round(a[2] + (b[2] - a[2]) * u),
+    ];
+  }
+  function bwmRGBHex(c) {
+    return `rgb(${c[0]},${c[1]},${c[2]})`;
+  }
+
   function bwmWheelSVG(effectiveStep) {
     const w = 393;
     const h = 200;
-    const r = 268;
+    const r = 256;
     const cx = w / 2;
-    const cy = r + 6;
+    const arcCy = r + 6;
     const outerR = r - 1.5;
-    const innerR = r - 144;
-    const span = 360 / BLOCKS.length;
-    const pt = (rad, deg) => {
+    const apexY = h - 46;
+    const halfDeg = 29;
+    const ptArc = (rad, deg) => {
       const a = (deg * Math.PI) / 180;
-      return [cx + Math.sin(a) * rad, cy - Math.cos(a) * rad];
+      return [cx + Math.sin(a) * rad, arcCy - Math.cos(a) * rad];
     };
-    const sectorPath = (d0, d1) => {
-      const [ox0, oy0] = pt(outerR, d0);
-      const [ox1, oy1] = pt(outerR, d1);
-      const [ix1, iy1] = pt(innerR, d1);
-      const [ix0, iy0] = pt(innerR, d0);
-      return `M${ox0.toFixed(1)} ${oy0.toFixed(1)}A${outerR.toFixed(1)} ${outerR.toFixed(1)} 0 0 1 ${ox1.toFixed(1)} ${oy1.toFixed(1)}L${ix1.toFixed(1)} ${iy1.toFixed(1)}A${innerR.toFixed(1)} ${innerR.toFixed(1)} 0 0 0 ${ix0.toFixed(1)} ${iy0.toFixed(1)}Z`;
-    };
-    let sectorsHTML = "";
-    let linesHTML = "";
-    let labelsHTML = "";
+    const [lx, ly] = ptArc(outerR, -halfDeg);
+    const [rx, ry] = ptArc(outerR, halfDeg);
+    const wedgePath = `M${cx.toFixed(1)} ${apexY.toFixed(1)}L${lx.toFixed(1)} ${ly.toFixed(1)}A${outerR.toFixed(1)} ${outerR.toFixed(1)} 0 0 1 ${rx.toFixed(1)} ${ry.toFixed(1)}Z`;
 
-    // 1. 7 个 360° 轮回扇区的随盘流光层 + 辐射白线
-    BLOCKS.forEach((b, idx) => {
-      const rel = bwmCyclicRel(idx, effectiveStep);
-      const centerDeg = rel * span;
-      if (Math.abs(centerDeg) >= 150) return;
-      const norm = Math.min(1, Math.abs(rel) / 1.25);
-      const glow = Math.pow(Math.cos(norm * Math.PI * 0.5), 2.2) * 0.46;
-      if (glow > 0.01) {
-        sectorsHTML += `<path d="${sectorPath(centerDeg - span / 2, centerDeg + span / 2)}" fill="url(#bwm-active-grad)" fill-opacity="${glow.toFixed(3)}"/>`;
-      }
-      const [ilx, ily] = pt(innerR, centerDeg - span / 2);
-      const [olx, oly] = pt(outerR, centerDeg - span / 2);
-      linesHTML += `<line x1="${ilx.toFixed(1)}" y1="${ily.toFixed(1)}" x2="${olx.toFixed(1)}" y2="${oly.toFixed(1)}" stroke="rgba(255,255,255,0.86)" stroke-width="1.4"/>`;
-    });
+    const count = BLOCKS.length;
+    const modIdx = (s) => ((s % count) + count) % count;
+    const baseStep = Math.floor(effectiveStep);
+    const frac = effectiveStep - baseStep;
+    const smoothFrac = frac * frac * (3 - 2 * frac);
+    const palA = BWM_PALETTES[modIdx(baseStep)];
+    const palB = BWM_PALETTES[modIdx(baseStep + 1)];
+    const midPulse = Math.sin(frac * Math.PI) * 0.38;
+    const mist = [[116, 170, 252], [138, 186, 253], [162, 202, 254]];
 
-    // 2. 顶部恒定饱满度的弹性聚光蓝扇区（杜绝跨区半途发灰）
-    const elasticDeg = -Math.sin(effectiveStep * 2 * Math.PI) * 4.8;
-    const breathSpan = span * (1 + 0.05 * Math.pow(Math.sin(effectiveStep * Math.PI), 2));
-    sectorsHTML += `<path d="${sectorPath(elasticDeg - breathSpan / 2, elasticDeg + breathSpan / 2)}" fill="url(#bwm-active-grad)" fill-opacity="0.88"/>`;
+    const topC = bwmRGBHex(bwmLerpRGB(bwmLerpRGB(palA[0], palB[0], smoothFrac), mist[0], midPulse));
+    const midC = bwmRGBHex(bwmLerpRGB(bwmLerpRGB(palA[1], palB[1], smoothFrac), mist[1], midPulse));
+    const botC = bwmRGBHex(bwmLerpRGB(bwmLerpRGB(palA[2], palB[2], smoothFrac), mist[2], midPulse));
 
-    // 3. 冠区柔焦滑字（纯白文字在顶部蓝冠区内沿微弧平滑流转 + 景深缩放 + 光学柔焦，零变色跳变）
-    BLOCKS.forEach((b, idx) => {
-      const rel = bwmCyclicRel(idx, effectiveStep);
-      if (Math.abs(rel) >= 1.05) return;
-      const clamped = Math.min(1, Math.abs(rel) / 1.02);
-      const bell = Math.cos(clamped * Math.PI * 0.5);
-      const alpha = Math.pow(bell, 1.65);
-      if (alpha <= 0.01) return;
-      const scale = (0.85 + 0.15 * bell).toFixed(3);
-      const blur = ((1 - bell) * 2.4).toFixed(2);
-      const crownDeg = rel * 23.0;
-      const [tx, tyBase] = pt(r - 48, crownDeg);
-      const ty = tyBase + (1 - bell) * 5.0;
-      const tilt = (rel * 8.5).toFixed(2);
-      labelsHTML += `
-        <g transform="translate(${tx.toFixed(1)},${ty.toFixed(1)}) rotate(${tilt}) scale(${scale})" opacity="${alpha.toFixed(3)}" style="filter:blur(${blur}px)">
+    const nearestStep = Math.round(effectiveStep);
+    const curBlock = BLOCKS[modIdx(nearestStep)];
+    const distFromNearest = Math.min(1, Math.abs(effectiveStep - nearestStep) * 2);
+    const textFade = Math.pow(Math.max(0, 1 - distFromNearest), 1.45);
+    const scale = (0.95 + 0.05 * textFade).toFixed(3);
+    const driftX = ((nearestStep - effectiveStep) * 14).toFixed(1);
+
+    return `
+      <svg class="bwm-wheel-svg" viewBox="0 0 ${w} ${h}" fill="none">
+        <defs>
+          <linearGradient id="bwm-base-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#E9F1FC"/>
+            <stop offset="1" stop-color="#F3F7FD"/>
+          </linearGradient>
+          <linearGradient id="bwm-active-grad" x1="0.5" y1="0" x2="0.5" y2="0.88">
+            <stop offset="0" stop-color="${topC}"/>
+            <stop offset="0.5" stop-color="${midC}"/>
+            <stop offset="1" stop-color="${botC}"/>
+          </linearGradient>
+        </defs>
+        <circle cx="${cx}" cy="${arcCy}" r="${r}" fill="url(#bwm-base-grad)" stroke="#FFFFFF" stroke-width="3.2"/>
+        <path d="${wedgePath}" fill="url(#bwm-active-grad)"/>
+        <line x1="${cx}" y1="${apexY}" x2="${lx.toFixed(1)}" y2="${ly.toFixed(1)}" stroke="rgba(255,255,255,0.85)" stroke-width="1.4"/>
+        <line x1="${cx}" y1="${apexY}" x2="${rx.toFixed(1)}" y2="${ry.toFixed(1)}" stroke="rgba(255,255,255,0.85)" stroke-width="1.4"/>
+        <circle cx="${cx}" cy="${arcCy}" r="${r}" fill="none" stroke="#FFFFFF" stroke-width="3.2"/>
+        <g transform="translate(${(cx + Number(driftX)).toFixed(1)},54) scale(${scale})" opacity="${textFade.toFixed(3)}">
           <g transform="translate(0,-12)">
             <path d="M-6 2 A6 6 0 0 1 6 2 Z" fill="#FFFFFF"/>
             <line x1="-11" y1="4.5" x2="11" y2="4.5" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round"/>
@@ -10455,28 +10473,8 @@
             <line x1="-8.5" y1="-1" x2="-11" y2="-2" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
             <line x1="8.5" y1="-1" x2="11" y2="-2" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
           </g>
-          <text x="0" y="13" text-anchor="middle" fill="#FFFFFF" font-size="16" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, sans-serif">${b.title}${b.start}:00~${b.end}:00</text>
-        </g>`;
-    });
-
-    return `
-      <svg class="bwm-wheel-svg" viewBox="0 0 ${w} ${h}" fill="none">
-        <defs>
-          <linearGradient id="bwm-base-grad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#E9F1FC"/>
-            <stop offset="1" stop-color="#F3F7FD"/>
-          </linearGradient>
-          <linearGradient id="bwm-active-grad" x1="0.5" y1="0" x2="0.5" y2="0.55">
-            <stop offset="0" stop-color="#4788F9"/>
-            <stop offset="0.5" stop-color="#5D9AF8"/>
-            <stop offset="1" stop-color="#76ACF9"/>
-          </linearGradient>
-        </defs>
-        <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#bwm-base-grad)" stroke="#FFFFFF" stroke-width="3.2"/>
-        ${sectorsHTML}
-        ${linesHTML}
-        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#FFFFFF" stroke-width="3.2"/>
-        ${labelsHTML}
+          <text x="0" y="13" text-anchor="middle" fill="#FFFFFF" font-size="16" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, sans-serif">${curBlock.title}${curBlock.start}:00~${curBlock.end}:00</text>
+        </g>
       </svg>`;
   }
 
