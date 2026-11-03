@@ -5112,6 +5112,7 @@
     bindClicks(overlay());
     bindHomeGestures();
     bindScheme4();
+    bindBottomWheelMock();
     bindTimePick();
     bindLongPresses();
     bindSwipes();
@@ -8811,6 +8812,7 @@
       // 设计版本（真机 DesignGenerationStore.select）：V0.0 对应非 VIP 状态，V0.1 对应已开通 VIP 状态，方便直接对比 UI。
       debugGen() {
         S.gen = el.dataset.gen;
+        S.bottomWheelMock = false;
         if (S.gen === "0.0") {
           S.vip = false;
           S.vipUntil = null;
@@ -8819,6 +8821,26 @@
         }
         closeOverlay();
         toast(`设计版本 V${S.gen}｜${genIsV01() && S.vip ? "VIP 已开通状态" : "免费用户状态（点按购买横幅或加锁项进入 VIP 购买界面）"}`);
+      },
+      debugBottomWheelMock() {
+        S.bottomWheelMock = !S.bottomWheelMock;
+        if (S.bottomWheelMock && S.bwmBlock == null) S.bwmBlock = 1;
+        closeOverlay();
+        toast(S.bottomWheelMock ? "已切换至「底部转盘 Mock」首页预览" : `已返回设计版本 V${S.gen} 首页`);
+      },
+      bwmToggleTask() {
+        const id = el.dataset.id;
+        ensureBwmTasks();
+        const item = S.bwmTasks.find((x) => x.id === id);
+        if (item) {
+          item.done = !item.done;
+          render();
+        }
+      },
+      bwmAddPlan() {
+        const b = +(el.dataset.b ?? (S.bwmBlock ?? 1));
+        S.addBlock = b;
+        openTaskEdit(null, { todayLock: true });
       },
       // 真机 V10.52 起调试菜单不再切方案（TodaySchemeFourView 只留文件、不再是首页），
       // 本原型的入口已撤，渲染与状态留档——要临时预览方案四，把开发菜单那两行加回来即可。
@@ -10264,6 +10286,370 @@
       </div>`;
   }
 
+  // ── 图一 1:1 底部转盘 Mock 首页（S.bottomWheelMock）──
+
+  function ensureBwmTasks() {
+    if (S.bwmTasks && S.bwmTasks.length) return;
+    S.bwmTasks = [
+      { id: "bwm-0-1", b: 0, title: "深度安睡监测", plan: "计划时间：凌晨02:00", dates: "2026年9月11日 — 2026年9月18日", art: "walk", done: true, clock: "06:00" },
+      { id: "bwm-0-2", b: 0, title: "晨醒平卧慢起", plan: "计划时间：凌晨05:50", dates: "2026年9月11日 — 2026年9月18日", art: "pills", done: false, clock: "05:55" },
+      { id: "bwm-1-1", b: 1, title: "下午散步下午散步下", plan: "计划时间：上午10:00", dates: "2026年9月11日 — 2026年9月18日", art: "walk", done: true, clock: "10:17" },
+      { id: "bwm-1-2", b: 1, title: "吃药吃药", plan: "计划时间：上午10:00", dates: "2026年9月11日 — 2026年9月18日", art: "pills", done: false, clock: "08:15" },
+      { id: "bwm-2-1", b: 2, title: "上午公园慢走", plan: "计划时间：上午10:00", dates: "2026年9月11日 — 2026年9月18日", art: "walk", done: true, clock: "10:17" },
+      { id: "bwm-2-2", b: 2, title: "晨起降压服药", plan: "计划时间：上午10:30", dates: "2026年9月11日 — 2026年9月18日", art: "pills", done: false, clock: "10:35" },
+      { id: "bwm-3-1", b: 3, title: "午饭后轻缓踱步", plan: "计划时间：午间12:30", dates: "2026年9月11日 — 2026年9月18日", art: "walk", done: true, clock: "12:48" },
+      { id: "bwm-3-2", b: 3, title: "午间护心用药", plan: "计划时间：午间13:00", dates: "2026年9月11日 — 2026年9月18日", art: "pills", done: false, clock: "13:05" },
+      { id: "bwm-4-1", b: 4, title: "下午散步下午散步下", plan: "计划时间：下午15:30", dates: "2026年9月11日 — 2026年9月18日", art: "walk", done: true, clock: "15:46" },
+      { id: "bwm-4-2", b: 4, title: "下午补充服药", plan: "计划时间：下午16:30", dates: "2026年9月11日 — 2026年9月18日", art: "pills", done: false, clock: "16:35" },
+      { id: "bwm-5-1", b: 5, title: "傍晚河畔慢步", plan: "计划时间：傍晚18:30", dates: "2026年9月11日 — 2026年9月18日", art: "walk", done: true, clock: "18:52" },
+      { id: "bwm-5-2", b: 5, title: "晚间他汀服药", plan: "计划时间：傍晚20:00", dates: "2026年9月11日 — 2026年9月18日", art: "pills", done: false, clock: "20:06" },
+      { id: "bwm-6-1", b: 6, title: "睡前放松拉伸", plan: "计划时间：夜间21:15", dates: "2026年9月11日 — 2026年9月18日", art: "walk", done: true, clock: "21:25" },
+      { id: "bwm-6-2", b: 6, title: "睡前倍他乐克", plan: "计划时间：夜间21:30", dates: "2026年9月11日 — 2026年9月18日", art: "pills", done: false, clock: "21:35" },
+    ];
+  }
+
+  function bwmArtWalkSVG() {
+    return `<svg viewBox="0 0 96 104" width="90" height="98" fill="none">
+      <defs>
+        <linearGradient id="bwm-clay" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#FFFFFF"/>
+          <stop offset="0.55" stop-color="#D6E2F0"/>
+          <stop offset="1" stop-color="#B8CADE"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="46" cy="94" rx="30" ry="4" fill="rgba(165,195,225,0.38)"/>
+      <path d="M48 35 Q34 45 24 54" stroke="#B6C8DE" stroke-width="8" stroke-linecap="round"/>
+      <path d="M48 58 Q60 74 69 92" stroke="#B6C8DE" stroke-width="9.5" stroke-linecap="round"/>
+      <path d="M45 57 Q36 74 28 93" stroke="url(#bwm-clay)" stroke-width="10" stroke-linecap="round"/>
+      <path d="M48 30 L46 58" stroke="url(#bwm-clay)" stroke-width="15" stroke-linecap="round"/>
+      <path d="M50 34 Q62 44 71 54" stroke="url(#bwm-clay)" stroke-width="8.5" stroke-linecap="round"/>
+      <circle cx="48" cy="17" r="10.5" fill="url(#bwm-clay)"/>
+    </svg>`;
+  }
+
+  function bwmArtPillsSVG() {
+    return `<svg viewBox="0 0 112 86" width="106" height="82" fill="none">
+      <defs>
+        <linearGradient id="bwm-bottle" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#FFFFFF"/>
+          <stop offset="0.6" stop-color="#E6EEF8"/>
+          <stop offset="1" stop-color="#CAD8E8"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="56" cy="70" rx="44" ry="7" fill="rgba(165,195,225,0.38)"/>
+      <rect x="60" y="20" width="36" height="46" rx="8" fill="url(#bwm-bottle)"/>
+      <rect x="63" y="10" width="30" height="11" rx="4" fill="url(#bwm-bottle)"/>
+      <g transform="translate(36,48) rotate(-22)">
+        <rect x="-24" y="-15" width="42" height="29" rx="7" fill="url(#bwm-bottle)"/>
+        <ellipse cx="16" cy="0" rx="5" ry="11" fill="#B0C2D6"/>
+      </g>
+      <ellipse cx="44" cy="63" rx="5.5" ry="3.2" fill="#FFFFFF" stroke="#CDDCEB" stroke-width="0.8"/>
+      <ellipse cx="55" cy="68" rx="5.5" ry="3.2" fill="#FFFFFF" stroke="#CDDCEB" stroke-width="0.8"/>
+      <ellipse cx="64" cy="65" rx="5.5" ry="3.2" fill="#FFFFFF" stroke="#CDDCEB" stroke-width="0.8"/>
+      <ellipse cx="50" cy="59" rx="5.5" ry="3.2" fill="#FFFFFF" stroke="#CDDCEB" stroke-width="0.8"/>
+      <ellipse cx="73" cy="70" rx="5.5" ry="3.2" fill="#FFFFFF" stroke="#CDDCEB" stroke-width="0.8"/>
+    </svg>`;
+  }
+
+  function bwmCardHTML(item) {
+    return `
+      <div class="bwm-card">
+        <div class="bwm-card-banner">
+          <span class="bwm-status-tag ${item.done ? "done" : "todo"}">${item.done ? "已完成" : "未完成"}</span>
+          <div class="bwm-card-info">
+            <div class="bwm-detail-link"><span>查看详情</span><i>→</i></div>
+            <div class="bwm-card-title">${esc(item.title)}</div>
+            <div class="bwm-card-meta">${esc(item.plan)}</div>
+            <div class="bwm-card-meta">${esc(item.dates)}</div>
+          </div>
+          <div class="bwm-card-art">${item.art === "walk" ? bwmArtWalkSVG() : bwmArtPillsSVG()}</div>
+        </div>
+        ${item.done ? `
+          <div class="bwm-card-foot done">
+            <span class="bwm-done-txt">🕒 已在${item.clock}完成，真棒！</span>
+            <button class="bwm-undo-btn" data-act="bwmToggleTask" data-id="${item.id}" type="button">取消</button>
+          </div>
+        ` : `
+          <button class="bwm-checkin-btn" data-act="bwmToggleTask" data-id="${item.id}" type="button">
+            ${I.tap}<span>打卡</span>
+          </button>
+        `}
+      </div>`;
+  }
+
+  function bwmWheelSVG(effectiveIdx, isInteracting) {
+    const w = 393;
+    const h = 200;
+    const r = 256;
+    const cx = w / 2;
+    const arcCy = r + 6;
+    const hubCy = h - 52;
+    const rayR = r + 80;
+    const span = 72;
+    const ptHub = (rad, deg) => {
+      const a = (deg * Math.PI) / 180;
+      return [cx + Math.sin(a) * rad, hubCy - Math.cos(a) * rad];
+    };
+    const ptArc = (rad, deg) => {
+      const a = (deg * Math.PI) / 180;
+      return [cx + Math.sin(a) * rad, arcCy - Math.cos(a) * rad];
+    };
+    const sectorPath = (d0, d1) => {
+      const [x0, y0] = ptHub(rayR, d0);
+      const [x1, y1] = ptHub(rayR, d1);
+      return `M${cx.toFixed(1)} ${hubCy.toFixed(1)}L${x0.toFixed(1)} ${y0.toFixed(1)}A${rayR.toFixed(1)} ${rayR.toFixed(1)} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)}Z`;
+    };
+    let sectorsHTML = "";
+    let linesHTML = "";
+    let labelsHTML = "";
+    const isMoving = isInteracting || Math.abs(effectiveIdx - Math.round(effectiveIdx)) > 0.008;
+
+    BLOCKS.forEach((b, idx) => {
+      const centerDeg = (idx - effectiveIdx) * span;
+      if (Math.abs(centerDeg) >= 145) return;
+      const focus = Math.max(0, 1 - Math.abs(centerDeg) / span);
+      const smooth = focus * focus * (3 - 2 * focus);
+      if (smooth > 0.01) {
+        sectorsHTML += `<path d="${sectorPath(centerDeg - span / 2, centerDeg + span / 2)}" fill="url(#bwm-active-grad)" fill-opacity="${smooth.toFixed(3)}"/>`;
+      }
+      const [lx, ly] = ptHub(rayR, centerDeg - span / 2);
+      const [rx, ry] = ptHub(rayR, centerDeg + span / 2);
+      linesHTML += `<line x1="${cx}" y1="${hubCy}" x2="${lx.toFixed(1)}" y2="${ly.toFixed(1)}" stroke="rgba(255,255,255,0.88)" stroke-width="1.5"/>`;
+      linesHTML += `<line x1="${cx}" y1="${hubCy}" x2="${rx.toFixed(1)}" y2="${ry.toFixed(1)}" stroke="rgba(255,255,255,0.88)" stroke-width="1.5"/>`;
+
+      const sideAlpha = isMoving ? 0.48 : 0;
+      const alpha = Math.min(1, smooth + (1 - smooth) * sideAlpha);
+      if (alpha > 0.02) {
+        const orbitDeg = centerDeg * 0.52;
+        const [tx, ty] = ptArc(r - 48, orbitDeg);
+        const scale = (0.86 + 0.14 * smooth).toFixed(3);
+        const color = smooth > 0.45 ? "#FFFFFF" : "#4A7ACC";
+        labelsHTML += `
+          <g transform="translate(${tx.toFixed(1)},${ty.toFixed(1)}) rotate(${orbitDeg.toFixed(2)}) scale(${scale})" opacity="${alpha.toFixed(3)}">
+            <g transform="translate(0,-12)">
+              <path d="M-6 2 A6 6 0 0 1 6 2 Z" fill="${color}"/>
+              <line x1="-11" y1="4.5" x2="11" y2="4.5" stroke="${color}" stroke-width="1.7" stroke-linecap="round"/>
+              <line x1="-7" y1="7.5" x2="7" y2="7.5" stroke="${color}" stroke-width="1.5" stroke-linecap="round" opacity="0.85"/>
+              <line x1="0" y1="-7" x2="0" y2="-9.5" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/>
+              <line x1="-5" y1="-5" x2="-7" y2="-7" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/>
+              <line x1="5" y1="-5" x2="7" y2="-7" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/>
+              <line x1="-8.5" y1="-1" x2="-11" y2="-2" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/>
+              <line x1="8.5" y1="-1" x2="11" y2="-2" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/>
+            </g>
+            <text x="0" y="13" text-anchor="middle" fill="${color}" font-size="16" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, sans-serif">${b.title}${b.start}:00~${b.end}:00</text>
+          </g>`;
+      }
+    });
+
+    return `
+      <svg class="bwm-wheel-svg" viewBox="0 0 ${w} ${h}" fill="none">
+        <defs>
+          <linearGradient id="bwm-base-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#E9F1FC"/>
+            <stop offset="1" stop-color="#F3F7FD"/>
+          </linearGradient>
+          <linearGradient id="bwm-active-grad" x1="0.5" y1="0" x2="0.5" y2="0.75">
+            <stop offset="0" stop-color="#4788F9"/>
+            <stop offset="0.5" stop-color="#5D9AF8"/>
+            <stop offset="1" stop-color="#76ACF9"/>
+          </linearGradient>
+          <clipPath id="bwm-outer-clip">
+            <circle cx="${cx}" cy="${arcCy}" r="${(r - 1.5).toFixed(1)}"/>
+          </clipPath>
+        </defs>
+        <circle cx="${cx}" cy="${arcCy}" r="${r}" fill="url(#bwm-base-grad)" stroke="#FFFFFF" stroke-width="3.2"/>
+        <g clip-path="url(#bwm-outer-clip)">
+          ${sectorsHTML}
+          ${linesHTML}
+          ${labelsHTML}
+        </g>
+        <circle cx="${cx}" cy="${arcCy}" r="${r}" fill="none" stroke="#FFFFFF" stroke-width="3.2"/>
+      </svg>`;
+  }
+
+  function bottomWheelMockHome() {
+    ensureBwmTasks();
+    if (S.bwmBlock == null) S.bwmBlock = 1;
+    const cur = S.bwmBlock;
+    return `
+      <div class="page bwm-page">
+        <div class="bwm-brand">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M2.2 6.5H6.5V2.2H11.5V6.5M6.5 11.5H2.2V6.5" stroke="#18B5E8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M15.8 11.5H11.5V15.8H6.5V11.5M11.5 6.5H15.8V11.5" stroke="#1E72E8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="bwm-brand-heart">HEART</span><span class="bwm-brand-med">MED</span><span class="bwm-brand-cn"> 哈瑞特医疗</span>
+        </div>
+        <div class="bwm-header">
+          <div class="bwm-header-left">
+            <h2 class="bwm-title"><em>张叔叔</em>的一天</h2>
+            <p class="bwm-sub">午间歇一歇，别太着急</p>
+          </div>
+          <div class="bwm-header-right">
+            <button class="bwm-circle-btn dbg-btn" data-act="openDebug" type="button" aria-label="开发菜单">${I.ellipsis}</button>
+            <button class="bwm-circle-btn profile" data-go="profile" type="button" aria-label="个人中心">${I.person}</button>
+          </div>
+        </div>
+        <div class="bwm-entries">
+          <button class="bwm-entry" data-go="schedule" type="button">
+            <span class="bwm-entry-ico">${I.cal}</span>
+            <span>全部计划</span>
+          </button>
+          <button class="bwm-entry" data-go="vitals" type="button">
+            <span class="bwm-entry-ico">${I.ecg}</span>
+            <span>血压记录</span>
+          </button>
+          <button class="bwm-entry" data-go="report" type="button">
+            <span class="bwm-entry-ico">${I.doc}</span>
+            <span>复诊报告</span>
+          </button>
+        </div>
+        <div class="bwm-carousel-viewport" id="bwm-carousel-vp">
+          <div class="bwm-carousel-track" id="bwm-track">
+            ${BLOCKS.map((b) => {
+              const list = S.bwmTasks.filter((x) => x.b === b.id);
+              return `
+                <div class="bwm-container" data-b="${b.id}">
+                  <button class="bwm-add-btn" data-act="bwmAddPlan" data-b="${b.id}" type="button">
+                    <span>＋ 添加${b.title}计划</span>
+                  </button>
+                  <div class="bwm-card-list">
+                    ${list.map(bwmCardHTML).join("")}
+                  </div>
+                </div>`;
+            }).join("")}
+          </div>
+        </div>
+        <div class="bwm-bottom-zone">
+          <div class="bwm-wheel-host" id="bwm-wheel-host">
+            ${bwmWheelSVG(cur, false)}
+          </div>
+          <div class="bwm-dock">
+            <div class="bwm-dock-pill">
+              <button class="bwm-dock-side" data-go="walk" type="button">
+                ${I.walk}
+                <span>运动</span>
+              </button>
+              <div class="bwm-dock-spacer"></div>
+              <button class="bwm-dock-side" data-go="stamps" type="button">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <path d="M13.5 3.6L4.2 9.2L13.5 14.4" stroke="#09023B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="4.2" cy="9.2" r="2.5" fill="#09023B"/>
+                  <circle cx="13.5" cy="3.6" r="2.5" fill="#09023B"/>
+                  <circle cx="13.5" cy="14.4" r="2.5" fill="#09023B"/>
+                </svg>
+                <span>分享</span>
+              </button>
+            </div>
+            <button class="bwm-dock-ai" data-go="consult" type="button" aria-label="哈宝医生">
+              <img src="${A.logo}" alt="" />
+            </button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  let bwmAnimFrame = 0;
+  function bindBottomWheelMock() {
+    const track = document.getElementById("bwm-track");
+    const wheelHost = document.getElementById("bwm-wheel-host");
+    const vp = document.getElementById("bwm-carousel-vp");
+    if (!track || !wheelHost || !vp) return;
+
+    const sideMargin = 34;
+    const gap = 12;
+    const getStride = () => {
+      const w = vp.clientWidth || 393;
+      const cardW = w - sideMargin * 2;
+      return { cardW, stride: cardW + gap };
+    };
+
+    let currentEff = S.bwmBlock ?? 1;
+    const applyVisual = (eff, interacting) => {
+      currentEff = eff;
+      const { cardW, stride } = getStride();
+      track.querySelectorAll(".bwm-container").forEach((el, i) => {
+        el.style.width = `${cardW}px`;
+        const dist = Math.abs(i - eff);
+        const scaleY = Math.max(0.95, 1 - dist * 0.03);
+        el.style.transform = `scaleY(${scaleY.toFixed(3)})`;
+      });
+      const x = sideMargin - eff * stride;
+      track.style.transform = `translate3d(${x.toFixed(1)}px, 0, 0)`;
+      wheelHost.innerHTML = bwmWheelSVG(eff, interacting);
+    };
+
+    const animateTo = (targetIdx) => {
+      const clamped = Math.max(0, Math.min(6, targetIdx));
+      S.bwmBlock = clamped;
+      cancelAnimationFrame(bwmAnimFrame);
+      const from = currentEff;
+      const to = clamped;
+      const t0 = performance.now();
+      const dur = 380;
+      const step = (now) => {
+        const p = Math.min(1, (now - t0) / dur);
+        const ease = 1 - Math.pow(1 - p, 3.2);
+        const val = from + (to - from) * ease;
+        applyVisual(val, p < 0.98);
+        if (p < 1) {
+          bwmAnimFrame = requestAnimationFrame(step);
+        } else {
+          applyVisual(to, false);
+        }
+      };
+      bwmAnimFrame = requestAnimationFrame(step);
+    };
+
+    applyVisual(S.bwmBlock ?? 1, false);
+
+    const attachDrag = (el, pxPerBlockFn, allowEdgeTap) => {
+      let dragging = false;
+      let x0 = 0;
+      let startEff = 0;
+      let moved = false;
+      el.onpointerdown = (e) => {
+        if (e.target.closest("button")) return;
+        cancelAnimationFrame(bwmAnimFrame);
+        dragging = true;
+        moved = false;
+        x0 = e.clientX;
+        startEff = currentEff;
+        try { el.setPointerCapture(e.pointerId); } catch {}
+      };
+      el.onpointermove = (e) => {
+        if (!dragging) return;
+        const dx = (e.clientX - x0) / s4PhoneScale();
+        if (Math.abs(dx) > 4) moved = true;
+        const delta = -dx / pxPerBlockFn();
+        const next = Math.max(-0.35, Math.min(6.35, startEff + delta));
+        applyVisual(next, true);
+      };
+      const finish = (e) => {
+        if (!dragging) return;
+        dragging = false;
+        const dx = (e.clientX - x0) / s4PhoneScale();
+        if (!moved && allowEdgeTap) {
+          const rect = el.getBoundingClientRect();
+          const relX = (e.clientX - rect.left) / rect.width;
+          if (relX < 0.32) { animateTo((S.bwmBlock ?? 1) - 1); return; }
+          if (relX > 0.68) { animateTo((S.bwmBlock ?? 1) + 1); return; }
+        }
+        const delta = -dx / pxPerBlockFn();
+        let target = Math.round(startEff + delta);
+        if (Math.abs(delta) > 0.18 && target === Math.round(startEff)) {
+          target = Math.round(startEff) + (delta > 0 ? 1 : -1);
+        }
+        animateTo(target);
+      };
+      el.onpointerup = finish;
+      el.onpointercancel = finish;
+    };
+
+    attachDrag(wheelHost, () => 88, true);
+    attachDrag(vp, () => getStride().stride, false);
+  }
+
   const HW_KINDS = [
     { k: "bloodPressure", title: "血压计", name: "哈宝血压计", serial: "3086", qrTip: "二维码在机身底部或包装盒上。", icon: "ecg" },
     { k: "watch", title: "手表", name: "哈宝手表", serial: "1172", qrTip: "二维码在表盒背面或包装上。", icon: "watch" },
@@ -10527,6 +10913,7 @@
       </div>`,
 
     home: () => {
+      if (S.bottomWheelMock) return bottomWheelMockHome();
       if (S.scheme === 3) return scheme4Home(); // 方案四：时段泳道 + 底部扇形拨盘
       const mh = homeModuleHeight(S.enrolled);
       const headerTitleHTML = `<h2>${esc(homeHeaderTitle())}</h2>`;
@@ -16418,9 +16805,13 @@
           <div class="dbg-sep"></div>
           ${["0.0", "0.1", "0.2"].map((v) => `
             <button class="dbg-row" data-act="debugGen" data-gen="${v}" type="button">
-              ${S.gen === v ? I.check : `<span style="width:19px;height:19px;flex:0 0 19px"></span>`}
-              <span>设计版本 V${v}<em>${S.gen === v ? "当前" : ""}</em></span>
+              ${!S.bottomWheelMock && S.gen === v ? I.check : `<span style="width:19px;height:19px;flex:0 0 19px"></span>`}
+              <span>设计版本 V${v}<em>${!S.bottomWheelMock && S.gen === v ? "当前" : ""}</em></span>
             </button>`).join("")}
+          <button class="dbg-row" data-act="debugBottomWheelMock" type="button">
+            ${S.bottomWheelMock ? I.check : `<span style="width:19px;height:19px;flex:0 0 19px"></span>`}
+            <span>底部转盘 Mock<em>${S.bottomWheelMock ? "当前" : ""}</em></span>
+          </button>
         </div>
       </div>`,
     // 指标 / 分析分享海报（真机 RecordsView 与 FollowUpAnalysisView 的分享出口）
