@@ -3508,7 +3508,7 @@
       {
         id: "nc-a-2",
         who: "ai",
-        t: "血压 106/64 属于正常偏低范围，请先不要自行将药物减半。晚上的阿托伐他汀和明早的倍他乐克建议先维持原剂量，起身时动作放慢；若需个体化调整处方剂量，可点击右下角「转人工」由主诊医生为您核对。",
+        t: "血压 106/64 属于正常偏低范围，请先不要自行将药物减半。晚上的阿托伐他汀和明早的倍他乐克建议先维持原剂量，起身时动作放慢；若需个体化调整处方剂量，可点击下方「转人工」由主诊医生为您核对。",
         timeLabel: "10:52"
       }
     ];
@@ -3518,9 +3518,9 @@
     if (!Array.isArray(S.messages)) S.messages = [];
     const pushCount = S.messages.filter((m) => m && m.doctorPushCard).length;
     const hasNormalChat = S.messages.some((m) => m && m.who === "ai" && m.t && !m.doctorPushCard);
-    if (forceReset || !S.doctorPushSeedV10253 || pushCount !== 3 || !hasNormalChat) {
+    if (forceReset || !S.doctorPushSeedV10254 || pushCount !== 3 || !hasNormalChat) {
       S.messages = defaultDoctorPushMessages();
-      S.doctorPushSeedV10253 = true;
+      S.doctorPushSeedV10254 = true;
     }
   }
   function bubbleCornerHumanBtnHTML(m, readOnly) {
