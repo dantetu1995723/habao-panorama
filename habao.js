@@ -3829,8 +3829,6 @@
             </div>
             <div class="op-card" style="width:100%;padding:15px;border-radius:16px;background:rgba(16,84,224,.05);border:1px solid rgba(16,84,224,.14);box-shadow:none;margin-bottom:16px">
               <h4>${opHeadlineHTML(proxyToOpItem(curInvite))}</h4>
-              <div style="height:1px;background:rgba(16,84,224,.10);margin:10px 0 8px"></div>
-              <div style="font-size:13px;font-weight:600;color:var(--sec);line-height:1.45">运动计划需由你本人完成体测后生成，结果将自动回执给${curInvite.senderName}。</div>
             </div>
             <div style="width:100%;display:flex;gap:10px">
               <button type="button" data-act="declineHomeExerciseInvite" style="flex:1;height:48px;border-radius:14px;border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit">不创建</button>
