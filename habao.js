@@ -2361,6 +2361,8 @@
       firstCreatePlan: "首次创建计划",
       refreshMedicationPlan: "用药与复查",
       inviteExerciseTest: "运动体测邀请",
+      acceptExerciseInvite: "运动体测回执",
+      rejectExerciseInvite: "运动体测回执",
       updatePlan: "修改计划",
       deletePlan: "删除计划",
     };
@@ -2385,6 +2387,8 @@
     if (r.kind === "firstCreatePlan") return `${r.senderName}已为你首次创建了全天康复计划${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
     if (r.kind === "refreshMedicationPlan") return `${r.senderName}已为你更新了用药与复查计划${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
     if (r.kind === "inviteExerciseTest") return `${r.senderName}提醒你完成运动体测，评估后即可生成专属运动计划`;
+    if (r.kind === "acceptExerciseInvite") return `${r.senderName}已收到你的体测提醒，完成体测并创建了运动计划`;
+    if (r.kind === "rejectExerciseInvite") return `${r.senderName}已收到你的体测提醒，选择暂不创建运动计划`;
     if (r.kind === "updatePlan") return `${r.senderName}帮你调整了计划「${hm} ${t}」${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
     if (r.kind === "deletePlan") return `${r.senderName}帮你删除了计划「${hm} ${t}」${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
     return `${r.senderName}帮你操作了「${t}」`;
@@ -2466,6 +2470,7 @@
     if (kind === "firstCreatePlan") return "首次创建计划";
     if (kind === "refreshMedicationPlan") return "用药与复查";
     if (kind === "inviteExerciseTest") return "运动体测邀请";
+    if (kind === "acceptExerciseInvite" || kind === "rejectExerciseInvite") return "运动体测回执";
     if (kind === "updatePlan") return "修改计划";
     if (kind === "deletePlan") return "删除计划";
     return "代办";
@@ -2547,7 +2552,7 @@
         if (existing.senderName !== senderName || existing.recipientName !== recipientName || existing.recipientPopupShown) {
           return true;
         }
-        if (kind === "firstCreatePlan" || kind === "refreshMedicationPlan" || kind === "inviteExerciseTest") {
+        if (kind === "firstCreatePlan" || kind === "refreshMedicationPlan" || kind === "inviteExerciseTest" || kind === "acceptExerciseInvite" || kind === "rejectExerciseInvite") {
           return existing.kind !== kind;
         }
         const sameTask = String(existing.targetTaskId || existing.taskSnapshot?.id) === String(effId);
@@ -2582,6 +2587,8 @@
     const actionMap = {
       remind: "提醒了",
       inviteExerciseTest: "提醒了",
+      acceptExerciseInvite: "回复了",
+      rejectExerciseInvite: "回复了",
       checkIn: "打卡了",
       createPlan: "新建了计划",
       firstCreatePlan: "新建了计划",
@@ -2597,6 +2604,58 @@
       how: taskSnapshot?.title || "",
     });
     return req;
+  }
+  function sendExerciseInviteReceiptFor({ responderName, inviterName, created, tasks, reasonNote }) {
+    if (!responderName || !inviterName || responderName === inviterName) return null;
+    let howTitle = "";
+    if (created) {
+      const titles = (tasks || []).map((t) => String(t.title || "").trim()).filter(Boolean);
+      const summary = titles.length ? opNames(titles) : "";
+      howTitle = summary
+        ? `收到体测提醒：已完成体测并创建运动计划（${summary}）`
+        : "收到体测提醒：已完成体测并创建运动计划";
+    } else {
+      const cleanReason = String(reasonNote || "").trim();
+      howTitle = cleanReason
+        ? `收到体测提醒：暂不创建运动计划（${cleanReason}）`
+        : "收到体测提醒：暂不创建运动计划";
+    }
+    const snapshot = {
+      id: `proxy_ex_rcpt_${Date.now()}_${Math.random().toString(36).slice(2, 5)}`,
+      title: howTitle,
+      cat: "exercise",
+      h: 9,
+      m: 0,
+      cycle: true,
+      rule: "daily",
+      note: howTitle,
+    };
+    return sendProxyRequestFor({
+      senderName: responderName,
+      recipientName: inviterName,
+      kind: created ? "acceptExerciseInvite" : "rejectExerciseInvite",
+      targetTaskId: snapshot.id,
+      taskSnapshot: snapshot,
+      summaryNote: howTitle,
+      skipDirectMutation: true,
+    });
+  }
+  function completePendingExerciseInviteIfNeeded({ created, tasks, reasonNote }) {
+    const senders = Array.isArray(S.pendingExerciseInviteSenders) ? S.pendingExerciseInviteSenders.slice() : [];
+    if (!senders.length) return;
+    S.pendingExerciseInviteSenders = null;
+    const responder = S.currentPersonName || "李建国";
+    senders.forEach((sender) => {
+      if (sender && sender !== responder) {
+        sendExerciseInviteReceiptFor({
+          responderName: responder,
+          inviterName: sender,
+          created: !!created,
+          tasks: tasks || [],
+          reasonNote: reasonNote || "",
+        });
+      }
+    });
   }
   function familyLiveTasksFor(personName, ymd = toYMD(demoDate())) {
     ensureCareGraph();
@@ -2674,7 +2733,7 @@
     const ymd = req.onYMD || S.calSelYMD || toYMD(demoDate());
 
     const tid = req.targetTaskId || req.taskSnapshot?.id;
-    if (req.kind === "remind" || req.kind === "inviteExerciseTest") {
+    if (req.kind === "remind" || req.kind === "inviteExerciseTest" || req.kind === "acceptExerciseInvite" || req.kind === "rejectExerciseInvite") {
       if (tid && req.kind === "remind") remMap[tid] = true;
     } else if (req.kind === "checkIn") {
       if (tid) {
@@ -3541,6 +3600,8 @@
     const actionMap = {
       remind: "提醒了",
       inviteExerciseTest: "提醒了",
+      acceptExerciseInvite: "回复了",
+      rejectExerciseInvite: "回复了",
       checkIn: "打卡了",
       createPlan: "新建了计划",
       firstCreatePlan: "新建了计划",
@@ -3767,8 +3828,8 @@
             ${pagerHTML}
             <div style="width:100%;display:flex;gap:10px">
               ${hasExerciseInvite
-                ? `<button type="button" data-act="ackHomeProxyPopup" style="flex:1;height:48px;border-radius:14px;border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit">知道了</button>
-                   <button type="button" data-act="ackHomeProxyPopupAndTest" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">去体测</button>`
+                ? `<button type="button" data-act="declineHomeExerciseInvite" style="flex:1;height:48px;border-radius:14px;border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit">不创建</button>
+                   <button type="button" data-act="ackHomeProxyPopupAndTest" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">去创建</button>`
                 : `<button type="button" data-act="ackHomeProxyPopup" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">知道了</button>`}
             </div>
           </div>
@@ -4628,6 +4689,7 @@
     S.draftReturn = null;
     S.proxyTargetPersonName = null;
     S.proxyIsFirstCreate = false;
+    S.pendingExerciseInviteSenders = null;
     // V10.52：计划页家属「去填写」链路标记，离开即清
     S.famFillJump = false;
     // 会话归属跟着会话走：离开运动链就清掉，免得下次自由运动占用上一次的计划
@@ -4644,6 +4706,15 @@
     seedDocGroups(0);
   }
   function closeFlow() {
+    if (Array.isArray(S.pendingExerciseInviteSenders) && S.pendingExerciseInviteSenders.length) {
+      let reasonNote = "";
+      if (S.screen === "exercise-risk" && S.contra) {
+        reasonNote = "命中绝对运动禁忌症";
+      } else if (S.screen === "risk-result") {
+        reasonNote = "体测或量表评估未达标";
+      }
+      completePendingExerciseInviteIfNeeded({ created: false, reasonNote });
+    }
     resetFlowFlags();
     while (S.frames.length > 1) {
       const top = topFrame();
@@ -6106,6 +6177,7 @@
         const replacing = opPlanCounts(["运动"]);
         commitConfirmDrafts("exercise");
         logOp("生成了运动计划", "健康计划", opPlanLines(written, replacing));
+        completePendingExerciseInviteIfNeeded({ created: true, tasks: written });
         finishGeneratedPlan("已写入运动计划");
       },
       newExerciseDraft() {
@@ -7909,8 +7981,35 @@
         acknowledgeHomePopupProxyRequestsFor(S.currentPersonName || "李建国");
         render();
       },
+      declineHomeExerciseInvite() {
+        const cur = S.currentPersonName || "李建国";
+        const invites = unshownPopupProxyRequestsFor(cur).filter((r) => r.kind === "inviteExerciseTest");
+        const senders = [];
+        invites.forEach((r) => {
+          if (r.senderName && !senders.includes(r.senderName)) senders.push(r.senderName);
+        });
+        S.pendingExerciseInviteSenders = null;
+        acknowledgeHomePopupProxyRequestsFor(cur);
+        senders.forEach((sender) => {
+          sendExerciseInviteReceiptFor({
+            responderName: cur,
+            inviterName: sender,
+            created: false,
+          });
+        });
+        render();
+        if (senders.length) {
+          toast(`已向${senders.join("、")}回执「暂不创建运动计划」`);
+        }
+      },
       ackHomeProxyPopupAndTest() {
         const cur = S.currentPersonName || "李建国";
+        const invites = unshownPopupProxyRequestsFor(cur).filter((r) => r.kind === "inviteExerciseTest");
+        const senders = [];
+        invites.forEach((r) => {
+          if (r.senderName && !senders.includes(r.senderName)) senders.push(r.senderName);
+        });
+        S.pendingExerciseInviteSenders = senders;
         acknowledgeHomePopupProxyRequestsFor(cur);
         S.proxyTargetPersonName = null;
         S.contra = !!(S.contraByPerson && S.contraByPerson[cur]);
@@ -10413,7 +10512,7 @@
         <div class="px24 col center grow" style="padding-top:32px;padding-bottom:24px">
           <div style="width:96px;height:96px;border-radius:50%;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.walk}</div>
           <h2 class="s22 fb t-blue mt20 ta-c">提醒${esc(famName)}完成运动体测</h2>
-          <p class="s15 fm t-sec ta-c mt12" style="line-height:1.6">运动计划需由${esc(famName)}本人完成体测后生成。<br>发送提醒后，${esc(famName)}打开首页弹窗点击「去体测」，即可按体测流程自行创建运动计划。</p>
+          <p class="s15 fm t-sec ta-c mt12" style="line-height:1.6">运动计划需由${esc(famName)}本人完成体测后生成。<br>发送提醒后，${esc(famName)}打开首页弹窗可选择「去创建」或「不创建」，结果将自动回执给你并记入操作记录。</p>
           <div class="grow"></div>
           <button class="cta" style="width:100%" data-act="submitProxyExerciseInvite" type="button">提醒${esc(famName)}去体测</button>
           <button class="cta-line mt12" style="width:100%" data-act="back" type="button">暂不提醒</button>
@@ -14797,12 +14896,15 @@
     if (!clean || clean === viewer || clean === "本人" || clean === "我") return false;
     return !confirmedFamilyBondsFor(viewer).some((b) => bondOtherName(b, viewer) === clean);
   }
+  function opIsDirectTargetVerb(act) {
+    return act === "提醒了" || act === "回复了";
+  }
   function opResolvedTarget(op) {
     const actor = opActorName(op);
     const rawTarget = String(op.targetName || "").trim();
     const viewer = S.currentPersonName || S.name || "李建国";
     const act = opActionName(op);
-    if (act === "提醒了") {
+    if (opIsDirectTargetVerb(act)) {
       if (rawTarget) return rawTarget;
       if (actor === viewer) {
         const b = confirmedFamilyBondsFor(viewer)[0];
@@ -14824,7 +14926,7 @@
     const act = opActionName(op);
     const target = genIsV01() ? opResolvedTarget(op) : "";
     let headline = "";
-    if (act === "提醒了" && target) {
+    if (opIsDirectTargetVerb(act) && target) {
       headline = op.place ? `${actor}在${op.place}${act}${target}` : `${actor}${act}${target}`;
     } else if (target) {
       headline = op.place ? `${actor}在${op.place}帮${target}${act}` : `${actor}帮${target}${act}`;
@@ -14848,7 +14950,7 @@
     const targetUnbound = genIsV01() && target && opIsPersonUnbound(target);
     const targetChip = target ? `${opPersonChipHTML(target, op)}${targetUnbound ? `<span class="op-unbound">已解绑</span>` : ""}` : "";
     let middlePart = `<span class="op-plain">${esc(act)}</span>`;
-    if (act === "提醒了" && target) {
+    if (opIsDirectTargetVerb(act) && target) {
       middlePart = `<span class="op-plain">${esc(act)}</span>${targetChip}`;
     } else if (target) {
       middlePart = `<span class="op-plain">帮</span>${targetChip}<span class="op-plain">${esc(act)}</span>`;
@@ -14865,7 +14967,7 @@
     const targetRole = target && genIsV01() ? `（${opIdentityFor(target, op)}）` : "";
     const placePart = op.place ? `在${op.place}` : "";
     const how = opHowText(op);
-    if (act === "提醒了" && target) {
+    if (opIsDirectTargetVerb(act) && target) {
       return `${actor}${actorRole}${placePart}${act}${target}${targetRole} ${how}`;
     }
     if (target) {
