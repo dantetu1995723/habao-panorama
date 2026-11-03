@@ -10377,15 +10377,23 @@
       </div>`;
   }
 
-  function bwmWheelSVG(effectiveIdx, isInteracting) {
+  function bwmCyclicRel(idx, eff) {
+    const count = BLOCKS.length;
+    let diff = (idx - eff) % count;
+    if (diff > count / 2) diff -= count;
+    if (diff < -count / 2) diff += count;
+    return diff;
+  }
+
+  function bwmWheelSVG(effectiveStep) {
     const w = 393;
     const h = 200;
-    const r = 256;
+    const r = 268;
     const cx = w / 2;
     const cy = r + 6;
     const outerR = r - 1.5;
-    const innerR = r - 142;
-    const span = 60;
+    const innerR = r - 144;
+    const span = 360 / BLOCKS.length;
     const pt = (rad, deg) => {
       const a = (deg * Math.PI) / 180;
       return [cx + Math.sin(a) * rad, cy - Math.cos(a) * rad];
@@ -10400,44 +10408,55 @@
     let sectorsHTML = "";
     let linesHTML = "";
     let labelsHTML = "";
-    const isMoving = isInteracting || Math.abs(effectiveIdx - Math.round(effectiveIdx)) > 0.008;
 
+    // 1. 7 个 360° 轮回扇区的随盘流光层 + 辐射白线
     BLOCKS.forEach((b, idx) => {
-      const centerDeg = (idx - effectiveIdx) * span;
-      if (Math.abs(centerDeg) >= 135) return;
-      const focus = Math.max(0, 1 - Math.abs(centerDeg) / span);
-      const smooth = focus * focus * (3 - 2 * focus);
-      if (smooth > 0.01) {
-        sectorsHTML += `<path d="${sectorPath(centerDeg - span / 2, centerDeg + span / 2)}" fill="url(#bwm-active-grad)" fill-opacity="${smooth.toFixed(3)}"/>`;
+      const rel = bwmCyclicRel(idx, effectiveStep);
+      const centerDeg = rel * span;
+      if (Math.abs(centerDeg) >= 150) return;
+      const norm = Math.min(1, Math.abs(rel) / 1.25);
+      const glow = Math.pow(Math.cos(norm * Math.PI * 0.5), 2.2) * 0.46;
+      if (glow > 0.01) {
+        sectorsHTML += `<path d="${sectorPath(centerDeg - span / 2, centerDeg + span / 2)}" fill="url(#bwm-active-grad)" fill-opacity="${glow.toFixed(3)}"/>`;
       }
       const [ilx, ily] = pt(innerR, centerDeg - span / 2);
       const [olx, oly] = pt(outerR, centerDeg - span / 2);
-      const [irx, iry] = pt(innerR, centerDeg + span / 2);
-      const [orx, ory] = pt(outerR, centerDeg + span / 2);
-      linesHTML += `<line x1="${ilx.toFixed(1)}" y1="${ily.toFixed(1)}" x2="${olx.toFixed(1)}" y2="${oly.toFixed(1)}" stroke="rgba(255,255,255,0.88)" stroke-width="1.5"/>`;
-      linesHTML += `<line x1="${irx.toFixed(1)}" y1="${iry.toFixed(1)}" x2="${orx.toFixed(1)}" y2="${ory.toFixed(1)}" stroke="rgba(255,255,255,0.88)" stroke-width="1.5"/>`;
+      linesHTML += `<line x1="${ilx.toFixed(1)}" y1="${ily.toFixed(1)}" x2="${olx.toFixed(1)}" y2="${oly.toFixed(1)}" stroke="rgba(255,255,255,0.86)" stroke-width="1.4"/>`;
+    });
 
-      const sideAlpha = isMoving ? 0.45 : 0;
-      const alpha = Math.min(1, smooth + (1 - smooth) * sideAlpha);
-      if (alpha > 0.02) {
-        const [tx, ty] = pt(r - 48, centerDeg);
-        const scale = (0.86 + 0.14 * smooth).toFixed(3);
-        const color = smooth > 0.45 ? "#FFFFFF" : "#4A7ACC";
-        labelsHTML += `
-          <g transform="translate(${tx.toFixed(1)},${ty.toFixed(1)}) rotate(${centerDeg.toFixed(2)}) scale(${scale})" opacity="${alpha.toFixed(3)}">
-            <g transform="translate(0,-12)">
-              <path d="M-6 2 A6 6 0 0 1 6 2 Z" fill="${color}"/>
-              <line x1="-11" y1="4.5" x2="11" y2="4.5" stroke="${color}" stroke-width="1.7" stroke-linecap="round"/>
-              <line x1="-7" y1="7.5" x2="7" y2="7.5" stroke="${color}" stroke-width="1.5" stroke-linecap="round" opacity="0.85"/>
-              <line x1="0" y1="-7" x2="0" y2="-9.5" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/>
-              <line x1="-5" y1="-5" x2="-7" y2="-7" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/>
-              <line x1="5" y1="-5" x2="7" y2="-7" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/>
-              <line x1="-8.5" y1="-1" x2="-11" y2="-2" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/>
-              <line x1="8.5" y1="-1" x2="11" y2="-2" stroke="${color}" stroke-width="1.6" stroke-linecap="round"/>
-            </g>
-            <text x="0" y="13" text-anchor="middle" fill="${color}" font-size="16" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, sans-serif">${b.title}${b.start}:00~${b.end}:00</text>
-          </g>`;
-      }
+    // 2. 顶部恒定饱满度的弹性聚光蓝扇区（杜绝跨区半途发灰）
+    const elasticDeg = -Math.sin(effectiveStep * 2 * Math.PI) * 4.8;
+    const breathSpan = span * (1 + 0.05 * Math.pow(Math.sin(effectiveStep * Math.PI), 2));
+    sectorsHTML += `<path d="${sectorPath(elasticDeg - breathSpan / 2, elasticDeg + breathSpan / 2)}" fill="url(#bwm-active-grad)" fill-opacity="0.88"/>`;
+
+    // 3. 冠区柔焦滑字（纯白文字在顶部蓝冠区内沿微弧平滑流转 + 景深缩放 + 光学柔焦，零变色跳变）
+    BLOCKS.forEach((b, idx) => {
+      const rel = bwmCyclicRel(idx, effectiveStep);
+      if (Math.abs(rel) >= 1.05) return;
+      const clamped = Math.min(1, Math.abs(rel) / 1.02);
+      const bell = Math.cos(clamped * Math.PI * 0.5);
+      const alpha = Math.pow(bell, 1.65);
+      if (alpha <= 0.01) return;
+      const scale = (0.85 + 0.15 * bell).toFixed(3);
+      const blur = ((1 - bell) * 2.4).toFixed(2);
+      const crownDeg = rel * 23.0;
+      const [tx, tyBase] = pt(r - 48, crownDeg);
+      const ty = tyBase + (1 - bell) * 5.0;
+      const tilt = (rel * 8.5).toFixed(2);
+      labelsHTML += `
+        <g transform="translate(${tx.toFixed(1)},${ty.toFixed(1)}) rotate(${tilt}) scale(${scale})" opacity="${alpha.toFixed(3)}" style="filter:blur(${blur}px)">
+          <g transform="translate(0,-12)">
+            <path d="M-6 2 A6 6 0 0 1 6 2 Z" fill="#FFFFFF"/>
+            <line x1="-11" y1="4.5" x2="11" y2="4.5" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round"/>
+            <line x1="-7" y1="7.5" x2="7" y2="7.5" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" opacity="0.85"/>
+            <line x1="0" y1="-7" x2="0" y2="-9.5" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
+            <line x1="-5" y1="-5" x2="-7" y2="-7" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
+            <line x1="5" y1="-5" x2="7" y2="-7" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
+            <line x1="-8.5" y1="-1" x2="-11" y2="-2" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
+            <line x1="8.5" y1="-1" x2="11" y2="-2" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round"/>
+          </g>
+          <text x="0" y="13" text-anchor="middle" fill="#FFFFFF" font-size="16" font-weight="600" font-family="-apple-system, BlinkMacSystemFont, sans-serif">${b.title}${b.start}:00~${b.end}:00</text>
+        </g>`;
     });
 
     return `
@@ -10559,43 +10578,47 @@
     };
 
     let currentEff = S.bwmBlock ?? 1;
-    const applyVisual = (eff, interacting) => {
+    const applyVisual = (eff) => {
       currentEff = eff;
       const { cardW, stride } = getStride();
       track.querySelectorAll(".bwm-container").forEach((el, i) => {
         el.style.width = `${cardW}px`;
-        const dist = Math.abs(i - eff);
+        const rel = bwmCyclicRel(i, eff);
+        const dist = Math.abs(rel);
         const scaleY = Math.max(0.95, 1 - dist * 0.03);
-        el.style.transform = `scaleY(${scaleY.toFixed(3)})`;
+        const x = sideMargin + rel * stride;
+        el.style.position = "absolute";
+        el.style.top = "0";
+        el.style.left = "0";
+        el.style.transform = `translate3d(${x.toFixed(1)}px, 0, 0) scaleY(${scaleY.toFixed(3)})`;
+        el.style.visibility = dist < 2.4 ? "visible" : "hidden";
       });
-      const x = sideMargin - eff * stride;
-      track.style.transform = `translate3d(${x.toFixed(1)}px, 0, 0)`;
-      wheelHost.innerHTML = bwmWheelSVG(eff, interacting);
+      track.style.transform = "";
+      wheelHost.innerHTML = bwmWheelSVG(eff);
     };
 
-    const animateTo = (targetIdx) => {
-      const clamped = Math.max(0, Math.min(6, targetIdx));
-      S.bwmBlock = clamped;
+    const animateTo = (targetStep) => {
+      S.bwmBlock = targetStep;
       cancelAnimationFrame(bwmAnimFrame);
       const from = currentEff;
-      const to = clamped;
+      const to = targetStep;
       const t0 = performance.now();
-      const dur = 380;
+      const dur = 420;
       const step = (now) => {
         const p = Math.min(1, (now - t0) / dur);
-        const ease = 1 - Math.pow(1 - p, 3.2);
+        const ease = 1 - Math.pow(1 - p, 3.4);
         const val = from + (to - from) * ease;
-        applyVisual(val, p < 0.98);
+        applyVisual(val);
         if (p < 1) {
           bwmAnimFrame = requestAnimationFrame(step);
         } else {
-          applyVisual(to, false);
+          applyVisual(to);
         }
       };
       bwmAnimFrame = requestAnimationFrame(step);
     };
 
-    applyVisual(S.bwmBlock ?? 1, false);
+    applyVisual(S.bwmBlock ?? 1);
 
     const attachDrag = (el, pxPerBlockFn, allowEdgeTap) => {
       let dragging = false;
@@ -10616,8 +10639,7 @@
         const dx = (e.clientX - x0) / s4PhoneScale();
         if (Math.abs(dx) > 4) moved = true;
         const delta = -dx / pxPerBlockFn();
-        const next = Math.max(-0.35, Math.min(6.35, startEff + delta));
-        applyVisual(next, true);
+        applyVisual(startEff + delta);
       };
       const finish = (e) => {
         if (!dragging) return;
@@ -10626,8 +10648,8 @@
         if (!moved && allowEdgeTap) {
           const rect = el.getBoundingClientRect();
           const relX = (e.clientX - rect.left) / rect.width;
-          if (relX < 0.32) { animateTo((S.bwmBlock ?? 1) - 1); return; }
-          if (relX > 0.68) { animateTo((S.bwmBlock ?? 1) + 1); return; }
+          if (relX < 0.32) { animateTo(Math.round(currentEff) - 1); return; }
+          if (relX > 0.68) { animateTo(Math.round(currentEff) + 1); return; }
         }
         const delta = -dx / pxPerBlockFn();
         let target = Math.round(startEff + delta);

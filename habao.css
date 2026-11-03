@@ -4208,9 +4208,8 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   mask-image: linear-gradient(180deg, #000 0%, #000 86%, transparent 100%);
 }
 .bwm-carousel-track {
-  display: flex;
-  align-items: stretch;
-  gap: 12px;
+  position: relative;
+  width: 100%;
   height: 100%;
   will-change: transform;
 }
