@@ -6596,7 +6596,28 @@
       },
       goNotify() { closeOverlay(); go("notify", "cover"); },
       // 查看计划 · 取消本次打卡：解禁提醒与删除（真机 store.toggleCompletion 的反向）
-      undoCheckIn() { delete S.completed[S.taskId]; unmarkProxy(S.taskId); render(); },
+      undoCheckIn() {
+        if (S.proxyTargetPersonName) {
+          const famName = S.proxyTargetPersonName;
+          const me = currentDemoPerson();
+          const ymd = S.taskOccurrence || S.calSelYMD || toYMD(demoDate());
+          const t = findEditableTask(S.taskId);
+          setFamilyTaskCompletedOn(famName, S.taskId, ymd, false);
+          S.careProxyRequests = (S.careProxyRequests || []).filter((r) => !(
+            r.senderName === me.name &&
+            r.recipientName === famName &&
+            r.kind === "checkIn" &&
+            String(r.targetTaskId || r.taskSnapshot?.id) === String(S.taskId) &&
+            !r.recipientPopupShown
+          ));
+          render();
+          if (t) toast(`已取消${famName}的「${t.title}」打卡`);
+          return;
+        }
+        delete S.completed[S.taskId];
+        unmarkProxy(S.taskId);
+        render();
+      },
       sendChat() {
         const v = (S.chatDraft || "").trim();
         if (!v && !S.pendingImage) return;
@@ -6959,7 +6980,11 @@
             summaryNote: `修改为 ${pad(savedTask.h ?? 8)}:${pad(savedTask.m ?? 0)} · ${savedTask.cycle !== false ? "循环" : "单日"}`,
             skipDirectMutation: true,
           });
-          closeFlow();
+          const opened = S.taskOccurrence || today;
+          if (prompt && prompt.splitsSeries) {
+            S.taskId = opened >= prompt.newStartYmd ? savedTask.id : orig.id;
+          }
+          go("task-view", "replace");
           toast(`已为${famName}更新计划「${savedTask.title}」`);
           return;
         }
@@ -7000,10 +7025,6 @@
         go("task-view", "replace");
       },
       cancelEdit() {
-        if (S.proxyTargetPersonName) {
-          closeFlow();
-          return;
-        }
         go("task-view", "replace");
       },
       cancelAdd() {
@@ -7135,9 +7156,82 @@
         toast("已添加");
       },
       // 单日计划：直接删；循环计划：仅删本次（skippedDays）或今起删除（splice）
-      delTask() { logDrop(S.taskId); dropTask(S.taskId); dismissCover(); toast("已删除"); },
-      delToday() { logDrop(S.taskId, true); addSkipped(toYMD(demoDate()), S.taskId); dismissCover(); toast("已删除本次计划"); },
-      delAll() { logDrop(S.taskId); dropTask(S.taskId); dismissCover(); toast("已删除本次和后续计划"); },
+      delTask() {
+        if (S.proxyTargetPersonName) {
+          const famName = S.proxyTargetPersonName;
+          const me = currentDemoPerson();
+          const t = findEditableTask(S.taskId);
+          if (t) {
+            sendProxyRequestFor({
+              senderName: me.name,
+              recipientName: famName,
+              kind: "deletePlan",
+              targetTaskId: t.id,
+              taskSnapshot: { ...t },
+              summaryNote: "删除单日计划",
+            });
+            closeFlow();
+            toast(`已为${famName}删除计划「${t.title}」`);
+            return;
+          }
+        }
+        logDrop(S.taskId);
+        dropTask(S.taskId);
+        dismissCover();
+        toast("已删除");
+      },
+      delToday() {
+        if (S.proxyTargetPersonName) {
+          const famName = S.proxyTargetPersonName;
+          const me = currentDemoPerson();
+          const ymd = S.taskOccurrence || S.calSelYMD || toYMD(demoDate());
+          const t = findEditableTask(S.taskId);
+          if (t) {
+            skipFamilyTaskOn(famName, t.id, ymd);
+            sendProxyRequestFor({
+              senderName: me.name,
+              recipientName: famName,
+              kind: "deletePlan",
+              targetTaskId: t.id,
+              taskSnapshot: { ...t },
+              summaryNote: `仅删除 ${monthDayLabel(parseYMD(ymd)).split(" ")[0]} 当次`,
+              onYMD: ymd,
+              skipDirectMutation: true,
+            });
+            closeFlow();
+            toast(`已为${famName}移除当次「${t.title}」`);
+            return;
+          }
+        }
+        logDrop(S.taskId, true);
+        addSkipped(toYMD(demoDate()), S.taskId);
+        dismissCover();
+        toast("已删除本次计划");
+      },
+      delAll() {
+        if (S.proxyTargetPersonName) {
+          const famName = S.proxyTargetPersonName;
+          const me = currentDemoPerson();
+          const t = findEditableTask(S.taskId);
+          if (t) {
+            sendProxyRequestFor({
+              senderName: me.name,
+              recipientName: famName,
+              kind: "deletePlan",
+              targetTaskId: t.id,
+              taskSnapshot: { ...t },
+              summaryNote: "长期删除该计划",
+            });
+            closeFlow();
+            toast(`已为${famName}删除计划「${t.title}」`);
+            return;
+          }
+        }
+        logDrop(S.taskId);
+        dropTask(S.taskId);
+        dismissCover();
+        toast("已删除本次和后续计划");
+      },
       delCardToday() { logDrop(el.dataset.id, true); addSkipped(toYMD(demoDate()), el.dataset.id); toast("已仅删本次"); },
       delCardAll() { logDrop(el.dataset.id); dropTask(el.dataset.id); toast("已长期删除"); },
       delCardOnce() { logDrop(el.dataset.id); dropTask(el.dataset.id); toast("已删除"); },
@@ -7982,13 +8076,8 @@
           S.lockRecurrence = false;
           S.lockCategory = false;
           S.lockProfessional = false;
-          initDraft(existing);
-          if (S.draft) {
-            const defaultStart = defaultNewPlanStartYmd(existing);
-            S.draft.occurrence = defaultStart;
-            if (!S.draft.cycle) S.draft.onceDate = existing.onceDate || defaultStart;
-          }
-          go("task-edit", "cover");
+          S.draft = null;
+          go("task-view", "cover");
         } else if (famTasks.length === 0) {
           S.proxyTargetPersonName = famName;
           S.proxyIsFirstCreate = true;
@@ -11857,8 +11946,9 @@
                   <span style="font-size:13px;font-weight:800;line-height:1">代打卡</span>
                 </button>`;
 
-            const barCls = isCycle ? " triple" : "";
-            const delBtns = isCycle
+            const showDelete = !done && (selYMD >= todayYMD);
+            const barCls = showDelete && isCycle ? " triple" : "";
+            const delBtns = !showDelete ? "" : isCycle
               ? `<button type="button" data-act="proxySkipTaskToday" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.trash}仅删本次</button>
                  <button type="button" data-act="askProxyDeleteTask" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.trash}长期删除</button>`
               : `<button type="button" data-act="askProxyDeleteTask" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.trash}删除</button>`;
@@ -11879,10 +11969,10 @@
                   ${rightCircle}
                 </div>
                 ${notes}
-                ${!done ? `<div class="act-card-bar${barCls}">
-                  <button type="button" data-act="openProxyTaskEditor" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.pencil}编辑</button>
+                <div class="act-card-bar${barCls}">
+                  <button type="button" data-act="openProxyTaskEditor" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.eye}查看</button>
                   ${delBtns}
-                </div>` : ""}
+                </div>
               </div>`;
           };
 
@@ -15711,7 +15801,7 @@
       const alignedDateRow = (label, ymd, act, locked) => {
         const on = editable && !locked;
         const valColor = viewing ? accent.fg : (locked ? `${accent.fg}BF` : accent.fg);
-        const padStyle = viewing ? "11px 16px" : (d.cycle && d.rule === "monthly" ? "11px 16px" : "14px 16px");
+        const padStyle = viewing ? "11px 16px" : (d.cycle && d.rule === "monthly" ? "9px 16px" : (mode === "edit" && showOcc ? "11px 16px" : "13px 16px"));
         return `<button class="v02-date-row" style="padding:${padStyle}" ${on ? `data-act="${act}"` : "disabled"} type="button">
           <span class="lab">${label}</span>
           <span class="val" style="color:${valColor}">
@@ -15837,10 +15927,10 @@
         const isRec = persisted ? persisted.cycle !== false : !!d.cycle;
         bottomDockHTML = `<div class="v02-bottom-dock">${isRec
           ? `<div class="duo-del-col">
-              <button class="del-plan" style="margin-top:0;width:100%" data-act="deleteThisPlan" type="button">${I.trash}删除本次计划</button>
-              <button class="del-plan" style="margin-top:0;width:100%" data-act="deleteFuturePlans" type="button">${I.trash}删除本次和后续计划</button>
+              <button class="del-plan" style="margin-top:0;width:100%" data-act="delToday" type="button">${I.trash}删除本次计划</button>
+              <button class="del-plan" style="margin-top:0;width:100%" data-act="delAll" type="button">${I.trash}删除本次和后续计划</button>
             </div>`
-          : `<button class="del-plan" style="margin-top:0;width:100%" data-act="deletePlan" type="button">${I.trash}删除计划</button>`}</div>`;
+          : `<button class="del-plan" style="margin-top:0;width:100%" data-act="delTask" type="button">${I.trash}删除计划</button>`}</div>`;
       } else if (viewing && done && !past) {
         bottomDockHTML = `<div class="v02-bottom-dock"><button class="cta-ghost" style="color:${accent.fg};background:${accent.muted};margin-top:0" data-act="undoCheckIn" type="button">${I.undo}取消本次打卡</button></div>`;
       }

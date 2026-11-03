@@ -1095,8 +1095,10 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   flex: 1; min-height: 0;
   display: flex; flex-direction: column; gap: 12px;
   padding: 6px 20px 18px;
-  overflow: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
 }
+.v02-stage-page::-webkit-scrollbar { display: none; }
 .v02-live-tiles {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
   flex-shrink: 0;
@@ -1127,14 +1129,27 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   line-height: 1.2;
 }
 .v02-editor-card {
-  min-height: 388px;
-  height: 388px;
+  min-height: 356px;
+  height: auto;
+  flex-shrink: 0;
   box-sizing: border-box;
   background: linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 100%);
   border-radius: 24px;
-  padding: 18px;
+  padding: 16px 18px;
   box-shadow: 0 12px 24px rgba(16,84,224,.07), -2px -4px 8px rgba(255,255,255,.9);
-  overflow-y: hidden;
+  overflow: visible;
+}
+.v02-editor-card .sec-label {
+  margin: 12px 0 6px;
+}
+.v02-editor-card .month-day-grid {
+  gap: 5px;
+}
+.v02-editor-card .month-day-grid .opt-chip {
+  min-height: 30px;
+  padding: 4px 0;
+  border-radius: 9px;
+  font-size: calc(13px * var(--fs));
 }
 .v02-mod-head {
   display: flex; align-items: center; gap: 8px;
