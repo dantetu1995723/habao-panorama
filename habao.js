@@ -2422,14 +2422,13 @@
     const hasContra = isTargetActive && (S.contra || (typeof contraindicationHits === "function" && contraindicationHits().length > 0));
     const highBorg = isTargetActive && (S.borg > 7 || (S.symptoms || []).some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x)));
 
-    if (cat === "exercise") {
-      warningTitle = "运动风险提醒";
-      if (target === "张桂兰" || age >= 70) {
-        warnings.push(`${target}（${age}岁）属于高龄或合并心血管基础病史（如房颤/高血压），首次创建计划未包含运动体测。若存在罕见病、绝对禁忌症或体测量表不达标情况，强行运动存在心血管风险，请确认是否仍要继续创建？`);
-      } else if (hasContra || highBorg) {
-        warnings.push(`检测到${target}存在运动禁忌症、罕见病风险或体测量表未达标情况，建议先遵循医嘱评估后再开展有氧运动。确定仍要继续创建运动计划吗？`);
-      } else if (isProxyAction) {
-        warnings.push(`运动计划未在首次出院计划中默认创建。为「${target}」后续创建运动计划前，请提醒并确认对方无罕见心血管疾病、无近30天胸痛晕厥等禁忌症，且体测量表评估达标。是否仍要继续创建？`);
+    if (cat === "exercise" && !editingTaskId) {
+      const targetContra = (S.contraByPerson && S.contraByPerson[target]) || (isTargetActive && S.contra);
+      if (targetContra) {
+        return {
+          hasHardBlock: true,
+          hardBlockMessage: `检测到${target}存在绝对运动禁忌症（室颤、心衰Ⅲ级及以上），无法创建运动计划`,
+        };
       }
     }
 
@@ -3767,8 +3766,10 @@
             </div>
             ${pagerHTML}
             <div style="width:100%;display:flex;gap:10px">
-              ${hasExerciseInvite ? `<button type="button" data-act="ackHomeProxyPopupAndTest" style="flex:1;height:48px;border-radius:14px;border:1.2px solid rgba(16,84,224,.28);background:rgba(16,84,224,.08);color:var(--blue);font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit">去体测</button>` : ""}
-              <button type="button" data-act="ackHomeProxyPopup" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">知道了</button>
+              ${hasExerciseInvite
+                ? `<button type="button" data-act="ackHomeProxyPopup" style="flex:1;height:48px;border-radius:14px;border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit">知道了</button>
+                   <button type="button" data-act="ackHomeProxyPopupAndTest" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">去体测</button>`
+                : `<button type="button" data-act="ackHomeProxyPopup" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">知道了</button>`}
             </div>
           </div>
         </div>`;
@@ -3979,6 +3980,9 @@
       });
     }
     sortSeed();
+    if (S.boundPersonKey && S.personStoreMap && S.personStoreMap[S.boundPersonKey]) {
+      S.personStoreMap[S.boundPersonKey].tasks = SEED.map((t) => ({ ...t }));
+    }
     const n = drafts.length;
     S.confirmDrafts = null;
     resetBasisEdits();
@@ -6854,10 +6858,12 @@
       // 运动链独立草稿：先清空，进确认页时再种（避免沿用用药链的草稿）；家属代办时进运动体测邀请页（真机 CreateScheduleFlowView.proxyExerciseInviteStep）
       typeEx() {
         if (S.proxyTargetPersonName) {
+          S.contra = !!(S.contraByPerson && S.contraByPerson[S.proxyTargetPersonName]);
           go("proxy-exercise-invite", "push");
           return;
         }
-        S.contra = false;
+        const cur = activePersonName() || "李建国";
+        S.contra = !!(S.contraByPerson && S.contraByPerson[cur]);
         S.confirmDrafts = null;
         replace("exercise-risk");
       },
@@ -7904,8 +7910,12 @@
         render();
       },
       ackHomeProxyPopupAndTest() {
-        acknowledgeHomePopupProxyRequestsFor(S.currentPersonName || "李建国");
-        go("ex-screen");
+        const cur = S.currentPersonName || "李建国";
+        acknowledgeHomePopupProxyRequestsFor(cur);
+        S.proxyTargetPersonName = null;
+        S.contra = !!(S.contraByPerson && S.contraByPerson[cur]);
+        S.confirmDrafts = null;
+        go("exercise-risk", "cover");
       },
       prevBindInvitePopupPage() {
         const cur = S.currentPersonName || "李建国";
@@ -8030,8 +8040,12 @@
           how: req.taskSnapshot?.title || "",
         });
         if (req.kind === "inviteExerciseTest") {
-          toast(`已接受${req.senderName}的运动体测邀请，请完成运动评估`);
-          go("ex-screen");
+          toast(`已收到${req.senderName}的体测提醒，请完成运动体测并自行创建运动计划`);
+          const cur = S.currentPersonName || "李建国";
+          S.proxyTargetPersonName = null;
+          S.contra = !!(S.contraByPerson && S.contraByPerson[cur]);
+          S.confirmDrafts = null;
+          go("exercise-risk", "cover");
           return;
         }
         toast(`已接受${req.senderName}的${proxyActionLabel(req.kind)}，并通知对方`);
@@ -8190,13 +8204,13 @@
         if (!famName) return;
         const snapshot = {
           id: `proxy_ex_${Date.now()}`,
-          title: "完成运动体测并生成运动计划",
+          title: "完成运动体测",
           cat: "exercise",
           h: 9,
           m: 0,
           cycle: true,
           rule: "daily",
-          note: "请进行 3 分钟踏步或 1 分钟起坐体测，系统将根据心率自动生成专属运动计划",
+          note: "请完成 3 分钟踏步或 1 分钟坐立体测，评估后自行创建运动计划",
         };
         sendProxyRequestFor({
           senderName: me.name,
@@ -8204,7 +8218,7 @@
           kind: "inviteExerciseTest",
           targetTaskId: snapshot.id,
           taskSnapshot: snapshot,
-          summaryNote: "3 分钟踏步 / 1 分钟起坐体测",
+          summaryNote: "提醒完成运动体测",
         });
         S.proxyEditorDraft = null;
         if (S.proxyTargetPersonName) {
@@ -8212,7 +8226,7 @@
         } else {
           render();
         }
-        toast(`已向${famName}发送运动体测提醒`);
+        toast(`已提醒${famName}完成运动体测`);
       },
       closeProxyTaskEditor() {
         S.proxyEditorDraft = null;
@@ -9513,7 +9527,13 @@
         S.archivePlace = "身体报告";
         startArchive("capture");
       },
-      contra() { S.contra = !S.contra; render(); },
+      contra() {
+        S.contra = !S.contra;
+        if (!S.contraByPerson) S.contraByPerson = {};
+        const target = S.proxyTargetPersonName || activePersonName() || "李建国";
+        S.contraByPerson[target] = S.contra;
+        render();
+      },
       // 体测前导：指南弹窗 → 3-2-1 倒计时 → 运行页（真机 BodyTestRunView）
       openGuide() {
         if (S.contra) return;
@@ -10375,28 +10395,29 @@
     "proxy-exercise-invite": () => {
       const me = currentDemoPerson();
       const famName = S.proxyTargetPersonName || resolvedSelectedFamilyNameFor(me.name) || "家属";
-      return `
+      return S.contra ? `
       <div class="page">
-        ${navBar(`<button class="cap" data-act="back" type="button">${I.chevL}返回</button>`, "运动体测邀请", "")}
-        <div class="scroll px24" style="padding-top:28px;padding-bottom:24px">
-          <div style="background:#fff;border-radius:22px;border:1px solid rgba(16,84,224,.12);box-shadow:0 4px 12px rgba(16,84,224,.06);padding:24px 20px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center">
-            <div style="width:68px;height:68px;border-radius:50%;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.walk}</div>
-            <div style="font-size:21px;font-weight:800;color:var(--blue)">邀请${esc(famName)}完成运动体测</div>
-            <div style="font-size:15px;font-weight:500;color:var(--secondary);line-height:1.5">运动康复计划需要根据患者本人的 3 分钟踏步或 1 分钟起坐体测心率生成。点击下方按钮将向${esc(famName)}发送体测提醒。</div>
-            <div style="width:100%;display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:16px;background:rgba(16,84,224,.05);text-align:left">
-              <div style="display:flex;align-items:center;gap:10px">
-                <span style="width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:800;display:grid;place-items:center;flex-shrink:0">1</span>
-                <span style="font-size:14px;font-weight:600;color:var(--blue)">${esc(famName)}在「家属管理 → 收家属通知」收到运动体测邀请</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:10px">
-                <span style="width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:800;display:grid;place-items:center;flex-shrink:0">2</span>
-                <span style="font-size:14px;font-weight:600;color:var(--blue)">点击通知卡上的「去体测」直接开始评估并自动生成运动计划</span>
-              </div>
-            </div>
-          </div>
+        ${navBar(`<button class="cap" data-act="back" type="button">${I.chevL}返回</button>`, "运动计划", "")}
+        <div class="px24 col center grow" style="padding-top:24px;padding-bottom:24px">
+          <div style="width:104px;height:104px;border-radius:50%;background:rgba(242,153,74,.16);display:grid;place-items:center;color:#F2994A;font-size:42px;font-weight:800">!</div>
+          <h2 class="s21 fb t-amber mt16 ta-c">检测到绝对禁忌症，无法创建运动计划</h2>
+          <p class="s14 fm t-sec ta-c mt12" style="line-height:1.6">依据之前上传的病历资料，${esc(famName)}存在绝对运动禁忌症，不适合开展有氧运动，直接拒绝创建运动计划。</p>
+          <div class="flex gap8 mt16"><span class="cap red">室颤</span><span class="cap red">心衰Ⅲ级及以上</span></div>
+          <div class="grow"></div>
+          <button class="cta amber" style="width:100%" data-act="later" type="button">暂不创建运动计划</button>
+          <label class="flex gap8 mt16 t-amber s14 pointer"><input type="checkbox" ${S.contra ? "checked" : ""} data-act="contra" /> 演示：模拟命中绝对禁忌症</label>
         </div>
-        <div class="px24 flex gap8" style="padding-bottom:28px">
-          <button class="cta grow" data-act="submitProxyExerciseInvite" type="button">发送运动体测提醒</button>
+      </div>` : `
+      <div class="page">
+        ${navBar(`<button class="cap" data-act="back" type="button">${I.chevL}返回</button>`, "运动计划", "")}
+        <div class="px24 col center grow" style="padding-top:32px;padding-bottom:24px">
+          <div style="width:96px;height:96px;border-radius:50%;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center">${I.walk}</div>
+          <h2 class="s22 fb t-blue mt20 ta-c">提醒${esc(famName)}完成运动体测</h2>
+          <p class="s15 fm t-sec ta-c mt12" style="line-height:1.6">运动计划需由${esc(famName)}本人完成体测后生成。<br>发送提醒后，${esc(famName)}打开首页弹窗点击「去体测」，即可按体测流程自行创建运动计划。</p>
+          <div class="grow"></div>
+          <button class="cta" style="width:100%" data-act="submitProxyExerciseInvite" type="button">提醒${esc(famName)}去体测</button>
+          <button class="cta-line mt12" style="width:100%" data-act="back" type="button">暂不提醒</button>
+          <label class="flex gap8 mt16 t-amber s14 pointer"><input type="checkbox" ${S.contra ? "checked" : ""} data-act="contra" /> 演示：模拟命中绝对禁忌症</label>
         </div>
       </div>`;
     },
@@ -10569,15 +10590,16 @@
     },
 
     "exercise-risk": () => S.contra ? `
-      <div class="page px24" style="padding-top:72px">
+      <div class="page">
         ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "运动前风险提示")}
-        <div class="col center grow">
-          <div style="width:104px;height:104px;border-radius:50%;background:rgba(242,153,74,.16);display:grid;place-items:center;color:#F2994A;font-size:42px">!</div>
-          <h2 class="s22 fb t-amber mt16">检测到绝对禁忌症或罕见病风险</h2>
-          <p class="s15 fm t-sec ta-c mt12">依据出院诊断，当前存在绝对禁忌症或罕见心血管病风险，建议暂缓创建运动计划。<br>如医嘱允许且有家属看护，可确认后继续创建。</p>
+        <div class="px24 col center grow" style="padding-top:24px;padding-bottom:24px">
+          <div style="width:104px;height:104px;border-radius:50%;background:rgba(242,153,74,.16);display:grid;place-items:center;color:#F2994A;font-size:42px;font-weight:800">!</div>
+          <h2 class="s21 fb t-amber mt16 ta-c">检测到绝对禁忌症，无法创建运动计划</h2>
+          <p class="s14 fm t-sec ta-c mt12" style="line-height:1.6">依据之前上传的病历资料，当前存在绝对运动禁忌症，不适合开展有氧运动，直接拒绝创建运动计划。</p>
           <div class="flex gap8 mt16"><span class="cap red">室颤</span><span class="cap red">心衰Ⅲ级及以上</span></div>
-          <button class="cta amber mt16" data-act="later" type="button">暂不创建运动计划</button>
-          <button class="cta-line mt12" data-act="askForceContinueExercise" data-reason="contra" type="button">仍要继续创建</button>
+          <div class="grow"></div>
+          <button class="cta amber" style="width:100%" data-act="later" type="button">暂不创建运动计划</button>
+          <label class="flex gap8 mt16 t-amber s14 pointer"><input type="checkbox" ${S.contra ? "checked" : ""} data-act="contra" /> 演示：模拟命中绝对禁忌症</label>
         </div>
       </div>` : `
       <div class="page">
@@ -10712,10 +10734,9 @@
     "risk-result": () => `
       <div class="page px24 col center" style="padding-top:90px">
         <div style="width:104px;height:104px;border-radius:50%;background:rgba(242,153,74,.16);display:grid;place-items:center;color:#F2994A;font-size:42px">!</div>
-        <h2 class="s22 fb t-amber mt16">建议人工评估</h2>
-        <p class="s15 t-sec ta-c mt12">当前体测或劳累度量表未达标，建议暂缓创建运动计划。<br>如已在医生或家属看护下确认安全，也可继续创建。</p>
-        <button class="cta amber mt16" data-act="later" type="button">完成评估</button>
-        <button class="cta-line mt12" data-act="askForceContinueExercise" data-reason="scale" type="button">仍要继续创建</button>
+        <h2 class="s22 fb t-amber mt16">体测或量表未达标</h2>
+        <p class="s15 t-sec ta-c mt12">体测或劳累度量表评估未达标，当前存在运动风险，暂不生成运动计划。</p>
+        <button class="cta amber mt16" data-act="later" type="button">暂不创建运动计划</button>
       </div>`,
 
     vitals: () => {
