@@ -4045,6 +4045,8 @@
       rule: d.cycle ? d.rule : null,
       weekdays: d.cycle ? d.weekdays : null,
       monthDays: d.cycle ? d.monthDays : null,
+      intervalCount: d.cycle && d.rule === "custom" ? clampRuleInterval(d.intervalCount, d.intervalUnit) : undefined,
+      intervalUnit: d.cycle && d.rule === "custom" ? ((d.intervalUnit === "week" || d.intervalUnit === "month") ? d.intervalUnit : "day") : undefined,
       duration: d.cycle ? d.duration : null,
       endDate: d.cycle ? (d.endDate || null) : null,
       customDays: d.cycle ? (d.customDays || null) : null,
@@ -4100,6 +4102,7 @@
     drafts.forEach((x) => {
       const [hh, mm] = String(x.time || "08:00").split(":").map(Number);
       const id = nextTaskId();
+      const isCyc = x.cycle !== false;
       SEED.push({
         id,
         title: x.title,
@@ -4107,7 +4110,16 @@
         h: Number.isFinite(hh) ? hh : 8,
         m: Number.isFinite(mm) ? mm : 0,
         note: x.note || "",
-        cycle: x.cycle !== false,
+        cycle: isCyc,
+        rule: isCyc ? (x.rule || (x.cat === "appointment" ? "monthly" : "daily")) : undefined,
+        weekdays: isCyc && x.weekdays ? x.weekdays.slice() : undefined,
+        monthDays: isCyc && x.monthDays ? x.monthDays.slice() : undefined,
+        intervalCount: isCyc && x.rule === "custom" ? clampRuleInterval(x.intervalCount, x.intervalUnit) : undefined,
+        intervalUnit: isCyc && x.rule === "custom" ? ((x.intervalUnit === "week" || x.intervalUnit === "month") ? x.intervalUnit : "day") : undefined,
+        duration: isCyc && x.duration ? x.duration : undefined,
+        endDate: isCyc && x.endDate ? x.endDate : undefined,
+        customDays: isCyc && x.customDays ? x.customDays : undefined,
+        onceDate: x.onceDate || undefined,
       });
       S.mutedToday[id] = x.muteFirst === true;
     });
@@ -4142,8 +4154,27 @@
   function zoneHasTasks(id) {
     return liveTasks().some((t) => blockOf(t.h).id === id);
   }
+  function clampRuleInterval(count, unit) {
+    const u = (unit === "week" || unit === "month") ? unit : "day";
+    const max = u === "day" ? 30 : 12;
+    return Math.min(max, Math.max(2, Number(count) || 2));
+  }
+  function customRuleDisplayName(count, unit) {
+    const u = (unit === "week" || unit === "month") ? unit : "day";
+    const n = clampRuleInterval(count, u);
+    return u === "week" ? `每${n}周` : u === "month" ? `每${n}月` : `每${n}天`;
+  }
+  function durationGranularity(rule, intervalUnit = S.draft?.intervalUnit) {
+    if (rule === "custom") {
+      if (intervalUnit === "week") return "weekly";
+      if (intervalUnit === "month") return "monthly";
+      return "daily";
+    }
+    return rule || "daily";
+  }
   function taskDraftFromSeed(t) {
     const appt = t.cat === "appointment";
+    const iUnit = (t.intervalUnit === "week" || t.intervalUnit === "month") ? t.intervalUnit : "day";
     return {
       cat: t.cat,
       cycle: t.cycle !== false,
@@ -4151,6 +4182,9 @@
       rule: t.rule || (appt ? "monthly" : "daily"),
       weekdays: t.weekdays ? t.weekdays.slice() : [6],
       monthDays: t.monthDays ? t.monthDays.slice() : [11],
+      intervalCount: clampRuleInterval(t.intervalCount, iUnit),
+      intervalUnit: iUnit,
+      didCustomizeRule: t.rule === "custom",
       duration: "duration" in t ? t.duration : "oneYear",
       endDate: t.endDate || null,
       customId: t.customId || null,
@@ -4170,7 +4204,7 @@
       touchedDuration: false,
     };
   }
-  function scheduleRuleSummary(isCycle, rule, weekdays, monthDays) {
+  function scheduleRuleSummary(isCycle, rule, weekdays, monthDays, intervalCount, intervalUnit) {
     if (!isCycle) return "单日";
     let ruleText = "每日";
     if (rule === "weekly") {
@@ -4186,13 +4220,15 @@
       const nums = md.filter((x) => x !== 0).sort((a, b) => a - b).map((x) => `${x}日`);
       if (md.includes(0)) nums.push("月末");
       ruleText = `每月${nums.join("、")}`;
+    } else if (rule === "custom") {
+      ruleText = customRuleDisplayName(intervalCount, intervalUnit);
     }
     return ruleText;
   }
-  function scheduleDurationSummary(isCycle, rule, duration, customDays) {
+  function scheduleDurationSummary(isCycle, rule, duration, customDays, intervalUnit) {
     if (!isCycle) return "1天";
     let durationText = "一年";
-    const opts = durationOpts(rule);
+    const opts = durationOpts(rule, intervalUnit);
     const matched = opts.find((opt) => opt[0] === duration);
     if (matched) {
       durationText = matched[1];
@@ -4204,11 +4240,11 @@
   function scheduleTimeSummary(h, m) {
     return `${pad(h ?? 8)}:${pad(m ?? 0)}`;
   }
-  function scheduleRuleDurationSummary(isCycle, rule, weekdays, monthDays, duration, customDays, h, m) {
+  function scheduleRuleDurationSummary(isCycle, rule, weekdays, monthDays, duration, customDays, h, m, intervalCount, intervalUnit) {
     const timeText = scheduleTimeSummary(h, m);
     if (!isCycle) return `单日 ${timeText}`;
-    const ruleText = scheduleRuleSummary(isCycle, rule, weekdays, monthDays);
-    const durationText = scheduleDurationSummary(isCycle, rule, duration, customDays);
+    const ruleText = scheduleRuleSummary(isCycle, rule, weekdays, monthDays, intervalCount, intervalUnit);
+    const durationText = scheduleDurationSummary(isCycle, rule, duration, customDays, intervalUnit);
     return `${ruleText} · ${durationText} ${timeText}`;
   }
   function resolvedDraftEndYmd(d, anchorYmd) {
@@ -4243,6 +4279,9 @@
         const a = (d.monthDays || []).slice().sort().join(",");
         const b = (origBase.monthDays || []).slice().sort().join(",");
         if (a !== b) changed = true;
+      }
+      if (d.rule === "custom") {
+        if (d.intervalCount !== origBase.intervalCount || d.intervalUnit !== origBase.intervalUnit) changed = true;
       }
       const origEnd = resolvedDraftEndYmd(origBase, origStart);
       const curEnd = resolvedDraftEndYmd(d, activeStart);
@@ -4280,12 +4319,12 @@
     const currentEndText = yearMonthDayLabel(parseYMD(currentEndYmd));
     const newEndText = yearMonthDayLabel(parseYMD(newEndYmd));
 
-    const currentRuleText = scheduleRuleSummary(origBase.cycle, origBase.rule, origBase.weekdays, origBase.monthDays);
-    const currentDurationText = scheduleDurationSummary(origBase.cycle, origBase.rule, origBase.duration, origBase.customDays);
+    const currentRuleText = scheduleRuleSummary(origBase.cycle, origBase.rule, origBase.weekdays, origBase.monthDays, origBase.intervalCount, origBase.intervalUnit);
+    const currentDurationText = scheduleDurationSummary(origBase.cycle, origBase.rule, origBase.duration, origBase.customDays, origBase.intervalUnit);
     const currentTimeText = scheduleTimeSummary(origBase.hour, origBase.min);
 
-    const newRuleText = scheduleRuleSummary(d.cycle, d.rule, d.weekdays, d.monthDays);
-    const newDurationText = scheduleDurationSummary(d.cycle, d.rule, d.duration, d.customDays);
+    const newRuleText = scheduleRuleSummary(d.cycle, d.rule, d.weekdays, d.monthDays, d.intervalCount, d.intervalUnit);
+    const newDurationText = scheduleDurationSummary(d.cycle, d.rule, d.duration, d.customDays, d.intervalUnit);
     const newTimeText = scheduleTimeSummary(d.hour, d.min);
 
     return {
@@ -4324,6 +4363,9 @@
       rule: "daily",
       weekdays: [6],
       monthDays: [11],
+      intervalCount: 2,
+      intervalUnit: "day",
+      didCustomizeRule: false,
       duration: "oneYear",
       customId: null,
       customDays: null,
@@ -4346,32 +4388,36 @@
   }
   const UNIFIED_CUSTOM_ICON = "grid";
   const UNIFIED_CUSTOM_COLOR = "#1054E0";
-  function defaultCustomDays(rule) {
-    if (rule === "weekly") return 56;
-    if (rule === "monthly") return 182;
+  function defaultCustomDays(rule, intervalUnit) {
+    const g = durationGranularity(rule, intervalUnit);
+    if (g === "weekly") return 56;
+    if (g === "monthly") return 182;
     return 30;
   }
-  function customDurCount(days, rule) {
-    const n = days || defaultCustomDays(rule);
-    if (rule === "weekly") return Math.max(1, Math.round(n / 7));
-    if (rule === "monthly") return Math.max(1, Math.round(n / 30));
+  function customDurCount(days, rule, intervalUnit) {
+    const g = durationGranularity(rule, intervalUnit);
+    const n = days || defaultCustomDays(g);
+    if (g === "weekly") return Math.max(1, Math.round(n / 7));
+    if (g === "monthly") return Math.max(1, Math.round(n / 30));
     return Math.max(1, n);
   }
-  function daysFromCount(count, rule) {
+  function daysFromCount(count, rule, intervalUnit) {
+    const g = durationGranularity(rule, intervalUnit);
     const n = Math.max(1, count);
-    if (rule === "weekly") return Math.min(365, n * 7);
-    if (rule === "monthly") return Math.min(365, n * 30);
+    if (g === "weekly") return Math.min(365, n * 7);
+    if (g === "monthly") return Math.min(365, n * 30);
     return Math.min(365, n);
   }
-  function customDurLabel(days, rule) {
-    const n = days || defaultCustomDays(rule);
+  function customDurLabel(days, rule, intervalUnit) {
+    const g = durationGranularity(rule, intervalUnit);
+    const n = days || defaultCustomDays(g);
     // 取整含余：周按 7 天向下取整（真机 SeriesDurationCustom.displayName 同款）
-    if (rule === "weekly") {
+    if (g === "weekly") {
       const weeks = Math.max(1, Math.floor(n / 7));
       const rem = n % 7;
       return rem > 0 ? `${weeks}周零${rem}天` : `${weeks}周`;
     }
-    if (rule === "monthly") {
+    if (g === "monthly") {
       const months = Math.max(1, Math.floor(n / 30));
       const rem = Math.max(0, n - months * 30);
       return rem > 0 ? `${months}个月零${rem}天` : `${months}个月`;
@@ -4388,14 +4434,15 @@
     return `截止${yearMonthDayLabel(end)}（${customDurLabel(n, rule)}）`;
   }
   /** 从起始日加一周 / 一个月，该截止日期禁用；最早可选为次日。 */
-  function customDurEarliestEnd(rule) {
+  function customDurEarliestEnd(rule, intervalUnit) {
+    const g = durationGranularity(rule, intervalUnit);
     const start = seriesStartDate();
-    if (rule === "weekly") {
+    if (g === "weekly") {
       const d = new Date(start);
       d.setDate(d.getDate() + 7 + 1);
       return d;
     }
-    if (rule === "monthly") {
+    if (g === "monthly") {
       const d = new Date(start);
       d.setMonth(d.getMonth() + 1);
       d.setDate(d.getDate() + 1);
@@ -4403,9 +4450,9 @@
     }
     return new Date(start);
   }
-  function customDurMinDays(rule) {
+  function customDurMinDays(rule, intervalUnit) {
     const start = startDay(seriesStartDate());
-    const earliest = startDay(customDurEarliestEnd(rule));
+    const earliest = startDay(customDurEarliestEnd(rule, intervalUnit));
     return Math.round((earliest - start) / 86400000) + 1;
   }
   function flushCustomCatName() {
@@ -4445,10 +4492,11 @@
     if (days.includes(0)) hints.push("每个月自动落在最后一天，二月28或29日，小月30日，大月31日");
     return hints;
   }
-  function durationOpts(rule) {
+  function durationOpts(rule, intervalUnit) {
+    const g = durationGranularity(rule, intervalUnit);
     // 结束时间上面一排 3 档。不提供 1天 / 1周 / 1个月，也不再有「自定义」。
-    if (rule === "weekly") return [["weeks4", "4周"], ["weeks12", "12周"], ["oneYear", "一年"]];
-    if (rule === "monthly") return [["months3", "3个月"], ["months6", "6个月"], ["oneYear", "一年"]];
+    if (g === "weekly") return [["weeks4", "4周"], ["weeks12", "12周"], ["oneYear", "一年"]];
+    if (g === "monthly") return [["months3", "3个月"], ["months6", "6个月"], ["oneYear", "一年"]];
     return [["days30", "30天"], ["days90", "90天"], ["oneYear", "一年"]];
   }
   function durationDayCount(id) {
@@ -6286,19 +6334,28 @@
         const cat = el.dataset.cat || "exercise";
         const time = el.dataset.time || "08:00";
         const hm = String(time).match(/(\d{1,2}):(\d{2})/);
-        const existingNote = S.confirmEditIndex != null ? (S.confirmDrafts?.[S.confirmEditIndex]?.note || "") : "";
+        const existingItem = S.confirmEditIndex != null ? (S.confirmDrafts?.[S.confirmEditIndex] || {}) : {};
+        const existingNote = existingItem.note || "";
         initDraft({
           cat,
           h: hm ? +hm[1] : parseHour(time),
           m: hm ? +hm[2] : 0,
           title: el.dataset.title || "",
           note: existingNote,
+          cycle: existingItem.cycle !== undefined ? existingItem.cycle : (cat !== "appointment"),
+          rule: existingItem.rule || (cat === "appointment" ? "monthly" : "daily"),
+          weekdays: existingItem.weekdays,
+          monthDays: existingItem.monthDays,
+          intervalCount: existingItem.intervalCount,
+          intervalUnit: existingItem.intervalUnit,
+          duration: existingItem.duration || "oneYear",
+          endDate: existingItem.endDate || null,
+          customDays: existingItem.customDays || null,
+          onceDate: existingItem.onceDate,
         });
-        S.draft.cycle = cat !== "appointment";
-        if (cat === "appointment") S.draft.rule = "monthly";
         // 带着这条草稿原本的提醒设置回来，否则编辑一次就被重置成开
-        S.draft.remind = S.confirmDrafts?.[S.confirmEditIndex]?.remind !== false;
-        S.draft.muteFirst = !!S.confirmDrafts?.[S.confirmEditIndex]?.muteFirst;
+        S.draft.remind = existingItem.remind !== false;
+        S.draft.muteFirst = !!existingItem.muteFirst;
         go("task-add", "cover");
       },
       delConfirmDraft() {
@@ -6409,7 +6466,69 @@
         S.v02Mod = next;
         render();
       },
-      draftRule() { if (S.draft) { S.draft.rule = el.dataset.r; S.draft.duration = "oneYear"; S.draft.endDate = null; S.draft.customDays = null; render(); } },
+      draftRule() {
+        if (!S.draft) return;
+        S.draft.rule = el.dataset.r;
+        const opts = durationOpts(S.draft.rule, S.draft.intervalUnit);
+        if (!opts.some(([id]) => id === S.draft.duration)) {
+          S.draft.duration = "oneYear";
+          S.draft.endDate = null;
+          S.draft.customDays = null;
+        }
+        render();
+      },
+      openCustomRule() {
+        if (!S.draft || (S.taskMode === "view" && S.screen === "task-view")) return;
+        syncDraftInputs();
+        const d = S.draft;
+        let count = 2;
+        let unit = "day";
+        if (d.rule === "custom" || d.didCustomizeRule) {
+          unit = (d.intervalUnit === "week" || d.intervalUnit === "month") ? d.intervalUnit : "day";
+          count = clampRuleInterval(d.intervalCount, unit);
+        } else if (d.cat === "appointment" || d.rule === "monthly") {
+          unit = "month";
+          count = 3;
+        } else if (d.rule === "weekly") {
+          unit = "week";
+          count = 2;
+        }
+        S.customRuleDraft = { count, unit };
+        openOverlay("customRule");
+      },
+      customRuleStep() {
+        if (!S.customRuleDraft) return;
+        const dir = +el.dataset.dir || 0;
+        const u = S.customRuleDraft.unit || "day";
+        const next = clampRuleInterval((S.customRuleDraft.count || 2) + dir, u);
+        if (next === S.customRuleDraft.count) return;
+        S.customRuleDraft.count = next;
+        render();
+      },
+      customRuleUnit() {
+        if (!S.customRuleDraft) return;
+        const u = el.dataset.u;
+        if (u !== "day" && u !== "week" && u !== "month") return;
+        S.customRuleDraft.unit = u;
+        S.customRuleDraft.count = clampRuleInterval(S.customRuleDraft.count || 2, u);
+        render();
+      },
+      saveCustomRule() {
+        if (!S.draft || !S.customRuleDraft) { closeOverlay(); return; }
+        const u = (S.customRuleDraft.unit === "week" || S.customRuleDraft.unit === "month") ? S.customRuleDraft.unit : "day";
+        const c = clampRuleInterval(S.customRuleDraft.count, u);
+        S.draft.intervalUnit = u;
+        S.draft.intervalCount = c;
+        S.draft.didCustomizeRule = true;
+        S.draft.rule = "custom";
+        const opts = durationOpts("custom", u);
+        if (S.draft.duration && !opts.some(([id]) => id === S.draft.duration)) {
+          S.draft.duration = "oneYear";
+          S.draft.endDate = null;
+          S.draft.customDays = null;
+        }
+        closeOverlay();
+      },
       draftWeek() {
         if (!S.draft) return;
         const n = +el.dataset.w;
@@ -7332,6 +7451,15 @@
               cat: S.draft.cat,
               note: S.draft.note || "",
               cycle: !!S.draft.cycle,
+              rule: S.draft.cycle ? (S.draft.rule || "daily") : "once",
+              weekdays: S.draft.cycle && S.draft.weekdays ? S.draft.weekdays.slice() : undefined,
+              monthDays: S.draft.cycle && S.draft.monthDays ? S.draft.monthDays.slice() : undefined,
+              intervalCount: S.draft.cycle && S.draft.rule === "custom" ? clampRuleInterval(S.draft.intervalCount, S.draft.intervalUnit) : undefined,
+              intervalUnit: S.draft.cycle && S.draft.rule === "custom" ? ((S.draft.intervalUnit === "week" || S.draft.intervalUnit === "month") ? S.draft.intervalUnit : "day") : undefined,
+              duration: S.draft.cycle ? S.draft.duration : null,
+              endDate: S.draft.cycle ? (S.draft.endDate || null) : null,
+              customDays: S.draft.cycle ? (S.draft.customDays || null) : null,
+              onceDate: S.draft.onceDate,
               muteFirst: !!S.draft.muteFirst,
             };
             if (i != null && S.confirmDrafts[i]) S.confirmDrafts[i] = { ...S.confirmDrafts[i], ...next };
@@ -7356,6 +7484,8 @@
             rule: d.cycle ? (d.rule || "daily") : "once",
             weekdays: d.cycle ? d.weekdays : null,
             monthDays: d.cycle ? d.monthDays : null,
+            intervalCount: d.cycle && d.rule === "custom" ? clampRuleInterval(d.intervalCount, d.intervalUnit) : undefined,
+            intervalUnit: d.cycle && d.rule === "custom" ? ((d.intervalUnit === "week" || d.intervalUnit === "month") ? d.intervalUnit : "day") : undefined,
             duration: d.cycle ? d.duration : null,
             endDate: d.cycle ? (d.endDate || null) : null,
             customDays: d.cycle ? (d.customDays || null) : null,
@@ -7385,9 +7515,18 @@
           m: d.min,
           note: d.note || "",
           cycle: !!d.cycle,
+          rule: d.cycle ? (d.rule || "daily") : "once",
+          weekdays: d.cycle && d.weekdays ? d.weekdays.slice() : null,
+          monthDays: d.cycle && d.monthDays ? d.monthDays.slice() : null,
+          intervalCount: d.cycle && d.rule === "custom" ? clampRuleInterval(d.intervalCount, d.intervalUnit) : undefined,
+          intervalUnit: d.cycle && d.rule === "custom" ? ((d.intervalUnit === "week" || d.intervalUnit === "month") ? d.intervalUnit : "day") : undefined,
+          duration: d.cycle ? d.duration : null,
+          endDate: d.cycle ? (d.endDate || null) : null,
+          customDays: d.cycle ? (d.customDays || null) : null,
           customId: d.customId || undefined,
           onceDate: d.onceDate || toYMD(demoDate()),
         });
+        sortSeed();
         // 添加页定的「本次提醒」「家属通知」随计划一起落库，查看计划里再改
         S.famOff[id] = d.famNotify === false;
         S.mutedToday[id] = !!d.muteFirst;
@@ -12302,7 +12441,7 @@
             const done = isFamilyTaskCompletedOn(selectedFamName, t.id, selYMD);
             const chip = CAT[kind]?.name || CAT[kind]?.chip || "事项";
             const isCycle = t.cycle !== false;
-            const rulePrefix = isCycle ? (t.rule === "weekly" ? "每周 " : t.rule === "monthly" ? "每月 " : "每日 ") : "";
+            const rulePrefix = isCycle ? (t.rule === "weekly" ? "每周 " : t.rule === "monthly" ? "每月 " : t.rule === "custom" ? `${customRuleDisplayName(t.intervalCount, t.intervalUnit)} ` : "每日 ") : "";
             const hm = `${rulePrefix}${pad(t.h ?? 8)}:${pad(t.m ?? 0)} - ${pad(((t.h ?? 8) + 1) % 24)}:${pad(t.m ?? 0)}`;
             const rangeText = taskDateRangeLabel({ ...t, cycle: isCycle });
             const notes = t.note ? `<div class="act-notes">${cardNote(I.alignLeft, esc(t.note))}</div>` : "";
@@ -15981,6 +16120,7 @@
         <div class="sec-label">循环规则</div>
         <div class="grid3 tight">${[["daily", "每日"], ["weekly", "每周"], ["monthly", "每月"]].map(([r, lab]) =>
           chip({ selected: d.rule === r, label: lab, act: "draftRule", extra: `data-r="${r}"` })).join("")}</div>
+        <div class="mt8">${chip({ selected: d.rule === "custom", label: d.rule === "custom" ? customRuleDisplayName(d.intervalCount, d.intervalUnit) : "自定义", icon: d.rule === "custom" ? "" : I.plus, act: "openCustomRule" })}</div>
         ${d.rule === "weekly" ? `<div class="flex gap6 mt10">${weekdays.map(([n, lab]) =>
           chip({ selected: (d.weekdays || []).includes(n), label: lab, act: "draftWeek", extra: `data-w="${n}"`, compact: true })).join("")}</div>` : ""}
         ${d.rule === "monthly" ? `<div class="month-day-grid mt10">${Array.from({ length: 31 }, (_, i) => i + 1).map((day) =>
@@ -15988,7 +16128,7 @@
           ${chip({ selected: (d.monthDays || []).includes(0), label: "月末", act: "draftMonthDay", extra: 'data-d="0"', compact: true })}</div>
           ${monthDayHints(d.monthDays || []).map((h) => `<div class="month-day-hint">${h}</div>`).join("")}` : ""}
         <div class="sec-label">持续时长</div>
-        <div class="grid3 tight">${durationOpts(d.rule).map(([id, lab]) =>
+        <div class="grid3 tight">${durationOpts(d.rule, d.intervalUnit).map(([id, lab]) =>
           chip({ selected: d.duration === id, label: lab, act: "draftDur", extra: `data-d="${id}"`, compact: true })).join("")}</div>
         ${dateRow("结束时间", endYmd, "openSeriesEnd", false)}`;
     const momentBlock = `
@@ -16021,14 +16161,14 @@
         : (CAT[d.cat]?.chip || "事项");
       const contentPrimary = (d.title || "").trim() || catLabel;
       const timePrimary = `${pad(d.hour)}:${pad(d.min)}`;
-      const ruleMap = { daily: "每日", weekly: "每周", monthly: "每月", custom: "自定义" };
+      const ruleMap = { daily: "每日", weekly: "每周", monthly: "每月", custom: customRuleDisplayName(d.intervalCount, d.intervalUnit) };
       const schedPrimary = d.cycle ? (ruleMap[d.rule] || "每日") : "单日计划";
       const durLabel = (() => {
         if (!d.cycle) {
           const dt = parseYMD(d.onceDate || toYMD(demoDate()));
           return `${dt.getMonth() + 1}月${dt.getDate()}日`;
         }
-        const opt = durationOpts(d.rule).find(([id]) => id === d.duration);
+        const opt = durationOpts(d.rule, d.intervalUnit).find(([id]) => id === d.duration);
         return opt ? opt[1] : "一年";
       })();
 
@@ -16214,7 +16354,7 @@
       const viewDurationSummary = (() => {
         if (!d.cycle) return "1天（单日）";
         const totalDays = Math.max(1, Math.floor((parseYMD(endYmd) - parseYMD( anchor || d.onceDate || toYMD(demoDate()) )) / 86400000) + 1);
-        const opt = durationOpts(d.rule).find(([id]) => id === d.duration);
+        const opt = durationOpts(d.rule, d.intervalUnit).find(([id]) => id === d.duration);
         if (opt) {
           return opt[1].endsWith("天") ? `共 ${opt[1]}` : `${opt[1]}（${totalDays}天）`;
         }
@@ -16234,7 +16374,7 @@
           if ((d.monthDays || []).includes(0)) days.push("月末");
           return days.length ? `每月${days.join("、")}` : "每月重复执行";
         }
-        return "自定义间隔重复执行";
+        return `${customRuleDisplayName(d.intervalCount, d.intervalUnit)}重复执行`;
       })();
 
       const planTypeHTML = (viewing || lockRec)
@@ -16252,7 +16392,7 @@
             <span style="display:inline-flex;opacity:.85">${I.clock}</span>
             <span style="font-size:calc(15px * var(--fs));font-weight:700;font-variant-numeric:tabular-nums">${esc(viewDurationSummary)}</span>
           </div>`
-        : `<div class="grid3 tight">${durationOpts(d.rule).map(([id, lab]) =>
+        : `<div class="grid3 tight">${durationOpts(d.rule, d.intervalUnit).map(([id, lab]) =>
             chip({ selected: d.duration === id, label: lab, act: "draftDur", extra: `data-d="${id}"`, compact: true })).join("")}</div>`;
 
       const recurrenceHTML = viewing
@@ -16262,7 +16402,7 @@
           </div>`
         : `<div class="v02-grid4">${[["daily", "每日"], ["weekly", "每周"], ["monthly", "每月"]].map(([r, lab]) =>
             chip({ selected: d.rule === r, label: lab, act: "draftRule", extra: `data-r="${r}"`, compact: true })).join("")}
-            ${chip({ selected: d.rule === "custom", label: "自定义", act: "draftRule", extra: 'data-r="daily"', compact: true })}
+            ${chip({ selected: d.rule === "custom", label: d.rule === "custom" ? customRuleDisplayName(d.intervalCount, d.intervalUnit) : "自定义", act: "openCustomRule", compact: true })}
           </div>
           ${d.rule === "weekly" ? `<div class="flex gap6 mt10">${weekdays.map(([n, lab]) =>
             chip({ selected: (d.weekdays || []).includes(n), label: lab, act: "draftWeek", extra: `data-w="${n}"`, compact: true })).join("")}</div>` : ""}
@@ -16282,7 +16422,7 @@
           ${d.cycle ? `
             <div class="sec-label" style="display:flex;align-items:center;justify-content:space-between">
               <span>持续时长</span>
-              ${!viewing && !durationOpts(d.rule).some(([id]) => id === d.duration) ? `<span style="color:${accent.fg};font-size:calc(12px * var(--fs));font-weight:700">${esc(viewDurationSummary)}</span>` : ""}
+              ${!viewing && !durationOpts(d.rule, d.intervalUnit).some(([id]) => id === d.duration) ? `<span style="color:${accent.fg};font-size:calc(12px * var(--fs));font-weight:700">${esc(viewDurationSummary)}</span>` : ""}
             </div>
             ${durationHTML}
             <div class="sec-label">循环规则</div>
@@ -17091,6 +17231,35 @@
       </div>`;
     },
 
+    customRule: () => {
+      const dr = S.customRuleDraft || { count: 2, unit: "day" };
+      const unit = (dr.unit === "week" || dr.unit === "month") ? dr.unit : "day";
+      const count = clampRuleInterval(dr.count, unit);
+      const accent = editorAccent(S.draft || { cat: "monitoring" }, false).fg;
+      const canDown = clampRuleInterval(count - 1, unit) < count;
+      const canUp = clampRuleInterval(count + 1, unit) > count;
+      return `
+      <div class="scrim center" data-act="close">
+        <div class="popup" style="border-radius:28px;padding:20px 20px 18px;max-width:380px" onclick="event.stopPropagation()">
+          <h3 class="s22 fb ta-c" style="color:${accent}">自定义循环</h3>
+          <div class="custom-dur-step" style="--accent:${accent}">
+            <button class="circle-btn" data-act="customRuleStep" data-dir="-1" type="button"${canDown ? "" : " disabled"}>−</button>
+            <div class="s28 fb mono" style="color:${accent}">${customRuleDisplayName(count, unit)}</div>
+            <button class="circle-btn" data-act="customRuleStep" data-dir="1" type="button"${canUp ? "" : " disabled"}>＋</button>
+          </div>
+          <div class="grid3 tight" style="margin-top:12px">
+            ${[["day", "天"], ["week", "周"], ["month", "月"]].map(([u, lab]) => {
+              const sel = unit === u;
+              return `<button class="opt-chip compact ${sel ? "on" : ""}" style="background:${sel ? accent : `${accent}14`};color:${sel ? "#fff" : accent}" data-act="customRuleUnit" data-u="${u}" type="button"><span>${lab}</span></button>`;
+            }).join("")}
+          </div>
+          <div class="duo" style="margin-top:16px">
+            <button class="cancel" data-act="close" type="button">取消</button>
+            <button class="ok" data-act="saveCustomRule" type="button">保存</button>
+          </div>
+        </div>
+      </div>`;
+    },
     customDur: () => {
       const rule = S.draft?.rule || "daily";
       const days = Math.max(S.customDurDays || defaultCustomDays(rule), customDurMinDays(rule));
