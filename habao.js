@@ -366,19 +366,24 @@
   function reportArchivePane() {
     const key = S.reportKind === "visit" ? "review" : "baseline";
     const src = ARCHIVE_DEMO[key];
-    const total = src.groups.reduce((s, g) => s + g.pages, 0);
-    if (!src.groups.length) {
+    const groups = key === "baseline"
+      ? [...src.groups.filter((g) => g.title.startsWith("出院记录")), ...src.groups.filter((g) => !g.title.startsWith("出院记录"))]
+      : src.groups;
+    const total = groups.reduce((s, g) => s + g.pages, 0);
+    if (!groups.length) {
       return `<div class="ta-c" style="padding:44px 8px">
         <div class="s19 fsb t">${src.empty}</div>
         <div class="s15 fm t-sec" style="margin-top:8px">点下方「新增报告资料」拍照上传。</div>
       </div>`;
     }
     return `${total > 0 ? `<div class="s15 fsb" style="color:var(--blue);opacity:.72">共 ${total} 张</div>` : ""}
-      ${src.groups.map((g, gi) => `
+      ${groups.map((g) => {
+        const gi = src.groups.indexOf(g);
+        return `
         <div class="hr-group">
           <div class="flex between" style="align-items:baseline">
-            <span class="flex center gap6"><span class="s16 fsb t">${g.title}</span>${(key === "baseline" && g.title.startsWith("出院记录")) ? `<span class="doc-req-badge sm">必传</span>` : ""}</span>
-            <span class="s13 fm t-sec mono">${g.pages > 0 ? `${g.pages} 张` : "待上传"}</span>
+            <span class="s16 fsb t">${g.title}</span>
+            ${g.pages > 0 ? `<span class="s13 fm t-sec mono">${g.pages} 张</span>` : ""}
           </div>
           ${g.pages > 0 ? `
           <div class="hr-grid">
@@ -391,12 +396,9 @@
                 <button class="hr-thumb-del" data-act="delHrPage" data-k="${key}" data-gi="${gi}" data-pi="${i}" type="button" aria-label="删除${g.title}第${i + 1}页">×</button>
               </div>`).join("")}
           </div>` : `
-          <div class="doc-group-empty compact">
-            <span class="doc-group-empty-icon">${I.doc}</span>
-            <b>暂无${g.title}照片</b>
-            <small>${g.title}为必传项，请点击下方上传按钮补充</small>
-          </div>`}
-        </div>`).join("")}`;
+          <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">请返回拍摄并上传出院记录，否则缺少构建计划的解析依据。</p>`}
+        </div>`;
+      }).join("")}`;
   }
 
   function confirmMonitorNote(title) {
@@ -1256,7 +1258,7 @@
     activity: { code: "ActivityLogView", note: "仅 V0.1（V0.0 个人中心没有这一行）。一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内遵循 Who / Where / When / What / How 大一统规则字段，并全面适配「互为家属」与「家属管理」协同逻辑：以 When（时刻 + 细分隔线）做块头，人物胶囊内嵌二元身份标签（本人为 [👤 姓名 · 我]，亲属统一为 [👤 姓名 · 家属]，解绑后追加灰签「已解绑」）；仅展示与当前登录人「我」相关的记录（我自己操作的 + 我在家属管理帮家属操作的 + 家属在家属管理帮我操作的）；跨人代打卡、新增/修改/删除计划在接收方点击「接受」生效时同步写入双方账本，发送提醒在发出时写入（撤回时移除），入口统一记为「家属管理」；长按记录仅提供「删除这条记录」（移除单机时代过时的「改归属」）。" },
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.275：首次建日程与新增用药复查统一走「拍照 → 资料详情 → 解析」独立通道流程，进入时从空白拍摄起（不预载资料 BASE 存量）。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
-    "ocr-detail": { code: "IntakeCaptureView", note: "V10.280：按组分区预览当次拍摄的照片。基础报告中「出院记录」为必传项（标题旁带「必传」标签），当组内所有图片被删除或点击「清空」时该分组不消失，展示专属必传空状态卡片（可一键返回相机补拍）；选传组（如化验单等）删空图片后自动移除。首次建日程与新增用药复查的资料详情仅作为通道流程（右上「解析」），不与「资料 BASE」（健康档案 / 基础报告 / 复查报告）打通；健康档案与身体报告子页的补拍通道右上为「提交」，提交后归入共享资料 BASE。" },
+    "ocr-detail": { code: "IntakeCaptureView", note: "V10.281：按组分区预览当次拍摄的照片。基础报告中「出院记录」始终固定排在最上方（第一位），且当组内所有图片被删除或点击「清空」时该分组不消失，在标题下展示简洁的灰色说明文字「请返回拍摄并上传出院记录，否则缺少构建计划的解析依据。」；选传组（如化验单等）排在出院记录下方，删空图片后自动移除。首次建日程与新增用药复查的资料详情仅作为通道流程（右上「解析」），不与「资料 BASE」（健康档案 / 基础报告 / 复查报告）打通；健康档案与身体报告子页的补拍通道右上为「提交」，提交后归入共享资料 BASE。" },
     "first-rest": { code: "CreateScheduleFlowView", note: "点名称换预设；点时刻出居中「时刻调整」弹层（标题为事项名，双列时/分步进，分步长 5，取消 / 完成，点遮罩取消）。默认六项（起床 / 三餐 / 午休 / 睡觉，不含测血压）。「稍后」关整段创建流回首页；底栏「拍照上传病历」替换本页，不压栈。" },
     "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表（不再单设「计划 / 解析依据」顶部切换与解析依据页），解析来源直接写明在每条计划卡片的补充备注里（如「依据出院记录，阿司匹林肠溶片每日用药一次」「依据出院记录，确诊高血压3级，每日测血压两次」「依据出院记录，2026年9月17日出院，每月复查一次」）；起床、早餐等非解析预设日程初始为无备注空集，默认显示「可编辑备注」占位。点开备注或点「编辑」即可修改。作息区首次入组才带；复查置底标红；底栏一枚「重新拍照解析」；右上「确认」写入用药+复查，左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
@@ -2058,8 +2060,16 @@
     if (!docCat(g.cat).req) return true;
     return S.docGroups.filter((x) => x.cat === g.cat).length > 1;
   }
-  function reviewDisplayDocGroups() {
+  function orderedDocGroups() {
     const all = S.docGroups || [];
+    if (isVisitCapture()) return all;
+    return [
+      ...all.filter((g) => g.cat === "dischargeRecord"),
+      ...all.filter((g) => g.cat !== "dischargeRecord"),
+    ];
+  }
+  function reviewDisplayDocGroups() {
+    const all = orderedDocGroups();
     if (isVisitCapture()) return all.filter((g) => g.pages > 0);
     const hasNonEmptyDischarge = all.some((g) => g.cat === "dischargeRecord" && g.pages > 0);
     const firstDischargeId = all.find((g) => g.cat === "dischargeRecord")?.id;
@@ -11209,7 +11219,7 @@
         ${!visit && S.docGroups.length ? `
         <div class="doc-track">
           <button class="doc-add" data-act="addDocGroup" type="button"><span>＋</span>新建组</button>
-          ${S.docGroups.map((x) => `
+          ${orderedDocGroups().map((x) => `
             <div class="doc-chip ${x.id === S.activeGroup ? "on" : ""}">
               <button class="doc-chip-main" data-act="selectDocGroup" data-id="${x.id}" type="button">
                 <b>${groupDisplayName(x)}</b>
@@ -11257,10 +11267,7 @@
         <div class="scroll px20" style="padding-top:12px">
           ${displayGroups.length ? displayGroups.map((g) => `
             <div class="flex between mb8" style="align-items:center">
-              <div class="flex center gap8">
-                <div class="s24 fb t">${groupDisplayName(g)}</div>
-                ${(!isVisitCapture() && g.cat === "dischargeRecord") ? `<span class="doc-req-badge">必传</span>` : ""}
-              </div>
+              <div class="s24 fb t">${groupDisplayName(g)}</div>
               <div class="flex gap8">
                 ${g.pages > 0 ? `<button class="cap red" data-act="delDocGroup" data-id="${g.id}" type="button">清空</button>` : ""}
               </div>
@@ -11270,12 +11277,7 @@
               ${Array.from({ length: g.pages }, (_, i) => `
                 <button class="doc-page" data-act="delDocPage" data-id="${g.id}" data-p="${i}" type="button">第${i + 1}页<span>×</span></button>`).join("")}
             </div>` : `
-            <button class="doc-group-empty" data-act="shootDocGroup" data-id="${g.id}" type="button">
-              <span class="doc-group-empty-icon">${I.doc}</span>
-              <b>暂无${docCat(g.cat).t}照片</b>
-              <small>${docCat(g.cat).t}为必传项，请点击拍摄或从相册上传</small>
-              <span class="doc-group-empty-cta">${I.cam}去拍摄</span>
-            </button>`}`).join("") : `<div class="ta-c" style="padding:44px 8px">
+            <p class="s15 fm t-sec" style="margin:2px 0 20px;line-height:1.5">请返回拍摄并上传出院记录，否则缺少构建计划的解析依据。</p>`}`).join("") : `<div class="ta-c" style="padding:44px 8px">
               <div class="s16 fb t-sec">暂无可提交的资料</div>
             </div>`}
         </div>
@@ -12495,8 +12497,11 @@
       const bmiOk = bmiWord === "正常";
       const section = (key) => {
         const src = ARCHIVE_DEMO[key];
+        const groups = key === "baseline"
+          ? [...src.groups.filter((g) => g.title.startsWith("出院记录")), ...src.groups.filter((g) => !g.title.startsWith("出院记录"))]
+          : src.groups;
         const expanded = !!S.hrExpanded[key];
-        const count = src.groups.reduce((s, g) => s + g.pages, 0);
+        const count = groups.reduce((s, g) => s + g.pages, 0);
         return `<div class="hr-src">
           <button class="hr-src-head" data-act="toggleHr" data-k="${key}" type="button">
             <span class="s18 fb t">${src.title}</span>
@@ -12504,11 +12509,13 @@
             <span class="grow"></span>
             <span class="hr-chev ${expanded ? "open" : ""}">${I.chevD}</span>
           </button>
-          ${expanded ? (src.groups.length ? src.groups.map((g, gi) => `
+          ${expanded ? (groups.length ? groups.map((g) => {
+            const gi = src.groups.indexOf(g);
+            return `
             <div class="hr-group">
               <div class="flex between" style="align-items:baseline">
-                <span class="flex center gap6"><span class="s16 fsb t">${g.title}</span>${(key === "baseline" && g.title.startsWith("出院记录")) ? `<span class="doc-req-badge sm">必传</span>` : ""}</span>
-                <span class="s13 fm t-sec mono">${g.pages > 0 ? `${g.pages} 张` : "待上传"}</span>
+                <span class="s16 fsb t">${g.title}</span>
+                ${g.pages > 0 ? `<span class="s13 fm t-sec mono">${g.pages} 张</span>` : ""}
               </div>
               ${g.pages > 0 ? `
               <div class="hr-grid">
@@ -12521,12 +12528,9 @@
                     <button class="hr-thumb-del" data-act="delHrPage" data-k="${key}" data-gi="${gi}" data-pi="${i}" type="button" aria-label="删除${g.title}第${i + 1}页">×</button>
                   </div>`).join("")}
               </div>` : `
-              <div class="doc-group-empty compact">
-                <span class="doc-group-empty-icon">${I.doc}</span>
-                <b>暂无${g.title}照片</b>
-                <small>${g.title}为必传项，请点击下方上传按钮补充</small>
-              </div>`}
-            </div>`).join("") : `<p class="s15 fm t-sec">${src.empty}</p>`) : ""}
+              <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">请返回拍摄并上传出院记录，否则缺少构建计划的解析依据。</p>`}
+            </div>`;
+          }).join("") : `<p class="s15 fm t-sec">${src.empty}</p>`) : ""}
         </div>`;
       };
       return `
