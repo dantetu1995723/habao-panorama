@@ -1497,6 +1497,8 @@
     // SEED 原地变异：保住所有已捕获的数组引用（30+ 处按名读）
     SEED.length = 0;
     SEED0.forEach((t) => SEED.push({ ...t }));
+    ARCHIVE_DEMO.baseline.groups.length = 0;
+    ARCHIVE_DEMO0.baseline.forEach((g) => ARCHIVE_DEMO.baseline.groups.push({ ...g }));
     ARCHIVE_DEMO.review.groups.length = 0;
     ARCHIVE_DEMO0.review.forEach((g) => ARCHIVE_DEMO.review.groups.push({ ...g }));
     taskSeq = 0;
@@ -9915,6 +9917,21 @@
         S.hrExpanded[k] = !S.hrExpanded[k];
         render();
       },
+      delHrPage() {
+        const k = el.dataset.k;
+        const gi = +el.dataset.gi;
+        const src = ARCHIVE_DEMO[k];
+        if (!src || !src.groups[gi]) return;
+        src.groups[gi].pages -= 1;
+        if (src.groups[gi].pages <= 0) {
+          src.groups.splice(gi, 1);
+        }
+        if (S.boundPersonKey && S.personStoreMap && S.personStoreMap[S.boundPersonKey]) {
+          S.personStoreMap[S.boundPersonKey].archiveBaseline = (ARCHIVE_DEMO.baseline.groups || []).map((g) => ({ ...g }));
+          S.personStoreMap[S.boundPersonKey].archiveReview = (ARCHIVE_DEMO.review.groups || []).map((g) => ({ ...g }));
+        }
+        render();
+      },
       previewPage() { openOverlay("archivePreview", { title: el.dataset.t }); },
       closePreview() { closeOverlay(); },
       pickArchive() {
@@ -12147,7 +12164,7 @@
             <span class="grow"></span>
             <span class="hr-chev ${expanded ? "open" : ""}">${I.chevD}</span>
           </button>
-          ${expanded ? (src.groups.length ? src.groups.map((g) => `
+          ${expanded ? (src.groups.length ? src.groups.map((g, gi) => `
             <div class="hr-group">
               <div class="flex between" style="align-items:baseline">
                 <span class="s16 fsb t">${g.title}</span>
@@ -12155,10 +12172,13 @@
               </div>
               <div class="hr-grid">
                 ${Array.from({ length: g.pages }, (_, i) => `
-                  <button class="hr-thumb" data-act="previewPage" data-t="${g.title} 第${i + 1}页" type="button">
-                    <span class="hr-thumb-inner">${I.doc}</span>
-                    <span class="hr-page-tag">第${i + 1}页</span>
-                  </button>`).join("")}
+                  <div class="hr-thumb-cell">
+                    <button class="hr-thumb" data-act="previewPage" data-t="${g.title} 第${i + 1}页" type="button">
+                      <span class="hr-thumb-inner">${I.doc}</span>
+                      <span class="hr-page-tag">第${i + 1}页</span>
+                    </button>
+                    <button class="hr-thumb-del" data-act="delHrPage" data-k="${key}" data-gi="${gi}" data-pi="${i}" type="button" aria-label="删除${g.title}第${i + 1}页">×</button>
+                  </div>`).join("")}
               </div>
             </div>`).join("") : `<p class="s15 fm t-sec">${src.empty}</p>`) : ""}
         </div>`;
@@ -16500,8 +16520,11 @@
     ] },
     review: { title: "复查报告", empty: "还没有复查报告", groups: [] },
   };
-  /// 复查批次是运行时累积的（提交复查资料后并入「资料合集」），复位时回初始快照
-  const ARCHIVE_DEMO0 = { review: ARCHIVE_DEMO.review.groups.slice() };
+  /// 复查与基础批次是运行时可增删的，复位时回初始快照
+  const ARCHIVE_DEMO0 = {
+    baseline: ARCHIVE_DEMO.baseline.groups.map((g) => ({ ...g })),
+    review: ARCHIVE_DEMO.review.groups.map((g) => ({ ...g })),
+  };
 
   /// 集章选中日的完成集合：今日取真实打卡态，过去日按 Demo 采样（日历格与页面共用，保证两处一致）
   /// Demo：入组首日之前没有计划，用来走空态

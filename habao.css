@@ -2994,12 +2994,22 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .hr-chev.open { transform: rotate(180deg); }
 .hr-group { margin-top: 14px; }
 .hr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+.hr-thumb-cell { position: relative; width: 100%; }
 .hr-thumb {
   position: relative; aspect-ratio: 3 / 4; width: 100%;
   background: #fff; border: 0; border-radius: 12px; cursor: pointer;
   box-shadow: 0 2px 6px rgba(16,84,224,.10);
   display: grid; place-items: center; padding: 0; overflow: hidden;
 }
+.hr-thumb-del {
+  position: absolute; top: 6px; right: 6px; z-index: 2;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(0,0,0,.55); color: #fff;
+  border: 1.2px solid rgba(255,255,255,.9);
+  font-size: 13px; font-weight: 700; line-height: 1;
+  display: grid; place-items: center; padding: 0; cursor: pointer;
+}
+.hr-thumb-del:active { transform: scale(.92); background: rgba(0,0,0,.72); }
 .hr-thumb-inner {
   position: absolute; inset: 6px; border-radius: 8px;
   background: var(--input); color: rgba(130,142,165,.5);
