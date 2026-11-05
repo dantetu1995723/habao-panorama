@@ -1186,8 +1186,8 @@
     "service-terms": { code: "LegalAgreementDetailSheet(.service)", note: "《哈宝用户服务协议》详情页：涵盖院外心肺康复管理服务范围、非急诊医疗安全免责声明（剧烈胸痛或危急血压请立即拨打 120）、账号与家庭守护规范、VIP 会员随患者档案生效与退订保留规则。首次进入弹窗、登录页协议行与个人中心列表共用。" },
     home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 196–206，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。每张计划卡展示标题、提醒时间（或已完成）及「开始日期 – 结束日期」起止区间。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页；底坞中圆哈宝医生始终常亮可点击进入问诊页（非 VIP 发送消息后在聊天流内弹出 VIP 购买提示对话卡）。打卡不再在卡片上盖家属章；谁打的记在 V0.1 个人中心「操作记录」，V0.0 没有这一页。" },
     schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行展示时刻与单日/循环/类别胶囊，下方展示「开始日期 – 结束日期」起止区间；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上更新才进编辑。未完成与已完成全程统一采用蓝白色系（去绿改蓝白）。" },
-    vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。底栏「进入哈宝医生」始终可点击进入问诊页（非 VIP 发送消息后弹出 VIP 购买提示对话卡）。" },
-    report: { code: "FollowUpModuleView", note: "综合结论 + 三等分入口 + 底栏「进入哈宝医生」始终可点击进入问诊页（非 VIP 发送消息后弹出 VIP 购买提示对话卡）。" },
+    vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。展示整体 AI 评估卡与平均血压/平均心率趋势折线图（已移除底栏「进入哈宝医生」按钮）。" },
+    report: { code: "FollowUpModuleView", note: "综合结论 + 三等分入口（基础报告 / 复查报告 / 问卷随访，已移除底栏「进入哈宝医生」按钮）。" },
     "report-sub": { code: "BodyReportSubReportView", note: "V10.61：顶栏两枚 Tab「AI 解读 / 资料合集」，默认落 AI 解读；资料合集只读。底栏「新增报告资料」不论有无存量都直接进拍摄页（不再先落资料详情）。拍完提交：基础按类别追加、复查新开一次。复诊打卡形态在主钮下多一颗「返回首页」。" },
     walk: { code: "WalkView", note: "大标题 + 44 回首页（dismiss cover，不压栈）。地图主卡底浮层：60 圆钮记录/分享 + 60 主胶囊。三态：开始运动 / 返回运动 / 保存并打卡。点「开始运动」、以及首页「进入运动，开始散步」，都先按出院诊断比对绝对禁忌症；命中弹「是否继续运动？」，写明疾病（演示病历含室颤），「暂不运动」留在地图，「继续运动」才开会话。返回运动不再问。保存归属：计划入口完成原任务，自由入口按开始时刻新建「自主散步」，不猜测也不占用存量计划。" },
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
@@ -11223,9 +11223,6 @@
               wk.map((d) => d.day))}
           </div>
         </div>
-        <div class="px20" style="padding-bottom:20px">
-          ${consultCtaHTML()}
-        </div>
       </div>`;
     },
 
@@ -11263,7 +11260,7 @@
             <div class="flex gap10 s19 fb t report-h">${I.doc}综合结论</div>
             <div class="scroll grow mt12 s21 fm t" style="line-height:1.45">${esc(rep.overall)}${S.consultReportOverall ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生问诊补充结论】${S.consultReportOverall}</div>` : ""}</div>
           </div>
-          <div class="island-card flex" style="margin:12px 0 4px;padding:8px;border-radius:18px">
+          <div class="island-card flex" style="margin:12px 0 20px;padding:8px;border-radius:18px">
             ${[
               ["基础报告", "openReport", "baseline"],
               ["复查报告", "openReport", "visit"],
@@ -11274,7 +11271,6 @@
                 <div class="s15 fsb t">${t}</div>
               </button>`).join("")}
           </div>
-          ${consultCtaHTML("margin-bottom:20px")}
         </div>
       </div>`;
     },
