@@ -1250,7 +1250,7 @@
     activity: { code: "ActivityLogView", note: "仅 V0.1（V0.0 个人中心没有这一行）。一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内遵循 Who / Where / When / What / How 大一统规则字段，并全面适配「互为家属」与「家属管理」协同逻辑：以 When（时刻 + 细分隔线）做块头，人物胶囊内嵌二元身份标签（本人为 [👤 姓名 · 我]，亲属统一为 [👤 姓名 · 家属]，解绑后追加灰签「已解绑」）；仅展示与当前登录人「我」相关的记录（我自己操作的 + 我在家属管理帮家属操作的 + 家属在家属管理帮我操作的）；跨人代打卡、新增/修改/删除计划在接收方点击「接受」生效时同步写入双方账本，发送提醒在发出时写入（撤回时移除），入口统一记为「家属管理」；长按记录仅提供「删除这条记录」（移除单机时代过时的「改归属」）。" },
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.275：首次建日程与新增用药复查统一走「拍照 → 资料详情 → 解析」独立通道流程，进入时从空白拍摄起（不预载资料 BASE 存量）。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
-    "ocr-detail": { code: "IntakeCaptureView", note: "V10.275：按组分区预览当次拍摄的照片。首次建日程与新增用药复查的资料详情仅作为通道流程（右上「解析」），不与「资料 BASE」（健康档案 / 基础报告 / 复查报告）打通；健康档案与身体报告子页的补拍通道右上为「提交」，提交后归入共享资料 BASE。" },
+    "ocr-detail": { code: "IntakeCaptureView", note: "V10.276：按组分区预览当次拍摄的照片。分组标题行移除「类别」更改按钮，原「删除」胶囊按钮文案改为「清空」。首次建日程与新增用药复查的资料详情仅作为通道流程（右上「解析」），不与「资料 BASE」（健康档案 / 基础报告 / 复查报告）打通；健康档案与身体报告子页的补拍通道右上为「提交」，提交后归入共享资料 BASE。" },
     "first-rest": { code: "CreateScheduleFlowView", note: "点名称换预设；点时刻出居中「时刻调整」弹层（标题为事项名，双列时/分步进，分步长 5，取消 / 完成，点遮罩取消）。默认六项（起床 / 三餐 / 午休 / 睡觉，不含测血压）。「稍后」关整段创建流回首页；底栏「拍照上传病历」替换本页，不压栈。" },
     "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表（不再单设「计划 / 解析依据」顶部切换与解析依据页），解析来源直接写明在每条计划卡片的补充备注里（如「依据出院记录，阿司匹林肠溶片每日用药一次」「依据出院记录，确诊高血压3级，每日测血压两次」「依据出院记录，2026年9月17日出院，每月复查一次」）；起床、早餐等非解析预设日程初始为无备注空集，默认显示「可编辑备注」占位。点开备注或点「编辑」即可修改。作息区首次入组才带；复查置底标红；底栏一枚「重新拍照解析」；右上「确认」写入用药+复查，左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
@@ -11194,8 +11194,7 @@
           ${filled.length ? filled.map((g) => `
             <div class="flex between mb8"><div class="s24 fb t">${groupDisplayName(g)}</div>
               <div class="flex gap8">
-                ${isVisitCapture() ? "" : `<button class="cap" data-act="changeDocCat" data-id="${g.id}" type="button">类别</button>`}
-                ${canDeleteDocGroup(g) ? `<button class="cap red" data-act="delDocGroup" data-id="${g.id}" type="button">删除</button>` : ""}
+                ${canDeleteDocGroup(g) ? `<button class="cap red" data-act="delDocGroup" data-id="${g.id}" type="button">清空</button>` : ""}
               </div>
             </div>
             <div class="doc-pages">
