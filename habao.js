@@ -12264,7 +12264,7 @@
                     <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.18);padding:2.5px 8px;border-radius:999px">我</span>
                   </div>
                 </div>
-                <button class="view-cap" data-go="health-record" type="button">点击查看</button>
+                <button class="view-cap" data-go="health-record" type="button">查看档案</button>
               </div>
               <div class="frost"></div>
               <div class="metrics">
