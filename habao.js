@@ -1136,7 +1136,7 @@
       { id: "profile", t: "个人中心", code: "ServiceView", how: "cover" },
       { id: "vip", t: "VIP 会员", code: "VIPView", how: "cover" },
       { id: "first-rest", t: "基础作息", code: "CreateScheduleFlowView", how: "cover" },
-      { id: "task-add", t: "添加早晨计划", code: "AddEditTaskView", how: "cover" },
+      { id: "task-add", t: "临时计划（早晨）", code: "AddEditTaskView", how: "cover" },
       { id: "task-view", t: "查看计划", code: "AddEditTaskView", how: "cover" },
     ]},
     { g: "全屏 Cover · 模块内", items: [
@@ -1376,7 +1376,7 @@
     toast: "",
     taskId: "t4",
     taskMode: "view",
-    addTitle: "添加早晨计划",
+    addTitle: "临时计划（早晨）",
     lockedBlock: 1,
     contra: false,
     borg: 5,
@@ -5274,7 +5274,7 @@
     S.centerStage = null;
     S.block = b;
     const title = $("#add-slot-title");
-    if (title) title.textContent = `添加${BLOCKS[b].title}计划`;
+    if (title) title.textContent = `临时计划（${BLOCKS[b].title}）`;
     animateFaceTo(continuousSnapFace(currentFace(), b), () => {
       S.liveFace = null;
       S.syncDriver = "idle";
@@ -5353,7 +5353,7 @@
       if (nearest !== S.block) {
         S.block = nearest;
         const title = $("#add-slot-title");
-        if (title) title.textContent = `添加${BLOCKS[S.block].title}计划`;
+        if (title) title.textContent = `临时计划（${BLOCKS[S.block].title}）`;
         syncLaneForBlock(nearest);
       }
       drawDial();
@@ -5921,7 +5921,7 @@
         go("task-view", "cover");
       },
       addToday() {
-        S.addTitle = `添加${BLOCKS[S.block].title}计划`;
+        S.addTitle = `临时计划（${BLOCKS[S.block].title}）`;
         S.lockedBlock = S.block;
         S.lockBlock = true;
         S.lockRecurrence = true;
@@ -10214,7 +10214,7 @@
         ${S.enrolled ? `
           <button class="s4-add" data-act="s4AddToday" data-b="${b.id}" type="button">
             <span class="s4-add-plus">${I.plus}</span>
-            <span class="s4-add-t">添加${b.title}计划</span>
+            <span class="s4-add-t">临时计划（${b.title}）</span>
           </button>` : `
           <button class="s4-first" data-act="firstCreate" type="button">首次创建计划</button>`}
         <div class="s4-none">
@@ -10719,7 +10719,7 @@
                   </svg>
                   <div class="hug-inner">
                     <div class="add-plus">${I.plus}</div>
-                    <span id="add-slot-title">添加${BLOCKS[S.block].title}计划</span>
+                    <span id="add-slot-title">临时计划（${BLOCKS[S.block].title}）</span>
                   </div>
                 </div>` : ""}
                 ${laneBodyHTML()}
