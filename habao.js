@@ -104,6 +104,7 @@
     waves: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8.5 8.4a5 5 0 0 0 0 7.2"/><path d="M5.6 5.6a9 9 0 0 0 0 12.8"/><path d="M15.5 8.4a5 5 0 0 1 0 7.2"/><path d="M18.4 5.6a9 9 0 0 1 0 12.8"/><circle cx="12" cy="12" r="1.35" fill="currentColor" stroke="none"/></svg>`,
     medCase: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 3h6a2 2 0 0 1 2 2v2h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3V5a2 2 0 0 1 2-2Zm0 4h6V5H9v2Zm2 4v2H9v2h2v2h2v-2h2v-2h-2v-2h-2Z"/></svg>`,
     shieldCheck: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5.4v6.1c0 5.1 3.4 9.8 8 11 4.6-1.2 8-5.9 8-11V5.4L12 2Zm-1.2 13.6-3.4-3.4 1.4-1.4 2 2 4.6-4.6 1.4 1.4-6 6Z"/></svg>`,
+    sparkle: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.9L21.3 12l-6.9 2.4L12 21.3l-2.4-6.9L2.7 12l6.9-2.4L12 2z"/></svg>`,
   };
   Object.keys(I).forEach((k) => { I[k] = I[k].replace("<svg ", '<svg width="20" height="20" '); });
 
@@ -306,6 +307,46 @@
     return `<div class="filter">
       <button class="${onPlan ? "on" : ""}" data-act="setConfirmPane" data-p="plan" type="button">计划</button>
       <button class="${onPlan ? "" : "on"}" data-act="setConfirmPane" data-p="basis" type="button">解析依据</button>
+    </div>`;
+  }
+
+  // V10.270：AI 报告与解读更新中间态（解析需要时间）
+  function triggerReportAnalysis(kind) {
+    if (kind === "baseline") {
+      S.analyzingBaseline = true;
+      S.analyzingOverall = true;
+    } else if (kind === "review") {
+      S.analyzingReview = true;
+      S.analyzingOverall = true;
+    } else if (kind === "followup") {
+      S.analyzingFollowUp = true;
+      S.analyzingOverall = true;
+    }
+    render();
+    setTimeout(() => {
+      if (kind === "baseline") {
+        S.analyzingBaseline = false;
+        if (!S.analyzingReview && !S.analyzingFollowUp) S.analyzingOverall = false;
+      } else if (kind === "review") {
+        S.analyzingReview = false;
+        if (!S.analyzingBaseline && !S.analyzingFollowUp) S.analyzingOverall = false;
+      } else if (kind === "followup") {
+        S.analyzingFollowUp = false;
+        if (!S.analyzingBaseline && !S.analyzingReview) S.analyzingOverall = false;
+      }
+      render();
+    }, 2500);
+  }
+
+  function reportIntermediateCardHTML(title, subtitle, compact = false) {
+    return `<div class="ai-analyzing-card ${compact ? "compact" : ""}">
+      <div class="ai-analyzing-pill">
+        <span class="ai-analyzing-spin">${I.sparkle}</span>
+        <span>AI 正在解析生成解读中…</span>
+      </div>
+      <div class="ai-analyzing-title">${esc(title)}</div>
+      <div class="ai-analyzing-sub">${esc(subtitle)}</div>
+      <div class="ai-analyzing-bar"><div class="ai-analyzing-progress"></div></div>
     </div>`;
   }
 
@@ -1191,8 +1232,8 @@
     home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 196–206，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。每张计划卡展示标题、提醒时间（或已完成）及「开始日期 – 结束日期」起止区间。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页；底坞中圆哈宝医生始终常亮可点击进入问诊页（非 VIP 发送消息后在聊天流内弹出 VIP 购买提示对话卡）。打卡不再在卡片上盖家属章；谁打的记在 V0.1 个人中心「操作记录」，V0.0 没有这一页。" },
     schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行展示时刻与单日/循环/类别胶囊，下方展示「开始日期 – 结束日期」起止区间；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上更新才进编辑。未完成与已完成全程统一采用蓝白色系（去绿改蓝白）。" },
     vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。展示整体 AI 评估卡与平均血压/平均心率趋势折线图（已移除底栏「进入哈宝医生」按钮）。" },
-    report: { code: "FollowUpModuleView", note: "综合结论 + 三等分入口（基础报告 / 复查报告 / 问卷随访，已移除底栏「进入哈宝医生」按钮）。" },
-    "report-sub": { code: "BodyReportSubReportView", note: "V10.269：顶栏两枚 Tab「AI 解读 / 资料合集」，默认落 AI 解读；资料合集缩略图右上角支持「×」删除单页。底栏「新增报告资料」不论有无存量都直接进拍摄页（不再先落资料详情）。拍完提交：基础按类别追加、复查新开一次。复诊打卡形态在主钮下多一颗「返回首页」。" },
+    report: { code: "FollowUpModuleView", note: "V10.270：综合结论 + 三等分入口（基础报告 / 复查报告 / 问卷随访）。资料增删与问卷提交后展示「AI 正在解析生成解读中…」更新中间态。" },
+    "report-sub": { code: "BodyReportSubReportView", note: "V10.270：顶栏两枚 Tab「AI 解读 / 资料合集」，默认落 AI 解读；资料合集缩略图右上角支持「×」删除单页。资料增删后 AI 解读呈现更新中间态。底栏「新增报告资料」不论有无存量都直接进拍摄页（不再先落资料详情）。拍完提交：基础按类别追加、复查新开一次。复诊打卡形态在主钮下多一颗「返回首页」。" },
     walk: { code: "WalkView", note: "大标题 + 44 回首页（dismiss cover，不压栈）。地图主卡底浮层：60 圆钮记录/分享 + 60 主胶囊。三态：开始运动 / 返回运动 / 保存并打卡。点「开始运动」、以及首页「进入运动，开始散步」，都先按出院诊断比对绝对禁忌症；命中弹「是否继续运动？」，写明疾病（演示病历含室颤），「暂不运动」留在地图，「继续运动」才开会话。返回运动不再问。保存归属：计划入口完成原任务，自由入口按开始时刻新建「自主散步」，不猜测也不占用存量计划。" },
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
@@ -4967,6 +5008,7 @@
       doneAppts.length ? ["打卡", `${opNames(doneAppts)} 已完成`] : ["计划", "本次未动"],
     ]);
     S.archivePlace = null;
+    triggerReportAnalysis(visit ? "review" : "baseline");
     // V10.49：复诊打卡提交不直接回首页，落复查报告页（该页底栏多一颗「返回首页」）
     if (fromCheckIn) {
       S.apptCapture = false;
@@ -9874,7 +9916,11 @@
       },
       qNext() {
         if (S.qIndex < QUESTIONS.length - 1) S.qIndex += 1;
-        else { S.qDone = true; logOp("提交了问卷", "问卷随访", []); }
+        else {
+          S.qDone = true;
+          logOp("提交了问卷", "问卷随访", []);
+          triggerReportAnalysis("followup");
+        }
         renderTop();
       },
       qPrev() { if (S.qIndex > 0) S.qIndex -= 1; renderTop(); },
@@ -9934,6 +9980,7 @@
           S.personStoreMap[S.boundPersonKey].archiveBaseline = (ARCHIVE_DEMO.baseline.groups || []).map((g) => ({ ...g }));
           S.personStoreMap[S.boundPersonKey].archiveReview = (ARCHIVE_DEMO.review.groups || []).map((g) => ({ ...g }));
         }
+        triggerReportAnalysis(k === "visit" || k === "review" ? "review" : "baseline");
         render();
       },
       previewPage() { openOverlay("archivePreview", { title: el.dataset.t }); },
@@ -11262,7 +11309,11 @@
         <div class="px20 grow col" style="padding-top:16px">
           <div class="island-card grow" style="padding:18px;display:flex;flex-direction:column">
             <div class="flex gap10 s19 fb t report-h">${I.doc}综合结论</div>
-            <div class="scroll grow mt12 s21 fm t" style="line-height:1.45">${esc(rep.overall)}${S.consultReportOverall ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生问诊补充结论】${S.consultReportOverall}</div>` : ""}</div>
+            ${S.analyzingOverall ? `
+              <div class="grow col center" style="margin-top:14px;justify-content:flex-start">
+                ${reportIntermediateCardHTML("正在重新推演身体报告综合结论…", "已收到最新资料/随访数据变更，AI 正在综合各项体征指标与既往档案进行全面重算，请稍候。")}
+              </div>` : `
+              <div class="scroll grow mt12 s21 fm t" style="line-height:1.45">${esc(rep.overall)}${S.consultReportOverall ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生问诊补充结论】${S.consultReportOverall}</div>` : ""}</div>`}
           </div>
           <div class="island-card flex" style="margin:12px 0 20px;padding:8px;border-radius:18px">
             ${[
@@ -11281,17 +11332,21 @@
 
     "report-sub": () => {
       const rep = activePersonStore().report;
+      const isAnalyzingSub = S.reportKind === "visit" ? S.analyzingReview : S.analyzingBaseline;
+      const subTitle = S.reportKind === "visit" ? "复查报告" : "基础报告";
       return `
       <div class="page">
-        ${navBar(cap(I.chevL, "返回", "", S.reportReturnHome ? "reportBack" : "back"), S.reportKind === "visit" ? "复查报告" : "基础报告")}
+        ${navBar(cap(I.chevL, "返回", "", S.reportReturnHome ? "reportBack" : "back"), subTitle)}
         <div class="px20" style="padding-top:12px; flex:1; min-height:0; display:flex">
           <div class="island-card" style="flex:1; min-height:0; display:flex; flex-direction:column; padding:14px 18px">
             ${reportPaneTabs()}
             <div class="scroll" style="margin-top:14px">
-              ${S.reportPane === "archive" ? reportArchivePane() : `
+              ${S.reportPane === "archive" ? reportArchivePane() : (isAnalyzingSub ? `
+                ${reportIntermediateCardHTML(`AI 正在重新生成${subTitle}解读…`, "已检测到资料增删变更，AI 正在比对关键指标与基线档案，约需 2–3 秒…")}
+              ` : `
                 <p class="s21 fm t">${esc(S.reportKind === "visit" ? rep.visit : rep.baseline)}</p>
                 ${S.reportKind === "visit" && S.consultReportSub?.review ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生跨期对照解读】${S.consultReportSub.review}</div>` : ""}
-                ${S.reportKind === "baseline" && S.consultReportSub?.baseline ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生基线报告解读】${S.consultReportSub.baseline}</div>` : ""}`}
+                ${S.reportKind === "baseline" && S.consultReportSub?.baseline ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生基线报告解读】${S.consultReportSub.baseline}</div>` : ""}`)}
             </div>
           </div>
         </div>
@@ -11308,6 +11363,7 @@
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "问卷随访")}
         <div class="scroll px20" style="padding-top:12px">
+          ${S.analyzingFollowUp ? `<div class="mb12">${reportIntermediateCardHTML("AI 正在生成最新随访评估…", "已收到随访问卷答卷，AI 正在结合客观指标与身心状态进行复评，稍候自动归档。", true)}</div>` : ""}
           <div class="island-card" style="padding:18px">
             <div class="s13 t-sec">上次填写时间</div>
             <div class="s18 fb t">${esc(rep.followupDate)}　${S.qDone ? "已完成" : "草稿"}</div>
@@ -11391,6 +11447,12 @@
 
     analysis: () => {
       const rep = activePersonStore().report;
+      const isAnalyzing = (extra) => {
+        if (extra === "baseline") return S.analyzingBaseline;
+        if (extra === "visit") return S.analyzingReview;
+        if (extra === "followup") return S.analyzingFollowUp;
+        return false;
+      };
       return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "明细分析", `<button class="cap" data-act="shareAnalysis" type="button">分享${I.share}</button>`)}
@@ -11403,7 +11465,7 @@
             <div class="island-card mb16" style="padding:18px">
               <div class="flex between"><div class="flex gap8 s19 fb t"><div class="well" style="width:36px;height:36px">${I.doc}</div>${t}</div>
                 <button class="cap" ${actName === "go" ? `data-go="${extra}"` : `data-act="${actName}" data-kind="${extra}"`} type="button">${b}</button></div>
-              <p class="s16 t mt12">${esc(d)}</p>
+              ${isAnalyzing(extra) ? `<div class="mt12">${reportIntermediateCardHTML(`AI 正在重新生成${t}解读…`, "检测到数据变更，AI 正在比对关键指标进行深度重算…", true)}</div>` : `<p class="s16 t mt12">${esc(d)}</p>`}
             </div>`).join("")}
         </div>
       </div>`;
