@@ -318,10 +318,11 @@
     </div>`;
   }
 
-  // V10.61：资料合集页只读——与健康档案同源（基础报告列入组存量，复查报告按次归档），
-  // 点缩略图开全屏预览；补拍走底栏，直接进拍摄页
+  // V10.269：资料合集页——与健康档案同源（基础报告列入组存量，复查报告按次归档），
+  // 点缩略图开全屏预览，点缩略图右上角「×」删除该页；补拍走底栏，直接进拍摄页
   function reportArchivePane() {
-    const src = ARCHIVE_DEMO[S.reportKind === "visit" ? "review" : "baseline"];
+    const key = S.reportKind === "visit" ? "review" : "baseline";
+    const src = ARCHIVE_DEMO[key];
     const total = src.groups.reduce((s, g) => s + g.pages, 0);
     if (!src.groups.length) {
       return `<div class="ta-c" style="padding:44px 8px">
@@ -330,7 +331,7 @@
       </div>`;
     }
     return `<div class="s15 fsb" style="color:var(--blue);opacity:.72">共 ${total} 张</div>
-      ${src.groups.map((g) => `
+      ${src.groups.map((g, gi) => `
         <div class="hr-group">
           <div class="flex between" style="align-items:baseline">
             <span class="s16 fsb t">${g.title}</span>
@@ -338,10 +339,13 @@
           </div>
           <div class="hr-grid">
             ${Array.from({ length: g.pages }, (_, i) => `
-              <button class="hr-thumb" data-act="previewPage" data-t="${g.title} 第${i + 1}页" type="button">
-                <span class="hr-thumb-inner">${I.doc}</span>
-                <span class="hr-page-tag">第${i + 1}页</span>
-              </button>`).join("")}
+              <div class="hr-thumb-cell">
+                <button class="hr-thumb" data-act="previewPage" data-t="${g.title} 第${i + 1}页" type="button">
+                  <span class="hr-thumb-inner">${I.doc}</span>
+                  <span class="hr-page-tag">第${i + 1}页</span>
+                </button>
+                <button class="hr-thumb-del" data-act="delHrPage" data-k="${key}" data-gi="${gi}" data-pi="${i}" type="button" aria-label="删除${g.title}第${i + 1}页">×</button>
+              </div>`).join("")}
           </div>
         </div>`).join("")}`;
   }
@@ -1136,7 +1140,7 @@
       { id: "profile", t: "个人中心", code: "ServiceView", how: "cover" },
       { id: "vip", t: "VIP 会员", code: "VIPView", how: "cover" },
       { id: "first-rest", t: "基础作息", code: "CreateScheduleFlowView", how: "cover" },
-      { id: "task-add", t: "临时计划（早晨）", code: "AddEditTaskView", how: "cover" },
+      { id: "task-add", t: "早晨临时计划", code: "AddEditTaskView", how: "cover" },
       { id: "task-view", t: "查看计划", code: "AddEditTaskView", how: "cover" },
     ]},
     { g: "全屏 Cover · 模块内", items: [
@@ -1188,7 +1192,7 @@
     schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行展示时刻与单日/循环/类别胶囊，下方展示「开始日期 – 结束日期」起止区间；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上更新才进编辑。未完成与已完成全程统一采用蓝白色系（去绿改蓝白）。" },
     vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。展示整体 AI 评估卡与平均血压/平均心率趋势折线图（已移除底栏「进入哈宝医生」按钮）。" },
     report: { code: "FollowUpModuleView", note: "综合结论 + 三等分入口（基础报告 / 复查报告 / 问卷随访，已移除底栏「进入哈宝医生」按钮）。" },
-    "report-sub": { code: "BodyReportSubReportView", note: "V10.61：顶栏两枚 Tab「AI 解读 / 资料合集」，默认落 AI 解读；资料合集只读。底栏「新增报告资料」不论有无存量都直接进拍摄页（不再先落资料详情）。拍完提交：基础按类别追加、复查新开一次。复诊打卡形态在主钮下多一颗「返回首页」。" },
+    "report-sub": { code: "BodyReportSubReportView", note: "V10.269：顶栏两枚 Tab「AI 解读 / 资料合集」，默认落 AI 解读；资料合集缩略图右上角支持「×」删除单页。底栏「新增报告资料」不论有无存量都直接进拍摄页（不再先落资料详情）。拍完提交：基础按类别追加、复查新开一次。复诊打卡形态在主钮下多一颗「返回首页」。" },
     walk: { code: "WalkView", note: "大标题 + 44 回首页（dismiss cover，不压栈）。地图主卡底浮层：60 圆钮记录/分享 + 60 主胶囊。三态：开始运动 / 返回运动 / 保存并打卡。点「开始运动」、以及首页「进入运动，开始散步」，都先按出院诊断比对绝对禁忌症；命中弹「是否继续运动？」，写明疾病（演示病历含室颤），「暂不运动」留在地图，「继续运动」才开会话。返回运动不再问。保存归属：计划入口完成原任务，自由入口按开始时刻新建「自主散步」，不猜测也不占用存量计划。" },
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
@@ -1376,7 +1380,7 @@
     toast: "",
     taskId: "t4",
     taskMode: "view",
-    addTitle: "临时计划（早晨）",
+    addTitle: "早晨临时计划",
     lockedBlock: 1,
     contra: false,
     borg: 5,
@@ -5274,7 +5278,7 @@
     S.centerStage = null;
     S.block = b;
     const title = $("#add-slot-title");
-    if (title) title.textContent = `临时计划（${BLOCKS[b].title}）`;
+    if (title) title.textContent = `${BLOCKS[b].title}临时计划`;
     animateFaceTo(continuousSnapFace(currentFace(), b), () => {
       S.liveFace = null;
       S.syncDriver = "idle";
@@ -5353,7 +5357,7 @@
       if (nearest !== S.block) {
         S.block = nearest;
         const title = $("#add-slot-title");
-        if (title) title.textContent = `临时计划（${BLOCKS[S.block].title}）`;
+        if (title) title.textContent = `${BLOCKS[S.block].title}临时计划`;
         syncLaneForBlock(nearest);
       }
       drawDial();
@@ -5921,7 +5925,7 @@
         go("task-view", "cover");
       },
       addToday() {
-        S.addTitle = `临时计划（${BLOCKS[S.block].title}）`;
+        S.addTitle = `${BLOCKS[S.block].title}临时计划`;
         S.lockedBlock = S.block;
         S.lockBlock = true;
         S.lockRecurrence = true;
@@ -10214,7 +10218,7 @@
         ${S.enrolled ? `
           <button class="s4-add" data-act="s4AddToday" data-b="${b.id}" type="button">
             <span class="s4-add-plus">${I.plus}</span>
-            <span class="s4-add-t">临时计划（${b.title}）</span>
+            <span class="s4-add-t">${b.title}临时计划</span>
           </button>` : `
           <button class="s4-first" data-act="firstCreate" type="button">首次创建计划</button>`}
         <div class="s4-none">
@@ -10719,7 +10723,7 @@
                   </svg>
                   <div class="hug-inner">
                     <div class="add-plus">${I.plus}</div>
-                    <span id="add-slot-title">临时计划（${BLOCKS[S.block].title}）</span>
+                    <span id="add-slot-title">${BLOCKS[S.block].title}临时计划</span>
                   </div>
                 </div>` : ""}
                 ${laneBodyHTML()}
