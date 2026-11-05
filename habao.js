@@ -2048,7 +2048,7 @@
     return docCat(g.cat).t;
   }
   function canDeleteDocGroup(g) {
-    if (isVisitCapture()) return S.docGroups.length > 1;
+    if (isVisitCapture()) return false;
     if (S.captureMode === "archive") return true;
     if (!docCat(g.cat).req) return true;
     return S.docGroups.filter((x) => x.cat === g.cat).length > 1;
@@ -2059,7 +2059,10 @@
   }
   function submitBlockedHint() {
     if (S.captureMode !== "archive") return "请先拍摄出院记录（必传）";
-    if (isVisitCapture()) return "请先拍摄复查报告";
+    if (isVisitCapture()) {
+      const g = activeDoc();
+      return `请先拍摄${g ? groupDisplayName(g) : "复查"}报告`;
+    }
     return "请先拍摄至少一组资料";
   }
   function startNewDocGroup(cat) {
@@ -7356,6 +7359,15 @@
         const id = +el.dataset.id;
         const g = S.docGroups.find((x) => x.id === id);
         if (!g) return;
+        if (isVisitCapture()) {
+          g.pages = 0;
+          if (S.screen === "ocr-detail" || S.screen === "ocr-group") {
+            if (!popTo("ocr-capture")) replace("ocr-capture");
+            return;
+          }
+          render();
+          return;
+        }
         if (!canDeleteDocGroup(g)) { toast(`${docCat(g.cat).t}为必传，至少保留一组`); return; }
         S.docGroups = S.docGroups.filter((x) => x.id !== id);
         if (S.activeGroup === id) S.activeGroup = S.docGroups[0]?.id || 0;
@@ -7373,6 +7385,10 @@
         const g = S.docGroups.find((x) => x.id === +el.dataset.id);
         if (!g || g.pages <= 0) return;
         g.pages -= 1;
+        if (S.screen === "ocr-detail" && !S.docGroups.some((x) => x.pages > 0)) {
+          if (!popTo("ocr-capture")) replace("ocr-capture");
+          return;
+        }
         render();
       },
       changeDocCat() {
@@ -11133,19 +11149,24 @@
 
     "ocr-capture": () => {
       if (!S.docGroups) seedDocGroups(0);
+      const visit = isVisitCapture();
       const g = activeDoc();
-      const hint = g ? docCat(g.cat).hint : "点快门或新建组开始拍摄";
+      const visitName = visit && g ? groupDisplayName(g) : "";
+      const hint = visit
+        ? `对准${visitName}报告，保持画面清晰`
+        : (g ? docCat(g.cat).hint : "点快门或新建组开始拍摄");
+      const navTitle = visit ? visitName : "上传资料";
       const ready = canSubmitCapture();
       const pages = g?.pages || 0;
       return `
       <div class="page" style="background:#111">
         ${navBar(`<button class="nav-text nav-hit t-white" data-act="laterCapture" type="button">稍后</button>`,
-          `<span style="color:#fff">上传资料</span>`,
+          `<span style="color:#fff">${navTitle}</span>`,
           `<button class="nav-text nav-hit ${ready ? "t-white" : "nav-wait"}" ${ready ? 'data-act="ocrConfirm"' : "disabled"} type="button">确认</button>`)}
         <div class="grow rel" style="margin:8px 0;background:#1a1a1a">
           <div class="abs t-sec ta-c" style="left:16px;right:16px;top:40%;color:#9aa">${hint}</div>
         </div>
-        ${S.docGroups.length ? `
+        ${!visit && S.docGroups.length ? `
         <div class="doc-track">
           <button class="doc-add" data-act="addDocGroup" type="button"><span>＋</span>新建组</button>
           ${S.docGroups.map((x) => `
@@ -11197,7 +11218,7 @@
           ${filled.length ? filled.map((g) => `
             <div class="flex between mb8"><div class="s24 fb t">${groupDisplayName(g)}</div>
               <div class="flex gap8">
-                ${canDeleteDocGroup(g) ? `<button class="cap red" data-act="delDocGroup" data-id="${g.id}" type="button">清空</button>` : ""}
+                ${(isVisitCapture() || canDeleteDocGroup(g)) ? `<button class="cap red" data-act="delDocGroup" data-id="${g.id}" type="button">清空</button>` : ""}
               </div>
             </div>
             <div class="doc-pages">
