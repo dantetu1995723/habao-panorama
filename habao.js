@@ -10785,8 +10785,8 @@
               })).join("")}</div>
             `).join("") : `<div class="island-card ta-c t-sec s15" style="padding:16px;margin-top:16px">${emptyPlanText()}</div>`}
           </div>
-          <button class="fab" data-act="${hist ? "today" : "addPlan"}" type="button">
-            ${hist ? `${I.undo}回到今天` : `${I.plus}添加健康计划`}
+          <button class="fab" data-act="addPlan" type="button">
+            ${I.plus}添加健康计划
           </button>
         </div>`;
     },
