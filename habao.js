@@ -5253,6 +5253,73 @@
       cname.oninput = syncName;
       cname.addEventListener("compositionend", syncName);
     }
+    const flexDurInput = document.getElementById("flex-dur-days");
+    if (flexDurInput && S.draft) {
+      const applyFlexDays = (rawVal, doRender) => {
+        const digits = String(rawVal || "").replace(/\D+/g, "").slice(0, 4);
+        if (flexDurInput.value !== digits) flexDurInput.value = digits;
+        const num = parseInt(digits, 10);
+        if (!Number.isFinite(num) || num < 1) {
+          if (doRender) render();
+          return;
+        }
+        const clamped = Math.min(3650, Math.max(1, num));
+        const showOcc = S.screen === "task-edit" && S.draft.cycle;
+        const anchor = showOcc ? (S.draft.occurrence || S.draft.onceDate || toYMD(demoDate())) : (S.draft.onceDate || toYMD(demoDate()));
+        const nextEnd = addDaysYMD(anchor, clamped - 1);
+        S.draft.customDays = clamped;
+        S.draft.endDate = nextEnd;
+        S.draft.duration = null;
+        S.draft.touchedDuration = true;
+        if (doRender) {
+          render();
+        } else {
+          const endBtnVal = document.querySelector('[data-act="openSeriesEnd"] .val span');
+          if (endBtnVal) endBtnVal.textContent = planDateLabel(nextEnd, true);
+          const durChips = flexDurInput.closest(".v02-grid4")?.querySelectorAll('[data-act="draftDur"]');
+          const acc = editorAccent(S.draft, false);
+          if (durChips) {
+            durChips.forEach((btn) => {
+              btn.style.background = acc.muted;
+              btn.style.color = acc.fg;
+            });
+          }
+          const chipWrap = flexDurInput.closest(".v02-flex-days-chip");
+          if (chipWrap) {
+            chipWrap.classList.add("on");
+            chipWrap.style.background = acc.fg;
+            chipWrap.style.color = "#fff";
+            chipWrap.style.borderColor = "transparent";
+          }
+        }
+      };
+      flexDurInput.onfocus = () => {
+        const acc = editorAccent(S.draft, false);
+        const chipWrap = flexDurInput.closest(".v02-flex-days-chip");
+        if (chipWrap) {
+          chipWrap.classList.add("on");
+          chipWrap.style.background = acc.fg;
+          chipWrap.style.color = "#fff";
+          chipWrap.style.borderColor = "transparent";
+        }
+        const durChips = flexDurInput.closest(".v02-grid4")?.querySelectorAll('[data-act="draftDur"]');
+        if (durChips) {
+          durChips.forEach((btn) => {
+            btn.style.background = acc.muted;
+            btn.style.color = acc.fg;
+          });
+        }
+        setTimeout(() => { try { flexDurInput.select(); } catch (_) {} }, 10);
+      };
+      flexDurInput.oninput = () => applyFlexDays(flexDurInput.value, false);
+      flexDurInput.onkeydown = (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          flexDurInput.blur();
+        }
+      };
+      flexDurInput.onblur = () => applyFlexDays(flexDurInput.value, true);
+    }
   }
 
   function laneScroll() {
@@ -6529,9 +6596,10 @@
       },
       draftRule() {
         if (!S.draft) return;
+        syncDraftInputs();
         S.draft.rule = el.dataset.r;
         const opts = durationOpts(S.draft.rule, S.draft.intervalUnit);
-        if (!opts.some(([id]) => id === S.draft.duration)) {
+        if (S.draft.duration && !opts.some(([id]) => id === S.draft.duration)) {
           S.draft.duration = "oneYear";
           S.draft.endDate = null;
           S.draft.customDays = null;
@@ -6796,23 +6864,49 @@
         if (S.overlayData.kind === "customDur") {
           const diff = Math.round((parseYMD(el.dataset.ymd) - seriesStartDate()) / 86400000) + 1;
           const minDays = customDurMinDays(S.draft?.rule || "daily");
-          S.customDurDays = Math.min(365, Math.max(minDays, diff));
+          S.customDurDays = Math.min(3650, Math.max(minDays, diff));
         } else if (S.overlayData.kind === "occurrence" && S.draft) {
+          const prevAnchor = S.draft.occurrence || S.draft.onceDate || toYMD(demoDate());
+          const prevEnd = resolvedDraftEndYmd(S.draft, prevAnchor);
           const nextOcc = el.dataset.ymd;
           S.draft.occurrence = nextOcc;
-          const orig = findEditableTask(S.taskId);
-          if (orig && orig.endDate && !S.draft.touchedDuration && nextOcc >= orig.endDate) {
+          if (S.draft.cycle && nextOcc <= prevEnd) {
+            const diffDays = Math.max(1, Math.round((parseYMD(prevEnd) - parseYMD(nextOcc)) / 86400000) + 1);
+            S.draft.endDate = prevEnd;
+            S.draft.customDays = diffDays;
+            const matched = durationOpts(S.draft.rule, S.draft.intervalUnit).find(([id]) => durationDayCount(id) === diffDays);
+            S.draft.duration = matched ? matched[0] : null;
+            S.draft.touchedDuration = true;
+          } else {
             S.draft.endDate = null;
             S.draft.duration = "oneYear";
             S.draft.customDays = null;
           }
         } else if (S.overlayData.kind === "seriesEnd" && S.draft) {
+          const showOcc = S.screen === "task-edit" && S.draft.cycle;
+          const anchor = showOcc ? (S.draft.occurrence || S.draft.onceDate || toYMD(demoDate())) : (S.draft.onceDate || toYMD(demoDate()));
+          const diffDays = Math.max(1, Math.round((parseYMD(el.dataset.ymd) - parseYMD(anchor)) / 86400000) + 1);
           S.draft.endDate = el.dataset.ymd;
-          S.draft.duration = null;
+          S.draft.customDays = diffDays;
+          const matched = durationOpts(S.draft.rule, S.draft.intervalUnit).find(([id]) => durationDayCount(id) === diffDays);
+          S.draft.duration = matched ? matched[0] : null;
           S.draft.touchedDuration = true;
         } else if (S.overlayData.kind === "opDay") {
           S.opDay = el.dataset.ymd;
-        } else if (S.draft) S.draft.onceDate = el.dataset.ymd;
+        } else if (S.draft) {
+          const prevAnchor = S.draft.onceDate || toYMD(demoDate());
+          const prevEnd = resolvedDraftEndYmd(S.draft, prevAnchor);
+          const nextStart = el.dataset.ymd;
+          S.draft.onceDate = nextStart;
+          if (S.draft.cycle && nextStart <= prevEnd) {
+            const diffDays = Math.max(1, Math.round((parseYMD(prevEnd) - parseYMD(nextStart)) / 86400000) + 1);
+            S.draft.endDate = prevEnd;
+            S.draft.customDays = diffDays;
+            const matched = durationOpts(S.draft.rule, S.draft.intervalUnit).find(([id]) => durationDayCount(id) === diffDays);
+            S.draft.duration = matched ? matched[0] : null;
+            S.draft.touchedDuration = true;
+          }
+        }
         render();
       },
       calMonth() {
@@ -6835,28 +6929,50 @@
           S.overlayData.month = ymd;
           S.customDurDays = 1;
         } else if (S.overlayData.kind === "occurrence" && S.draft) {
+          const prevAnchor = S.draft.occurrence || S.draft.onceDate || toYMD(demoDate());
+          const prevEnd = resolvedDraftEndYmd(S.draft, prevAnchor);
           S.overlayData.selected = ymd;
           S.overlayData.month = ymd;
           S.draft.occurrence = ymd;
-          const orig = findEditableTask(S.taskId);
-          if (orig && orig.endDate && !S.draft.touchedDuration) {
-            const minDays = customDurMinDays(S.draft.rule || "daily");
-            const remDays = Math.floor((parseYMD(orig.endDate) - parseYMD(ymd)) / 86400000) + 1;
-            if (ymd >= orig.endDate || remDays < minDays) {
-              S.draft.endDate = null;
-              S.draft.duration = 1;
-            }
+          if (S.draft.cycle && ymd <= prevEnd) {
+            const diffDays = Math.max(1, Math.round((parseYMD(prevEnd) - parseYMD(ymd)) / 86400000) + 1);
+            S.draft.endDate = prevEnd;
+            S.draft.customDays = diffDays;
+            const matched = durationOpts(S.draft.rule, S.draft.intervalUnit).find(([id]) => durationDayCount(id) === diffDays);
+            S.draft.duration = matched ? matched[0] : null;
+            S.draft.touchedDuration = true;
+          } else {
+            S.draft.endDate = null;
+            S.draft.duration = "oneYear";
+            S.draft.customDays = null;
           }
         } else if (S.overlayData.kind === "seriesEnd" && S.draft) {
+          const showOcc = S.screen === "task-edit" && S.draft.cycle;
+          const anchor = showOcc ? (S.draft.occurrence || S.draft.onceDate || toYMD(demoDate())) : (S.draft.onceDate || toYMD(demoDate()));
+          const diffDays = Math.max(1, Math.round((parseYMD(ymd) - parseYMD(anchor)) / 86400000) + 1);
           S.overlayData.selected = ymd;
           S.overlayData.month = ymd;
           S.draft.endDate = ymd;
-          S.draft.duration = null;
+          S.draft.customDays = diffDays;
+          const matched = durationOpts(S.draft.rule, S.draft.intervalUnit).find(([id]) => durationDayCount(id) === diffDays);
+          S.draft.duration = matched ? matched[0] : null;
           S.draft.touchedDuration = true;
         } else {
+          const prevAnchor = S.draft?.onceDate || toYMD(demoDate());
+          const prevEnd = S.draft ? resolvedDraftEndYmd(S.draft, prevAnchor) : ymd;
           S.overlayData.selected = ymd;
           S.overlayData.month = ymd;
-          if (S.draft) S.draft.onceDate = ymd;
+          if (S.draft) {
+            S.draft.onceDate = ymd;
+            if (S.draft.cycle && ymd <= prevEnd) {
+              const diffDays = Math.max(1, Math.round((parseYMD(prevEnd) - parseYMD(ymd)) / 86400000) + 1);
+              S.draft.endDate = prevEnd;
+              S.draft.customDays = diffDays;
+              const matched = durationOpts(S.draft.rule, S.draft.intervalUnit).find(([id]) => durationDayCount(id) === diffDays);
+              S.draft.duration = matched ? matched[0] : null;
+              S.draft.touchedDuration = true;
+            }
+          }
         }
         render();
       },
@@ -13012,13 +13128,31 @@
     }, 1000);
   }
 
-  /// 保存前把输入框里的名称 / 备注回读进草稿（重渲染会冲掉未提交的输入）
+  /// 保存前把输入框里的名称 / 备注 / 灵活天数回读进草稿（重渲染会冲掉未提交的输入）
   function syncDraftInputs() {
     if (!S.draft) return;
     const t = $("input[name=taskTitle]");
     const n = $("textarea[name=taskNote]");
+    const f = document.getElementById("flex-dur-days");
     if (t) S.draft.title = t.value.trim();
     if (n) S.draft.note = n.value;
+    if (f && S.draft.cycle) {
+      const digits = String(f.value || "").replace(/\D+/g, "").slice(0, 4);
+      const num = parseInt(digits, 10);
+      if (Number.isFinite(num) && num >= 1) {
+        const clamped = Math.min(3650, Math.max(1, num));
+        const showOcc = S.screen === "task-edit" && S.draft.cycle;
+        const anchor = showOcc ? (S.draft.occurrence || S.draft.onceDate || toYMD(demoDate())) : (S.draft.onceDate || toYMD(demoDate()));
+        const curEnd = resolvedDraftEndYmd(S.draft, anchor);
+        const curDays = Math.max(1, Math.floor((parseYMD(curEnd) - parseYMD(anchor)) / 86400000) + 1);
+        if (clamped !== curDays) {
+          S.draft.customDays = clamped;
+          S.draft.endDate = addDaysYMD(anchor, clamped - 1);
+          S.draft.duration = null;
+          S.draft.touchedDuration = true;
+        }
+      }
+    }
   }
 
   /// 本周评估卡：与真机 VitalsPeriodAssessment 完全同构（五档区间总评 + 八档分项状态 + 测量覆盖度/达标/趋势话术）
@@ -16487,14 +16621,18 @@
           ${alignedDateRow("结束时间", endYmd, "openSeriesEnd", false)}`;
       }
 
+      const totalDurationDays = d.cycle
+        ? Math.max(1, Math.floor((parseYMD(endYmd) - parseYMD(anchor || d.onceDate || toYMD(demoDate()))) / 86400000) + 1)
+        : 1;
+      const isPresetDur = durationOpts(d.rule, d.intervalUnit).some(([id]) => id === d.duration);
+      const isCustomDurSelected = !isPresetDur;
       const viewDurationSummary = (() => {
         if (!d.cycle) return "1天（单日）";
-        const totalDays = Math.max(1, Math.floor((parseYMD(endYmd) - parseYMD( anchor || d.onceDate || toYMD(demoDate()) )) / 86400000) + 1);
         const opt = durationOpts(d.rule, d.intervalUnit).find(([id]) => id === d.duration);
         if (opt) {
-          return opt[1].endsWith("天") ? `共 ${opt[1]}` : `${opt[1]}（${totalDays}天）`;
+          return opt[1].endsWith("天") ? `共 ${opt[1]}` : `${opt[1]}（${totalDurationDays}天）`;
         }
-        return `共 ${totalDays}天`;
+        return `共 ${totalDurationDays}天`;
       })();
 
       const viewRecurrenceSummary = (() => {
@@ -16528,8 +16666,13 @@
             <span style="display:inline-flex;opacity:.85">${I.clock}</span>
             <span style="font-size:calc(15px * var(--fs));font-weight:700;font-variant-numeric:tabular-nums">${esc(viewDurationSummary)}</span>
           </div>`
-        : `<div class="grid3 tight">${durationOpts(d.rule, d.intervalUnit).map(([id, lab]) =>
-            chip({ selected: d.duration === id, label: lab, act: "draftDur", extra: `data-d="${id}"`, compact: true })).join("")}</div>`;
+        : `<div class="v02-grid4">${durationOpts(d.rule, d.intervalUnit).map(([id, lab]) =>
+            chip({ selected: d.duration === id, label: lab, act: "draftDur", extra: `data-d="${id}"`, compact: true })).join("")}
+            <label class="opt-chip compact v02-flex-days-chip${isCustomDurSelected ? " on" : ""}" style="background:${isCustomDurSelected ? accent.fg : accent.muted};color:${isCustomDurSelected ? "#fff" : accent.fg};border-color:${isCustomDurSelected ? "transparent" : `${accent.fg}60`}">
+              <input id="flex-dur-days" class="v02-flex-days-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="${totalDurationDays}" aria-label="灵活持续天数" />
+              <span class="v02-flex-days-unit">天</span>
+            </label>
+          </div>`;
 
       const recurrenceHTML = viewing
         ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
@@ -16556,10 +16699,7 @@
             ${datesRowsHTML}
           </div>
           ${d.cycle ? `
-            <div class="sec-label" style="display:flex;align-items:center;justify-content:space-between">
-              <span>持续时长</span>
-              ${!viewing && !durationOpts(d.rule, d.intervalUnit).some(([id]) => id === d.duration) ? `<span style="color:${accent.fg};font-size:calc(12px * var(--fs));font-weight:700">${esc(viewDurationSummary)}</span>` : ""}
-            </div>
+            <div class="sec-label">持续时长</div>
             ${durationHTML}
             <div class="sec-label">循环规则</div>
             ${recurrenceHTML}
