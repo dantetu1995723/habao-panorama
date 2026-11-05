@@ -2036,8 +2036,9 @@
   }
   function groupDisplayName(g) {
     if (isVisitCapture()) {
+      const baseCount = (ARCHIVE_DEMO.review.groups || []).length;
       const i = S.docGroups.findIndex((x) => x.id === g.id);
-      return `${cnOrdinal(i + 1)}次复查`;
+      return `${cnOrdinal(baseCount + i + 1)}次复查`;
     }
     const same = S.docGroups.filter((x) => x.cat === g.cat);
     if (same.length > 1) {
@@ -5003,10 +5004,12 @@
     const filled = S.docGroups.filter((g) => g.pages > 0);
     // 资料 BASE 互通（健康档案 / 基础报告 / 复查报告三处同源）：
     // 复查报告按批次新增「第N次复查」，基础报告按类别名合并追加，并同步写入人物档案快照
+    const addedVisits = [];
     if (visit) {
       filled.forEach((g) => {
         const ordTitle = `${cnOrdinal(ARCHIVE_DEMO.review.groups.length + 1)}次复查`;
         ARCHIVE_DEMO.review.groups.push({ title: ordTitle, pages: g.pages });
+        addedVisits.push(`${ordTitle} ${g.pages} 页`);
       });
     } else {
       filled.forEach((g) => {
@@ -5021,7 +5024,7 @@
     }
     syncCurrentPersonArchiveSnapshot();
     const material = visit
-      ? `${cnOrdinal(ARCHIVE_DEMO.review.groups.length)}次复查 ${filled.reduce((s, g) => s + g.pages, 0)} 页`
+      ? addedVisits.join("、")
       : opMaterialValue(filled);
     S.captureMode = "intake";
     seedDocGroups(0);
