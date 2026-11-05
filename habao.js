@@ -1248,13 +1248,13 @@
     hardware: { code: "HardwareManageView", note: "仅 V0.1（V0.0 个人中心没有这一行）。两张设备模块卡：未绑定写「未绑定」、右端挂「扫码绑定」浅蓝胶囊；已绑定写绿色「已绑定 · 编号」、右端箭头。点未绑定卡进扫码页，点已绑定卡进设备页。副说明按已绑定的名字拼，两台齐了写「两台都已绑定」。绑定留在本机，切回 V0.0 只藏入口。" },
     "hardware-scan": { code: "HardwareScanView", note: "V10.128：深蓝黑底全屏扫码页——264pt 取景框 + 青色扫描线，约 1.5 秒识别到对应哈宝设备（血压计 3086 / 手表 1172），四角转绿、白卡上浮，「绑定这台」或「重新扫描」，绑定后回列表。已绑定页显示编号和绑定日，解除要确认、确认后回列表。不调用摄像头，测量不写进血压监测。退出保留，注销清空。" },
     activity: { code: "ActivityLogView", note: "仅 V0.1（V0.0 个人中心没有这一行）。一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内遵循 Who / Where / When / What / How 大一统规则字段，并全面适配「互为家属」与「家属管理」协同逻辑：以 When（时刻 + 细分隔线）做块头，人物胶囊内嵌二元身份标签（本人为 [👤 姓名 · 我]，亲属统一为 [👤 姓名 · 家属]，解绑后追加灰签「已解绑」）；仅展示与当前登录人「我」相关的记录（我自己操作的 + 我在家属管理帮家属操作的 + 家属在家属管理帮我操作的）；跨人代打卡、新增/修改/删除计划在接收方点击「接受」生效时同步写入双方账本，发送提醒在发出时写入（撤回时移除），入口统一记为「家属管理」；长按记录仅提供「删除这条记录」（移除单机时代过时的「改归属」）。" },
-    "ocr-capture": { code: "IntakeCaptureView", note: "V10.98：用药与复查有存量也直接落本页，存量组列在底部组轨道。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
+    "ocr-capture": { code: "IntakeCaptureView", note: "V10.275：首次建日程与新增用药复查统一走「拍照 → 资料详情 → 解析」独立通道流程，进入时从空白拍摄起（不预载资料 BASE 存量）。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
-    "ocr-detail": { code: "IntakeCaptureView", note: "按组分区预览。与首次上传、身体报告·基础报告共用同一份存量。入组可改类别 / 删组（必传出院记录至少留一组）；复查不改类别。右上入组「解析」、存档「提交」。无存量时空态只留文案，拍资料走左上「拍摄」，页内不再放「拍摄资料」钮。" },
+    "ocr-detail": { code: "IntakeCaptureView", note: "V10.275：按组分区预览当次拍摄的照片。首次建日程与新增用药复查的资料详情仅作为通道流程（右上「解析」），不与「资料 BASE」（健康档案 / 基础报告 / 复查报告）打通；健康档案与身体报告子页的补拍通道右上为「提交」，提交后归入共享资料 BASE。" },
     "first-rest": { code: "CreateScheduleFlowView", note: "点名称换预设；点时刻出居中「时刻调整」弹层（标题为事项名，双列时/分步进，分步长 5，取消 / 完成，点遮罩取消）。默认六项（起床 / 三餐 / 午休 / 睡觉，不含测血压）。「稍后」关整段创建流回首页；底栏「拍照上传病历」替换本页，不压栈。" },
     "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表（不再单设「计划 / 解析依据」顶部切换与解析依据页），解析来源直接写明在每条计划卡片的补充备注里（如「依据出院记录，阿司匹林肠溶片每日用药一次」「依据出院记录，确诊高血压3级，每日测血压两次」「依据出院记录，2026年9月17日出院，每月复查一次」）；起床、早餐等非解析预设日程初始为无备注空集，默认显示「可编辑备注」占位。点开备注或点「编辑」即可修改。作息区首次入组才带；复查置底标红；底栏一枚「重新拍照解析」；右上「确认」写入用药+复查，左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
-    "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），进与首次上传 / 基础报告同一份资料详情，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
+    "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），统一走独立拍照 → 资料详情 → 解析通道流程，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
     "task-add": { code: "AddEditTaskView", note: "V0.0 / V0.1 为「事项」「时间与提醒」两大类折叠；V0.2 重构为**无滚动「三联动态磁贴 + 单屏模块舞台」切换架构**（字段不变）：顶部三联动态磁贴（① 事项内容、② 时刻与提醒、③ 周期与日期）实时回显三大模块核心设定，不切页即可一眼总览；中部单屏舞台一次仅聚焦展示 1 个大模块（支持点按磁贴、点按卡头 `‹ 1/3 ›` 步进或左右滑动手势切换），彻底消除滚动与视觉负担。" },
     "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。V0.2 采用无滚动「三联动态磁贴 + 单屏模块舞台」切换架构：顶部磁贴实时回显事项、时刻与周期摘要，中部单屏切换「事项内容 / 时刻与提醒 / 周期与日期」；「提醒时间」与「打卡时间」1:1 对称同构，「时间段」配备醒目粗体时间范围标注，「起止日期」通栏对齐零截断。修改时间或周期字段保存前弹出「确认更新计划」双卡弹窗；仅改名称/备注/血压等直接原地保存。" },
@@ -1605,7 +1605,9 @@
       { act: "addPlan", label: "底栏「添加健康计划」" },
       { screen: "select-type", label: "选择类型" },
       { act: "typeMed", label: "用药与复查" },
-      { screen: "ocr-capture", label: "拍摄取景（存量组列在组轨道）" },
+      { screen: "ocr-capture", label: "拍摄页（出院记录必传）" },
+      { act: "shutter", label: "拍一张" },
+      { act: "ocrConfirm", label: "确认 → 资料详情" },
       { act: "ocrParse", label: "解析" },
       { screen: "confirm-plan", label: "确认计划（只有用药 + 复查，无作息区）" },
       { act: "confirmPlan", label: "确认 → 落回健康计划" },
@@ -3184,10 +3186,13 @@
         analysisFollowup: "最近一次随访提示轻度活动受限。",
       },
       archiveBaseline: [
-        { title: "出院记录", pages: 3 },
-        { title: "检查报告", pages: 2 },
+        { title: "出院记录", pages: 2 },
+        { title: "化验单", pages: 1 },
       ],
-      archiveReview: [],
+      archiveReview: [
+        { title: "第一次复查", pages: 2 },
+        { title: "第二次复查", pages: 1 },
+      ],
       ops: [
         { id: "op_ljg_0", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "打卡了", place: "家属管理", at: baseHour - 600000, how: "晨起温水", notifiedNames: [] },
         { id: "pr_preset_2", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "打卡了", place: "家属管理", at: baseHour - 900000, how: "晨起测血压与心率", notifiedNames: [] },
@@ -4986,16 +4991,35 @@
     });
     return parts.join("、") || "本次未动";
   }
+  function syncCurrentPersonArchiveSnapshot() {
+    if (S.boundPersonKey && S.personStoreMap && S.personStoreMap[S.boundPersonKey]) {
+      S.personStoreMap[S.boundPersonKey].archiveBaseline = (ARCHIVE_DEMO.baseline.groups || []).map((g) => ({ ...g }));
+      S.personStoreMap[S.boundPersonKey].archiveReview = (ARCHIVE_DEMO.review.groups || []).map((g) => ({ ...g }));
+    }
+  }
   function finishArchive() {
     const visit = isVisitCapture();
     const fromCheckIn = visit && S.apptCapture;
     const filled = S.docGroups.filter((g) => g.pages > 0);
-    // 复查提交后把本批并入「资料合集」的复查报告 —— 否则上传完仍是写死的空态
+    // 资料 BASE 互通（健康档案 / 基础报告 / 复查报告三处同源）：
+    // 复查报告按批次新增「第N次复查」，基础报告按类别名合并追加，并同步写入人物档案快照
     if (visit) {
       filled.forEach((g) => {
-        ARCHIVE_DEMO.review.groups.push({ title: groupDisplayName(g), pages: g.pages });
+        const ordTitle = `${cnOrdinal(ARCHIVE_DEMO.review.groups.length + 1)}次复查`;
+        ARCHIVE_DEMO.review.groups.push({ title: ordTitle, pages: g.pages });
+      });
+    } else {
+      filled.forEach((g) => {
+        const catTitle = docCat(g.cat).t;
+        const existing = ARCHIVE_DEMO.baseline.groups.find((x) => x.title === catTitle);
+        if (existing) {
+          existing.pages += g.pages;
+        } else {
+          ARCHIVE_DEMO.baseline.groups.push({ title: catTitle, pages: g.pages });
+        }
       });
     }
+    syncCurrentPersonArchiveSnapshot();
     const material = visit
       ? `${cnOrdinal(ARCHIVE_DEMO.review.groups.length)}次复查 ${filled.reduce((s, g) => s + g.pages, 0)} 页`
       : opMaterialValue(filled);
@@ -5973,6 +5997,22 @@
       enter() {
         const name = $("input[name=pname]")?.value?.trim();
         if (!name) { toast("请填写姓名"); return; }
+        const curP = currentDemoPerson();
+        const oldName = curP.name;
+        curP.name = name;
+        curP.gender = S.gender;
+        S.currentPersonName = name;
+        if (oldName !== name) {
+          if (S.personStoreMap && S.personStoreMap[oldName]) {
+            S.personStoreMap[name] = S.personStoreMap[oldName];
+            delete S.personStoreMap[oldName];
+          }
+          if (S.boundPersonKey === oldName) S.boundPersonKey = name;
+          (S.careBonds || []).forEach((b) => {
+            if (b.guardianName === oldName) b.guardianName = name;
+            if (b.wardName === oldName) b.wardName = name;
+          });
+        }
         S.name = name;
         S.loggedIn = true;
         // 不动 S.enrolled：真机入组是派生的（hasProfile && medicationConfirmed），
@@ -7266,7 +7306,7 @@
           setTimeout(() => { document.getElementById("chat-draft")?.focus(); }, 20);
         }
       },
-      uploadDischarge() { S.captureMode = "intake"; seedDocGroups(0); replace("ocr-capture"); },
+      uploadDischarge() { S.captureMode = "intake"; S.docStock = null; seedDocGroups(0); replace("ocr-capture"); },
       ocrConfirm() {
         if (!canSubmitCapture()) {
           const empty = S.docGroups.find((g) => g.cat === "dischargeRecord" && !g.pages)
@@ -7382,10 +7422,9 @@
       addPlan() { go("select-type", "cover"); },
       typeMed() {
         S.captureMode = "intake";
-        seedDocGroups(3);
-        // 载入的存量：确认时对比出这一趟资料改了什么
-        S.docStock = S.docGroups.map((g) => ({ ...g }));
-        // V10.98：有存量也直接进拍摄取景——存量组列在底部组轨道，不再先落资料详情
+        S.docStock = null;
+        // V10.275：首次建日程与新增用药复查均走独立的「拍照 → 资料详情 → 解析」通道流程，不预载资料 BASE 存量
+        seedDocGroups(0);
         replace("ocr-capture");
       },
       // 运动链独立草稿：先清空，进确认页时再种（避免沿用用药链的草稿）；家属代办时进运动体测邀请页（真机 CreateScheduleFlowView.proxyExerciseInviteStep）
@@ -9186,6 +9225,9 @@
         S.rxCards = {};
         S.rxChat = [];
         S.rxArchive = [];
+        ARCHIVE_DEMO.baseline.groups.length = 0;
+        ARCHIVE_DEMO.review.groups.length = 0;
+        syncCurrentPersonArchiveSnapshot();
         closeOverlay();
         go("home", "root");
         toast("已清空计划与记录（保留档案姓名）");
@@ -9273,6 +9315,11 @@
         curP.weight = S.weight;
         S.currentPersonName = name;
         if (oldName !== name) {
+          if (S.personStoreMap && S.personStoreMap[oldName]) {
+            S.personStoreMap[name] = S.personStoreMap[oldName];
+            delete S.personStoreMap[oldName];
+          }
+          if (S.boundPersonKey === oldName) S.boundPersonKey = name;
           (S.careBonds || []).forEach((b) => {
             if (b.guardianName === oldName) b.guardianName = name;
             if (b.wardName === oldName) b.wardName = name;
@@ -9787,7 +9834,8 @@
           const isReview = eff.target === "review";
           const pages = eff.pages || 1;
           if (isReview) {
-            ARCHIVE_DEMO.review.groups.push({ title: eff.groupTitle || "复查报告", pages });
+            const ordTitle = `${cnOrdinal(ARCHIVE_DEMO.review.groups.length + 1)}次复查`;
+            ARCHIVE_DEMO.review.groups.push({ title: ordTitle, pages });
             if (eff.overall) S.consultReportOverall = eff.overall;
             if (!S.consultReportSub) S.consultReportSub = {};
             if (eff.sub) S.consultReportSub.review = eff.sub;
@@ -9798,13 +9846,17 @@
             ]);
             toast("已归入复查报告并联动完成今日复查计划");
           } else {
-            ARCHIVE_DEMO.baseline.groups.push({ title: eff.groupTitle || "检查报告", pages });
+            const catTitle = eff.groupTitle || "检查报告";
+            const existing = ARCHIVE_DEMO.baseline.groups.find((x) => x.title === catTitle);
+            if (existing) existing.pages += pages;
+            else ARCHIVE_DEMO.baseline.groups.push({ title: catTitle, pages });
             if (eff.overall) S.consultReportOverall = eff.overall;
             if (!S.consultReportSub) S.consultReportSub = {};
             if (eff.sub) S.consultReportSub.baseline = eff.sub;
-            logOp("上传了资料", "基础报告", `${eff.groupTitle || "检查报告"} ${pages} 页`);
+            logOp("上传了资料", "基础报告", `${catTitle} ${pages} 页`);
             toast("已归入基础报告");
           }
+          syncCurrentPersonArchiveSnapshot();
         } else if (eff && eff.kind === "emergency") {
           if (eff.sys && eff.dia && eff.hr) {
             S.sys = eff.sys;
@@ -10112,11 +10164,11 @@
         src.groups[gi].pages -= 1;
         if (src.groups[gi].pages <= 0) {
           src.groups.splice(gi, 1);
+          if (k === "review") {
+            src.groups.forEach((g, idx) => { g.title = `${cnOrdinal(idx + 1)}次复查`; });
+          }
         }
-        if (S.boundPersonKey && S.personStoreMap && S.personStoreMap[S.boundPersonKey]) {
-          S.personStoreMap[S.boundPersonKey].archiveBaseline = (ARCHIVE_DEMO.baseline.groups || []).map((g) => ({ ...g }));
-          S.personStoreMap[S.boundPersonKey].archiveReview = (ARCHIVE_DEMO.review.groups || []).map((g) => ({ ...g }));
-        }
+        syncCurrentPersonArchiveSnapshot();
         triggerReportAnalysis(k === "visit" || k === "review" ? "review" : "baseline");
         render();
       },
@@ -13372,8 +13424,8 @@
       };
     }
     if (S.consultModule === "report") {
-      const basePages = (S.docGroups || []).reduce((n, g) => n + (g.pages || 0), 0) || 4;
-      const visitCount = (S.visits || []).length || 2;
+      const basePages = (ARCHIVE_DEMO.baseline.groups || []).reduce((n, g) => n + (g.pages || 0), 0) || 3;
+      const visitCount = (ARCHIVE_DEMO.review.groups || []).length || 2;
       const followCount = (S.followUps || []).length || 1;
       return {
         kind: "report",
@@ -16768,13 +16820,16 @@
     return cells.join("");
   }
 
-  /// 健康档案 Demo 归档：按来源分组，复查为空走空态文案
+  /// 资料 BASE（健康档案 / 基础报告·资料合集 / 复查报告·资料合集 三处互通）
   const ARCHIVE_DEMO = {
     baseline: { title: "基础报告", empty: "还没有基础报告", groups: [
-      { title: "出院记录", pages: 3 },
-      { title: "检查报告", pages: 2 },
+      { title: "出院记录", pages: 2 },
+      { title: "化验单", pages: 1 },
     ] },
-    review: { title: "复查报告", empty: "还没有复查报告", groups: [] },
+    review: { title: "复查报告", empty: "还没有复查报告", groups: [
+      { title: "第一次复查", pages: 2 },
+      { title: "第二次复查", pages: 1 },
+    ] },
   };
   /// 复查与基础批次是运行时可增删的，复位时回初始快照
   const ARCHIVE_DEMO0 = {
