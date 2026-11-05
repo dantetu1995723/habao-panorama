@@ -2822,6 +2822,53 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   border-radius: 50%; background: rgba(0,0,0,.55); color: #fff;
   font-size: 10px; line-height: 18px; text-align: center;
 }
+.doc-req-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 3px 8px; border-radius: 999px;
+  background: rgba(16,84,224,.10); color: var(--blue);
+  font-size: calc(12px * var(--fs)); font-weight: 700; line-height: 1.2;
+}
+.doc-req-badge.sm {
+  padding: 2px 7px; font-size: calc(11px * var(--fs));
+}
+.doc-group-empty {
+  width: 100%; border: 1.5px dashed rgba(16,84,224,.28); border-radius: 16px;
+  background: rgba(255,255,255,.88); padding: 22px 16px; margin-bottom: 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  text-align: center; cursor: pointer;
+}
+.doc-group-empty.compact {
+  padding: 16px 14px; margin-top: 8px; margin-bottom: 4px;
+  background: rgba(16,84,224,.04); border-color: rgba(16,84,224,.22); cursor: default;
+}
+.doc-group-empty-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(16,84,224,.10); color: var(--blue);
+  display: grid; place-items: center;
+}
+.doc-group-empty.compact .doc-group-empty-icon {
+  width: 36px; height: 36px;
+}
+.doc-group-empty-icon svg { width: 20px; height: 20px; }
+.doc-group-empty b {
+  font-size: calc(16px * var(--fs)); font-weight: 700; color: var(--blue);
+}
+.doc-group-empty.compact b {
+  font-size: calc(14px * var(--fs));
+}
+.doc-group-empty small {
+  font-size: calc(13px * var(--fs)); font-weight: 500; color: var(--secondary); line-height: 1.4;
+}
+.doc-group-empty.compact small {
+  font-size: calc(12px * var(--fs));
+}
+.doc-group-empty-cta {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin-top: 2px; padding: 6px 14px; border-radius: 999px;
+  background: rgba(16,84,224,.10); color: var(--blue);
+  font-size: calc(14px * var(--fs)); font-weight: 600;
+}
+.doc-group-empty-cta svg { width: 14px; height: 14px; }
 .custom-preview {
   display: flex; align-items: center; gap: 14px;
   padding: 16px; border-radius: 20px; background: #fff;
