@@ -292,6 +292,8 @@
       return {
         title: a.title,
         time: `每月${fire.getDate()}日 ${a.time}`,
+        rawTime: a.time,
+        monthDays: [fire.getDate()],
         note: `依据${a.category}，${ymdCn(a.sourceYMD)}${evt}，每月复查一次`,
       };
     });
@@ -4154,6 +4156,7 @@
         id,
         title: x.title,
         cat: x.cat,
+        customId: x.cat === "custom" ? x.customId : undefined,
         h: Number.isFinite(hh) ? hh : 8,
         m: Number.isFinite(mm) ? mm : 0,
         note: x.note || "",
@@ -4170,20 +4173,6 @@
       });
       S.mutedToday[id] = x.muteFirst === true;
     });
-    if (S.enrolled && !isExercise) {
-      confirmApptItems().forEach((a) => {
-        const hm = String(a.time || "").match(/(\d{1,2}):(\d{2})/);
-        SEED.push({
-          id: nextTaskId(),
-          title: a.title,
-          cat: "appointment",
-          h: hm ? +hm[1] : 9,
-          m: hm ? +hm[2] : 0,
-          note: a.note || "",
-          cycle: true,
-        });
-      });
-    }
     sortSeed();
     if (S.boundPersonKey && S.personStoreMap && S.personStoreMap[S.boundPersonKey]) {
       S.personStoreMap[S.boundPersonKey].tasks = SEED.map((t) => ({ ...t }));
@@ -4509,6 +4498,8 @@
   }
   function enterCustomTask(cat) {
     S.addTitle = "添加计划";
+    S.isConfirmDraftEdit = false;
+    S.allowedCategories = null;
     S.lockBlock = false;
     S.lockRecurrence = false;
     S.lockCategory = true;
@@ -4835,6 +4826,12 @@
   function back() {
     // V10.49：离开复查报告页即撤掉复诊打卡形态
     S.reportReturnHome = false;
+    if (S.screen === "task-add") {
+      S.draftReturn = null;
+      S.confirmEditIndex = null;
+      S.isConfirmDraftEdit = false;
+      S.allowedCategories = null;
+    }
     if (S.frames.length <= 1) {
       S.screen = S.loggedIn ? "home" : "onboard-login";
       S.frames = [{ id: S.screen, how: "root" }];
@@ -4861,6 +4858,8 @@
     S.captureMode = "intake";
     S.lockCategory = false;
     S.lockProfessional = false;
+    S.allowedCategories = null;
+    S.isConfirmDraftEdit = false;
     S.confirmDrafts = null;
     S.confirmEditIndex = null;
     S.confirmPane = "plan";
@@ -5968,6 +5967,8 @@
       },
       addToday() {
         S.addTitle = `${BLOCKS[S.block].title}临时计划`;
+        S.isConfirmDraftEdit = false;
+        S.allowedCategories = null;
         S.lockedBlock = S.block;
         S.lockBlock = true;
         S.lockRecurrence = true;
@@ -6232,43 +6233,29 @@
           const me = currentDemoPerson();
           const famName = S.proxyTargetPersonName;
           const isFirst = !!S.proxyIsFirstCreate;
-          const draftItems = (S.confirmDrafts || []).map((d, i) => {
+          const batch = (S.confirmDrafts || []).map((d, i) => {
             const [hh, mm] = String(d.time || "08:00").split(":").map((n) => parseInt(n, 10) || 0);
+            const isCyc = d.cycle !== false;
             return {
               id: `p_d_${Date.now()}_${i}`,
               title: d.title,
               cat: d.cat || "medication",
+              customId: d.cat === "custom" ? d.customId : undefined,
               h: hh,
               m: mm,
-              cycle: d.cycle !== false,
-              rule: d.cycle === false ? "once" : "daily",
+              cycle: isCyc,
+              rule: isCyc ? (d.rule || (d.cat === "appointment" ? "monthly" : "daily")) : "once",
+              weekdays: isCyc && d.weekdays ? d.weekdays.slice() : undefined,
+              monthDays: isCyc && d.monthDays ? d.monthDays.slice() : undefined,
+              intervalCount: isCyc && d.rule === "custom" ? clampRuleInterval(d.intervalCount, d.intervalUnit) : undefined,
+              intervalUnit: isCyc && d.rule === "custom" ? ((d.intervalUnit === "week" || d.intervalUnit === "month") ? d.intervalUnit : "day") : undefined,
+              duration: isCyc ? d.duration : undefined,
+              endDate: isCyc ? d.endDate : undefined,
+              customDays: isCyc ? d.customDays : undefined,
+              onceDate: d.onceDate,
               note: d.note || (d.cat === "medication" ? confirmMedNote(d.title) : ""),
             };
           });
-          const apptItems = confirmApptItems().map((a, i) => {
-            const [hh, mm] = String(a.time || "09:30").split(":").map((n) => parseInt(n, 10) || 0);
-            return {
-              id: `p_a_${Date.now()}_${i}`,
-              title: a.title,
-              cat: "appointment",
-              h: hh,
-              m: mm,
-              cycle: false,
-              rule: "once",
-              note: a.sub || "携带出院小结与近期血压记录",
-            };
-          });
-          const restItems = isFirst ? (S.restRows || []).filter((r) => !draftItems.some((d) => d.title === r.name)).map((r, i) => ({
-            id: `p_r_${Date.now()}_${i}`,
-            title: r.name,
-            cat: ["早餐", "午餐", "晚餐"].includes(r.name) ? "diet" : (r.cat || "rest"),
-            h: r.h ?? 7,
-            m: r.m ?? 0,
-            cycle: true,
-            rule: "daily",
-            note: "",
-          })) : [];
-          const batch = [...draftItems, ...apptItems, ...restItems];
           const summaryTitle = isFirst
             ? `首次创建康复计划（共 ${batch.length} 项）`
             : `更新用药与复查计划（共 ${batch.length} 项）`;
@@ -6300,10 +6287,7 @@
         }
         const wasEnrolled = S.enrolled;
         // 操作记录：资料 + 各类计划合成一条（真机 recordPlanConfirmed）
-        const written = [
-          ...(S.confirmDrafts || []).map((d) => ({ title: d.title, cat: d.cat })),
-          ...(wasEnrolled ? confirmApptItems().map((a) => ({ title: a.title, cat: "appointment" })) : []),
-        ];
+        const written = (S.confirmDrafts || []).map((d) => ({ title: d.title, cat: d.cat }));
         const replacing = wasEnrolled ? opPlanCounts(["用药", "复查"]) : {};
         const material = opMaterialChange();
         // 确认即提交：整批草稿落成计划（真机确认页 confirm → syncMedications / syncAppointments）
@@ -6334,6 +6318,8 @@
       },
       manualCreate() {
         S.addTitle = "添加计划";
+        S.isConfirmDraftEdit = false;
+        S.allowedCategories = null;
         S.lockBlock = false;
         S.lockRecurrence = false;
         S.lockCategory = true;
@@ -6363,7 +6349,10 @@
       },
       newExerciseDraft() {
         S.draftReturn = S.screen;
+        S.confirmEditIndex = null;
         S.addTitle = "添加计划";
+        S.isConfirmDraftEdit = false;
+        S.allowedCategories = null;
         S.lockBlock = false;
         S.lockRecurrence = false;
         S.lockCategory = true;
@@ -6372,25 +6361,45 @@
         go("task-add", "cover");
       },
       editConfirmDraft() {
-        S.draftReturn = S.screen;
+        const fromScreen = S.screen;
+        S.draftReturn = fromScreen;
         // 记住改的是哪一条，保存时回写草稿列表（真机确认页草稿编辑回写 draftTasks）
         S.confirmEditIndex = el.dataset.i == null ? null : +el.dataset.i;
-        S.addTitle = "添加计划";
+        S.addTitle = "编辑计划";
+        S.isConfirmDraftEdit = true;
         S.lockBlock = false;
         S.lockRecurrence = false;
-        S.lockCategory = true;
-        const cat = el.dataset.cat || "exercise";
-        const time = el.dataset.time || "08:00";
-        const hm = String(time).match(/(\d{1,2}):(\d{2})/);
+        const isFirstCreateConfirm = fromScreen === "confirm-plan" && (!S.enrolled || !!(S.proxyTargetPersonName && S.proxyIsFirstCreate));
+        const isMedApptConfirm = fromScreen === "confirm-plan" && !isFirstCreateConfirm;
+        if (isFirstCreateConfirm) {
+          // 首次添加计划确认页：类别选项放开都能选择
+          S.lockCategory = false;
+          S.lockProfessional = false;
+          S.allowedCategories = null;
+        } else if (isMedApptConfirm) {
+          // 用药与复查步骤确认页：类别选项默认为用药和复查可选
+          S.lockCategory = false;
+          S.lockProfessional = false;
+          S.allowedCategories = ["medication", "appointment"];
+        } else {
+          // 运动评估确认页：锁定运动分类
+          S.lockCategory = true;
+          S.lockProfessional = false;
+          S.allowedCategories = null;
+        }
         const existingItem = S.confirmEditIndex != null ? (S.confirmDrafts?.[S.confirmEditIndex] || {}) : {};
+        const cat = existingItem.cat || el.dataset.cat || "exercise";
+        const time = existingItem.time || el.dataset.time || "08:00";
+        const hm = String(time).match(/(\d{1,2}):(\d{2})/);
         const existingNote = existingItem.note || "";
         initDraft({
           cat,
+          customId: existingItem.customId || null,
           h: hm ? +hm[1] : parseHour(time),
           m: hm ? +hm[2] : 0,
-          title: el.dataset.title || "",
+          title: existingItem.title || el.dataset.title || "",
           note: existingNote,
-          cycle: existingItem.cycle !== undefined ? existingItem.cycle : (cat !== "appointment"),
+          cycle: existingItem.cycle !== undefined ? existingItem.cycle : true,
           rule: existingItem.rule || (cat === "appointment" ? "monthly" : "daily"),
           weekdays: existingItem.weekdays,
           monthDays: existingItem.monthDays,
@@ -6461,6 +6470,7 @@
       },
       draftCat() {
         if (!S.draft || S.lockCategory) return;
+        if (Array.isArray(S.allowedCategories) && S.allowedCategories.length && !S.allowedCategories.includes(el.dataset.c)) return;
         const prev = S.draft.cat;
         S.draft.cat = el.dataset.c;
         S.draft.customId = null;
@@ -6473,6 +6483,9 @@
           S.draft.cycle = true;
           S.draft.rule = "monthly";
           if (!S.draft.monthDays?.length) S.draft.monthDays = [11];
+        } else if (prev === "appointment" && el.dataset.c !== "appointment" && !S.lockRecurrence) {
+          S.draft.cycle = true;
+          if (S.draft.rule === "monthly") S.draft.rule = "daily";
         }
         render();
       },
@@ -7280,6 +7293,8 @@
         const cat = el.dataset.c || "monitoring";
         const p = presets[cat] || presets.monitoring;
         S.addTitle = "添加计划";
+        S.isConfirmDraftEdit = false;
+        S.allowedCategories = null;
         S.lockBlock = false;
         S.lockRecurrence = false;
         S.lockCategory = true;
@@ -7438,6 +7453,8 @@
         go("task-view", "replace");
       },
       cancelAdd() {
+        S.isConfirmDraftEdit = false;
+        S.allowedCategories = null;
         if (S.draftReturn || S.pendingManualEnroll) {
           S.draftReturn = null;
           S.pendingManualEnroll = false;
@@ -7489,17 +7506,21 @@
         }
         if (S.draftReturn) {
           const i = S.confirmEditIndex;
+          const wasEdit = !!S.isConfirmDraftEdit;
           S.draftReturn = null;
           S.confirmEditIndex = null;
+          S.isConfirmDraftEdit = false;
+          S.allowedCategories = null;
           // 回写草稿列表（真机确认页编辑保存回写 draftTasks）
           if (S.confirmDrafts && S.draft) {
             const next = {
               title: S.draft.title,
-              time: `${S.draft.hour}:${pad(S.draft.min)}`,
+              time: `${pad(S.draft.hour)}:${pad(S.draft.min)}`,
               cat: S.draft.cat,
+              customId: S.draft.cat === "custom" ? S.draft.customId : undefined,
               note: S.draft.note || "",
               cycle: !!S.draft.cycle,
-              rule: S.draft.cycle ? (S.draft.rule || "daily") : "once",
+              rule: S.draft.cycle ? (S.draft.rule || (S.draft.cat === "appointment" ? "monthly" : "daily")) : "once",
               weekdays: S.draft.cycle && S.draft.weekdays ? S.draft.weekdays.slice() : undefined,
               monthDays: S.draft.cycle && S.draft.monthDays ? S.draft.monthDays.slice() : undefined,
               intervalCount: S.draft.cycle && S.draft.rule === "custom" ? clampRuleInterval(S.draft.intervalCount, S.draft.intervalUnit) : undefined,
@@ -7514,7 +7535,7 @@
             else S.confirmDrafts.push(next);
           }
           dismissCover();
-          toast("已更新草稿");
+          toast(wasEdit ? "已保存计划" : "已更新草稿");
           return;
         }
         if (S.proxyTargetPersonName) {
@@ -11021,9 +11042,10 @@
 
     "confirm-plan": () => {
       if (!S.confirmDrafts) seedConfirmDrafts();
-      const daily = S.confirmDrafts.map((x, i) => ({ ...x, i, h: parseHour(x.time) }));
+      const indexed = S.confirmDrafts.map((x, i) => ({ ...x, i, h: parseHour(x.time) }));
+      const daily = indexed.filter((x) => x.cat !== "appointment");
       const groups = groupByPeriod(daily, (x) => x.h);
-      const appts = confirmApptItems();
+      const appts = indexed.filter((x) => x.cat === "appointment");
       return `
       <div class="page">
         ${navBar(`<button class="nav-text nav-hit" data-act="later" type="button">稍后</button>`, "确认计划",
@@ -11037,7 +11059,7 @@
                   ? (x.note != null ? x.note : confirmMedNote(x.title))
                   : (x.note || "");
                 return actionCard({
-                  cat: x.cat, title: x.title, time: x.time, draft: true, cycle: true, idx: x.i,
+                  cat: x.cat, title: x.title, time: x.time, draft: true, cycle: x.cycle !== false, idx: x.i,
                   dose: x.cat === "medication" ? medDose(x.title) : "",
                   note: rawNote || "可编辑备注",
                   noteEmpty: !rawNote,
@@ -11046,10 +11068,24 @@
             </div>`).join("")}
           <div class="confirm-period">
             ${sectionHead(I.cal, "复查计划", appts.length, true)}
-            <div class="col gap10">${appts.map((a) => actionCard({
-              cat: "appointment", title: a.title, time: a.time, appt: true, draft: true, cycle: true,
-              note: a.note,
-            })).join("")}</div>
+            <div class="col gap10">${appts.map((a) => {
+              const rawNote = a.note || "";
+              const md = (a.monthDays && a.monthDays.length) ? a.monthDays : [17];
+              const prefix = a.cycle === false
+                ? ""
+                : (a.rule === "daily"
+                    ? ""
+                    : a.rule === "weekly"
+                      ? `${scheduleRuleSummary(true, "weekly", a.weekdays)} `
+                      : a.rule === "custom"
+                        ? `${customRuleDisplayName(a.intervalCount, a.intervalUnit)} `
+                        : `每月${md.map((d) => d === 0 ? "月末" : `${d}日`).join("、")} `);
+              return actionCard({
+                cat: "appointment", title: a.title, time: `${prefix}${a.time}`, appt: true, draft: true, cycle: a.cycle !== false, idx: a.i,
+                note: rawNote || "可编辑备注",
+                noteEmpty: !rawNote,
+              });
+            }).join("")}</div>
           </div>
         </div>
         <div class="px20 col gap10" style="padding-bottom:28px">
@@ -12811,16 +12847,17 @@
     <div class="chart-xlabs">${xLabels.map((t) => `<span>${t}</span>`).join("")}</div>`;
   }
 
-  /// 确认页草稿种子：首次入组带作息区；测血压由解析补入（Demo 出院诊断含高血压）。已入组重走用药复查只有用药（真机 showsRestSection = restItems != nil）
+  /// 确认页草稿种子：首次入组带作息区；测血压由解析补入（Demo 出院诊断含高血压）。已入组重走用药复查只有用药与复查（真机 showsRestSection = restItems != nil）
   function seedConfirmDrafts() {
-    const rest = S.enrolled ? [] : [
+    const isFirst = !S.enrolled || !!(S.proxyTargetPersonName && S.proxyIsFirstCreate);
+    const rest = !isFirst ? [] : [
       ...S.restRows.map((r) => ({
         title: r.name,
         time: r.t,
-        cat: r.cat || "rest",
+        cat: r.cat || (["早餐", "午餐", "晚餐"].includes(r.name) ? "diet" : "rest"),
         srcTitle: r.name,
         note: r.cat === "monitoring" ? confirmMonitorNote(r.name) : (r.note || ""),
-        cycle: true, muteFirst: false,
+        cycle: true, rule: "daily", muteFirst: false,
       })),
       ...liveBPs().map((b) => ({
         title: b.title,
@@ -12828,17 +12865,28 @@
         cat: "monitoring",
         srcTitle: b.src,
         note: confirmMonitorNote(b.title),
-        cycle: true, muteFirst: false,
+        cycle: true, rule: "daily", muteFirst: false,
       })),
     ];
+    const appts = confirmApptItems().map((a) => ({
+      title: a.title,
+      time: a.rawTime || "09:00",
+      cat: "appointment",
+      note: a.note,
+      cycle: true,
+      rule: "monthly",
+      monthDays: a.monthDays || [17],
+      muteFirst: false,
+    }));
     S.confirmDrafts = [
       ...liveMeds().map((m) => ({
         title: m.name, time: m.time, cat: "medication",
         srcTitle: m.src,
         note: confirmMedNote(m.name),
-        cycle: true, muteFirst: false,
+        cycle: true, rule: "daily", muteFirst: false,
       })),
       ...rest,
+      ...appts,
     ];
   }
 
@@ -16119,7 +16167,8 @@
     const d = mode === "view" ? taskDraftFromSeed(t) : S.draft;
     const editable = mode !== "view";
     const viewing = !editable;
-    const title = mode === "view" ? "查看计划" : mode === "edit" ? "更新计划" : S.addTitle;
+    const isConfirmEdit = mode === "add" && !!S.isConfirmDraftEdit;
+    const title = mode === "view" ? "查看计划" : mode === "edit" ? "更新计划" : (isConfirmEdit ? "编辑计划" : S.addTitle);
     const left = mode === "edit" ? cap(I.x, "取消") : cap(I.chevL, "返回");
     const done = (S.proxyTargetPersonName
       ? isFamilyTaskCompletedOn(S.proxyTargetPersonName, t.id, S.taskOccurrence || toYMD(demoDate()))
@@ -16133,7 +16182,7 @@
       ? (updateLocked
           ? `<button class="cap" type="button" style="opacity:.35" disabled aria-label="${past ? "历史计划，更新已锁定" : "本次已打卡，更新已锁定"}">${I.pencil}更新</button>`
           : `<button class="cap" data-act="editTask" type="button">${I.pencil}更新</button>`)
-      : `<button class="cap" data-act="${mode === "add" ? "addTask" : "saveTask"}" type="button">${I.check}${mode === "add" ? "添加" : "确认"}</button>`;
+      : `<button class="cap" data-act="${mode === "add" ? "addTask" : "saveTask"}" type="button">${I.check}${mode === "add" ? (isConfirmEdit ? "保存" : "添加") : "确认"}</button>`;
     const accent = editorAccent(d, done);
     const lockTime = S.lockBlock && mode === "add";
     const lockRec = S.lockRecurrence && mode === "add";
@@ -16286,7 +16335,12 @@
       const catIcoHTML = d.cat === "custom" ? I[UNIFIED_CUSTOM_ICON] : (CAT_ICON[d.cat] ? CAT_ICON[d.cat]() : I.doc);
       const catKindBadge = PROFESSIONAL.has(d.cat) ? "专业康复日程" : "日常健康管理";
       const trimmedNote = String(d.note || "").trim();
-      const visibleCatKeys = Object.keys(CAT).filter((c) => !(S.lockProfessional && mode === "add" && PROFESSIONAL.has(c)));
+      const allowedCats = (mode === "add" && Array.isArray(S.allowedCategories) && S.allowedCategories.length)
+        ? S.allowedCategories
+        : null;
+      const visibleCatKeys = allowedCats
+        ? Object.keys(CAT).filter((c) => allowedCats.includes(c))
+        : Object.keys(CAT).filter((c) => !(S.lockProfessional && mode === "add" && PROFESSIONAL.has(c)));
 
       const contentCard = `
         <div class="v02-editor-card">
@@ -16308,9 +16362,9 @@
               </div>`
             : `<div class="grid3 tight">${visibleCatKeys.map((c) =>
                 chip({ selected: c === d.cat, label: CAT[c].chip, icon: CAT_ICON[c](), act: "draftCat", extra: `data-c="${c}"` })).join("")}
-                ${(S.customCats || []).map((c) =>
-                  chip({ selected: d.cat === "custom" && d.customId === c.id, label: c.name, icon: I[UNIFIED_CUSTOM_ICON], act: "pickCustomCat", extra: `data-id="${c.id}"` })).join("")}
-                ${chip({ selected: false, label: "自定义", icon: I.plus, act: "openCustomCat" })}
+                ${!allowedCats ? (S.customCats || []).map((c) =>
+                  chip({ selected: d.cat === "custom" && d.customId === c.id, label: c.name, icon: I[UNIFIED_CUSTOM_ICON], act: "pickCustomCat", extra: `data-id="${c.id}"` })).join("") : ""}
+                ${!allowedCats ? chip({ selected: false, label: "自定义", icon: I.plus, act: "openCustomCat" }) : ""}
               </div>`}
         </div>`;
 
