@@ -1609,7 +1609,7 @@
       { act: "addPlan", label: "底栏「添加健康计划」" },
       { screen: "select-type", label: "选择类型" },
       { act: "typeMed", label: "用药与复查" },
-      { screen: "ocr-capture", label: "拍摄页（出院记录必传）" },
+      { screen: "ocr-capture", label: "拍摄页（可多选类别，出院记录可删）" },
       { act: "shutter", label: "拍一张" },
       { act: "ocrConfirm", label: "确认 → 资料详情" },
       { act: "ocrParse", label: "解析" },
@@ -2017,6 +2017,11 @@
     { id: "ct", t: "CT", req: false, hint: "对准CT报告，避免反光与遮挡" },
   ];
   function isVisitCapture() { return S.captureMode === "archive" && S.reportKind === "visit"; }
+  /// 仅首次上传报告（未入组首次创建计划，或代家属首次创建计划）保持「出院记录」必传且不可删除；
+  /// 后续已入组「用药与复查」上传、基础报告上传、复查报告上传中，「出院记录」等所有组均可删、可多选。
+  function requiresDischargeCapture() {
+    return !isVisitCapture() && S.captureMode === "intake" && (!S.enrolled || !!S.proxyIsFirstCreate);
+  }
   function docCat(id) {
     if (String(id).startsWith("custom:")) {
       const customName = String(id).slice(7);
@@ -2127,7 +2132,10 @@
     if (g.customTitle) return g.customTitle;
     return docCat(g.cat).t;
   }
-  function canDeleteDocGroup() {
+  function canDeleteDocGroup(g) {
+    if (requiresDischargeCapture() && g && g.cat === "dischargeRecord") {
+      return false;
+    }
     return true;
   }
   function orderedDocGroups() {
@@ -2154,10 +2162,13 @@
     return orderedDocGroups();
   }
   function canSubmitCapture() {
+    if (requiresDischargeCapture()) {
+      return (S.docGroups || []).some((g) => g.cat === "dischargeRecord" && g.pages > 0);
+    }
     return (S.docGroups || []).some((g) => g.pages > 0);
   }
   function submitBlockedHint() {
-    return "请先拍摄或上传报告资料";
+    return requiresDischargeCapture() ? "请先拍摄或上传出院记录" : "请先拍摄或上传报告资料";
   }
   function startNewDocGroup(cat, visitOrd = null) {
     if (isVisitCapture()) {
@@ -7469,7 +7480,11 @@
           S.pendingVisitMaxOrd = Math.max(configuredVisitMaxOrd(), ...S.docGroups.map((g) => g.ord || 1));
         } else {
           S.pendingCat = S.docGroups[0]?.cat || "dischargeRecord";
-          S.pendingCats = [...new Set(S.docGroups.map((g) => g.cat))];
+          const currentCats = [...new Set(S.docGroups.map((g) => g.cat))];
+          if (requiresDischargeCapture() && !currentCats.includes("dischargeRecord")) {
+            currentCats.unshift("dischargeRecord");
+          }
+          S.pendingCats = currentCats;
         }
         openOverlay("catPick");
       },
@@ -7490,6 +7505,9 @@
         if (S.catPickerMode === "change") {
           S.pendingCat = c;
         } else {
+          if (requiresDischargeCapture() && c === "dischargeRecord") {
+            return;
+          }
           if (!Array.isArray(S.pendingCats)) S.pendingCats = [];
           if (S.pendingCats.includes(c)) {
             S.pendingCats = S.pendingCats.filter((x) => x !== c);
@@ -7678,11 +7696,15 @@
           const g = S.docGroups.find((x) => x.id === S.catPickerGroup);
           if (g) g.cat = S.pendingCat;
         } else {
+          const pendingSet = new Set(S.pendingCats || []);
+          if (requiresDischargeCapture()) {
+            pendingSet.add("dischargeRecord");
+          }
           const allAllowedKeys = [
             ...DOC_CATS.map((c) => c.id),
             ...(ARCHIVE_DEMO.baseline.customCats || []).map((name) => `custom:${name}`),
           ];
-          const selected = allAllowedKeys.filter((id) => (S.pendingCats || []).includes(id));
+          const selected = allAllowedKeys.filter((id) => pendingSet.has(id));
           S.docGroups = S.docGroups.filter((g) => selected.includes(g.cat));
           let newlyAddedId = null;
           selected.forEach((catId) => {
@@ -11517,7 +11539,7 @@
             <div class="doc-chip ${x.id === S.activeGroup ? "on" : ""}">
               <button class="doc-chip-main" data-act="selectDocGroup" data-id="${x.id}" type="button">
                 <b>${groupDisplayName(x)}</b>
-                <small>${x.pages ? `${x.pages} 页` : "待拍摄"}</small>
+                <small>${x.pages ? `${x.pages} 页` : (requiresDischargeCapture() && x.cat === "dischargeRecord" ? "必上传" : "待拍摄")}</small>
               </button>
               ${canDeleteDocGroup(x) ? `<button class="doc-chip-x" data-act="delDocGroup" data-id="${x.id}" type="button">×</button>` : ""}
             </div>`).join("")}
@@ -11571,7 +11593,7 @@
               ${Array.from({ length: g.pages }, (_, i) => `
                 <button class="doc-page" data-act="delDocPage" data-id="${g.id}" data-p="${i}" type="button">第${i + 1}页<span>×</span></button>`).join("")}
             </div>` : `
-            <p class="s15 fm t-sec" style="margin:2px 0 20px;line-height:1.5">${isVisitCapture() ? `暂未上传${groupDisplayName(g)}报告，可返回拍摄补充。` : `暂未上传${groupDisplayName(g)}，可返回拍摄补充。`}</p>`}`).join("") : `<div class="ta-c" style="padding:44px 8px">
+            <p class="s15 fm t-sec" style="margin:2px 0 20px;line-height:1.5">${isVisitCapture() ? `暂未上传${groupDisplayName(g)}报告，可返回拍摄补充。` : (requiresDischargeCapture() && g.cat === "dischargeRecord" ? "请返回拍摄并上传出院记录，否则缺少构建计划的解析依据。" : `暂未上传${groupDisplayName(g)}，可返回拍摄补充。`)}</p>`}`).join("") : `<div class="ta-c" style="padding:44px 8px">
               <div class="s16 fb t-sec">暂无可提交的资料</div>
             </div>`}
         </div>
@@ -18054,11 +18076,13 @@
           </div>
           <div class="cat-list">
             ${DOC_CATS.map((c) => {
-              const on = selectedCats.includes(c.id);
+              const lockedReq = multi && requiresDischargeCapture() && c.id === "dischargeRecord";
+              const on = lockedReq || selectedCats.includes(c.id);
               return `
               <button class="cat-row ${on ? "on" : ""}" data-act="pickDocCat" data-c="${c.id}" type="button">
                 <span class="cat-ico">${I.doc}</span>
                 <span class="grow ta-l"><b>${c.t}</b></span>
+                ${lockedReq ? `<span class="s12 fb" style="color:var(--blue);background:rgba(16,84,224,.10);padding:2px 8px;border-radius:999px">必传</span>` : ""}
                 ${on ? `<span class="cat-check">${I.check}</span>` : ""}
               </button>`;
             }).join("")}
