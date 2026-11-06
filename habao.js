@@ -12796,48 +12796,54 @@
           : visitBaseDisplayGroups();
         const expanded = !!S.hrExpanded[key];
         const count = groups.reduce((s, g) => s + g.pages, 0);
-        return `<div class="hr-src">
-          <button class="hr-src-head" data-act="toggleHr" data-k="${key}" type="button">
-            <span class="s18 fb t">${src.title}</span>
-            ${count ? `<span class="s13 fm t-sec mono">${count} 张</span>` : ""}
-            <span class="grow"></span>
-            <span class="hr-chev ${expanded ? "open" : ""}">${I.chevD}</span>
-          </button>
-          ${expanded ? (groups.length ? groups.map((g) => {
-            const gi = src.groups.findIndex((x) => x.title === g.title);
-            return `
-            <div class="hr-group">
-              <div class="flex between" style="align-items:baseline">
-                <span class="s16 fsb t">${g.title}</span>
-                ${g.pages > 0 ? `<span class="s13 fm t-sec mono">${g.pages} 张</span>` : ""}
-              </div>
-              ${g.pages > 0 ? `
-              <div class="hr-grid">
-                ${Array.from({ length: g.pages }, (_, i) => `
-                  <div class="hr-thumb-cell">
-                    <button class="hr-thumb" data-act="previewPage" data-t="${g.title} 第${i + 1}页" type="button">
-                      <span class="hr-thumb-inner">${I.doc}</span>
-                      <span class="hr-page-tag">第${i + 1}页</span>
-                    </button>
-                    <button class="hr-thumb-del" data-act="delHrPage" data-k="${key}" data-gi="${gi}" data-pi="${i}" type="button" aria-label="删除${g.title}第${i + 1}页">×</button>
-                  </div>`).join("")}
-              </div>` : key === "review" ? `
-              <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">暂未上传${g.title}报告，可点击下方按钮补充上传。</p>` : `
-              <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">暂未上传${g.title}，可点击下方按钮补充上传。</p>`}
-            </div>`;
-          }).join("") : `<p class="s15 fm t-sec">${src.empty}</p>`) : ""}
+        const btnLabel = key === "baseline" ? "上传基础资料" : "上传复查资料";
+        const btnKind = key === "baseline" ? "baseline" : "visit";
+        return `<div class="island-card" style="margin-top:16px;border-radius:22px;padding:18px;box-shadow:0 12px 20px rgba(16,84,224,.08)">
+          <div class="hr-src">
+            <button class="hr-src-head" data-act="toggleHr" data-k="${key}" type="button">
+              <span class="s18 fb t">${src.title}</span>
+              ${count ? `<span class="s13 fm t-sec mono">${count} 张</span>` : ""}
+              <span class="grow"></span>
+              <span class="hr-chev ${expanded ? "open" : ""}">${I.chevD}</span>
+            </button>
+            ${expanded ? `
+              ${groups.length ? groups.map((g) => {
+                const gi = src.groups.findIndex((x) => x.title === g.title);
+                return `
+                <div class="hr-group">
+                  <div class="flex between" style="align-items:baseline">
+                    <span class="s16 fsb t">${g.title}</span>
+                    ${g.pages > 0 ? `<span class="s13 fm t-sec mono">${g.pages} 张</span>` : ""}
+                  </div>
+                  ${g.pages > 0 ? `
+                  <div class="hr-grid">
+                    ${Array.from({ length: g.pages }, (_, i) => `
+                      <div class="hr-thumb-cell">
+                        <button class="hr-thumb" data-act="previewPage" data-t="${g.title} 第${i + 1}页" type="button">
+                          <span class="hr-thumb-inner">${I.doc}</span>
+                          <span class="hr-page-tag">第${i + 1}页</span>
+                        </button>
+                        <button class="hr-thumb-del" data-act="delHrPage" data-k="${key}" data-gi="${gi}" data-pi="${i}" type="button" aria-label="删除${g.title}第${i + 1}页">×</button>
+                      </div>`).join("")}
+                  </div>` : key === "review" ? `
+                  <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">暂未上传${g.title}报告，可点击下方按钮补充上传。</p>` : `
+                  <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">暂未上传${g.title}，可点击下方按钮补充上传。</p>`}
+                </div>`;
+              }).join("") : `<p class="s15 fm t-sec">${src.empty}</p>`}
+              <button class="cta hr-upload" style="margin-top:16px" data-act="pickArchive" data-kind="${btnKind}" type="button">${I.cam}${btnLabel}</button>
+            ` : ""}
+          </div>
         </div>`;
       };
       return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "健康档案", `<button class="cap" data-go="patient-edit" type="button">${I.pencil}编辑</button>`)}
-        <div class="scroll px20" style="padding-top:8px;padding-bottom:110px">
-          <div class="hero" style="border-radius:22px 22px 0 0">
+        <div class="scroll px20" style="padding-top:8px;padding-bottom:32px">
+          <div class="hero" style="border-radius:22px;padding-bottom:18px;box-shadow:0 12px 24px rgba(16,84,224,.14)">
             <div class="hero-top">
               <div class="avatar lg">${S.name.slice(0, 1)}</div>
               <div><div class="s24 fb">${S.name}</div><div class="s13" style="opacity:.85">我　${S.gender}</div></div>
             </div>
-            <div class="frost"></div>
             <div class="metrics">
               <div><span>年龄</span><b>${age}<i>岁</i></b></div>
               <div><span>身高</span><b>${S.height}<i>cm</i></b></div>
@@ -12845,15 +12851,8 @@
               <div><span>BMI</span><b class="${bmiOk ? "" : "t-amber"}">${bmiVal.toFixed(1)}<i>${bmiWord}</i></b></div>
             </div>
           </div>
-          <div class="island-card" style="margin-top:0;border-radius:0 0 22px 22px;padding:18px;box-shadow:0 12px 20px rgba(16,84,224,.08)">
-            ${section("baseline")}
-            <div style="height:14px"></div>
-            ${section("review")}
-          </div>
-        </div>
-        <div class="hr-dock">
-          <div class="hr-dock-blur"></div>
-          <button class="cta hr-upload" data-act="uploadHealth" type="button">${I.cam}上传报告资料</button>
+          ${section("baseline")}
+          ${section("review")}
         </div>
       </div>`;
     },
