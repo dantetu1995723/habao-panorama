@@ -2012,7 +2012,7 @@
   }
 
   const DOC_CATS = [
-    { id: "dischargeRecord", t: "出院记录", req: true, hint: "对准出院小结，保持画面清晰" },
+    { id: "dischargeRecord", t: "出院记录", req: false, hint: "对准出院小结，保持画面清晰" },
     { id: "surgeryRecord", t: "手术记录", req: false, hint: "对准手术记录，保持画面清晰" },
     { id: "admissionRecord", t: "入院记录", req: false, hint: "对准入院记录，保持画面清晰" },
     { id: "labReport", t: "化验单", req: false, hint: "对准化验单，避免反光与遮挡" },
@@ -2023,7 +2023,7 @@
   ];
   function isVisitCapture() { return S.captureMode === "archive" && S.reportKind === "visit"; }
   function docCat(id) {
-    return DOC_CATS.find((c) => c.id === id) || { id: "reviewReport", t: "复查报告", req: true, hint: "对准复查报告，保持画面清晰" };
+    return DOC_CATS.find((c) => c.id === id) || { id: "reviewReport", t: "复查报告", req: false, hint: "对准复查报告，保持画面清晰" };
   }
   function cnOrdinal(n) {
     const w = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
@@ -2097,38 +2097,25 @@
     }
     return docCat(g.cat).t;
   }
-  function canDeleteDocGroup(g) {
-    if (isVisitCapture()) return (g.ord || 1) !== 1;
-    return g.cat !== "dischargeRecord";
+  function canDeleteDocGroup() {
+    return true;
   }
   function orderedDocGroups() {
     const all = S.docGroups || [];
     if (isVisitCapture()) {
       return [...all].sort((a, b) => (a.ord || 1) - (b.ord || 1));
     }
-    return [
-      ...all.filter((g) => g.cat === "dischargeRecord"),
-      ...all.filter((g) => g.cat !== "dischargeRecord"),
-    ];
+    const catOrder = new Map(DOC_CATS.map((c, idx) => [c.id, idx]));
+    return [...all].sort((a, b) => (catOrder.get(a.cat) ?? 99) - (catOrder.get(b.cat) ?? 99));
   }
   function reviewDisplayDocGroups() {
-    const all = orderedDocGroups();
-    if (isVisitCapture()) return all;
-    const hasNonEmptyDischarge = all.some((g) => g.cat === "dischargeRecord" && g.pages > 0);
-    const firstDischargeId = all.find((g) => g.cat === "dischargeRecord")?.id;
-    return all.filter((g) => {
-      if (g.pages > 0) return true;
-      if (g.cat === "dischargeRecord" && !hasNonEmptyDischarge && g.id === firstDischargeId) return true;
-      return false;
-    });
+    return orderedDocGroups();
   }
   function canSubmitCapture() {
-    if (isVisitCapture()) return S.docGroups.some((g) => g.pages > 0);
-    return S.docGroups.some((g) => g.cat === "dischargeRecord" && g.pages > 0);
+    return (S.docGroups || []).some((g) => g.pages > 0);
   }
   function submitBlockedHint() {
-    if (!isVisitCapture()) return "请先拍摄出院记录（必传）";
-    return "请先拍摄复查报告";
+    return "请先拍摄或上传报告资料";
   }
   function startNewDocGroup(cat, visitOrd = null) {
     if (isVisitCapture()) {
@@ -7403,13 +7390,10 @@
       uploadDischarge() { S.captureMode = "intake"; S.docStock = null; seedDocGroups(0); replace("ocr-capture"); },
       ocrConfirm() {
         if (!canSubmitCapture()) {
-          const empty = S.docGroups.find((g) => g.cat === "dischargeRecord" && !g.pages)
-            || S.docGroups.find((g) => g.cat === "dischargeRecord");
-          if (empty) S.activeGroup = empty.id;
           toast(submitBlockedHint());
           return;
         }
-        if (isVisitCapture()) {
+        if (isVisitCapture() && S.docGroups.length) {
           const maxOrd = Math.max(1, ...S.docGroups.map((g) => g.ord || 1));
           for (let ord = 1; ord <= maxOrd; ord++) {
             const inTrack = S.docGroups.some((g) => g.ord === ord);
@@ -7435,10 +7419,10 @@
         S.catPickerMode = "newGroup";
         S.catPickerGroup = null;
         if (isVisitCapture()) {
-          S.pendingVisitOrds = [...new Set([1, ...S.docGroups.map((g) => g.ord || 1)])];
+          S.pendingVisitOrds = [...new Set(S.docGroups.map((g) => g.ord || 1))];
         } else {
-          S.pendingCat = "dischargeRecord";
-          S.pendingCats = [...new Set(["dischargeRecord", ...S.docGroups.map((g) => g.cat)])];
+          S.pendingCat = S.docGroups[0]?.cat || "dischargeRecord";
+          S.pendingCats = [...new Set(S.docGroups.map((g) => g.cat))];
         }
         openOverlay("catPick");
       },
@@ -7446,8 +7430,7 @@
         if (isVisitCapture()) {
           const ord = +el.dataset.ord;
           if (!ord) return;
-          if (ord === 1) return;
-          if (!Array.isArray(S.pendingVisitOrds)) S.pendingVisitOrds = [1];
+          if (!Array.isArray(S.pendingVisitOrds)) S.pendingVisitOrds = [];
           if (S.pendingVisitOrds.includes(ord)) {
             S.pendingVisitOrds = S.pendingVisitOrds.filter((x) => x !== ord);
           } else {
@@ -7460,8 +7443,7 @@
         if (S.catPickerMode === "change") {
           S.pendingCat = c;
         } else {
-          if (c === "dischargeRecord") return;
-          if (!Array.isArray(S.pendingCats)) S.pendingCats = ["dischargeRecord"];
+          if (!Array.isArray(S.pendingCats)) S.pendingCats = [];
           if (S.pendingCats.includes(c)) {
             S.pendingCats = S.pendingCats.filter((x) => x !== c);
           } else {
@@ -7472,8 +7454,8 @@
       },
       confirmDocCat() {
         if (isVisitCapture()) {
-          const ords = [...new Set([1, ...(S.pendingVisitOrds || [])])].sort((a, b) => a - b);
-          S.docGroups = S.docGroups.filter((g) => (g.ord || 1) === 1 || ords.includes(g.ord));
+          const ords = [...new Set(S.pendingVisitOrds || [])].sort((a, b) => a - b);
+          S.docGroups = S.docGroups.filter((g) => ords.includes(g.ord || 1));
           let newlyAddedId = null;
           ords.forEach((ord) => {
             const existing = S.docGroups.find((g) => g.ord === ord);
@@ -7487,7 +7469,7 @@
           if (newlyAddedId) {
             S.activeGroup = newlyAddedId;
           } else if (!S.docGroups.some((g) => g.id === S.activeGroup)) {
-            S.activeGroup = S.docGroups[S.docGroups.length - 1]?.id || 1;
+            S.activeGroup = S.docGroups[S.docGroups.length - 1]?.id || 0;
           }
           closeOverlay();
           return;
@@ -7496,8 +7478,8 @@
           const g = S.docGroups.find((x) => x.id === S.catPickerGroup);
           if (g) g.cat = S.pendingCat;
         } else {
-          const selected = DOC_CATS.map((c) => c.id).filter((id) => id === "dischargeRecord" || (S.pendingCats || []).includes(id));
-          S.docGroups = S.docGroups.filter((g) => g.cat === "dischargeRecord" || selected.includes(g.cat));
+          const selected = DOC_CATS.map((c) => c.id).filter((id) => (S.pendingCats || []).includes(id));
+          S.docGroups = S.docGroups.filter((g) => selected.includes(g.cat));
           let newlyAddedId = null;
           selected.forEach((catId) => {
             const existing = S.docGroups.find((g) => g.cat === catId);
@@ -7511,7 +7493,7 @@
             S.activeGroup = newlyAddedId;
           } else if (!S.docGroups.some((g) => g.id === S.activeGroup)) {
             const ordered = orderedDocGroups();
-            S.activeGroup = ordered[ordered.length - 1]?.id || 1;
+            S.activeGroup = ordered[ordered.length - 1]?.id || 0;
           }
         }
         closeOverlay();
@@ -7526,22 +7508,13 @@
         const id = +el.dataset.id;
         const g = S.docGroups.find((x) => x.id === id);
         if (!g) return;
-        if (isVisitCapture() && S.screen === "ocr-detail") {
+        if (S.screen === "ocr-detail") {
           g.pages = 0;
           render();
           return;
         }
-        if (!canDeleteDocGroup(g)) {
-          if (S.screen === "ocr-detail" && g.pages > 0) {
-            g.pages = 0;
-            render();
-            return;
-          }
-          toast(`${isVisitCapture() ? "复查报告" : docCat(g.cat).t}至少保留一组`);
-          return;
-        }
         S.docGroups = S.docGroups.filter((x) => x.id !== id);
-        if (S.activeGroup === id) S.activeGroup = S.docGroups[0]?.id || 0;
+        if (S.activeGroup === id) S.activeGroup = orderedDocGroups()[0]?.id || 0;
         if (S.screen === "ocr-group" && !S.docGroups.some((x) => x.id === S.activeGroup)) {
           if (!popTo("ocr-capture")) replace("ocr-capture");
           return;
@@ -7552,10 +7525,6 @@
         const g = S.docGroups.find((x) => x.id === +el.dataset.id);
         if (!g || g.pages <= 0) return;
         g.pages -= 1;
-        if (S.screen === "ocr-detail" && !isVisitCapture() && g.pages <= 0 && canDeleteDocGroup(g)) {
-          S.docGroups = S.docGroups.filter((x) => x.id !== g.id);
-          if (S.activeGroup === g.id) S.activeGroup = S.docGroups[0]?.id || 0;
-        }
         render();
       },
       shootDocGroup() {
@@ -7577,10 +7546,7 @@
       },
       shutter() {
         if (!S.docGroups.length) {
-          if (isVisitCapture()) { startNewDocGroup("reviewReport"); render(); return; }
-          S.catPickerMode = "newGroup";
-          S.pendingCat = "dischargeRecord";
-          openOverlay("catPick");
+          act("addDocGroup");
           return;
         }
         const g = activeDoc();
@@ -10362,16 +10328,8 @@
             src.groups.forEach((g, idx) => {
               if (!g.ord) g.ord = parseVisitOrd(g.title, idx + 1);
             });
-            src.groups.splice(gi, 1);
-          } else {
-            const isRequiredDischarge = k === "baseline" && src.groups[gi].title.startsWith("出院记录");
-            const dischargeCount = k === "baseline" ? src.groups.filter((x) => x.title.startsWith("出院记录")).length : 0;
-            if (!isRequiredDischarge || dischargeCount > 1) {
-              src.groups.splice(gi, 1);
-            } else {
-              src.groups[gi].pages = 0;
-            }
           }
+          src.groups.splice(gi, 1);
         }
         syncCurrentPersonArchiveSnapshot();
         triggerReportAnalysis(k === "visit" || k === "review" ? "review" : "baseline");
@@ -11347,18 +11305,17 @@
         <div class="grow rel" style="margin:8px 0;background:#1a1a1a">
           <div class="abs t-sec ta-c" style="left:16px;right:16px;top:40%;color:#9aa">${hint}</div>
         </div>
-        ${S.docGroups.length ? `
         <div class="doc-track">
           <button class="doc-add" data-act="addDocGroup" type="button"><span>＋</span>新建组</button>
           ${orderedDocGroups().map((x) => `
             <div class="doc-chip ${x.id === S.activeGroup ? "on" : ""}">
               <button class="doc-chip-main" data-act="selectDocGroup" data-id="${x.id}" type="button">
                 <b>${groupDisplayName(x)}</b>
-                <small>${x.pages ? `${x.pages} 页` : (x.cat === "dischargeRecord" ? "必上传" : "待拍摄")}</small>
+                <small>${x.pages ? `${x.pages} 页` : "待拍摄"}</small>
               </button>
               ${canDeleteDocGroup(x) ? `<button class="doc-chip-x" data-act="delDocGroup" data-id="${x.id}" type="button">×</button>` : ""}
             </div>`).join("")}
-        </div>` : ""}
+        </div>
         <div class="flex center" style="justify-content:space-around;padding:16px 24px 36px;background:#111">
           <button class="doc-tool" data-act="previewDocGroup" type="button">${pages ? `<i>${pages}</i>` : ""}${I.doc}</button>
           <button class="doc-shutter" data-act="shutter" type="button"><span></span></button>
@@ -11408,7 +11365,7 @@
               ${Array.from({ length: g.pages }, (_, i) => `
                 <button class="doc-page" data-act="delDocPage" data-id="${g.id}" data-p="${i}" type="button">第${i + 1}页<span>×</span></button>`).join("")}
             </div>` : `
-            <p class="s15 fm t-sec" style="margin:2px 0 20px;line-height:1.5">${isVisitCapture() ? `暂未上传${groupDisplayName(g)}报告，可返回拍摄补充。` : "请返回拍摄并上传出院记录，否则缺少构建计划的解析依据。"}</p>`}`).join("") : `<div class="ta-c" style="padding:44px 8px">
+            <p class="s15 fm t-sec" style="margin:2px 0 20px;line-height:1.5">${isVisitCapture() ? `暂未上传${groupDisplayName(g)}报告，可返回拍摄补充。` : `暂未上传${groupDisplayName(g)}，可返回拍摄补充。`}</p>`}`).join("") : `<div class="ta-c" style="padding:44px 8px">
               <div class="s16 fb t-sec">暂无可提交的资料</div>
             </div>`}
         </div>
@@ -17841,7 +17798,7 @@
     },
     catPick: () => {
       if (isVisitCapture()) {
-        const selected = S.pendingVisitOrds || [1];
+        const selected = S.pendingVisitOrds || [];
         return `
         <div class="scrim bottom" data-act="close">
           <div class="sheet large" onclick="event.stopPropagation()">
@@ -17883,7 +17840,7 @@
               return `
               <button class="cat-row ${on ? "on" : ""}" data-act="pickDocCat" data-c="${c.id}" type="button">
                 <span class="cat-ico">${I.doc}</span>
-                <span class="grow ta-l"><b>${c.t}</b>${c.req ? `<i>必传</i>` : ""}</span>
+                <span class="grow ta-l"><b>${c.t}</b></span>
                 ${on ? `<span class="cat-check">${I.check}</span>` : ""}
               </button>`;
             }).join("")}
