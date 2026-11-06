@@ -4302,6 +4302,11 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   border-radius: 99px;
   cursor: pointer;
 }
+.parsed-clear-btn.dim {
+  background: rgba(130, 142, 165, 0.08);
+  color: rgba(130, 142, 165, 0.45);
+  cursor: default;
+}
 .parsed-context-input {
   width: 100%;
   box-sizing: border-box;

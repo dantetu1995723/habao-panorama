@@ -736,27 +736,27 @@
       const field = event.target.dataset.parsedField;
       p[field] = event.target.value;
       const ready = canGeneratePlanFromParsed();
-      const ctaBtn = document.getElementById("ocr-parsed-cta-btn");
-      if (ctaBtn) {
-        ctaBtn.className = `cta h52 ${ready ? "" : "off"}`;
-        ctaBtn.disabled = !ready;
+      const topBtn = document.getElementById("ocr-parsed-top-btn");
+      if (topBtn) {
+        topBtn.className = `nav-text ${ready ? "blue" : "dim"}`;
+        topBtn.disabled = !ready;
+      }
+      const clearBtn = document.querySelector(`.parsed-clear-btn[data-field="${field}"]`);
+      if (clearBtn) {
+        const hasText = Boolean((p[field] || "").length);
+        clearBtn.classList.toggle("dim", !hasText);
+        clearBtn.disabled = !hasText;
       }
       return;
     }
     if (event.target instanceof HTMLSelectElement && event.target.dataset.parsedDate) {
       const p = ensureParsedResult(false);
-      const rawVal = event.target.value;
-      if (!rawVal) {
-        p.surgeryYMD = "";
-        render();
-        return;
-      }
       const cur = parseYMD(p.surgeryYMD || "2026-09-08");
       let y = cur.getFullYear();
       let m = cur.getMonth() + 1;
       let d = cur.getDate();
       const part = event.target.dataset.parsedDate;
-      const val = parseInt(rawVal, 10);
+      const val = parseInt(event.target.value, 10);
       if (part === "year") y = val;
       else if (part === "month") m = val;
       else if (part === "day") d = val;
@@ -1341,7 +1341,7 @@
     { g: "栈内 Push · 创建与报告", items: [
       { id: "ocr-group", t: "当前组资料", code: "IntakeCaptureView", how: "push" },
       { id: "ocr-detail", t: "资料详情", code: "IntakeCaptureView", how: "push" },
-      { id: "ocr-parsed", t: "资料解析结果", code: "OCRParseResultView", how: "push" },
+      { id: "ocr-parsed", t: "解析结果", code: "OCRParseResultView", how: "push" },
       { id: "confirm-plan", t: "确认计划", code: "InfoWithScreeningHost", how: "push" },
       { id: "borg", t: "感受问卷", code: "BorgQuestionnaireView", how: "push" },
       { id: "confirm-exercise", t: "确认运动计划", code: "ExerciseScheduleConfirmView", how: "push" },
@@ -1378,7 +1378,7 @@
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.275：首次建日程与新增用药复查统一走「拍照 → 资料详情 → 解析」独立通道流程，进入时从空白拍摄起（不预载资料 BASE 存量）。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "V10.289：仅展示前一个拍摄页中已勾选/保留的分组。基础报告或首次上传报告中含出院记录时排在最上方；选传组为空时显示灰色说明文字。首次建日程与新增用药复查的资料详情右上为「解析」，点击后进入「资料解析结果」页；健康档案与身体报告子页的补拍通道右上为「提交」，提交后直接归入共享资料 BASE（不经过资料解析结果页）。" },
-    "ocr-parsed": { code: "OCRParseResultView", note: "V10.294：仅限创建计划步骤（首次创建计划、用药与复查创建/更新计划），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「资料解析结果」页。默认模拟已识别填好的状态，包含四个可编辑字段：① 疾病信息（必填，多行文本框 context）、② 用药处方（必填，多行文本框 context）、③ 手术名称（选填，多行文本框 context）、④ 手术时间（选填，可选择的年月日选择器，支持清空或修改年月日）。全页仅保留底部一枚「生成计划」主按钮（移除右上角重复按钮），当两个必填字段非空时可点击，按修改后的解析结果生成计划并进入「确认计划」页。" },
+    "ocr-parsed": { code: "OCRParseResultView", note: "V10.296：仅限创建计划步骤（首次创建计划、用药与复查创建/更新计划），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「解析结果」页（标题「解析结果」）。左上角为「< 返回」，右上角为同规格「提交」按钮（移除底部「生成计划」按钮）。默认模拟已识别填好的状态，包含四个可编辑字段：① 疾病信息（必填，多行文本框 context + 右上角「清空」按钮）、② 用药处方（必填，多行文本框 context + 右上角「清空」按钮）、③ 手术名称（选填，多行文本框 context + 右上角「清空」按钮）、④ 手术时间（选填，年 / 月 / 日三个并排下拉框，不设清空按钮）。当两个必填字段非空时右上角「提交」按钮可点击，按修改后的解析结果生成计划并进入「确认计划」页。" },
     "first-rest": { code: "CreateScheduleFlowView", note: "点名称换预设；点时刻出居中「时刻调整」弹层（标题为事项名，双列时/分步进，分步长 5，取消 / 完成，点遮罩取消）。默认六项（起床 / 三餐 / 午休 / 睡觉，不含测血压）。「稍后」关整段创建流回首页；底栏「拍照上传病历」替换本页，不压栈。" },
     "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表（不再单设「计划 / 解析依据」顶部切换与解析依据页），解析来源直接写明在每条计划卡片的补充备注里（如「依据出院记录，阿司匹林肠溶片每日用药一次」「依据出院记录，确诊高血压3级，每日测血压两次」「依据出院记录，2026年9月17日出院，每月复查一次」）；起床、早餐等非解析预设日程初始为无备注空集，默认显示「可编辑备注」占位。点开备注或点「编辑」即可修改。作息区首次入组才带；复查置底标红；底栏一枚「重新拍照解析」；右上「确认」写入用药+复查，左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
@@ -7604,15 +7604,13 @@
         applyParsedResultToPlan();
         go("confirm-plan", "push");
       },
-      clearParsedSurgeryDate() {
+      clearParsedField() {
+        const field = el.dataset.field;
         const p = ensureParsedResult(false);
-        p.surgeryYMD = "";
-        render();
-      },
-      restoreParsedSurgeryDate() {
-        const p = ensureParsedResult(false);
-        p.surgeryYMD = "2026-09-08";
-        render();
+        if (field && Object.prototype.hasOwnProperty.call(p, field)) {
+          p[field] = "";
+          render();
+        }
       },
       ocrSubmit() {
         if (!canSubmitCapture()) { toast(submitBlockedHint()); return; }
@@ -11751,30 +11749,35 @@
 
     "ocr-parsed": () => {
       const p = ensureParsedResult(false);
+      if (!p.surgeryYMD) p.surgeryYMD = "2026-09-08";
       const ready = canGeneratePlanFromParsed();
-      const hasDate = Boolean(p.surgeryYMD);
-      const dObj = hasDate ? parseYMD(p.surgeryYMD) : new Date(2026, 8, 8);
+      const dObj = parseYMD(p.surgeryYMD);
       const selY = dObj.getFullYear();
       const selM = dObj.getMonth() + 1;
       const selD = dObj.getDate();
       const maxD = new Date(selY, selM, 0).getDate();
       const years = [];
-      for (let y = 2015; y <= 2027; y++) years.push(y);
+      for (let y = 2027; y >= 2015; y--) years.push(y);
       const months = Array.from({ length: 12 }, (_, i) => i + 1);
       const days = Array.from({ length: maxD }, (_, i) => i + 1);
+      const hasDisease = Boolean((p.disease || "").length);
+      const hasMed = Boolean((p.medication || "").length);
+      const hasSurg = Boolean((p.surgeryName || "").length);
       return `
       <div class="page">
         ${navBar(
           `<button class="nav-text blue" data-act="back" type="button">${I.chevL}返回</button>`,
-          "资料解析结果"
+          "解析结果",
+          `<button id="ocr-parsed-top-btn" class="nav-text ${ready ? "blue" : "dim"}" data-act="generatePlanFromParsed" ${ready ? "" : "disabled"} type="button">${I.check}提交</button>`
         )}
-        <div class="scroll px20" style="padding-top:10px;padding-bottom:110px">
-          <p class="s14 fm t-sec" style="margin:2px 0 14px;line-height:1.5">请核对并确认以下资料解析结果，可直接点按修改后再生成计划。</p>
+        <div class="scroll px20" style="padding-top:10px;padding-bottom:36px">
+          <p class="s14 fm t-sec" style="margin:2px 0 14px;line-height:1.5">请核对并确认以下解析结果，可直接点按修改后再提交。</p>
 
           <div class="parsed-field-card">
             <div class="parsed-field-head">
               <span class="parsed-field-title">疾病信息</span>
               <span class="parsed-badge req">必填</span>
+              <button class="parsed-clear-btn ${hasDisease ? "" : "dim"}" data-act="clearParsedField" data-field="disease" ${hasDisease ? "" : "disabled"} type="button">清空</button>
             </div>
             <textarea class="parsed-context-input" data-parsed-field="disease" rows="3" placeholder="请输入疾病诊断信息，如：冠心病、PCI术后、高血压3级">${esc(p.disease || "")}</textarea>
           </div>
@@ -11783,6 +11786,7 @@
             <div class="parsed-field-head">
               <span class="parsed-field-title">用药处方</span>
               <span class="parsed-badge req">必填</span>
+              <button class="parsed-clear-btn ${hasMed ? "" : "dim"}" data-act="clearParsedField" data-field="medication" ${hasMed ? "" : "disabled"} type="button">清空</button>
             </div>
             <textarea class="parsed-context-input" data-parsed-field="medication" rows="4" placeholder="请输入用药处方（每行一种药，如：阿司匹林肠溶片 100mg 每日1次 早餐后）">${esc(p.medication || "")}</textarea>
           </div>
@@ -11791,6 +11795,7 @@
             <div class="parsed-field-head">
               <span class="parsed-field-title">手术名称</span>
               <span class="parsed-badge opt">选填</span>
+              <button class="parsed-clear-btn ${hasSurg ? "" : "dim"}" data-act="clearParsedField" data-field="surgeryName" ${hasSurg ? "" : "disabled"} type="button">清空</button>
             </div>
             <textarea class="parsed-context-input" data-parsed-field="surgeryName" rows="2" placeholder="请输入手术名称（选填，无手术可留空）">${esc(p.surgeryName || "")}</textarea>
           </div>
@@ -11799,32 +11804,25 @@
             <div class="parsed-field-head">
               <span class="parsed-field-title">手术时间</span>
               <span class="parsed-badge opt">选填</span>
-              ${hasDate ? `<button class="parsed-clear-btn" data-act="clearParsedSurgeryDate" type="button">清空</button>` : ""}
             </div>
             <div class="parsed-ymd-row">
               <label class="parsed-ymd-col">
                 <select class="parsed-ymd-select" data-parsed-date="year">
-                  <option value="" ${!hasDate ? "selected" : ""}>选择年</option>
-                  ${years.map((y) => `<option value="${y}" ${hasDate && y === selY ? "selected" : ""}>${y}年</option>`).join("")}
+                  ${years.map((y) => `<option value="${y}" ${y === selY ? "selected" : ""}>${y}年</option>`).join("")}
                 </select>
               </label>
               <label class="parsed-ymd-col">
                 <select class="parsed-ymd-select" data-parsed-date="month">
-                  <option value="" ${!hasDate ? "selected" : ""}>选择月</option>
-                  ${months.map((m) => `<option value="${m}" ${hasDate && m === selM ? "selected" : ""}>${m}月</option>`).join("")}
+                  ${months.map((m) => `<option value="${m}" ${m === selM ? "selected" : ""}>${m}月</option>`).join("")}
                 </select>
               </label>
               <label class="parsed-ymd-col">
                 <select class="parsed-ymd-select" data-parsed-date="day">
-                  <option value="" ${!hasDate ? "selected" : ""}>选择日</option>
-                  ${days.map((d) => `<option value="${d}" ${hasDate && d === selD ? "selected" : ""}>${d}日</option>`).join("")}
+                  ${days.map((d) => `<option value="${d}" ${d === selD ? "selected" : ""}>${d}日</option>`).join("")}
                 </select>
               </label>
             </div>
           </div>
-        </div>
-        <div class="px20 col gap10" style="padding-bottom:28px">
-          <button id="ocr-parsed-cta-btn" class="cta h52 ${ready ? "" : "off"}" data-act="generatePlanFromParsed" ${ready ? "" : "disabled"} type="button">${I.spark}生成计划</button>
         </div>
       </div>`;
     },
