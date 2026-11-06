@@ -7448,17 +7448,6 @@
           toast(submitBlockedHint());
           return;
         }
-        if (isVisitCapture() && S.docGroups.length) {
-          const maxOrd = Math.max(1, ...S.docGroups.map((g) => g.ord || 1));
-          for (let ord = 1; ord <= maxOrd; ord++) {
-            const inTrack = S.docGroups.some((g) => g.ord === ord);
-            if (!inTrack) {
-              S.docSeq += 1;
-              S.docGroups.push({ id: S.docSeq, cat: "reviewReport", ord, pages: 0 });
-            }
-          }
-          S.docGroups.sort((a, b) => (a.ord || 1) - (b.ord || 1));
-        }
         go("ocr-detail", "push");
       },
       ocrParse() {
