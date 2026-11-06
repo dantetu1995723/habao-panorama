@@ -2078,14 +2078,13 @@
   }
   function seedDocGroups(pages = 0) {
     S.docSeq = 1;
-    const initOrd = nextDefaultVisitOrd();
     S.docGroups = isVisitCapture()
-      ? [{ id: 1, cat: "reviewReport", ord: initOrd, pages }]
+      ? [{ id: 1, cat: "reviewReport", ord: 1, pages }]
       : [{ id: 1, cat: "dischargeRecord", pages }];
     S.activeGroup = 1;
     S.pendingCat = S.docGroups[0].cat;
-    S.pendingCats = [S.docGroups[0].cat];
-    S.pendingVisitOrds = [initOrd];
+    S.pendingCats = ["dischargeRecord"];
+    S.pendingVisitOrds = [1];
     S.catPickerMode = "newGroup";
     S.catPickerGroup = null;
   }
@@ -2094,21 +2093,13 @@
   }
   function groupDisplayName(g) {
     if (isVisitCapture()) {
-      if (g.ord && g.ord >= 1) return `${cnOrdinal(g.ord)}次复查`;
-      const i = S.docGroups.findIndex((x) => x.id === g.id);
-      return `${cnOrdinal(i + 1)}次复查`;
-    }
-    const same = S.docGroups.filter((x) => x.cat === g.cat);
-    if (same.length > 1) {
-      const i = same.findIndex((x) => x.id === g.id);
-      return `${docCat(g.cat).t}${i + 1}`;
+      return `${cnOrdinal(g.ord || 1)}次复查`;
     }
     return docCat(g.cat).t;
   }
   function canDeleteDocGroup(g) {
-    if (isVisitCapture()) return S.docGroups.length > 1;
-    if (!docCat(g.cat).req) return true;
-    return S.docGroups.filter((x) => x.cat === g.cat).length > 1;
+    if (isVisitCapture()) return (g.ord || 1) !== 1;
+    return g.cat !== "dischargeRecord";
   }
   function orderedDocGroups() {
     const all = S.docGroups || [];
@@ -2140,12 +2131,26 @@
     return "请先拍摄复查报告";
   }
   function startNewDocGroup(cat, visitOrd = null) {
-    S.docSeq += 1;
-    const ord = visitOrd || (isVisitCapture() ? Math.max(0, ...S.docGroups.map((g) => g.ord || 1)) + 1 : undefined);
-    S.docGroups.push({ id: S.docSeq, cat, ord, pages: 0 });
     if (isVisitCapture()) {
+      const ord = visitOrd || Math.max(0, ...S.docGroups.map((g) => g.ord || 1)) + 1;
+      const existing = S.docGroups.find((g) => g.ord === ord);
+      if (existing) {
+        S.activeGroup = existing.id;
+        return;
+      }
+      S.docSeq += 1;
+      S.docGroups.push({ id: S.docSeq, cat, ord, pages: 0 });
       S.docGroups.sort((a, b) => (a.ord || 1) - (b.ord || 1));
+      S.activeGroup = S.docSeq;
+      return;
     }
+    const existing = S.docGroups.find((g) => g.cat === cat);
+    if (existing) {
+      S.activeGroup = existing.id;
+      return;
+    }
+    S.docSeq += 1;
+    S.docGroups.push({ id: S.docSeq, cat, pages: 0 });
     S.activeGroup = S.docSeq;
   }
   function toastHTML() {
@@ -7406,10 +7411,9 @@
         }
         if (isVisitCapture()) {
           const maxOrd = Math.max(1, ...S.docGroups.map((g) => g.ord || 1));
-          const baseOrds = visitBaseFilledOrds();
           for (let ord = 1; ord <= maxOrd; ord++) {
             const inTrack = S.docGroups.some((g) => g.ord === ord);
-            if (!inTrack && !baseOrds.has(ord)) {
+            if (!inTrack) {
               S.docSeq += 1;
               S.docGroups.push({ id: S.docSeq, cat: "reviewReport", ord, pages: 0 });
             }
@@ -7431,10 +7435,10 @@
         S.catPickerMode = "newGroup";
         S.catPickerGroup = null;
         if (isVisitCapture()) {
-          S.pendingVisitOrds = S.docGroups.map((g) => g.ord || 1);
+          S.pendingVisitOrds = [...new Set([1, ...S.docGroups.map((g) => g.ord || 1)])];
         } else {
           S.pendingCat = "dischargeRecord";
-          S.pendingCats = ["dischargeRecord"];
+          S.pendingCats = [...new Set(["dischargeRecord", ...S.docGroups.map((g) => g.cat)])];
         }
         openOverlay("catPick");
       },
@@ -7442,10 +7446,9 @@
         if (isVisitCapture()) {
           const ord = +el.dataset.ord;
           if (!ord) return;
-          if (!Array.isArray(S.pendingVisitOrds)) S.pendingVisitOrds = [];
-          const locked = S.docGroups.some((g) => g.ord === ord && g.pages > 0);
+          if (ord === 1) return;
+          if (!Array.isArray(S.pendingVisitOrds)) S.pendingVisitOrds = [1];
           if (S.pendingVisitOrds.includes(ord)) {
-            if (locked) { toast("该复查已拍有照片，请在轨道或详情页清空"); return; }
             S.pendingVisitOrds = S.pendingVisitOrds.filter((x) => x !== ord);
           } else {
             S.pendingVisitOrds = [...S.pendingVisitOrds, ord];
@@ -7457,7 +7460,8 @@
         if (S.catPickerMode === "change") {
           S.pendingCat = c;
         } else {
-          if (!Array.isArray(S.pendingCats)) S.pendingCats = [];
+          if (c === "dischargeRecord") return;
+          if (!Array.isArray(S.pendingCats)) S.pendingCats = ["dischargeRecord"];
           if (S.pendingCats.includes(c)) {
             S.pendingCats = S.pendingCats.filter((x) => x !== c);
           } else {
@@ -7468,22 +7472,23 @@
       },
       confirmDocCat() {
         if (isVisitCapture()) {
-          const ords = [...new Set(S.pendingVisitOrds || [])].sort((a, b) => a - b);
-          if (!ords.length) { toast("请至少选择一次复查"); return; }
-          S.docGroups = S.docGroups.filter((g) => g.pages > 0 || ords.includes(g.ord));
-          let lastId = S.activeGroup;
+          const ords = [...new Set([1, ...(S.pendingVisitOrds || [])])].sort((a, b) => a - b);
+          S.docGroups = S.docGroups.filter((g) => (g.ord || 1) === 1 || ords.includes(g.ord));
+          let newlyAddedId = null;
           ords.forEach((ord) => {
             const existing = S.docGroups.find((g) => g.ord === ord);
             if (!existing) {
               S.docSeq += 1;
               S.docGroups.push({ id: S.docSeq, cat: "reviewReport", ord, pages: 0 });
-              lastId = S.docSeq;
-            } else {
-              lastId = existing.id;
+              newlyAddedId = S.docSeq;
             }
           });
           S.docGroups.sort((a, b) => (a.ord || 1) - (b.ord || 1));
-          S.activeGroup = lastId || S.docGroups[0]?.id || 1;
+          if (newlyAddedId) {
+            S.activeGroup = newlyAddedId;
+          } else if (!S.docGroups.some((g) => g.id === S.activeGroup)) {
+            S.activeGroup = S.docGroups[S.docGroups.length - 1]?.id || 1;
+          }
           closeOverlay();
           return;
         }
@@ -7491,9 +7496,23 @@
           const g = S.docGroups.find((x) => x.id === S.catPickerGroup);
           if (g) g.cat = S.pendingCat;
         } else {
-          const selected = DOC_CATS.map((c) => c.id).filter((id) => (S.pendingCats || []).includes(id));
-          if (!selected.length) { toast("请至少选择一个类别"); return; }
-          selected.forEach((catId) => startNewDocGroup(catId));
+          const selected = DOC_CATS.map((c) => c.id).filter((id) => id === "dischargeRecord" || (S.pendingCats || []).includes(id));
+          S.docGroups = S.docGroups.filter((g) => g.cat === "dischargeRecord" || selected.includes(g.cat));
+          let newlyAddedId = null;
+          selected.forEach((catId) => {
+            const existing = S.docGroups.find((g) => g.cat === catId);
+            if (!existing) {
+              S.docSeq += 1;
+              S.docGroups.push({ id: S.docSeq, cat: catId, pages: 0 });
+              newlyAddedId = S.docSeq;
+            }
+          });
+          if (newlyAddedId) {
+            S.activeGroup = newlyAddedId;
+          } else if (!S.docGroups.some((g) => g.id === S.activeGroup)) {
+            const ordered = orderedDocGroups();
+            S.activeGroup = ordered[ordered.length - 1]?.id || 1;
+          }
         }
         closeOverlay();
       },
@@ -17822,9 +17841,7 @@
     },
     catPick: () => {
       if (isVisitCapture()) {
-        const selected = S.pendingVisitOrds || [];
-        const inTrack = new Set((S.docGroups || []).map((g) => g.ord || 1));
-        const inBase = visitBaseFilledOrds();
+        const selected = S.pendingVisitOrds || [1];
         return `
         <div class="scrim bottom" data-act="close">
           <div class="sheet large" onclick="event.stopPropagation()">
@@ -17838,11 +17855,10 @@
               ${Array.from({ length: 10 }, (_, idx) => {
                 const ord = idx + 1;
                 const on = selected.includes(ord);
-                const badge = inTrack.has(ord) ? "当前已建" : (inBase.has(ord) ? "已有资料" : "");
                 return `
                 <button class="cat-row ${on ? "on" : ""}" data-act="pickDocCat" data-ord="${ord}" type="button">
                   <span class="cat-ico">${I.doc}</span>
-                  <span class="grow ta-l"><b>${cnOrdinal(ord)}次复查</b>${badge ? `<i>${badge}</i>` : ""}</span>
+                  <span class="grow ta-l"><b>${cnOrdinal(ord)}次复查</b></span>
                   ${on ? `<span class="cat-check">${I.check}</span>` : ""}
                 </button>`;
               }).join("")}
