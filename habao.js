@@ -1548,8 +1548,10 @@
     SEED0.forEach((t) => SEED.push({ ...t }));
     ARCHIVE_DEMO.baseline.groups.length = 0;
     ARCHIVE_DEMO0.baseline.forEach((g) => ARCHIVE_DEMO.baseline.groups.push({ ...g }));
+    ARCHIVE_DEMO.baseline.customCats = [...(ARCHIVE_DEMO0.customCats || [])];
     ARCHIVE_DEMO.review.groups.length = 0;
     ARCHIVE_DEMO0.review.forEach((g) => ARCHIVE_DEMO.review.groups.push({ ...g }));
+    ARCHIVE_DEMO.review.maxOrd = ARCHIVE_DEMO0.reviewMaxOrd || 2;
     taskSeq = 0;
     ensureCareGraph();
   }
@@ -2013,10 +2015,13 @@
     { id: "ecg", t: "心电图", req: false, hint: "对准心电图，保持画面清晰" },
     { id: "ultrasound", t: "超声检查", req: false, hint: "对准超声报告，避免反光与遮挡" },
     { id: "ct", t: "CT", req: false, hint: "对准CT报告，避免反光与遮挡" },
-    { id: "other", t: "其他", req: false, hint: "对准文档，保持画面清晰" },
   ];
   function isVisitCapture() { return S.captureMode === "archive" && S.reportKind === "visit"; }
   function docCat(id) {
+    if (String(id).startsWith("custom:")) {
+      const customName = String(id).slice(7);
+      return { id, t: customName, req: false, hint: "对准文档，保持画面清晰" };
+    }
     return DOC_CATS.find((c) => c.id === id) || { id: "reviewReport", t: "复查报告", req: false, hint: "对准复查报告，保持画面清晰" };
   }
   function cnOrdinal(n) {
@@ -2039,6 +2044,14 @@
     });
     return set;
   }
+  function configuredVisitMaxOrd() {
+    const raw = ARCHIVE_DEMO.review.groups || [];
+    const filledMax = raw.reduce((m, g, idx) => {
+      if (g.pages > 0) return Math.max(m, g.ord || parseVisitOrd(g.title, idx + 1));
+      return m;
+    }, 0);
+    return Math.max(1, ARCHIVE_DEMO.review.maxOrd || 1, filledMax);
+  }
   function nextDefaultVisitOrd() {
     const filled = visitBaseFilledOrds();
     if (!filled.size) return 1;
@@ -2050,13 +2063,22 @@
   }
   function baselineBaseDisplayGroups() {
     const raw = ARCHIVE_DEMO.baseline.groups || [];
+    const customCats = ARCHIVE_DEMO.baseline.customCats || [];
     const byTitle = new Map();
     raw.forEach((g) => {
       if (g.pages > 0) byTitle.set(g.title, g);
     });
-    return DOC_CATS.map((c) => {
-      if (byTitle.has(c.t)) return byTitle.get(c.t);
-      return { title: c.t, pages: 0 };
+    const fixedTitles = DOC_CATS.map((c) => c.t);
+    const allTitles = [...fixedTitles];
+    customCats.forEach((name) => {
+      if (name && !allTitles.includes(name)) allTitles.push(name);
+    });
+    raw.forEach((g) => {
+      if (g.pages > 0 && g.title && !allTitles.includes(g.title)) allTitles.push(g.title);
+    });
+    return allTitles.map((t) => {
+      if (byTitle.has(t)) return byTitle.get(t);
+      return { title: t, pages: 0 };
     });
   }
   function visitBaseDisplayGroups() {
@@ -2069,8 +2091,9 @@
       g.title = `${cnOrdinal(ord)}次复查`;
       byOrd.set(ord, g);
     });
+    const maxOrd = configuredVisitMaxOrd();
     const out = [];
-    for (let ord = 1; ord <= 10; ord++) {
+    for (let ord = 1; ord <= maxOrd; ord++) {
       if (byOrd.has(ord)) {
         out.push(byOrd.get(ord));
       } else {
@@ -2088,6 +2111,9 @@
     S.pendingCat = S.docGroups[0].cat;
     S.pendingCats = ["dischargeRecord"];
     S.pendingVisitOrds = [1];
+    S.pendingVisitMaxOrd = configuredVisitMaxOrd();
+    S.addingCustomCat = false;
+    S.editingCustomCat = null;
     S.catPickerMode = "newGroup";
     S.catPickerGroup = null;
   }
@@ -2098,6 +2124,7 @@
     if (isVisitCapture()) {
       return `${cnOrdinal(g.ord || 1)}次复查`;
     }
+    if (g.customTitle) return g.customTitle;
     return docCat(g.cat).t;
   }
   function canDeleteDocGroup() {
@@ -2109,7 +2136,19 @@
       return [...all].sort((a, b) => (a.ord || 1) - (b.ord || 1));
     }
     const catOrder = new Map(DOC_CATS.map((c, idx) => [c.id, idx]));
-    return [...all].sort((a, b) => (catOrder.get(a.cat) ?? 99) - (catOrder.get(b.cat) ?? 99));
+    const customList = ARCHIVE_DEMO.baseline.customCats || [];
+    return [...all].sort((a, b) => {
+      const aFixed = catOrder.has(a.cat) ? catOrder.get(a.cat) : null;
+      const bFixed = catOrder.has(b.cat) ? catOrder.get(b.cat) : null;
+      if (aFixed !== null && bFixed !== null) return aFixed - bFixed;
+      if (aFixed !== null) return -1;
+      if (bFixed !== null) return 1;
+      const aName = groupDisplayName(a);
+      const bName = groupDisplayName(b);
+      const aIdx = customList.indexOf(aName);
+      const bIdx = customList.indexOf(bName);
+      return (aIdx >= 0 ? aIdx : 99) - (bIdx >= 0 ? bIdx : 99);
+    });
   }
   function reviewDisplayDocGroups() {
     return orderedDocGroups();
@@ -3349,7 +3388,9 @@
       S.personStoreMap[prevKey].remindedTasks = { ...(S.remindedTasks || {}) };
       S.personStoreMap[prevKey].vitalsLog = (S.vitalsLog || []).map((r) => ({ ...r }));
       S.personStoreMap[prevKey].archiveBaseline = (ARCHIVE_DEMO.baseline.groups || []).map((g) => ({ ...g }));
+      S.personStoreMap[prevKey].archiveCustomCats = [...(ARCHIVE_DEMO.baseline.customCats || [])];
       S.personStoreMap[prevKey].archiveReview = (ARCHIVE_DEMO.review.groups || []).map((g) => ({ ...g }));
+      S.personStoreMap[prevKey].archiveReviewMaxOrd = ARCHIVE_DEMO.review.maxOrd || 1;
       if ((S.ops && S.ops.length) || S.opCleared) {
         S.personStoreMap[prevKey].ops = (S.ops || []).map((o) => ({ ...o }));
       }
@@ -3367,7 +3408,10 @@
     S.remindedTasks = { ...(bucket.remindedTasks || {}) };
     S.vitalsLog = (bucket.vitalsLog || []).map((r) => ({ ...r }));
     ARCHIVE_DEMO.baseline.groups = (bucket.archiveBaseline || []).map((g) => ({ ...g }));
+    ARCHIVE_DEMO.baseline.customCats = [...(bucket.archiveCustomCats || [])];
     ARCHIVE_DEMO.review.groups = (bucket.archiveReview || []).map((g) => ({ ...g }));
+    const maxStoredRev = (ARCHIVE_DEMO.review.groups || []).reduce((m, g, i) => Math.max(m, g.ord || parseVisitOrd(g.title, i + 1)), 1);
+    ARCHIVE_DEMO.review.maxOrd = Math.max(1, bucket.archiveReviewMaxOrd || maxStoredRev, maxStoredRev);
     S.ops = (bucket.ops || []).map((o) => ({ ...o }));
     S.notifySelf = bucket.notifySelf !== undefined ? bucket.notifySelf : true;
     S.notifyFamily = bucket.notifyFamily !== undefined
@@ -5067,7 +5111,9 @@
   function syncCurrentPersonArchiveSnapshot() {
     if (S.boundPersonKey && S.personStoreMap && S.personStoreMap[S.boundPersonKey]) {
       S.personStoreMap[S.boundPersonKey].archiveBaseline = (ARCHIVE_DEMO.baseline.groups || []).map((g) => ({ ...g }));
+      S.personStoreMap[S.boundPersonKey].archiveCustomCats = [...(ARCHIVE_DEMO.baseline.customCats || [])];
       S.personStoreMap[S.boundPersonKey].archiveReview = (ARCHIVE_DEMO.review.groups || []).map((g) => ({ ...g }));
+      S.personStoreMap[S.boundPersonKey].archiveReviewMaxOrd = ARCHIVE_DEMO.review.maxOrd || 1;
     }
   }
   function finishArchive() {
@@ -5089,12 +5135,18 @@
         } else {
           ARCHIVE_DEMO.review.groups.push({ ord, title: ordTitle, pages: g.pages });
         }
+        if (ord > (ARCHIVE_DEMO.review.maxOrd || 1)) {
+          ARCHIVE_DEMO.review.maxOrd = ord;
+        }
         addedVisits.push(`${ordTitle} ${g.pages} 页`);
       });
       ARCHIVE_DEMO.review.groups.sort((a, b) => (a.ord || parseVisitOrd(a.title, 1)) - (b.ord || parseVisitOrd(b.title, 1)));
     } else {
       filled.forEach((g) => {
-        const catTitle = docCat(g.cat).t;
+        const catTitle = groupDisplayName(g);
+        if (String(g.cat).startsWith("custom:") && !(ARCHIVE_DEMO.baseline.customCats || []).includes(catTitle)) {
+          ARCHIVE_DEMO.baseline.customCats = [...(ARCHIVE_DEMO.baseline.customCats || []), catTitle];
+        }
         const existing = ARCHIVE_DEMO.baseline.groups.find((x) => x.title === catTitle);
         if (existing) {
           existing.pages += g.pages;
@@ -7421,8 +7473,11 @@
       addDocGroup() {
         S.catPickerMode = "newGroup";
         S.catPickerGroup = null;
+        S.addingCustomCat = false;
+        S.editingCustomCat = null;
         if (isVisitCapture()) {
           S.pendingVisitOrds = [...new Set(S.docGroups.map((g) => g.ord || 1))];
+          S.pendingVisitMaxOrd = Math.max(configuredVisitMaxOrd(), ...S.docGroups.map((g) => g.ord || 1));
         } else {
           S.pendingCat = S.docGroups[0]?.cat || "dischargeRecord";
           S.pendingCats = [...new Set(S.docGroups.map((g) => g.cat))];
@@ -7455,7 +7510,159 @@
         }
         render();
       },
+      addVisitOrdInPicker() {
+        const nextOrd = Math.max(1, S.pendingVisitMaxOrd || configuredVisitMaxOrd()) + 1;
+        S.pendingVisitMaxOrd = nextOrd;
+        ARCHIVE_DEMO.review.maxOrd = nextOrd;
+        if (!Array.isArray(S.pendingVisitOrds)) S.pendingVisitOrds = [];
+        if (!S.pendingVisitOrds.includes(nextOrd)) {
+          S.pendingVisitOrds = [...S.pendingVisitOrds, nextOrd];
+        }
+        syncCurrentPersonArchiveSnapshot();
+        render();
+      },
+      delVisitOrdInPicker() {
+        const deletedOrd = +el.dataset.ord;
+        const curMax = Math.max(1, S.pendingVisitMaxOrd || configuredVisitMaxOrd());
+        if (!deletedOrd || curMax <= 1) return;
+        ARCHIVE_DEMO.review.groups = (ARCHIVE_DEMO.review.groups || [])
+          .filter((g, i) => (g.ord || parseVisitOrd(g.title, i + 1)) !== deletedOrd)
+          .map((g, i) => {
+            const ord = g.ord || parseVisitOrd(g.title, i + 1);
+            if (ord > deletedOrd) {
+              const nextOrd = ord - 1;
+              return { ...g, ord: nextOrd, title: `${cnOrdinal(nextOrd)}次复查` };
+            }
+            return g;
+          });
+        S.docGroups = (S.docGroups || [])
+          .filter((g) => (g.ord || 1) !== deletedOrd)
+          .map((g) => ((g.ord || 1) > deletedOrd ? { ...g, ord: (g.ord || 1) - 1 } : g));
+        S.pendingVisitOrds = (S.pendingVisitOrds || [])
+          .filter((ord) => ord !== deletedOrd)
+          .map((ord) => (ord > deletedOrd ? ord - 1 : ord));
+        S.pendingVisitMaxOrd = Math.max(1, curMax - 1);
+        ARCHIVE_DEMO.review.maxOrd = S.pendingVisitMaxOrd;
+        syncCurrentPersonArchiveSnapshot();
+        render();
+      },
+      startAddCustomCat() {
+        S.editingCustomCat = null;
+        S.addingCustomCat = true;
+        render();
+        setTimeout(() => { document.getElementById("custom-cat-new-input")?.focus(); }, 20);
+      },
+      confirmAddCustomCat() {
+        const raw = (document.getElementById("custom-cat-new-input")?.value || "").trim();
+        S.addingCustomCat = false;
+        if (!raw) { render(); return; }
+        if (DOC_CATS.some((c) => c.t === raw)) {
+          toast("该标准类别已存在");
+          render();
+          return;
+        }
+        if (!Array.isArray(ARCHIVE_DEMO.baseline.customCats)) ARCHIVE_DEMO.baseline.customCats = [];
+        if (!ARCHIVE_DEMO.baseline.customCats.includes(raw)) {
+          ARCHIVE_DEMO.baseline.customCats.push(raw);
+        }
+        const customKey = `custom:${raw}`;
+        if (!Array.isArray(S.pendingCats)) S.pendingCats = [];
+        if (!S.pendingCats.includes(customKey)) {
+          S.pendingCats = [...S.pendingCats, customKey];
+        }
+        syncCurrentPersonArchiveSnapshot();
+        render();
+      },
+      startRenameCustomCat() {
+        const name = el.dataset.name;
+        if (!name) return;
+        S.addingCustomCat = false;
+        S.editingCustomCat = name;
+        render();
+        setTimeout(() => { document.getElementById("custom-cat-edit-input")?.focus(); }, 20);
+      },
+      saveRenameCustomCat() {
+        const oldName = S.editingCustomCat;
+        const newName = (document.getElementById("custom-cat-edit-input")?.value || "").trim();
+        S.editingCustomCat = null;
+        if (!oldName || !newName || oldName === newName) { render(); return; }
+        if (DOC_CATS.some((c) => c.t === newName)) {
+          toast("不可与固定类别重名");
+          render();
+          return;
+        }
+        const list = ARCHIVE_DEMO.baseline.customCats || [];
+        if (list.includes(newName)) {
+          toast("该自定义类别已存在");
+          render();
+          return;
+        }
+        ARCHIVE_DEMO.baseline.customCats = list.map((x) => (x === oldName ? newName : x));
+        (ARCHIVE_DEMO.baseline.groups || []).forEach((g) => {
+          if (g.title === oldName) g.title = newName;
+        });
+        const oldKey = `custom:${oldName}`;
+        const newKey = `custom:${newName}`;
+        (S.docGroups || []).forEach((g) => {
+          if (g.cat === oldKey || g.customTitle === oldName) {
+            g.cat = newKey;
+            g.customTitle = newName;
+          }
+        });
+        if (Array.isArray(S.pendingCats)) {
+          S.pendingCats = S.pendingCats.map((k) => (k === oldKey ? newKey : k));
+        }
+        syncCurrentPersonArchiveSnapshot();
+        render();
+      },
+      cancelCustomCatInput() {
+        S.addingCustomCat = false;
+        S.editingCustomCat = null;
+        render();
+      },
+      delCustomCatInPicker() {
+        const name = el.dataset.name;
+        if (!name) return;
+        ARCHIVE_DEMO.baseline.customCats = (ARCHIVE_DEMO.baseline.customCats || []).filter((x) => x !== name);
+        ARCHIVE_DEMO.baseline.groups = (ARCHIVE_DEMO.baseline.groups || []).filter((g) => g.title !== name);
+        const customKey = `custom:${name}`;
+        S.docGroups = (S.docGroups || []).filter((g) => g.cat !== customKey && g.customTitle !== name);
+        if (Array.isArray(S.pendingCats)) {
+          S.pendingCats = S.pendingCats.filter((k) => k !== customKey);
+        }
+        syncCurrentPersonArchiveSnapshot();
+        render();
+      },
       confirmDocCat() {
+        if (S.addingCustomCat) {
+          const raw = (document.getElementById("custom-cat-new-input")?.value || "").trim();
+          S.addingCustomCat = false;
+          if (raw && !DOC_CATS.some((c) => c.t === raw)) {
+            if (!Array.isArray(ARCHIVE_DEMO.baseline.customCats)) ARCHIVE_DEMO.baseline.customCats = [];
+            if (!ARCHIVE_DEMO.baseline.customCats.includes(raw)) ARCHIVE_DEMO.baseline.customCats.push(raw);
+            const customKey = `custom:${raw}`;
+            if (!Array.isArray(S.pendingCats)) S.pendingCats = [];
+            if (!S.pendingCats.includes(customKey)) S.pendingCats.push(customKey);
+          }
+        }
+        if (S.editingCustomCat) {
+          const oldName = S.editingCustomCat;
+          const newName = (document.getElementById("custom-cat-edit-input")?.value || "").trim();
+          S.editingCustomCat = null;
+          if (oldName && newName && oldName !== newName && !DOC_CATS.some((c) => c.t === newName)) {
+            const list = ARCHIVE_DEMO.baseline.customCats || [];
+            if (!list.includes(newName)) {
+              ARCHIVE_DEMO.baseline.customCats = list.map((x) => (x === oldName ? newName : x));
+              (ARCHIVE_DEMO.baseline.groups || []).forEach((g) => { if (g.title === oldName) g.title = newName; });
+              const oldKey = `custom:${oldName}`;
+              const newKey = `custom:${newName}`;
+              (S.docGroups || []).forEach((g) => {
+                if (g.cat === oldKey || g.customTitle === oldName) { g.cat = newKey; g.customTitle = newName; }
+              });
+              if (Array.isArray(S.pendingCats)) S.pendingCats = S.pendingCats.map((k) => (k === oldKey ? newKey : k));
+            }
+          }
+        }
         if (isVisitCapture()) {
           const ords = [...new Set(S.pendingVisitOrds || [])].sort((a, b) => a - b);
           S.docGroups = S.docGroups.filter((g) => ords.includes(g.ord || 1));
@@ -7474,6 +7681,7 @@
           } else if (!S.docGroups.some((g) => g.id === S.activeGroup)) {
             S.activeGroup = S.docGroups[S.docGroups.length - 1]?.id || 0;
           }
+          syncCurrentPersonArchiveSnapshot();
           closeOverlay();
           return;
         }
@@ -7481,14 +7689,19 @@
           const g = S.docGroups.find((x) => x.id === S.catPickerGroup);
           if (g) g.cat = S.pendingCat;
         } else {
-          const selected = DOC_CATS.map((c) => c.id).filter((id) => (S.pendingCats || []).includes(id));
+          const allAllowedKeys = [
+            ...DOC_CATS.map((c) => c.id),
+            ...(ARCHIVE_DEMO.baseline.customCats || []).map((name) => `custom:${name}`),
+          ];
+          const selected = allAllowedKeys.filter((id) => (S.pendingCats || []).includes(id));
           S.docGroups = S.docGroups.filter((g) => selected.includes(g.cat));
           let newlyAddedId = null;
           selected.forEach((catId) => {
             const existing = S.docGroups.find((g) => g.cat === catId);
             if (!existing) {
               S.docSeq += 1;
-              S.docGroups.push({ id: S.docSeq, cat: catId, pages: 0 });
+              const customTitle = String(catId).startsWith("custom:") ? String(catId).slice(7) : null;
+              S.docGroups.push({ id: S.docSeq, cat: catId, customTitle, pages: 0 });
               newlyAddedId = S.docSeq;
             }
           });
@@ -7498,6 +7711,7 @@
             const ordered = orderedDocGroups();
             S.activeGroup = ordered[ordered.length - 1]?.id || 0;
           }
+          syncCurrentPersonArchiveSnapshot();
         }
         closeOverlay();
       },
@@ -16999,11 +17213,11 @@
 
   /// 资料 BASE（健康档案 / 基础报告·资料合集 / 复查报告·资料合集 三处互通）
   const ARCHIVE_DEMO = {
-    baseline: { title: "基础报告", empty: "还没有基础报告", groups: [
+    baseline: { title: "基础报告", empty: "还没有基础报告", customCats: [], groups: [
       { title: "出院记录", pages: 2 },
       { title: "化验单", pages: 1 },
     ] },
-    review: { title: "复查报告", empty: "还没有复查报告", groups: [
+    review: { title: "复查报告", empty: "还没有复查报告", maxOrd: 2, groups: [
       { title: "第一次复查", pages: 2 },
       { title: "第二次复查", pages: 1 },
     ] },
@@ -17011,7 +17225,9 @@
   /// 复查与基础批次是运行时可增删的，复位时回初始快照
   const ARCHIVE_DEMO0 = {
     baseline: ARCHIVE_DEMO.baseline.groups.map((g) => ({ ...g })),
+    customCats: [...(ARCHIVE_DEMO.baseline.customCats || [])],
     review: ARCHIVE_DEMO.review.groups.map((g) => ({ ...g })),
+    reviewMaxOrd: ARCHIVE_DEMO.review.maxOrd || 2,
   };
 
   /// 集章选中日的完成集合：今日取真实打卡态，过去日按 Demo 采样（日历格与页面共用，保证两处一致）
@@ -17802,6 +18018,8 @@
     catPick: () => {
       if (isVisitCapture()) {
         const selected = S.pendingVisitOrds || [];
+        const totalCount = Math.max(1, S.pendingVisitMaxOrd || configuredVisitMaxOrd());
+        const nextTitle = `${cnOrdinal(totalCount + 1)}次复查`;
         return `
         <div class="scrim bottom" data-act="close">
           <div class="sheet large" onclick="event.stopPropagation()">
@@ -17812,22 +18030,31 @@
               <button class="nav-text blue" data-act="confirmDocCat" type="button">确认</button>
             </div>
             <div class="cat-list">
-              ${Array.from({ length: 10 }, (_, idx) => {
+              ${Array.from({ length: totalCount }, (_, idx) => {
                 const ord = idx + 1;
                 const on = selected.includes(ord);
                 return `
-                <button class="cat-row ${on ? "on" : ""}" data-act="pickDocCat" data-ord="${ord}" type="button">
-                  <span class="cat-ico">${I.doc}</span>
-                  <span class="grow ta-l"><b>${cnOrdinal(ord)}次复查</b></span>
-                  ${on ? `<span class="cat-check">${I.check}</span>` : ""}
-                </button>`;
+                <div class="cat-row ${on ? "on" : ""}" style="display:flex;align-items:center;gap:10px">
+                  <button class="flex grow center" style="background:none;border:0;padding:0;gap:12px;text-align:left;color:inherit;font:inherit;cursor:pointer" data-act="pickDocCat" data-ord="${ord}" type="button">
+                    <span class="cat-ico">${I.doc}</span>
+                    <span class="grow ta-l"><b>${cnOrdinal(ord)}次复查</b></span>
+                  </button>
+                  ${totalCount > 1 ? `<button class="cap red" style="padding:4px 10px;font-size:12px" data-act="delVisitOrdInPicker" data-ord="${ord}" type="button">删除</button>` : ""}
+                  <button style="background:none;border:0;padding:2px;cursor:pointer" data-act="pickDocCat" data-ord="${ord}" type="button">
+                    ${on ? `<span class="cat-check">${I.check}</span>` : `<span style="display:inline-block;width:20px;height:20px;border-radius:50%;border:1.8px solid rgba(100,116,139,.35)"></span>`}
+                  </button>
+                </div>`;
               }).join("")}
+              <button class="cat-row" style="border:1.5px dashed rgba(16,84,224,.35);background:rgba(16,84,224,.05);color:var(--blue);justify-content:center;font-weight:700" data-act="addVisitOrdInPicker" type="button">
+                <span>＋ 新增复查（${nextTitle}）</span>
+              </button>
             </div>
           </div>
         </div>`;
       }
       const multi = S.catPickerMode !== "change";
       const selectedCats = multi ? (S.pendingCats || []) : [S.pendingCat];
+      const customCats = ARCHIVE_DEMO.baseline.customCats || [];
       return `
       <div class="scrim bottom" data-act="close">
         <div class="sheet large" onclick="event.stopPropagation()">
@@ -17847,6 +18074,41 @@
                 ${on ? `<span class="cat-check">${I.check}</span>` : ""}
               </button>`;
             }).join("")}
+            ${multi ? customCats.map((name) => {
+              const key = `custom:${name}`;
+              const on = selectedCats.includes(key);
+              if (S.editingCustomCat === name) {
+                return `
+                <div class="cat-row" style="display:flex;align-items:center;gap:8px;background:#fff">
+                  <input id="custom-cat-edit-input" class="field" style="flex:1;height:38px;padding:0 12px;font-size:15px" value="${name}" placeholder="请输入类别名称" />
+                  <button class="cap" style="background:var(--blue);color:#fff;padding:6px 12px" data-act="saveRenameCustomCat" type="button">保存</button>
+                  <button class="cap" style="padding:6px 10px" data-act="cancelCustomCatInput" type="button">取消</button>
+                </div>`;
+              }
+              return `
+              <div class="cat-row ${on ? "on" : ""}" style="display:flex;align-items:center;gap:8px">
+                <button class="flex grow center" style="background:none;border:0;padding:0;gap:12px;text-align:left;color:inherit;font:inherit;cursor:pointer" data-act="pickDocCat" data-c="${key}" type="button">
+                  <span class="cat-ico">${I.doc}</span>
+                  <span class="grow ta-l"><b>${name}</b></span>
+                </button>
+                <button class="cap" style="padding:4px 10px;font-size:12px" data-act="startRenameCustomCat" data-name="${name}" type="button">改名</button>
+                <button class="cap red" style="padding:4px 10px;font-size:12px" data-act="delCustomCatInPicker" data-name="${name}" type="button">删除</button>
+                <button style="background:none;border:0;padding:2px;cursor:pointer" data-act="pickDocCat" data-c="${key}" type="button">
+                  ${on ? `<span class="cat-check">${I.check}</span>` : `<span style="display:inline-block;width:20px;height:20px;border-radius:50%;border:1.8px solid rgba(100,116,139,.35)"></span>`}
+                </button>
+              </div>`;
+            }).join("") : ""}
+            ${multi ? (S.addingCustomCat ? `
+              <div class="cat-row" style="display:flex;align-items:center;gap:8px;background:#fff">
+                <input id="custom-cat-new-input" class="field" style="flex:1;height:38px;padding:0 12px;font-size:15px" placeholder="输入自定义类别名称，如：病理报告" />
+                <button class="cap" style="background:var(--blue);color:#fff;padding:6px 12px" data-act="confirmAddCustomCat" type="button">添加</button>
+                <button class="cap" style="padding:6px 10px" data-act="cancelCustomCatInput" type="button">取消</button>
+              </div>
+            ` : `
+              <button class="cat-row" style="border:1.5px dashed rgba(16,84,224,.35);background:rgba(16,84,224,.05);color:var(--blue);justify-content:center;font-weight:700" data-act="startAddCustomCat" type="button">
+                <span>＋ 新增自定义类别</span>
+              </button>
+            `) : ""}
           </div>
         </div>
       </div>`;
