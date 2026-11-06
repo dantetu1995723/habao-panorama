@@ -11914,7 +11914,7 @@
         <div class="px20" style="padding-top:12px; flex:1; min-height:0; display:flex">
           <div class="island-card" style="flex:1; min-height:0; display:flex; flex-direction:column; padding:14px 18px">
             ${reportPaneTabs()}
-            <div class="scroll" style="margin-top:14px">
+            <div class="scroll" style="margin-top:14px; padding-bottom:12px">
               ${S.reportPane === "archive" ? reportArchivePane() : (isAnalyzingSub ? `
                 ${reportIntermediateCardHTML(`AI 正在重新生成${subTitle}解读…`, "已检测到资料增删变更，AI 正在比对关键指标与基线档案，约需 2–3 秒…")}
               ` : `
