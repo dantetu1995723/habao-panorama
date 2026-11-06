@@ -4275,7 +4275,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .parsed-field-title {
   font-size: 17px;
   font-weight: 700;
-  color: var(--ink);
+  color: #18243E;
 }
 .parsed-badge {
   font-size: 12px;
@@ -4288,7 +4288,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   background: rgba(229, 57, 53, 0.11);
 }
 .parsed-badge.opt {
-  color: var(--sec);
+  color: var(--secondary);
   background: rgba(16, 84, 224, 0.08);
 }
 .parsed-clear-btn {
@@ -4311,7 +4311,8 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   padding: 11px 12px;
   font-size: 15px;
   font-weight: 500;
-  color: var(--ink);
+  color: #18243E;
+  -webkit-text-fill-color: #18243E;
   line-height: 1.5;
   resize: vertical;
   font-family: inherit;
@@ -4339,7 +4340,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   padding: 0 10px;
   font-size: 15px;
   font-weight: 600;
-  color: var(--ink);
+  color: #18243E;
   font-family: inherit;
   outline: none;
   cursor: pointer;
@@ -4357,7 +4358,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   border-radius: 14px;
   border: 1px dashed rgba(16, 84, 224, 0.25);
   background: #F7FAFF;
-  color: var(--sec);
+  color: var(--secondary);
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;

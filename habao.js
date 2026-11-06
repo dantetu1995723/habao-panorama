@@ -736,11 +736,6 @@
       const field = event.target.dataset.parsedField;
       p[field] = event.target.value;
       const ready = canGeneratePlanFromParsed();
-      const topBtn = document.getElementById("ocr-parsed-top-btn");
-      if (topBtn) {
-        topBtn.className = `nav-text ${ready ? "blue" : "dim"}`;
-        topBtn.disabled = !ready;
-      }
       const ctaBtn = document.getElementById("ocr-parsed-cta-btn");
       if (ctaBtn) {
         ctaBtn.className = `cta h52 ${ready ? "" : "off"}`;
@@ -1377,7 +1372,7 @@
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.275：首次建日程与新增用药复查统一走「拍照 → 资料详情 → 解析」独立通道流程，进入时从空白拍摄起（不预载资料 BASE 存量）。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "V10.289：仅展示前一个拍摄页中已勾选/保留的分组。基础报告或首次上传报告中含出院记录时排在最上方；选传组为空时显示灰色说明文字。首次建日程与新增用药复查的资料详情右上为「解析」，点击后进入「资料解析结果」页；健康档案与身体报告子页的补拍通道右上为「提交」，提交后直接归入共享资料 BASE（不经过资料解析结果页）。" },
-    "ocr-parsed": { code: "OCRParseResultView", note: "V10.293：仅限创建计划步骤（首次创建计划、用药与复查创建/更新计划），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「资料解析结果」页。包含四个可编辑字段：① 疾病信息（必填，多行文本框 context）、② 用药处方（必填，多行文本框 context）、③ 手术名称（选填，多行文本框 context）、④ 手术时间（选填，可选择的年月日选择器，支持清空或修改年月日）。当两个必填字段非空时，右上角与底部「生成计划」按钮可点击，按修改后的解析结果生成计划并进入「确认计划」页。" },
+    "ocr-parsed": { code: "OCRParseResultView", note: "V10.294：仅限创建计划步骤（首次创建计划、用药与复查创建/更新计划），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「资料解析结果」页。默认模拟已识别填好的状态，包含四个可编辑字段：① 疾病信息（必填，多行文本框 context）、② 用药处方（必填，多行文本框 context）、③ 手术名称（选填，多行文本框 context）、④ 手术时间（选填，可选择的年月日选择器，支持清空或修改年月日）。全页仅保留底部一枚「生成计划」主按钮（移除右上角重复按钮），当两个必填字段非空时可点击，按修改后的解析结果生成计划并进入「确认计划」页。" },
     "first-rest": { code: "CreateScheduleFlowView", note: "点名称换预设；点时刻出居中「时刻调整」弹层（标题为事项名，双列时/分步进，分步长 5，取消 / 完成，点遮罩取消）。默认六项（起床 / 三餐 / 午休 / 睡觉，不含测血压）。「稍后」关整段创建流回首页；底栏「拍照上传病历」替换本页，不压栈。" },
     "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表（不再单设「计划 / 解析依据」顶部切换与解析依据页），解析来源直接写明在每条计划卡片的补充备注里（如「依据出院记录，阿司匹林肠溶片每日用药一次」「依据出院记录，确诊高血压3级，每日测血压两次」「依据出院记录，2026年9月17日出院，每月复查一次」）；起床、早餐等非解析预设日程初始为无备注空集，默认显示「可编辑备注」占位。点开备注或点「编辑」即可修改。作息区首次入组才带；复查置底标红；底栏一枚「重新拍照解析」；右上「确认」写入用药+复查，左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
@@ -11765,8 +11760,7 @@
       <div class="page">
         ${navBar(
           `<button class="nav-text blue" data-act="back" type="button">${I.chevL}返回</button>`,
-          "资料解析结果",
-          `<button id="ocr-parsed-top-btn" class="nav-text ${ready ? "blue" : "dim"}" data-act="generatePlanFromParsed" ${ready ? "" : "disabled"} type="button">生成计划</button>`
+          "资料解析结果"
         )}
         <div class="scroll px20" style="padding-top:10px;padding-bottom:110px">
           <p class="s14 fm t-sec" style="margin:2px 0 14px;line-height:1.5">请核对并确认以下资料解析结果，可直接点按修改后再生成计划。</p>
