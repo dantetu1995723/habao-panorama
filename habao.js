@@ -4285,7 +4285,7 @@
   function customRuleDisplayName(count, unit) {
     const u = (unit === "week" || unit === "month") ? unit : "day";
     const n = clampRuleInterval(count, u);
-    return u === "week" ? `每${n}周` : u === "month" ? `每${n}月` : `每${n}天`;
+    return u === "week" ? `每${n}周一次` : u === "month" ? `每${n}月一次` : `每${n}天一次`;
   }
   function durationGranularity(rule, intervalUnit = S.draft?.intervalUnit) {
     if (rule === "custom") {
@@ -4609,13 +4609,9 @@
     const data = !disabled && act ? `data-act="${act}" ${extra || ""}` : "";
     return `<button class="${cls}" style="background:${bg};color:${color}" ${data} type="button">${icon || ""}<span>${label}</span></button>`;
   }
-  function monthDayHints(days) {
-    const hints = [];
-    if (days.includes(29)) hints.push("平年二月没有29日，该月跳过");
-    if (days.includes(30)) hints.push("二月没有30日，该月跳过");
-    if (days.includes(31)) hints.push("二、四、六、九、十一月没有31日，这些月份跳过");
-    if (days.includes(0)) hints.push("每个月自动落在最后一天，二月28或29日，小月30日，大月31日");
-    return hints;
+  const MONTH_DAY_SPECIAL_NOTE = "29、30、31号在无该日期的月份会自动跳过；「月末」固定为每月最后一天（自动适配大小月及二月28/29日）。";
+  function monthDayHints() {
+    return [MONTH_DAY_SPECIAL_NOTE];
   }
   function durationOpts(rule, intervalUnit) {
     const g = durationGranularity(rule, intervalUnit);
@@ -16901,7 +16897,7 @@
           if ((d.monthDays || []).includes(0)) days.push("月末");
           return days.length ? `每月${days.join("、")}` : "每月重复执行";
         }
-        return `${customRuleDisplayName(d.intervalCount, d.intervalUnit)}重复执行`;
+        return customRuleDisplayName(d.intervalCount, d.intervalUnit);
       })();
 
       const planTypeHTML = (viewing || lockRec)
@@ -16940,7 +16936,8 @@
             chip({ selected: (d.weekdays || []).includes(n), label: lab, act: "draftWeek", extra: `data-w="${n}"`, compact: true })).join("")}</div>` : ""}
           ${d.rule === "monthly" ? `<div class="month-day-grid mt8">${Array.from({ length: 31 }, (_, i) => i + 1).map((day) =>
             chip({ selected: (d.monthDays || []).includes(day), label: String(day), act: "draftMonthDay", extra: `data-d="${day}"`, compact: true })).join("")}
-            ${chip({ selected: (d.monthDays || []).includes(0), label: "月末", act: "draftMonthDay", extra: 'data-d="0"', compact: true })}</div>` : ""}`;
+            ${chip({ selected: (d.monthDays || []).includes(0), label: "月末", act: "draftMonthDay", extra: 'data-d="0"', compact: true })}</div>
+            <div class="month-day-hint">${MONTH_DAY_SPECIAL_NOTE}</div>` : ""}`;
 
       const scheduleCard = `
         <div class="v02-editor-card">
