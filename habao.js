@@ -368,7 +368,7 @@
     const src = ARCHIVE_DEMO[key];
     const groups = key === "baseline"
       ? [...src.groups.filter((g) => g.title.startsWith("出院记录")), ...src.groups.filter((g) => !g.title.startsWith("出院记录"))]
-      : src.groups;
+      : visitBaseDisplayGroups();
     const total = groups.reduce((s, g) => s + g.pages, 0);
     if (!groups.length) {
       return `<div class="ta-c" style="padding:44px 8px">
@@ -378,7 +378,7 @@
     }
     return `${total > 0 ? `<div class="s15 fsb" style="color:var(--blue);opacity:.72">共 ${total} 张</div>` : ""}
       ${groups.map((g) => {
-        const gi = src.groups.indexOf(g);
+        const gi = src.groups.findIndex((x) => x.title === g.title);
         return `
         <div class="hr-group">
           <div class="flex between" style="align-items:baseline">
@@ -396,7 +396,7 @@
                 <button class="hr-thumb-del" data-act="delHrPage" data-k="${key}" data-gi="${gi}" data-pi="${i}" type="button" aria-label="删除${g.title}第${i + 1}页">×</button>
               </div>`).join("")}
           </div>` : `
-          <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">请返回拍摄并上传出院记录，否则缺少构建计划的解析依据。</p>`}
+          <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">${key === "review" ? `暂未上传${g.title}报告，可点击下方按钮补充上传。` : "请返回拍摄并上传出院记录，否则缺少构建计划的解析依据。"}</p>`}
         </div>`;
       }).join("")}`;
   }
@@ -2029,13 +2029,63 @@
     const w = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
     return n >= 1 && n <= 10 ? `第${w[n]}` : `第${n}`;
   }
+  function parseVisitOrd(title, fallback = 1) {
+    if (!title) return fallback;
+    const w = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+    for (let i = 10; i >= 1; i--) {
+      if (String(title).startsWith(`第${w[i]}次`)) return i;
+    }
+    const m = String(title).match(/^第(\d+)次/);
+    return m ? +m[1] : fallback;
+  }
+  function visitBaseFilledOrds() {
+    const set = new Set();
+    (ARCHIVE_DEMO.review.groups || []).forEach((g, idx) => {
+      if (g.pages > 0) set.add(g.ord || parseVisitOrd(g.title, idx + 1));
+    });
+    return set;
+  }
+  function nextDefaultVisitOrd() {
+    const filled = visitBaseFilledOrds();
+    if (!filled.size) return 1;
+    const maxOrd = Math.max(...filled);
+    for (let i = 1; i <= maxOrd; i++) {
+      if (!filled.has(i)) return i;
+    }
+    return maxOrd + 1;
+  }
+  function visitBaseDisplayGroups() {
+    const raw = ARCHIVE_DEMO.review.groups || [];
+    const filled = raw.filter((g) => g.pages > 0);
+    if (!filled.length) return [];
+    const byOrd = new Map();
+    filled.forEach((g, idx) => {
+      const ord = g.ord || parseVisitOrd(g.title, idx + 1);
+      g.ord = ord;
+      g.title = `${cnOrdinal(ord)}次复查`;
+      byOrd.set(ord, g);
+    });
+    const maxOrd = Math.max(...byOrd.keys());
+    const out = [];
+    for (let ord = 1; ord <= maxOrd; ord++) {
+      if (byOrd.has(ord)) {
+        out.push(byOrd.get(ord));
+      } else {
+        out.push({ ord, title: `${cnOrdinal(ord)}次复查`, pages: 0 });
+      }
+    }
+    return out;
+  }
   function seedDocGroups(pages = 0) {
     S.docSeq = 1;
+    const initOrd = nextDefaultVisitOrd();
     S.docGroups = isVisitCapture()
-      ? [{ id: 1, cat: "reviewReport", pages }]
+      ? [{ id: 1, cat: "reviewReport", ord: initOrd, pages }]
       : [{ id: 1, cat: "dischargeRecord", pages }];
     S.activeGroup = 1;
     S.pendingCat = S.docGroups[0].cat;
+    S.pendingCats = [S.docGroups[0].cat];
+    S.pendingVisitOrds = [initOrd];
     S.catPickerMode = "newGroup";
     S.catPickerGroup = null;
   }
@@ -2044,9 +2094,9 @@
   }
   function groupDisplayName(g) {
     if (isVisitCapture()) {
-      const baseCount = (ARCHIVE_DEMO.review.groups || []).length;
+      if (g.ord && g.ord >= 1) return `${cnOrdinal(g.ord)}次复查`;
       const i = S.docGroups.findIndex((x) => x.id === g.id);
-      return `${cnOrdinal(baseCount + i + 1)}次复查`;
+      return `${cnOrdinal(i + 1)}次复查`;
     }
     const same = S.docGroups.filter((x) => x.cat === g.cat);
     if (same.length > 1) {
@@ -2056,13 +2106,15 @@
     return docCat(g.cat).t;
   }
   function canDeleteDocGroup(g) {
-    if (isVisitCapture()) return false;
+    if (isVisitCapture()) return S.docGroups.length > 1;
     if (!docCat(g.cat).req) return true;
     return S.docGroups.filter((x) => x.cat === g.cat).length > 1;
   }
   function orderedDocGroups() {
     const all = S.docGroups || [];
-    if (isVisitCapture()) return all;
+    if (isVisitCapture()) {
+      return [...all].sort((a, b) => (a.ord || 1) - (b.ord || 1));
+    }
     return [
       ...all.filter((g) => g.cat === "dischargeRecord"),
       ...all.filter((g) => g.cat !== "dischargeRecord"),
@@ -2070,7 +2122,7 @@
   }
   function reviewDisplayDocGroups() {
     const all = orderedDocGroups();
-    if (isVisitCapture()) return all.filter((g) => g.pages > 0);
+    if (isVisitCapture()) return all;
     const hasNonEmptyDischarge = all.some((g) => g.cat === "dischargeRecord" && g.pages > 0);
     const firstDischargeId = all.find((g) => g.cat === "dischargeRecord")?.id;
     return all.filter((g) => {
@@ -2085,12 +2137,15 @@
   }
   function submitBlockedHint() {
     if (!isVisitCapture()) return "请先拍摄出院记录（必传）";
-    const g = activeDoc();
-    return `请先拍摄${g ? groupDisplayName(g) : "复查"}报告`;
+    return "请先拍摄复查报告";
   }
-  function startNewDocGroup(cat) {
+  function startNewDocGroup(cat, visitOrd = null) {
     S.docSeq += 1;
-    S.docGroups.push({ id: S.docSeq, cat, pages: 0 });
+    const ord = visitOrd || (isVisitCapture() ? Math.max(0, ...S.docGroups.map((g) => g.ord || 1)) + 1 : undefined);
+    S.docGroups.push({ id: S.docSeq, cat, ord, pages: 0 });
+    if (isVisitCapture()) {
+      S.docGroups.sort((a, b) => (a.ord || 1) - (b.ord || 1));
+    }
     S.activeGroup = S.docSeq;
   }
   function toastHTML() {
@@ -5032,11 +5087,20 @@
     // 复查报告按批次新增「第N次复查」，基础报告按类别名合并追加，并同步写入人物档案快照
     const addedVisits = [];
     if (visit) {
-      filled.forEach((g) => {
-        const ordTitle = `${cnOrdinal(ARCHIVE_DEMO.review.groups.length + 1)}次复查`;
-        ARCHIVE_DEMO.review.groups.push({ title: ordTitle, pages: g.pages });
+      filled.forEach((g, idx) => {
+        const ord = g.ord || (idx + 1);
+        const ordTitle = `${cnOrdinal(ord)}次复查`;
+        const existing = ARCHIVE_DEMO.review.groups.find((x, i) => (x.ord || parseVisitOrd(x.title, i + 1)) === ord);
+        if (existing) {
+          existing.pages += g.pages;
+          existing.ord = ord;
+          existing.title = ordTitle;
+        } else {
+          ARCHIVE_DEMO.review.groups.push({ ord, title: ordTitle, pages: g.pages });
+        }
         addedVisits.push(`${ordTitle} ${g.pages} 页`);
       });
+      ARCHIVE_DEMO.review.groups.sort((a, b) => (a.ord || parseVisitOrd(a.title, 1)) - (b.ord || parseVisitOrd(b.title, 1)));
     } else {
       filled.forEach((g) => {
         const catTitle = docCat(g.cat).t;
@@ -7344,6 +7408,18 @@
           toast(submitBlockedHint());
           return;
         }
+        if (isVisitCapture()) {
+          const maxOrd = Math.max(1, ...S.docGroups.map((g) => g.ord || 1));
+          const baseOrds = visitBaseFilledOrds();
+          for (let ord = 1; ord <= maxOrd; ord++) {
+            const inTrack = S.docGroups.some((g) => g.ord === ord);
+            if (!inTrack && !baseOrds.has(ord)) {
+              S.docSeq += 1;
+              S.docGroups.push({ id: S.docSeq, cat: "reviewReport", ord, pages: 0 });
+            }
+          }
+          S.docGroups.sort((a, b) => (a.ord || 1) - (b.ord || 1));
+        }
         go("ocr-detail", "push");
       },
       ocrParse() {
@@ -7356,19 +7432,72 @@
         finishArchive();
       },
       addDocGroup() {
-        if (isVisitCapture()) { startNewDocGroup("reviewReport"); render(); return; }
         S.catPickerMode = "newGroup";
-        S.pendingCat = "dischargeRecord";
         S.catPickerGroup = null;
+        if (isVisitCapture()) {
+          S.pendingVisitOrds = S.docGroups.map((g) => g.ord || 1);
+        } else {
+          S.pendingCat = "dischargeRecord";
+          S.pendingCats = ["dischargeRecord"];
+        }
         openOverlay("catPick");
       },
-      pickDocCat() { S.pendingCat = el.dataset.c; render(); },
+      pickDocCat() {
+        if (isVisitCapture()) {
+          const ord = +el.dataset.ord;
+          if (!ord) return;
+          if (!Array.isArray(S.pendingVisitOrds)) S.pendingVisitOrds = [];
+          const locked = S.docGroups.some((g) => g.ord === ord && g.pages > 0);
+          if (S.pendingVisitOrds.includes(ord)) {
+            if (locked) { toast("该复查已拍有照片，请在轨道或详情页清空"); return; }
+            S.pendingVisitOrds = S.pendingVisitOrds.filter((x) => x !== ord);
+          } else {
+            S.pendingVisitOrds = [...S.pendingVisitOrds, ord];
+          }
+          render();
+          return;
+        }
+        const c = el.dataset.c;
+        if (S.catPickerMode === "change") {
+          S.pendingCat = c;
+        } else {
+          if (!Array.isArray(S.pendingCats)) S.pendingCats = [];
+          if (S.pendingCats.includes(c)) {
+            S.pendingCats = S.pendingCats.filter((x) => x !== c);
+          } else {
+            S.pendingCats = [...S.pendingCats, c];
+          }
+        }
+        render();
+      },
       confirmDocCat() {
+        if (isVisitCapture()) {
+          const ords = [...new Set(S.pendingVisitOrds || [])].sort((a, b) => a - b);
+          if (!ords.length) { toast("请至少选择一次复查"); return; }
+          S.docGroups = S.docGroups.filter((g) => g.pages > 0 || ords.includes(g.ord));
+          let lastId = S.activeGroup;
+          ords.forEach((ord) => {
+            const existing = S.docGroups.find((g) => g.ord === ord);
+            if (!existing) {
+              S.docSeq += 1;
+              S.docGroups.push({ id: S.docSeq, cat: "reviewReport", ord, pages: 0 });
+              lastId = S.docSeq;
+            } else {
+              lastId = existing.id;
+            }
+          });
+          S.docGroups.sort((a, b) => (a.ord || 1) - (b.ord || 1));
+          S.activeGroup = lastId || S.docGroups[0]?.id || 1;
+          closeOverlay();
+          return;
+        }
         if (S.catPickerMode === "change") {
           const g = S.docGroups.find((x) => x.id === S.catPickerGroup);
           if (g) g.cat = S.pendingCat;
         } else {
-          startNewDocGroup(S.pendingCat);
+          const selected = DOC_CATS.map((c) => c.id).filter((id) => (S.pendingCats || []).includes(id));
+          if (!selected.length) { toast("请至少选择一个类别"); return; }
+          selected.forEach((catId) => startNewDocGroup(catId));
         }
         closeOverlay();
       },
@@ -7382,12 +7511,8 @@
         const id = +el.dataset.id;
         const g = S.docGroups.find((x) => x.id === id);
         if (!g) return;
-        if (isVisitCapture()) {
+        if (isVisitCapture() && S.screen === "ocr-detail") {
           g.pages = 0;
-          if (S.screen === "ocr-detail" || S.screen === "ocr-group") {
-            if (!popTo("ocr-capture")) replace("ocr-capture");
-            return;
-          }
           render();
           return;
         }
@@ -7397,15 +7522,11 @@
             render();
             return;
           }
-          toast(`${docCat(g.cat).t}为必传，至少保留一组`);
+          toast(`${isVisitCapture() ? "复查报告" : docCat(g.cat).t}至少保留一组`);
           return;
         }
         S.docGroups = S.docGroups.filter((x) => x.id !== id);
         if (S.activeGroup === id) S.activeGroup = S.docGroups[0]?.id || 0;
-        if (S.screen === "ocr-detail" && isVisitCapture() && !S.docGroups.some((x) => x.pages > 0)) {
-          if (!popTo("ocr-capture")) replace("ocr-capture");
-          return;
-        }
         if (S.screen === "ocr-group" && !S.docGroups.some((x) => x.id === S.activeGroup)) {
           if (!popTo("ocr-capture")) replace("ocr-capture");
           return;
@@ -7416,13 +7537,9 @@
         const g = S.docGroups.find((x) => x.id === +el.dataset.id);
         if (!g || g.pages <= 0) return;
         g.pages -= 1;
-        if (S.screen === "ocr-detail" && g.pages <= 0 && canDeleteDocGroup(g)) {
+        if (S.screen === "ocr-detail" && !isVisitCapture() && g.pages <= 0 && canDeleteDocGroup(g)) {
           S.docGroups = S.docGroups.filter((x) => x.id !== g.id);
           if (S.activeGroup === g.id) S.activeGroup = S.docGroups[0]?.id || 0;
-        }
-        if (S.screen === "ocr-detail" && isVisitCapture() && !S.docGroups.some((x) => x.pages > 0)) {
-          if (!popTo("ocr-capture")) replace("ocr-capture");
-          return;
         }
         render();
       },
@@ -10223,18 +10340,22 @@
         const k = el.dataset.k;
         const gi = +el.dataset.gi;
         const src = ARCHIVE_DEMO[k];
-        if (!src || !src.groups[gi]) return;
+        if (!src || gi < 0 || !src.groups[gi]) return;
         src.groups[gi].pages -= 1;
         if (src.groups[gi].pages <= 0) {
-          const isRequiredDischarge = k === "baseline" && src.groups[gi].title.startsWith("出院记录");
-          const dischargeCount = k === "baseline" ? src.groups.filter((x) => x.title.startsWith("出院记录")).length : 0;
-          if (!isRequiredDischarge || dischargeCount > 1) {
+          if (k === "review") {
+            src.groups.forEach((g, idx) => {
+              if (!g.ord) g.ord = parseVisitOrd(g.title, idx + 1);
+            });
             src.groups.splice(gi, 1);
-            if (k === "review") {
-              src.groups.forEach((g, idx) => { g.title = `${cnOrdinal(idx + 1)}次复查`; });
-            }
           } else {
-            src.groups[gi].pages = 0;
+            const isRequiredDischarge = k === "baseline" && src.groups[gi].title.startsWith("出院记录");
+            const dischargeCount = k === "baseline" ? src.groups.filter((x) => x.title.startsWith("出院记录")).length : 0;
+            if (!isRequiredDischarge || dischargeCount > 1) {
+              src.groups.splice(gi, 1);
+            } else {
+              src.groups[gi].pages = 0;
+            }
           }
         }
         syncCurrentPersonArchiveSnapshot();
@@ -11199,24 +11320,19 @@
 
     "ocr-capture": () => {
       if (!S.docGroups) seedDocGroups(0);
-      const visit = isVisitCapture();
       const g = activeDoc();
-      const visitName = visit && g ? groupDisplayName(g) : "";
-      const hint = visit
-        ? `对准${visitName}报告，保持画面清晰`
-        : (g ? docCat(g.cat).hint : "点快门或新建组开始拍摄");
-      const navTitle = visit ? visitName : "上传资料";
+      const hint = g ? docCat(g.cat).hint : "点快门或新建组开始拍摄";
       const ready = canSubmitCapture();
       const pages = g?.pages || 0;
       return `
       <div class="page" style="background:#111">
         ${navBar(`<button class="nav-text nav-hit t-white" data-act="laterCapture" type="button">稍后</button>`,
-          `<span style="color:#fff">${navTitle}</span>`,
+          `<span style="color:#fff">上传资料</span>`,
           `<button class="nav-text nav-hit ${ready ? "t-white" : "nav-wait"}" ${ready ? 'data-act="ocrConfirm"' : "disabled"} type="button">确认</button>`)}
         <div class="grow rel" style="margin:8px 0;background:#1a1a1a">
           <div class="abs t-sec ta-c" style="left:16px;right:16px;top:40%;color:#9aa">${hint}</div>
         </div>
-        ${!visit && S.docGroups.length ? `
+        ${S.docGroups.length ? `
         <div class="doc-track">
           <button class="doc-add" data-act="addDocGroup" type="button"><span>＋</span>新建组</button>
           ${orderedDocGroups().map((x) => `
@@ -11277,7 +11393,7 @@
               ${Array.from({ length: g.pages }, (_, i) => `
                 <button class="doc-page" data-act="delDocPage" data-id="${g.id}" data-p="${i}" type="button">第${i + 1}页<span>×</span></button>`).join("")}
             </div>` : `
-            <p class="s15 fm t-sec" style="margin:2px 0 20px;line-height:1.5">请返回拍摄并上传出院记录，否则缺少构建计划的解析依据。</p>`}`).join("") : `<div class="ta-c" style="padding:44px 8px">
+            <p class="s15 fm t-sec" style="margin:2px 0 20px;line-height:1.5">${isVisitCapture() ? `暂未上传${groupDisplayName(g)}报告，可返回拍摄补充。` : "请返回拍摄并上传出院记录，否则缺少构建计划的解析依据。"}</p>`}`).join("") : `<div class="ta-c" style="padding:44px 8px">
               <div class="s16 fb t-sec">暂无可提交的资料</div>
             </div>`}
         </div>
@@ -12499,7 +12615,7 @@
         const src = ARCHIVE_DEMO[key];
         const groups = key === "baseline"
           ? [...src.groups.filter((g) => g.title.startsWith("出院记录")), ...src.groups.filter((g) => !g.title.startsWith("出院记录"))]
-          : src.groups;
+          : visitBaseDisplayGroups();
         const expanded = !!S.hrExpanded[key];
         const count = groups.reduce((s, g) => s + g.pages, 0);
         return `<div class="hr-src">
@@ -12510,7 +12626,7 @@
             <span class="hr-chev ${expanded ? "open" : ""}">${I.chevD}</span>
           </button>
           ${expanded ? (groups.length ? groups.map((g) => {
-            const gi = src.groups.indexOf(g);
+            const gi = src.groups.findIndex((x) => x.title === g.title);
             return `
             <div class="hr-group">
               <div class="flex between" style="align-items:baseline">
@@ -12527,7 +12643,8 @@
                     </button>
                     <button class="hr-thumb-del" data-act="delHrPage" data-k="${key}" data-gi="${gi}" data-pi="${i}" type="button" aria-label="删除${g.title}第${i + 1}页">×</button>
                   </div>`).join("")}
-              </div>` : `
+              </div>` : key === "review" ? `
+              <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">暂未上传${g.title}报告，可点击下方按钮补充上传。</p>` : `
               <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">请返回拍摄并上传出院记录，否则缺少构建计划的解析依据。</p>`}
             </div>`;
           }).join("") : `<p class="s15 fm t-sec">${src.empty}</p>`) : ""}
@@ -17706,25 +17823,61 @@
         </div>
       </div>`;
     },
-    catPick: () => `
+    catPick: () => {
+      if (isVisitCapture()) {
+        const selected = S.pendingVisitOrds || [];
+        const inTrack = new Set((S.docGroups || []).map((g) => g.ord || 1));
+        const inBase = visitBaseFilledOrds();
+        return `
+        <div class="scrim bottom" data-act="close">
+          <div class="sheet large" onclick="event.stopPropagation()">
+            <div class="grab"></div>
+            <div class="flex between" style="padding:0 2px 8px">
+              <button class="nav-text" data-act="close" type="button">取消</button>
+              <h3 class="s17" style="margin:0">选择复查次数（可多选）</h3>
+              <button class="nav-text blue" data-act="confirmDocCat" type="button">确认</button>
+            </div>
+            <div class="cat-list">
+              ${Array.from({ length: 10 }, (_, idx) => {
+                const ord = idx + 1;
+                const on = selected.includes(ord);
+                const badge = inTrack.has(ord) ? "当前已建" : (inBase.has(ord) ? "已有资料" : "");
+                return `
+                <button class="cat-row ${on ? "on" : ""}" data-act="pickDocCat" data-ord="${ord}" type="button">
+                  <span class="cat-ico">${I.doc}</span>
+                  <span class="grow ta-l"><b>${cnOrdinal(ord)}次复查</b>${badge ? `<i>${badge}</i>` : ""}</span>
+                  ${on ? `<span class="cat-check">${I.check}</span>` : ""}
+                </button>`;
+              }).join("")}
+            </div>
+          </div>
+        </div>`;
+      }
+      const multi = S.catPickerMode !== "change";
+      const selectedCats = multi ? (S.pendingCats || []) : [S.pendingCat];
+      return `
       <div class="scrim bottom" data-act="close">
         <div class="sheet large" onclick="event.stopPropagation()">
           <div class="grab"></div>
           <div class="flex between" style="padding:0 2px 8px">
             <button class="nav-text" data-act="close" type="button">取消</button>
-            <h3 class="s17" style="margin:0">选择类别</h3>
+            <h3 class="s17" style="margin:0">${multi ? "选择类别（可多选）" : "选择类别"}</h3>
             <button class="nav-text blue" data-act="confirmDocCat" type="button">确认</button>
           </div>
           <div class="cat-list">
-            ${DOC_CATS.map((c) => `
-              <button class="cat-row ${S.pendingCat === c.id ? "on" : ""}" data-act="pickDocCat" data-c="${c.id}" type="button">
+            ${DOC_CATS.map((c) => {
+              const on = selectedCats.includes(c.id);
+              return `
+              <button class="cat-row ${on ? "on" : ""}" data-act="pickDocCat" data-c="${c.id}" type="button">
                 <span class="cat-ico">${I.doc}</span>
                 <span class="grow ta-l"><b>${c.t}</b>${c.req ? `<i>必传</i>` : ""}</span>
-                ${S.pendingCat === c.id ? `<span class="cat-check">${I.check}</span>` : ""}
-              </button>`).join("")}
+                ${on ? `<span class="cat-check">${I.check}</span>` : ""}
+              </button>`;
+            }).join("")}
           </div>
         </div>
-      </div>`,
+      </div>`;
+    },
     archivePick: () => `
       <div class="scrim center" data-act="close">
         <div class="popup" onclick="event.stopPropagation()">
