@@ -531,6 +531,93 @@
     S.appts = null;
     S.bps = null;
     S.diseaseInfo = null;
+    S.parsedResult = null;
+  }
+
+  function ensureParsedResult(forceReset = false) {
+    if (!S.parsedResult || forceReset) {
+      const defaultMeds = MEDS.map((m) => `${m.name} ${m.dose} ${m.freq} ${m.usage}`).join("\n");
+      S.parsedResult = {
+        disease: DISEASE_INFO.join("、"),
+        medication: defaultMeds,
+        surgeryName: "冠脉造影 + PCI术",
+        surgeryYMD: "2026-09-08",
+      };
+    }
+    return S.parsedResult;
+  }
+
+  function canGeneratePlanFromParsed() {
+    const p = ensureParsedResult(false);
+    return Boolean((p.disease || "").trim() && (p.medication || "").trim());
+  }
+
+  function parseMedicationLineToItem(line) {
+    const tokens = String(line || "").trim().split(/\s+/).filter(Boolean);
+    const name = tokens[0] || "用药";
+    let dose = "100mg";
+    let freq = "每日 1 次";
+    let usage = "口服";
+    const rest = tokens.slice(1);
+    const doseParts = [];
+    const freqParts = [];
+    const usageParts = [];
+    rest.forEach((tok) => {
+      const low = tok.toLowerCase();
+      if (/每日|每晚|每天|次|qd|bid|tid|qn/.test(low)) {
+        freqParts.push(tok);
+      } else if (/口服|餐|睡前|空腹|早|午|晚/.test(low)) {
+        usageParts.push(tok);
+      } else if (!doseParts.length || /mg|g|μg|片|粒|ml|iu/.test(low)) {
+        doseParts.push(tok);
+      } else {
+        freqParts.push(tok);
+      }
+    });
+    if (doseParts.length) dose = doseParts.join(" ");
+    if (freqParts.length) freq = freqParts.join(" ");
+    if (usageParts.length) usage = usageParts.join(" ");
+    const combined = `${freq} ${usage}`;
+    let time = "08:00";
+    if (/睡前|每晚|qn/i.test(combined)) time = "21:00";
+    else if (/午餐|午间/.test(combined)) time = "12:00";
+    else if (/晚餐/.test(combined)) time = "18:30";
+    else if (/空腹|餐前/.test(combined)) time = "07:30";
+    return { name, dose, freq, usage, time, src: name };
+  }
+
+  function applyParsedResultToPlan() {
+    const p = ensureParsedResult(false);
+    const diseaseLabelsList = String(p.disease || "")
+      .split(/[、，,；;\n]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    S.diseaseInfo = diseaseLabelsList.length ? diseaseLabelsList : [String(p.disease || "").trim()];
+
+    const medLines = String(p.medication || "")
+      .split(/[\n；;]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    S.meds = medLines.map(parseMedicationLineToItem);
+
+    const hasHTN = S.diseaseInfo.some((d) => d.indexOf("高血压") >= 0);
+    S.bps = hasHTN ? parsedBloodPressureRows().map((r) => ({ title: r.name, time: r.t, src: r.name })) : [];
+
+    const appts = [
+      { title: "心内科复查", source: "出院日期", category: "出院记录", sourceYMD: "2026-09-17", addDays: 7, time: "09:00" },
+    ];
+    if (p.surgeryYMD) {
+      appts.push({
+        title: "心内科复查",
+        source: "手术日期",
+        category: "手术记录",
+        sourceYMD: p.surgeryYMD,
+        addMonths: 1,
+        time: "09:00",
+      });
+    }
+    S.appts = appts;
+    seedConfirmDrafts();
   }
   const ymdCn = (ymd) => {
     const d = parseYMD(ymd);
@@ -644,6 +731,40 @@
   // 打字只落草稿 + 更新候选行、**不整体重绘**（否则输入框当场丢焦点）；
   // 点这一块的「确认」才回写（真机：改动先落草稿，不再收起键盘即生效）。
   document.addEventListener("input", (event) => {
+    if (event.target instanceof HTMLTextAreaElement && event.target.dataset.parsedField) {
+      const p = ensureParsedResult(false);
+      const field = event.target.dataset.parsedField;
+      p[field] = event.target.value;
+      const ready = canGeneratePlanFromParsed();
+      const topBtn = document.getElementById("ocr-parsed-top-btn");
+      if (topBtn) {
+        topBtn.className = `nav-text ${ready ? "blue" : "dim"}`;
+        topBtn.disabled = !ready;
+      }
+      const ctaBtn = document.getElementById("ocr-parsed-cta-btn");
+      if (ctaBtn) {
+        ctaBtn.className = `cta h52 ${ready ? "" : "off"}`;
+        ctaBtn.disabled = !ready;
+      }
+      return;
+    }
+    if (event.target instanceof HTMLSelectElement && event.target.dataset.parsedDate) {
+      const p = ensureParsedResult(false);
+      const cur = parseYMD(p.surgeryYMD || "2026-09-08");
+      let y = cur.getFullYear();
+      let m = cur.getMonth() + 1;
+      let d = cur.getDate();
+      const part = event.target.dataset.parsedDate;
+      const val = parseInt(event.target.value, 10);
+      if (part === "year") y = val;
+      else if (part === "month") m = val;
+      else if (part === "day") d = val;
+      const maxDay = new Date(y, m, 0).getDate();
+      d = Math.min(d, maxDay);
+      p.surgeryYMD = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      render();
+      return;
+    }
     if (event.target instanceof HTMLInputElement) {
       if (event.target.name === "fname") {
         S.famDraftName = event.target.value;
@@ -1134,6 +1255,8 @@
     "first-rest>ocr-capture": "replace",
     "ocr-capture>ocr-group": "push",
     "ocr-capture>ocr-detail": "push",
+    "ocr-detail>ocr-parsed": "push",
+    "ocr-parsed>confirm-plan": "push",
     "exercise-risk>body-test": "replace",
     "body-test>borg": "push",
     "borg>confirm-exercise": "push",
@@ -1217,6 +1340,7 @@
     { g: "栈内 Push · 创建与报告", items: [
       { id: "ocr-group", t: "当前组资料", code: "IntakeCaptureView", how: "push" },
       { id: "ocr-detail", t: "资料详情", code: "IntakeCaptureView", how: "push" },
+      { id: "ocr-parsed", t: "资料解析结果", code: "OCRParseResultView", how: "push" },
       { id: "confirm-plan", t: "确认计划", code: "InfoWithScreeningHost", how: "push" },
       { id: "borg", t: "感受问卷", code: "BorgQuestionnaireView", how: "push" },
       { id: "confirm-exercise", t: "确认运动计划", code: "ExerciseScheduleConfirmView", how: "push" },
@@ -1252,7 +1376,8 @@
     activity: { code: "ActivityLogView", note: "仅 V0.1（V0.0 个人中心没有这一行）。一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内遵循 Who / Where / When / What / How 大一统规则字段，并全面适配「互为家属」与「家属管理」协同逻辑：以 When（时刻 + 细分隔线）做块头，人物胶囊内嵌二元身份标签（本人为 [👤 姓名 · 我]，亲属统一为 [👤 姓名 · 家属]，解绑后追加灰签「已解绑」）；仅展示与当前登录人「我」相关的记录（我自己操作的 + 我在家属管理帮家属操作的 + 家属在家属管理帮我操作的）；跨人代打卡、新增/修改/删除计划在接收方点击「接受」生效时同步写入双方账本，发送提醒在发出时写入（撤回时移除），入口统一记为「家属管理」；长按记录仅提供「删除这条记录」（移除单机时代过时的「改归属」）。" },
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.275：首次建日程与新增用药复查统一走「拍照 → 资料详情 → 解析」独立通道流程，进入时从空白拍摄起（不预载资料 BASE 存量）。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
-    "ocr-detail": { code: "IntakeCaptureView", note: "V10.281：按组分区预览当次拍摄的照片。基础报告中「出院记录」始终固定排在最上方（第一位），且当组内所有图片被删除或点击「清空」时该分组不消失，在标题下展示简洁的灰色说明文字「请返回拍摄并上传出院记录，否则缺少构建计划的解析依据。」；选传组（如化验单等）排在出院记录下方，删空图片后自动移除。首次建日程与新增用药复查的资料详情仅作为通道流程（右上「解析」），不与「资料 BASE」（健康档案 / 基础报告 / 复查报告）打通；健康档案与身体报告子页的补拍通道右上为「提交」，提交后归入共享资料 BASE。" },
+    "ocr-detail": { code: "IntakeCaptureView", note: "V10.289：仅展示前一个拍摄页中已勾选/保留的分组。基础报告或首次上传报告中含出院记录时排在最上方；选传组为空时显示灰色说明文字。首次建日程与新增用药复查的资料详情右上为「解析」，点击后进入「资料解析结果」页；健康档案与身体报告子页的补拍通道右上为「提交」，提交后直接归入共享资料 BASE（不经过资料解析结果页）。" },
+    "ocr-parsed": { code: "OCRParseResultView", note: "V10.293：仅限创建计划步骤（首次创建计划、用药与复查创建/更新计划），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「资料解析结果」页。包含四个可编辑字段：① 疾病信息（必填，多行文本框 context）、② 用药处方（必填，多行文本框 context）、③ 手术名称（选填，多行文本框 context）、④ 手术时间（选填，可选择的年月日选择器，支持清空或修改年月日）。当两个必填字段非空时，右上角与底部「生成计划」按钮可点击，按修改后的解析结果生成计划并进入「确认计划」页。" },
     "first-rest": { code: "CreateScheduleFlowView", note: "点名称换预设；点时刻出居中「时刻调整」弹层（标题为事项名，双列时/分步进，分步长 5，取消 / 完成，点遮罩取消）。默认六项（起床 / 三餐 / 午休 / 睡觉，不含测血压）。「稍后」关整段创建流回首页；底栏「拍照上传病历」替换本页，不压栈。" },
     "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表（不再单设「计划 / 解析依据」顶部切换与解析依据页），解析来源直接写明在每条计划卡片的补充备注里（如「依据出院记录，阿司匹林肠溶片每日用药一次」「依据出院记录，确诊高血压3级，每日测血压两次」「依据出院记录，2026年9月17日出院，每月复查一次」）；起床、早餐等非解析预设日程初始为无备注空集，默认显示「可编辑备注」占位。点开备注或点「编辑」即可修改。作息区首次入组才带；复查置底标红；底栏一枚「重新拍照解析」；右上「确认」写入用药+复查，左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
@@ -4884,9 +5009,12 @@
       "ocr-detail": S.enrolled
         ? [...home, C("schedule"), C("ocr-capture"), P("ocr-detail")]
         : [...home, C("ocr-capture"), P("ocr-detail")],
+      "ocr-parsed": S.enrolled
+        ? [...home, C("schedule"), C("ocr-capture"), P("ocr-detail"), P("ocr-parsed")]
+        : [...home, C("ocr-capture"), P("ocr-detail"), P("ocr-parsed")],
       "confirm-plan": S.enrolled
-        ? [...home, C("schedule"), C("ocr-capture"), P("confirm-plan")]
-        : [...home, C("ocr-capture"), P("confirm-plan")],
+        ? [...home, C("schedule"), C("ocr-capture"), P("ocr-detail"), P("ocr-parsed"), P("confirm-plan")]
+        : [...home, C("ocr-capture"), P("ocr-detail"), P("ocr-parsed"), P("confirm-plan")],
       "task-add": [...home, C("task-add")],
       "task-view": [...home, C("task-view")],
       "task-edit": [...home, C("task-edit")],
@@ -4930,7 +5058,8 @@
   function jump(id) {
     const prevScreen = S.screen;
     resetFlowFlags();
-    if (id === "ocr-detail" || id === "ocr-group") seedDocGroups(3);
+    if (id === "ocr-detail" || id === "ocr-group" || id === "ocr-parsed") seedDocGroups(3);
+    if (id === "ocr-parsed") ensureParsedResult(false);
     if (id === "confirm-plan") {
       seedDocGroups(3);
       S.docSeq += 1;
@@ -7463,7 +7592,26 @@
       },
       ocrParse() {
         if (!canSubmitCapture()) { toast(submitBlockedHint()); return; }
+        ensureParsedResult(true);
+        go("ocr-parsed", "push");
+      },
+      generatePlanFromParsed() {
+        if (!canGeneratePlanFromParsed()) {
+          toast("请填写必填项：疾病信息与用药处方");
+          return;
+        }
+        applyParsedResultToPlan();
         go("confirm-plan", "push");
+      },
+      clearParsedSurgeryDate() {
+        const p = ensureParsedResult(false);
+        p.surgeryYMD = "";
+        render();
+      },
+      restoreParsedSurgeryDate() {
+        const p = ensureParsedResult(false);
+        p.surgeryYMD = "2026-09-08";
+        render();
       },
       ocrSubmit() {
         if (!canSubmitCapture()) { toast(submitBlockedHint()); return; }
@@ -11596,6 +11744,89 @@
             <p class="s15 fm t-sec" style="margin:2px 0 20px;line-height:1.5">${isVisitCapture() ? `暂未上传${groupDisplayName(g)}报告，可返回拍摄补充。` : (requiresDischargeCapture() && g.cat === "dischargeRecord" ? "请返回拍摄并上传出院记录，否则缺少构建计划的解析依据。" : `暂未上传${groupDisplayName(g)}，可返回拍摄补充。`)}</p>`}`).join("") : `<div class="ta-c" style="padding:44px 8px">
               <div class="s16 fb t-sec">暂无可提交的资料</div>
             </div>`}
+        </div>
+      </div>`;
+    },
+
+    "ocr-parsed": () => {
+      const p = ensureParsedResult(false);
+      const ready = canGeneratePlanFromParsed();
+      const hasDate = Boolean(p.surgeryYMD);
+      const dObj = hasDate ? parseYMD(p.surgeryYMD) : new Date(2026, 8, 8);
+      const selY = dObj.getFullYear();
+      const selM = dObj.getMonth() + 1;
+      const selD = dObj.getDate();
+      const maxD = new Date(selY, selM, 0).getDate();
+      const years = [];
+      for (let y = 2015; y <= 2027; y++) years.push(y);
+      const months = Array.from({ length: 12 }, (_, i) => i + 1);
+      const days = Array.from({ length: maxD }, (_, i) => i + 1);
+      return `
+      <div class="page">
+        ${navBar(
+          `<button class="nav-text blue" data-act="back" type="button">${I.chevL}返回</button>`,
+          "资料解析结果",
+          `<button id="ocr-parsed-top-btn" class="nav-text ${ready ? "blue" : "dim"}" data-act="generatePlanFromParsed" ${ready ? "" : "disabled"} type="button">生成计划</button>`
+        )}
+        <div class="scroll px20" style="padding-top:10px;padding-bottom:110px">
+          <p class="s14 fm t-sec" style="margin:2px 0 14px;line-height:1.5">请核对并确认以下资料解析结果，可直接点按修改后再生成计划。</p>
+
+          <div class="parsed-field-card">
+            <div class="parsed-field-head">
+              <span class="parsed-field-title">疾病信息</span>
+              <span class="parsed-badge req">必填</span>
+            </div>
+            <textarea class="parsed-context-input" data-parsed-field="disease" rows="3" placeholder="请输入疾病诊断信息，如：冠心病、PCI术后、高血压3级">${esc(p.disease || "")}</textarea>
+          </div>
+
+          <div class="parsed-field-card">
+            <div class="parsed-field-head">
+              <span class="parsed-field-title">用药处方</span>
+              <span class="parsed-badge req">必填</span>
+            </div>
+            <textarea class="parsed-context-input" data-parsed-field="medication" rows="4" placeholder="请输入用药处方（每行一种药，如：阿司匹林肠溶片 100mg 每日1次 早餐后）">${esc(p.medication || "")}</textarea>
+          </div>
+
+          <div class="parsed-field-card">
+            <div class="parsed-field-head">
+              <span class="parsed-field-title">手术名称</span>
+              <span class="parsed-badge opt">选填</span>
+            </div>
+            <textarea class="parsed-context-input" data-parsed-field="surgeryName" rows="2" placeholder="请输入手术名称（选填，无手术可留空）">${esc(p.surgeryName || "")}</textarea>
+          </div>
+
+          <div class="parsed-field-card">
+            <div class="parsed-field-head">
+              <span class="parsed-field-title">手术时间</span>
+              <span class="parsed-badge opt">选填</span>
+              ${hasDate ? `<button class="parsed-clear-btn" data-act="clearParsedSurgeryDate" type="button">清空</button>` : ""}
+            </div>
+            ${hasDate ? `
+            <div class="parsed-ymd-row">
+              <label class="parsed-ymd-col">
+                <select class="parsed-ymd-select" data-parsed-date="year">
+                  ${years.map((y) => `<option value="${y}" ${y === selY ? "selected" : ""}>${y}年</option>`).join("")}
+                </select>
+              </label>
+              <label class="parsed-ymd-col">
+                <select class="parsed-ymd-select" data-parsed-date="month">
+                  ${months.map((m) => `<option value="${m}" ${m === selM ? "selected" : ""}>${m}月</option>`).join("")}
+                </select>
+              </label>
+              <label class="parsed-ymd-col">
+                <select class="parsed-ymd-select" data-parsed-date="day">
+                  ${days.map((d) => `<option value="${d}" ${d === selD ? "selected" : ""}>${d}日</option>`).join("")}
+                </select>
+              </label>
+            </div>` : `
+            <button class="parsed-ymd-empty" data-act="restoreParsedSurgeryDate" type="button">
+              <span>未选择年月日（选填）</span>
+              <span class="parsed-ymd-pick-link">选择年月日 ›</span>
+            </button>`}
+          </div>
+        </div>
+        <div class="px20 col gap10" style="padding-bottom:28px">
+          <button id="ocr-parsed-cta-btn" class="cta h52 ${ready ? "" : "off"}" data-act="generatePlanFromParsed" ${ready ? "" : "disabled"} type="button">${I.spark}生成计划</button>
         </div>
       </div>`;
     },
