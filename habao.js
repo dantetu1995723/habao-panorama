@@ -745,12 +745,18 @@
     }
     if (event.target instanceof HTMLSelectElement && event.target.dataset.parsedDate) {
       const p = ensureParsedResult(false);
+      const rawVal = event.target.value;
+      if (!rawVal) {
+        p.surgeryYMD = "";
+        render();
+        return;
+      }
       const cur = parseYMD(p.surgeryYMD || "2026-09-08");
       let y = cur.getFullYear();
       let m = cur.getMonth() + 1;
       let d = cur.getDate();
       const part = event.target.dataset.parsedDate;
-      const val = parseInt(event.target.value, 10);
+      const val = parseInt(rawVal, 10);
       if (part === "year") y = val;
       else if (part === "month") m = val;
       else if (part === "day") d = val;
@@ -11795,28 +11801,26 @@
               <span class="parsed-badge opt">选填</span>
               ${hasDate ? `<button class="parsed-clear-btn" data-act="clearParsedSurgeryDate" type="button">清空</button>` : ""}
             </div>
-            ${hasDate ? `
             <div class="parsed-ymd-row">
               <label class="parsed-ymd-col">
                 <select class="parsed-ymd-select" data-parsed-date="year">
-                  ${years.map((y) => `<option value="${y}" ${y === selY ? "selected" : ""}>${y}年</option>`).join("")}
+                  <option value="" ${!hasDate ? "selected" : ""}>选择年</option>
+                  ${years.map((y) => `<option value="${y}" ${hasDate && y === selY ? "selected" : ""}>${y}年</option>`).join("")}
                 </select>
               </label>
               <label class="parsed-ymd-col">
                 <select class="parsed-ymd-select" data-parsed-date="month">
-                  ${months.map((m) => `<option value="${m}" ${m === selM ? "selected" : ""}>${m}月</option>`).join("")}
+                  <option value="" ${!hasDate ? "selected" : ""}>选择月</option>
+                  ${months.map((m) => `<option value="${m}" ${hasDate && m === selM ? "selected" : ""}>${m}月</option>`).join("")}
                 </select>
               </label>
               <label class="parsed-ymd-col">
                 <select class="parsed-ymd-select" data-parsed-date="day">
-                  ${days.map((d) => `<option value="${d}" ${d === selD ? "selected" : ""}>${d}日</option>`).join("")}
+                  <option value="" ${!hasDate ? "selected" : ""}>选择日</option>
+                  ${days.map((d) => `<option value="${d}" ${hasDate && d === selD ? "selected" : ""}>${d}日</option>`).join("")}
                 </select>
               </label>
-            </div>` : `
-            <button class="parsed-ymd-empty" data-act="restoreParsedSurgeryDate" type="button">
-              <span>未选择年月日（选填）</span>
-              <span class="parsed-ymd-pick-link">选择年月日 ›</span>
-            </button>`}
+            </div>
           </div>
         </div>
         <div class="px20 col gap10" style="padding-bottom:28px">
