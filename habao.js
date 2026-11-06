@@ -367,15 +367,9 @@
     const key = S.reportKind === "visit" ? "review" : "baseline";
     const src = ARCHIVE_DEMO[key];
     const groups = key === "baseline"
-      ? [...src.groups.filter((g) => g.title.startsWith("出院记录")), ...src.groups.filter((g) => !g.title.startsWith("出院记录"))]
+      ? baselineBaseDisplayGroups()
       : visitBaseDisplayGroups();
     const total = groups.reduce((s, g) => s + g.pages, 0);
-    if (!groups.length) {
-      return `<div class="ta-c" style="padding:44px 8px">
-        <div class="s19 fsb t">${src.empty}</div>
-        <div class="s15 fm t-sec" style="margin-top:8px">点下方「新增报告资料」拍照上传。</div>
-      </div>`;
-    }
     return `${total > 0 ? `<div class="s15 fsb" style="color:var(--blue);opacity:.72">共 ${total} 张</div>` : ""}
       ${groups.map((g) => {
         const gi = src.groups.findIndex((x) => x.title === g.title);
@@ -396,7 +390,7 @@
                 <button class="hr-thumb-del" data-act="delHrPage" data-k="${key}" data-gi="${gi}" data-pi="${i}" type="button" aria-label="删除${g.title}第${i + 1}页">×</button>
               </div>`).join("")}
           </div>` : `
-          <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">${key === "review" ? `暂未上传${g.title}报告，可点击下方按钮补充上传。` : "请返回拍摄并上传出院记录，否则缺少构建计划的解析依据。"}</p>`}
+          <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">${key === "review" ? `暂未上传${g.title}报告，可点击下方按钮补充上传。` : `暂未上传${g.title}，可点击下方按钮补充上传。`}</p>`}
         </div>`;
       }).join("")}`;
   }
@@ -2054,10 +2048,20 @@
     }
     return maxOrd + 1;
   }
+  function baselineBaseDisplayGroups() {
+    const raw = ARCHIVE_DEMO.baseline.groups || [];
+    const byTitle = new Map();
+    raw.forEach((g) => {
+      if (g.pages > 0) byTitle.set(g.title, g);
+    });
+    return DOC_CATS.map((c) => {
+      if (byTitle.has(c.t)) return byTitle.get(c.t);
+      return { title: c.t, pages: 0 };
+    });
+  }
   function visitBaseDisplayGroups() {
     const raw = ARCHIVE_DEMO.review.groups || [];
     const filled = raw.filter((g) => g.pages > 0);
-    if (!filled.length) return [];
     const byOrd = new Map();
     filled.forEach((g, idx) => {
       const ord = g.ord || parseVisitOrd(g.title, idx + 1);
@@ -2065,9 +2069,8 @@
       g.title = `${cnOrdinal(ord)}次复查`;
       byOrd.set(ord, g);
     });
-    const maxOrd = Math.max(...byOrd.keys());
     const out = [];
-    for (let ord = 1; ord <= maxOrd; ord++) {
+    for (let ord = 1; ord <= 10; ord++) {
       if (byOrd.has(ord)) {
         out.push(byOrd.get(ord));
       } else {
@@ -12586,7 +12589,7 @@
       const section = (key) => {
         const src = ARCHIVE_DEMO[key];
         const groups = key === "baseline"
-          ? [...src.groups.filter((g) => g.title.startsWith("出院记录")), ...src.groups.filter((g) => !g.title.startsWith("出院记录"))]
+          ? baselineBaseDisplayGroups()
           : visitBaseDisplayGroups();
         const expanded = !!S.hrExpanded[key];
         const count = groups.reduce((s, g) => s + g.pages, 0);
@@ -12617,7 +12620,7 @@
                   </div>`).join("")}
               </div>` : key === "review" ? `
               <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">暂未上传${g.title}报告，可点击下方按钮补充上传。</p>` : `
-              <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">请返回拍摄并上传出院记录，否则缺少构建计划的解析依据。</p>`}
+              <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">暂未上传${g.title}，可点击下方按钮补充上传。</p>`}
             </div>`;
           }).join("") : `<p class="s15 fm t-sec">${src.empty}</p>`) : ""}
         </div>`;
