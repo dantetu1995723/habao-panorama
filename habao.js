@@ -11223,7 +11223,7 @@
             <div class="doc-chip ${x.id === S.activeGroup ? "on" : ""}">
               <button class="doc-chip-main" data-act="selectDocGroup" data-id="${x.id}" type="button">
                 <b>${groupDisplayName(x)}</b>
-                <small>${x.pages ? `${x.pages} 页` : "待拍摄"}</small>
+                <small>${x.pages ? `${x.pages} 页` : (x.cat === "dischargeRecord" ? "必上传" : "待拍摄")}</small>
               </button>
               ${canDeleteDocGroup(x) ? `<button class="doc-chip-x" data-act="delDocGroup" data-id="${x.id}" type="button">×</button>` : ""}
             </div>`).join("")}
