@@ -4443,3 +4443,147 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   text-align: center;
   line-height: 1.45;
 }
+
+/* ============================================================
+   问卷随访时间树（对齐真机 ReviewFollowUpPage.swift · §8.4.1）
+   ============================================================ */
+.followup-timeline {
+  display: flex;
+  flex-direction: column;
+}
+.followup-tree-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  position: relative;
+  cursor: pointer;
+}
+.followup-tree-row:not(:last-child) {
+  margin-bottom: 16px;
+}
+.followup-rail {
+  width: 20px;
+  flex: 0 0 20px;
+  position: relative;
+  align-self: stretch;
+}
+.followup-dot {
+  position: absolute;
+  left: 2px;
+  top: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.followup-dot.draft::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2.5px solid var(--blue, #1054E0);
+  box-sizing: border-box;
+}
+.followup-dot.completed::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--blue, #1054E0);
+}
+.followup-stem {
+  position: absolute;
+  left: 9px;
+  width: 2px;
+  background: rgba(16, 84, 224, 0.18);
+  z-index: 1;
+}
+.followup-stem.first {
+  top: 8px;
+  bottom: -16px;
+}
+.followup-stem.mid {
+  top: 0;
+  bottom: -16px;
+}
+.followup-stem.last {
+  top: 0;
+  height: 8px;
+}
+.followup-card {
+  flex: 1;
+  min-width: 0;
+  background: rgba(16, 84, 224, 0.04);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  transition: background 0.15s;
+}
+.followup-card:active {
+  background: rgba(16, 84, 224, 0.08);
+}
+.followup-card.draft {
+  padding: 16px;
+}
+.followup-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.followup-card-head.items-center {
+  align-items: center;
+}
+.followup-card-chev {
+  color: rgba(100, 116, 139, 0.4);
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.followup-card-chev svg {
+  width: 12px;
+  height: 12px;
+}
+.followup-dock {
+  padding: 8px 20px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(to top, rgba(244, 247, 252, 1) 0%, rgba(244, 247, 252, 0.96) 65%, rgba(244, 247, 252, 0) 100%);
+  z-index: 10;
+}
+.cta-restart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  border: 1.5px solid rgba(16, 84, 224, 0.35);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--blue, #1054E0);
+  font-size: calc(19px * var(--fs));
+  font-weight: 700;
+  padding: 16px 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(16, 84, 224, 0.06);
+  transition: background 0.15s;
+}
+.cta-restart:active {
+  background: rgba(16, 84, 224, 0.04);
+}
+.cta-restart svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}

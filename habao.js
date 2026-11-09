@@ -1306,6 +1306,7 @@
     "report>report-sub": "cover",
     "report>consult": "cover",
     "followup>questionnaire": "cover",
+    "followup>followup-detail": "cover",
     "analysis>followup": "push",
     "walk>walk-session": "cover",
     "walk>walk-records": "cover",
@@ -1386,6 +1387,7 @@
       { id: "vitals-detail", t: "指标明细", code: "VitalsMeasurementDetailView", how: "push" },
       { id: "category-manage", t: "管理类别", code: "CategoryManageView", how: "push" },
       { id: "followup", t: "问卷随访", code: "ReviewFollowUpPage", how: "push" },
+      { id: "followup-detail", t: "随访详情", code: "FollowUpDetailView", how: "cover" },
       { id: "analysis", t: "明细分析", code: "FollowUpAnalysisView", how: "push" },
     ]},
   ];
@@ -1428,6 +1430,8 @@
     "body-test": { code: "BodyTestRunView", note: "户外原地踏步三分钟。停止或倒计时归零后直进感受问卷，无完成中转页。" },
     "body-test-sit": { code: "BodyTestRunView", note: "室内 1 分钟坐立。次数大号读数 + 倒计时 + 同龄参考。停止后问卷顶部两栏「测试时长 / 完成次数」。" },
     borg: { code: "BorgQuestionnaireView", note: "体测停止后直进，顶部读本次 BodyTestRecord。户外三栏「步行时间 / 步行距离 / 平均步频」；室内坐立两栏「测试时长 / 完成次数」（不要写成步行）。时长「N 秒 / N 分钟」，步频带「步/分」。左树可先点「坐立体测」再进本页预览坐立摘要。未选说话能力时点生成会提示。" },
+    followup: { code: "ReviewFollowUpPage", note: "V10.306：问卷随访时间树（对齐真机 ReviewFollowUpPage.swift）。顶栏「返回」+「问卷随访」+ 右上 Demo 状态切换胶囊（填写一半 / 已填两次 / 未填写）。内容区单张白底岛卡（.island-card）内嵌时间树（.followup-timeline），圆点与左上顶边平齐、竖线圆心贯通：① 填写中草稿（空心蓝圈，上次填写时间 + 已答 N/51 题）；② 历史记录节点（实心蓝圈，日期 + 随访小结），各行均可点击打开「随访详情」页（FollowUpDetailView）查看答题明细；③ 无记录无草稿时正中大区空态（图标圆章 + 适老说明）；底部悬浮操作坞：有草稿时展示纵向双钮（主钮「继续填写问卷」+ 次钮白底蓝描边「重新开始随访」，点击弹窗确认清空草稿），无草稿时单枚主钮（「再次填写问卷」/「填写随访问卷」）。" },
+    "followup-detail": { code: "FollowUpDetailView", note: "随访详情页：逐题展示问卷题目所属分类、题目标题及作答结果（只读展示）。" },
     questionnaire: { code: "FollowUpQuestionBank", note: "51 题一题一屏。必答门禁：未作答「下一步」置灰，第 1 题「上一步」置灰。单选后不自动跳下一题。提交后出结果页，再 dismiss 回问卷随访，不把随访再压一层。右上「题号」进答题进度。" },
     "q-progress": { code: "FollowUpQuestionMatrixView", note: "全屏「答题进度」，导航只左「返回」无右钮。按题库顺序把连续同章节切成一卡（一般情况 15 题 / 生活质量 36 题）。6 列圆号：当前题实蓝白字、已答绿底绿字、未答淡蓝底淡蓝字，当前态优先。点号跳那一题并关页；本页无统计行、无图例，也不自动滚到当前题。" },
   };
@@ -10700,13 +10704,49 @@
       qFinish() {
         S.qDone = false;
         S.qIndex = 0;
+        S.followupDemoScene = "filledTwice";
         dismissCover();
       },
+      toggleFollowupDemo() {
+        const cur = S.followupDemoScene || "inProgress";
+        if (cur === "inProgress") S.followupDemoScene = "filledTwice";
+        else if (cur === "filledTwice") S.followupDemoScene = "empty";
+        else S.followupDemoScene = "inProgress";
+        render();
+      },
+      fillFollowup() {
+        const scene = S.followupDemoScene || "inProgress";
+        if (scene !== "inProgress") {
+          S.answers = {};
+          S.qIndex = 0;
+          S.qDone = false;
+          S.followupDemoScene = "inProgress";
+        }
+        go("questionnaire", "cover");
+      },
       restartFollowup() {
+        const count = Object.keys(S.answers).length || 25;
+        openOverlay("confirm", {
+          title: "重新开始随访？",
+          body: `已填写的 ${count} 题会被清空，问卷将从第 1 题重新开始。`,
+          cancel: "取消",
+          ok: "清空并重新开始",
+          danger: true,
+          action: "doRestartFollowup",
+        });
+      },
+      doRestartFollowup() {
+        closeOverlay();
         S.answers = {};
         S.qIndex = 0;
         S.qDone = false;
+        S.followupDemoScene = "inProgress";
         go("questionnaire", "cover");
+      },
+      openFollowupDetail() {
+        S.followupDetailKind = el.dataset.kind || "draft";
+        S.followupDetailId = el.dataset.id || "";
+        go("followup-detail", "cover");
       },
       openReport() {
         S.reportKind = el.dataset.kind || "baseline";
@@ -12230,25 +12270,143 @@
 
     followup: () => {
       const rep = activePersonStore().report;
+      const scene = S.followupDemoScene || (S.qDone ? "filledTwice" : "inProgress");
+      const sceneTitles = { inProgress: "填写一半", filledTwice: "已填两次", empty: "未填写" };
+      const sceneLabel = sceneTitles[scene] || "填写一半";
+
+      const hasDraft = scene === "inProgress";
+      const records = scene === "empty" ? [] : (scene === "filledTwice" ? [
+        { id: "f1", date: rep.followupDate || "2026年7月28日", summary: "总体健康自评「好」，较去年「略有好转」，不吸烟，有高强度活动。整体状态稳定，建议维持当前生活习惯。" },
+        { id: "f2", date: rep.followupPrevDate || "2026年6月25日", summary: rep.followupPrevSummary || "总体健康尚可，轻度活动受限，建议继续规律散步。" },
+      ] : [
+        { id: "f2", date: rep.followupPrevDate || "2026年6月25日", summary: rep.followupPrevSummary || "总体健康尚可，轻度活动受限，建议继续规律散步。" },
+      ]);
+      const showsTimeline = hasDraft || records.length > 0 || S.analyzingFollowUp;
+
+      const answeredCount = Object.keys(S.answers).length || 25;
+      const draftLastFilledLabel = rep.followupDate || "2026年7月28日";
+      const totalCount = QUESTIONS.length || 51;
+
+      const totalRows = (hasDraft ? 1 : 0) + records.length;
+
+      let rowsHTML = "";
+      if (hasDraft) {
+        const isFirst = true;
+        const isLast = records.length === 0;
+        const stemCls = totalRows <= 1 ? "hidden" : (isFirst ? "first" : (isLast ? "last" : "mid"));
+        rowsHTML += `
+          <div class="followup-tree-row" data-act="openFollowupDetail" data-kind="draft">
+            <div class="followup-rail">
+              ${totalRows > 1 ? `<div class="followup-stem ${stemCls}"></div>` : ""}
+              <div class="followup-dot draft"></div>
+            </div>
+            <div class="followup-card draft">
+              <div class="followup-card-head">
+                <div class="col gap4">
+                  <div class="s13" style="font-weight:500; color:rgba(16,84,224,.55)">上次填写时间</div>
+                  <div class="s16 fb" style="color:#1054E0; font-family:ui-monospace,SF Pro Rounded,sans-serif">${esc(draftLastFilledLabel)}</div>
+                </div>
+                <div class="followup-card-chev">${I.chevR}</div>
+              </div>
+              <div class="s15 mt10" style="font-weight:500; color:rgba(16,84,224,.82); font-family:ui-monospace,SF Pro Rounded,sans-serif">已答 ${answeredCount} / ${totalCount} 题</div>
+            </div>
+          </div>`;
+      }
+
+      records.forEach((rec, idx) => {
+        const rowIndex = (hasDraft ? 1 : 0) + idx;
+        const isFirst = rowIndex === 0;
+        const isLast = rowIndex === totalRows - 1;
+        const stemCls = totalRows <= 1 ? "hidden" : (isFirst ? "first" : (isLast ? "last" : "mid"));
+        rowsHTML += `
+          <div class="followup-tree-row" data-act="openFollowupDetail" data-kind="record" data-id="${rec.id}">
+            <div class="followup-rail">
+              ${totalRows > 1 ? `<div class="followup-stem ${stemCls}"></div>` : ""}
+              <div class="followup-dot completed"></div>
+            </div>
+            <div class="followup-card">
+              <div class="followup-card-head items-center">
+                <div class="s15 fb" style="color:#1054E0; font-family:ui-monospace,SF Pro Rounded,sans-serif">${esc(rec.date)}</div>
+                <div class="followup-card-chev">${I.chevR}</div>
+              </div>
+              <div class="s15 mt8" style="font-weight:500; color:rgba(16,84,224,.82); line-height:1.45">${esc(rec.summary)}</div>
+              ${idx === 0 && S.consultReportSub?.followUp ? `<div class="mt10 s14 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:8px 10px;border-radius:10px;line-height:1.45">【哈宝医生随访身心复评】${S.consultReportSub.followUp}</div>` : ""}
+            </div>
+          </div>`;
+      });
+
       return `
       <div class="page">
-        ${navBar(cap(I.chevL, "返回"), "问卷随访")}
-        <div class="scroll px20" style="padding-top:12px">
-          ${S.analyzingFollowUp ? `<div class="mb12">${reportIntermediateCardHTML("AI 正在生成最新随访评估…", "已收到随访问卷答卷，AI 正在结合客观指标与身心状态进行复评，稍候自动归档。", true)}</div>` : ""}
+        ${navBar(cap(I.chevL, "返回"), "问卷随访", `<button class="cap" data-act="toggleFollowupDemo" type="button">${sceneLabel}</button>`)}
+        ${showsTimeline ? `
+        <div class="scroll px20 grow" style="padding-top:12px; padding-bottom:16px">
           <div class="island-card" style="padding:18px">
-            <div class="s13 t-sec">上次填写时间</div>
-            <div class="s18 fb t">${esc(rep.followupDate)}　${S.qDone ? "已完成" : "草稿"}</div>
-            <div class="s14 t-sec mt8">已答 ${Object.keys(S.answers).length} / ${QUESTIONS.length} 题</div>
+            ${S.analyzingFollowUp ? `<div class="mb16">${reportIntermediateCardHTML("AI 正在生成最新随访评估…", "已收到随访问卷答卷，AI 正在结合客观指标与身心状态进行复评，稍候自动归档。", true)}</div>` : ""}
+            <div class="followup-timeline">
+              ${rowsHTML}
+            </div>
           </div>
-          <div class="island-card mt12" style="padding:18px">
-            <div class="s18 fb t">${esc(rep.followupPrevDate)}</div>
-            <p class="s15 t-sec mt8">${esc(rep.followupPrevSummary)}</p>
-            ${S.consultReportSub?.followUp ? `<div class="mt12 s15 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生随访身心复评】${S.consultReportSub.followUp}</div>` : ""}
+        </div>` : `
+        <div class="grow col center" style="padding:60px 28px; text-align:center">
+          <div style="width:116px; height:116px; border-radius:50%; background:rgba(16,84,224,.08); border:1.5px solid rgba(16,84,224,.16); display:grid; place-items:center; color:rgba(16,84,224,.55); margin-bottom:26px">
+            <span style="display:inline-block; transform:scale(2.2); color:rgba(16,84,224,.55)">${I.chat}</span>
           </div>
+          <div class="col gap10">
+            <div class="s24 fb" style="color:#1054E0">完成问卷后</div>
+            <div class="s19 fb t-sec">这里会留下每次随访小结</div>
+          </div>
+        </div>`}
+        <div class="followup-dock">
+          ${hasDraft ? `
+            <button class="cta" data-act="fillFollowup" type="button">${I.cycle}继续填写问卷</button>
+            <button class="cta-restart" data-act="restartFollowup" type="button">${I.undo}重新开始随访</button>
+          ` : `
+            <button class="cta" data-act="fillFollowup" type="button">${I.pencil}${scene === "filledTwice" ? "再次填写问卷" : "填写随访问卷"}</button>
+          `}
         </div>
-        <div class="px20 col gap10" style="padding-bottom:28px">
-          <button class="cta" data-go="questionnaire" type="button">继续填写问卷</button>
-          <button class="cta-line" data-act="restartFollowup" type="button">重新开始随访</button>
+      </div>`;
+    },
+
+    "followup-detail": () => {
+      const isDraft = S.followupDetailKind === "draft";
+      let answers = {};
+      if (isDraft) {
+        if (Object.keys(S.answers).length > 0) {
+          answers = S.answers;
+        } else {
+          QUESTIONS.slice(0, 25).forEach((q) => {
+            if (q.kind === "wheel") answers[q.id] = 75;
+            else if (q.options?.length) answers[q.id] = q.options[0];
+          });
+        }
+      } else {
+        QUESTIONS.forEach((q) => {
+          if (q.kind === "wheel") answers[q.id] = 70;
+          else if (q.id === "A-03") answers[q.id] = "不吸烟";
+          else if (q.id === "A-04") answers[q.id] = "从不饮酒";
+          else if (q.id === "A-06") answers[q.id] = "做过中度体力活动或运动";
+          else if (q.id === "B-01") answers[q.id] = "好";
+          else if (q.id === "B-02") answers[q.id] = "比 1 年前好一些";
+          else if (q.options?.length) answers[q.id] = q.options[0];
+        });
+      }
+      const list = QUESTIONS.filter((q) => answers[q.id] != null);
+      return `
+      <div class="page">
+        ${navBar(cap(I.chevL, "返回"), "随访详情")}
+        <div class="scroll px20 grow" style="padding-top:12px; padding-bottom:40px">
+          <div class="col gap14">
+            ${list.map((q) => {
+              const a = answers[q.id];
+              const ansText = Array.isArray(a) ? a.join("、") : (q.kind === "wheel" ? `${a} 分` : a);
+              return `
+              <div style="background:rgba(16,84,224,.05); border-radius:14px; padding:16px; display:flex; flex-direction:column; gap:8px">
+                ${q.group ? `<div class="s13 t-sec">${esc(q.group)}</div>` : ""}
+                <div class="s15 fb" style="color:#1054E0; line-height:1.4">${esc(q.title)}</div>
+                <div class="s16" style="color:rgba(16,84,224,.85); font-weight:500; line-height:1.4">${esc(ansText)}</div>
+              </div>`;
+            }).join("")}
+          </div>
         </div>
       </div>`;
     },
