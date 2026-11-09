@@ -315,7 +315,9 @@
 
   // V10.270：AI 报告与解读更新中间态（解析需要时间）
   function triggerReportAnalysis(kind) {
-    if (kind === "baseline") {
+    if (kind === "overall") {
+      S.analyzingOverall = true;
+    } else if (kind === "baseline") {
       S.analyzingBaseline = true;
       S.analyzingOverall = true;
     } else if (kind === "review") {
@@ -327,7 +329,9 @@
     }
     render();
     setTimeout(() => {
-      if (kind === "baseline") {
+      if (kind === "overall") {
+        if (!S.analyzingBaseline && !S.analyzingReview && !S.analyzingFollowUp) S.analyzingOverall = false;
+      } else if (kind === "baseline") {
         S.analyzingBaseline = false;
         if (!S.analyzingReview && !S.analyzingFollowUp) S.analyzingOverall = false;
       } else if (kind === "review") {
@@ -339,6 +343,20 @@
       }
       render();
     }, 2500);
+  }
+
+  function reportUpdateFooterHTML(kind) {
+    const isOverall = kind === "overall";
+    const note = isOverall
+      ? "仅在基础报告或复查报告更新后，此按钮才会出现。"
+      : "仅在资料合集更新后，此按钮才会出现。";
+    return `<div class="report-update-footer">
+      <button class="report-update-btn" data-act="updateReport" data-kind="${kind}" type="button">
+        <span class="report-update-ico">${I.cycle}</span>
+        <span>更新报告</span>
+      </button>
+      <div class="report-update-note">${note}</div>
+    </div>`;
   }
 
   function reportIntermediateCardHTML(title, subtitle, compact = false) {
@@ -10695,6 +10713,10 @@
         S.reportPane = "insight";
         go("report-sub", "cover");
       },
+      updateReport() {
+        const kind = el.dataset.kind || "overall";
+        triggerReportAnalysis(kind);
+      },
       // V10.50：报告页顶部分页（AI 解读 / 资料合集），页内就地切换
       setReportPane() {
         S.reportPane = el.dataset.p === "archive" ? "archive" : "insight";
@@ -12161,7 +12183,7 @@
               <div class="grow col center" style="margin-top:14px;justify-content:flex-start">
                 ${reportIntermediateCardHTML("正在重新推演身体报告综合结论…", "已收到最新资料/随访数据变更，AI 正在综合各项体征指标与既往档案进行全面重算，请稍候。")}
               </div>` : `
-              <div class="scroll grow mt12 s21 fm t" style="line-height:1.45">${esc(rep.overall)}${S.consultReportOverall ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生问诊补充结论】${S.consultReportOverall}</div>` : ""}</div>`}
+              <div class="scroll grow mt12 s21 fm t" style="line-height:1.45;padding-bottom:8px">${esc(rep.overall)}${S.consultReportOverall ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生问诊补充结论】${S.consultReportOverall}</div>` : ""}${reportUpdateFooterHTML("overall")}</div>`}
           </div>
           <div class="island-card flex" style="margin:12px 0 20px;padding:8px;border-radius:18px">
             ${[
@@ -12194,7 +12216,8 @@
               ` : `
                 <p class="s21 fm t">${esc(S.reportKind === "visit" ? rep.visit : rep.baseline)}</p>
                 ${S.reportKind === "visit" && S.consultReportSub?.review ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生跨期对照解读】${S.consultReportSub.review}</div>` : ""}
-                ${S.reportKind === "baseline" && S.consultReportSub?.baseline ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生基线报告解读】${S.consultReportSub.baseline}</div>` : ""}`)}
+                ${S.reportKind === "baseline" && S.consultReportSub?.baseline ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生基线报告解读】${S.consultReportSub.baseline}</div>` : ""}
+                ${reportUpdateFooterHTML(S.reportKind === "visit" ? "review" : "baseline")}`)}
             </div>
           </div>
         </div>
