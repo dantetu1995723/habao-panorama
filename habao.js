@@ -372,7 +372,6 @@
     return `
     <div class="hr-group hr-group-extend">
       <div class="hr-extend-head">
-        <span class="hr-extend-ico">${I.plusCirc}</span>
         <span class="s16 fsb t">${title}</span>
         <span class="hr-extend-tag">${tag}</span>
       </div>
