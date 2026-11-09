@@ -2181,7 +2181,8 @@
       if (g.pages > 0) return Math.max(m, g.ord || parseVisitOrd(g.title, idx + 1));
       return m;
     }, 0);
-    return Math.max(1, ARCHIVE_DEMO.review.maxOrd || 1, filledMax);
+    const configured = ARCHIVE_DEMO.review.maxOrd !== undefined ? ARCHIVE_DEMO.review.maxOrd : 8;
+    return Math.max(1, configured, filledMax);
   }
   function nextDefaultVisitOrd() {
     const filled = visitBaseFilledOrds();
@@ -3317,6 +3318,7 @@
           { title: "第一次复查", pages: 2 },
           { title: "第二次复查", pages: 1 },
         ],
+        archiveReviewMaxOrd: 8,
         ops: [
           { id: "pr_preset_2", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "打卡了", place: "家属管理", at: baseHour - 900000, how: "晨起测血压与心率", notifiedNames: [] },
           { id: "op_zgl_1", role: "patient", actor: "张桂兰", targetName: "张桂兰", action: "打卡了", place: "首页", at: baseHour - 1800000, how: "服用苯磺酸氨氯地平片", notifiedNames: [] },
@@ -3380,6 +3382,7 @@
         archiveReview: [
           { title: "第一次复查", pages: 1 },
         ],
+        archiveReviewMaxOrd: 8,
         ops: [
           { id: "op_wf_0", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "打卡了", place: "家属管理", at: baseHour - 600000, how: "晨起温水", notifiedNames: [] },
           { id: "op_wf_1", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "修改了计划", place: "家属管理", at: baseHour - 2400000, how: "晚间散步", notifiedNames: [] },
@@ -3412,6 +3415,7 @@
         },
         archiveBaseline: [],
         archiveReview: [],
+        archiveReviewMaxOrd: 8,
         ops: [],
       };
     }
@@ -3446,6 +3450,7 @@
         { title: "第一次复查", pages: 2 },
         { title: "第二次复查", pages: 1 },
       ],
+      archiveReviewMaxOrd: 8,
       ops: [
         { id: "op_ljg_0", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "打卡了", place: "家属管理", at: baseHour - 600000, how: "晨起温水", notifiedNames: [] },
         { id: "pr_preset_2", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "打卡了", place: "家属管理", at: baseHour - 900000, how: "晨起测血压与心率", notifiedNames: [] },
@@ -3527,7 +3532,7 @@
       S.personStoreMap[prevKey].archiveBaseline = (ARCHIVE_DEMO.baseline.groups || []).map((g) => ({ ...g }));
       S.personStoreMap[prevKey].archiveCustomCats = [...(ARCHIVE_DEMO.baseline.customCats || [])];
       S.personStoreMap[prevKey].archiveReview = (ARCHIVE_DEMO.review.groups || []).map((g) => ({ ...g }));
-      S.personStoreMap[prevKey].archiveReviewMaxOrd = ARCHIVE_DEMO.review.maxOrd || 1;
+      S.personStoreMap[prevKey].archiveReviewMaxOrd = ARCHIVE_DEMO.review.maxOrd || 8;
       if ((S.ops && S.ops.length) || S.opCleared) {
         S.personStoreMap[prevKey].ops = (S.ops || []).map((o) => ({ ...o }));
       }
@@ -3548,7 +3553,7 @@
     ARCHIVE_DEMO.baseline.customCats = [...(bucket.archiveCustomCats || [])];
     ARCHIVE_DEMO.review.groups = (bucket.archiveReview || []).map((g) => ({ ...g }));
     const maxStoredRev = (ARCHIVE_DEMO.review.groups || []).reduce((m, g, i) => Math.max(m, g.ord || parseVisitOrd(g.title, i + 1)), 1);
-    ARCHIVE_DEMO.review.maxOrd = Math.max(1, bucket.archiveReviewMaxOrd || maxStoredRev, maxStoredRev);
+    ARCHIVE_DEMO.review.maxOrd = Math.max(1, bucket.archiveReviewMaxOrd || 8, maxStoredRev);
     S.ops = (bucket.ops || []).map((o) => ({ ...o }));
     S.notifySelf = bucket.notifySelf !== undefined ? bucket.notifySelf : true;
     S.notifyFamily = bucket.notifyFamily !== undefined
@@ -5254,7 +5259,7 @@
       S.personStoreMap[S.boundPersonKey].archiveBaseline = (ARCHIVE_DEMO.baseline.groups || []).map((g) => ({ ...g }));
       S.personStoreMap[S.boundPersonKey].archiveCustomCats = [...(ARCHIVE_DEMO.baseline.customCats || [])];
       S.personStoreMap[S.boundPersonKey].archiveReview = (ARCHIVE_DEMO.review.groups || []).map((g) => ({ ...g }));
-      S.personStoreMap[S.boundPersonKey].archiveReviewMaxOrd = ARCHIVE_DEMO.review.maxOrd || 1;
+      S.personStoreMap[S.boundPersonKey].archiveReviewMaxOrd = ARCHIVE_DEMO.review.maxOrd || 8;
     }
   }
   function finishArchive() {
@@ -9763,6 +9768,7 @@
         S.rxArchive = [];
         ARCHIVE_DEMO.baseline.groups.length = 0;
         ARCHIVE_DEMO.review.groups.length = 0;
+        ARCHIVE_DEMO.review.maxOrd = 8;
         syncCurrentPersonArchiveSnapshot();
         closeOverlay();
         go("home", "root");
@@ -17451,7 +17457,7 @@
       { title: "出院记录", pages: 2 },
       { title: "化验单", pages: 1 },
     ] },
-    review: { title: "复查报告", empty: "还没有复查报告", maxOrd: 2, groups: [
+    review: { title: "复查报告", empty: "还没有复查报告", maxOrd: 8, groups: [
       { title: "第一次复查", pages: 2 },
       { title: "第二次复查", pages: 1 },
     ] },
@@ -17461,7 +17467,7 @@
     baseline: ARCHIVE_DEMO.baseline.groups.map((g) => ({ ...g })),
     customCats: [...(ARCHIVE_DEMO.baseline.customCats || [])],
     review: ARCHIVE_DEMO.review.groups.map((g) => ({ ...g })),
-    reviewMaxOrd: ARCHIVE_DEMO.review.maxOrd || 2,
+    reviewMaxOrd: ARCHIVE_DEMO.review.maxOrd || 8,
   };
 
   /// 集章选中日的完成集合：今日取真实打卡态，过去日按 Demo 采样（日历格与页面共用，保证两处一致）
@@ -18580,6 +18586,10 @@
       S.enrolled = false;
       S.opCleared = true;
       S.ops = [];
+      ARCHIVE_DEMO.baseline.groups.length = 0;
+      ARCHIVE_DEMO.review.groups.length = 0;
+      ARCHIVE_DEMO.review.maxOrd = 8;
+      syncCurrentPersonArchiveSnapshot();
       if (S.personStoreMap) Object.values(S.personStoreMap).forEach((b) => { b.ops = []; });
       S.privacyAccepted = true;
       S.loginTermsChecked = true;
