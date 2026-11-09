@@ -42,6 +42,7 @@
     check: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm-1.2 14.4-4-4 1.5-1.5 2.5 2.5 5.2-5.2 1.5 1.5Z"/></svg>`,
     undo: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 6V2L6 8l6 6V10a5 5 0 1 1-5 5H5a7 7 0 1 0 7-9Z"/></svg>`,
     plus: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6Z"/></svg>`,
+    plusCirc: `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 11h3v-2h-3V8h-2v3H8v2h3v3h2v-3z"/></svg>`,
     cam: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 4 7.5 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.5L15 4H9Zm3 5a5 5 0 1 1 0 10 5 5 0 0 1 0-10Z"/></svg>`,
     house: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 3 9 8h-3v10h-5v-6H11v6H6V11H3l9-8Z"/></svg>`,
     pencil: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.3V21h3.7L19 8.7 15.3 5 3 17.3Zm17.7-10.4a1 1 0 0 0 0-1.4l-2.2-2.2a1 1 0 0 0-1.4 0l-1.8 1.8 3.6 3.6 1.8-1.8Z"/></svg>`,
@@ -370,6 +371,9 @@
       ? baselineBaseDisplayGroups()
       : visitBaseDisplayGroups();
     const total = groups.reduce((s, g) => s + g.pages, 0);
+    const hintMsg = key === "baseline"
+      ? `除以上常规类别外，点击下方按钮进入后可通过<b>「＋ 新建组」</b>自由添加自定义类别。`
+      : `除以上预设次数外，点击下方按钮进入后可通过<b>「＋ 新建组」</b>按需顺延增加更多复查次数。`;
     return `${total > 0 ? `<div class="s15 fsb" style="color:var(--blue);opacity:.72">共 ${total} 张</div>` : ""}
       ${groups.map((g) => {
         const gi = src.groups.findIndex((x) => x.title === g.title);
@@ -392,7 +396,11 @@
           </div>` : `
           <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">${key === "review" ? `暂未上传${g.title}报告，可点击下方按钮补充上传。` : `暂未上传${g.title}，可点击下方按钮补充上传。`}</p>`}
         </div>`;
-      }).join("")}`;
+      }).join("")}
+      <div class="archive-hint-card">
+        <span class="hint-ico">${I.plusCirc}</span>
+        <div class="hint-text">${hintMsg}</div>
+      </div>`;
   }
 
   function confirmMonitorNote(title) {
@@ -13053,6 +13061,9 @@
         const count = groups.reduce((s, g) => s + g.pages, 0);
         const btnLabel = key === "baseline" ? "上传基础资料" : "上传复查资料";
         const btnKind = key === "baseline" ? "baseline" : "visit";
+        const hintMsg = key === "baseline"
+          ? `除以上常规类别外，点击下方按钮进入后可通过<b>「＋ 新建组」</b>自由添加自定义类别。`
+          : `除以上预设次数外，点击下方按钮进入后可通过<b>「＋ 新建组」</b>按需顺延增加更多复查次数。`;
         return `<div class="island-card" style="margin-top:16px;border-radius:22px;padding:18px;box-shadow:0 12px 20px rgba(16,84,224,.08)">
           <div class="hr-src">
             <button class="hr-src-head" data-act="toggleHr" data-k="${key}" type="button">
@@ -13062,7 +13073,7 @@
               <span class="hr-chev ${expanded ? "open" : ""}">${I.chevD}</span>
             </button>
             ${expanded ? `
-              ${groups.length ? groups.map((g) => {
+              ${groups.length ? `${groups.map((g) => {
                 const gi = src.groups.findIndex((x) => x.title === g.title);
                 return `
                 <div class="hr-group">
@@ -13084,7 +13095,11 @@
                   <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">暂未上传${g.title}报告，可点击下方按钮补充上传。</p>` : `
                   <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">暂未上传${g.title}，可点击下方按钮补充上传。</p>`}
                 </div>`;
-              }).join("") : `<p class="s15 fm t-sec">${src.empty}</p>`}
+              }).join("")}
+              <div class="archive-hint-card">
+                <span class="hint-ico">${I.plusCirc}</span>
+                <div class="hint-text">${hintMsg}</div>
+              </div>` : `<p class="s15 fm t-sec">${src.empty}</p>`}
               <button class="cta hr-upload" style="margin-top:16px" data-act="pickArchive" data-kind="${btnKind}" type="button">${I.cam}${btnLabel}</button>
             ` : ""}
           </div>
