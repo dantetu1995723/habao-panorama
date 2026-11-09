@@ -18313,7 +18313,7 @@
                 <span class="cat-ico">${I.doc}</span>
                 <div class="grow ta-l" style="display:flex;flex-direction:column;gap:3px">
                   <b>${c.t}</b>
-                  ${lockedReq ? `<span class="s12 fm" style="color:var(--blue);opacity:.85;line-height:1.2">* 首次创建计划必传</span>` : ""}
+                  ${lockedReq ? `<span class="s12 fm" style="color:var(--blue);opacity:.85;line-height:1.2">首次创建计划必传</span>` : ""}
                 </div>
                 ${on ? `<span class="cat-check">${I.check}</span>` : ""}
               </button>`;
