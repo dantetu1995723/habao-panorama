@@ -18311,8 +18311,10 @@
               return `
               <button class="cat-row ${on ? "on" : ""}" data-act="pickDocCat" data-c="${c.id}" type="button">
                 <span class="cat-ico">${I.doc}</span>
-                <span class="grow ta-l"><b>${c.t}</b></span>
-                ${lockedReq ? `<span class="s12 fb" style="color:var(--blue);background:rgba(16,84,224,.10);padding:2px 8px;border-radius:999px">首次创建计划必传</span>` : ""}
+                <div class="grow ta-l" style="display:flex;flex-direction:column;gap:3px">
+                  <b>${c.t}</b>
+                  ${lockedReq ? `<span class="s12 fm" style="color:var(--blue);opacity:.85;line-height:1.2">* 首次创建计划必传</span>` : ""}
+                </div>
                 ${on ? `<span class="cat-check">${I.check}</span>` : ""}
               </button>`;
             }).join("")}
