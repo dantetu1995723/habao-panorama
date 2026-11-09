@@ -362,6 +362,24 @@
     </div>`;
   }
 
+  function archiveExtendRowHTML(key) {
+    const isBaseline = key === "baseline";
+    const title = isBaseline ? "自定义类别" : "更多复查批次";
+    const tag = isBaseline ? "按需添加" : "按需扩展";
+    const note = isBaseline
+      ? "若有其他检查资料，点击下方按钮进入后可自由新建。"
+      : "复查次数不限，点击下方按钮进入后可按需顺延添加。";
+    return `
+    <div class="hr-group hr-group-extend">
+      <div class="hr-extend-head">
+        <span class="hr-extend-ico">${I.plusCirc}</span>
+        <span class="s16 fsb t">${title}</span>
+        <span class="hr-extend-tag">${tag}</span>
+      </div>
+      <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">${note}</p>
+    </div>`;
+  }
+
   // V10.269：资料合集页——与健康档案同源（基础报告列入组存量，复查报告按次归档），
   // 点缩略图开全屏预览，点缩略图右上角「×」删除该页；补拍走底栏，直接进拍摄页
   function reportArchivePane() {
@@ -371,9 +389,6 @@
       ? baselineBaseDisplayGroups()
       : visitBaseDisplayGroups();
     const total = groups.reduce((s, g) => s + g.pages, 0);
-    const hintMsg = key === "baseline"
-      ? `除以上常规类别外，点击下方按钮进入后可通过<b>「＋ 新建组」</b>自由添加自定义类别。`
-      : `除以上预设次数外，点击下方按钮进入后可通过<b>「＋ 新建组」</b>按需顺延增加更多复查次数。`;
     return `${total > 0 ? `<div class="s15 fsb" style="color:var(--blue);opacity:.72">共 ${total} 张</div>` : ""}
       ${groups.map((g) => {
         const gi = src.groups.findIndex((x) => x.title === g.title);
@@ -397,10 +412,7 @@
           <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">${key === "review" ? `暂未上传${g.title}报告，可点击下方按钮补充上传。` : `暂未上传${g.title}，可点击下方按钮补充上传。`}</p>`}
         </div>`;
       }).join("")}
-      <div class="archive-hint-card">
-        <span class="hint-ico">${I.plusCirc}</span>
-        <div class="hint-text">${hintMsg}</div>
-      </div>`;
+      ${archiveExtendRowHTML(key)}`;
   }
 
   function confirmMonitorNote(title) {
@@ -13061,9 +13073,6 @@
         const count = groups.reduce((s, g) => s + g.pages, 0);
         const btnLabel = key === "baseline" ? "上传基础资料" : "上传复查资料";
         const btnKind = key === "baseline" ? "baseline" : "visit";
-        const hintMsg = key === "baseline"
-          ? `除以上常规类别外，点击下方按钮进入后可通过<b>「＋ 新建组」</b>自由添加自定义类别。`
-          : `除以上预设次数外，点击下方按钮进入后可通过<b>「＋ 新建组」</b>按需顺延增加更多复查次数。`;
         return `<div class="island-card" style="margin-top:16px;border-radius:22px;padding:18px;box-shadow:0 12px 20px rgba(16,84,224,.08)">
           <div class="hr-src">
             <button class="hr-src-head" data-act="toggleHr" data-k="${key}" type="button">
@@ -13096,10 +13105,7 @@
                   <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">暂未上传${g.title}，可点击下方按钮补充上传。</p>`}
                 </div>`;
               }).join("")}
-              <div class="archive-hint-card">
-                <span class="hint-ico">${I.plusCirc}</span>
-                <div class="hint-text">${hintMsg}</div>
-              </div>` : `<p class="s15 fm t-sec">${src.empty}</p>`}
+              ${archiveExtendRowHTML(key)}` : `<p class="s15 fm t-sec">${src.empty}</p>`}
               <button class="cta hr-upload" style="margin-top:16px" data-act="pickArchive" data-kind="${btnKind}" type="button">${I.cam}${btnLabel}</button>
             ` : ""}
           </div>
