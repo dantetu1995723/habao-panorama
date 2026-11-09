@@ -13525,8 +13525,6 @@
       const canNotifyGuardian = hasConfirmedGuardiansForCurrentPerson();
       const guardianNames = confirmedGuardianNamesSummaryForCurrentPerson();
       const anyCat = anyCatOn();
-      const selfTitle = "通知自己";
-      const selfSub = "计划到点提醒自己";
       const famTitle = "通知守护我的人";
       const famSub = canNotifyGuardian
         ? `到点与完成打卡时通知：${esc(guardianNames)}`
@@ -13536,11 +13534,10 @@
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "打卡通知")}
         <div class="scroll px20" style="padding-top:12px;padding-bottom:24px">
-          <div class="list-island">
-            ${rowToggle(selfTitle, !!(S.notifySelf && anyCat), "toggleSelf", notifySys(I.bell), "", selfSub)}
-            ${genHasFamily() ? rowToggle(famTitle, !!(canNotifyGuardian && S.notifyFamily && anyCat), "toggleFam", notifySys(I.two), "", famSub) : ""}
-          </div>
-          <div class="list-island mt16" style="opacity:${gateActive ? "1" : "0.56"}">
+          ${genHasFamily() ? `<div class="list-island" style="margin-bottom:16px">
+            ${rowToggle(famTitle, !!(canNotifyGuardian && S.notifyFamily && anyCat), "toggleFam", notifySys(I.two), "", famSub)}
+          </div>` : ""}
+          <div class="list-island" style="opacity:${gateActive ? "1" : "0.56"}">
             ${rowToggle("全部打卡", gateActive && allCatsOn(), "toggleAll", notifySys(I.check, true))}
             ${[
               ["服药", "medication"],
