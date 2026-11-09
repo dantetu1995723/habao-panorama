@@ -313,14 +313,23 @@
     </div>`;
   }
 
-  // V10.270：AI 报告与解读更新中间态（解析需要时间）
+  // V10.306：资料合集（或健康档案）发生增删时标记对应子报告待更新，点亮底栏「更新报告」按钮；
+  // 仅当点击「更新报告」触发子报告 AI 解读更新（或提交随访问卷）时，才同步自动更新「综合结论」。
+  function markReportMaterialUpdated(kind) {
+    if (kind === "baseline") {
+      S.pendingBaselineUpdate = true;
+    } else if (kind === "review" || kind === "visit") {
+      S.pendingReviewUpdate = true;
+    }
+  }
+
   function triggerReportAnalysis(kind) {
-    if (kind === "overall") {
-      S.analyzingOverall = true;
-    } else if (kind === "baseline") {
+    if (kind === "baseline") {
+      S.pendingBaselineUpdate = false;
       S.analyzingBaseline = true;
       S.analyzingOverall = true;
     } else if (kind === "review") {
+      S.pendingReviewUpdate = false;
       S.analyzingReview = true;
       S.analyzingOverall = true;
     } else if (kind === "followup") {
@@ -329,9 +338,7 @@
     }
     render();
     setTimeout(() => {
-      if (kind === "overall") {
-        if (!S.analyzingBaseline && !S.analyzingReview && !S.analyzingFollowUp) S.analyzingOverall = false;
-      } else if (kind === "baseline") {
+      if (kind === "baseline") {
         S.analyzingBaseline = false;
         if (!S.analyzingReview && !S.analyzingFollowUp) S.analyzingOverall = false;
       } else if (kind === "review") {
@@ -343,20 +350,6 @@
       }
       render();
     }, 2500);
-  }
-
-  function reportUpdateFooterHTML(kind) {
-    const isOverall = kind === "overall";
-    const note = isOverall
-      ? "仅在基础报告或复查报告更新后，此按钮才会出现。"
-      : "仅在资料合集更新后，此按钮才会出现。";
-    return `<div class="report-update-footer">
-      <button class="report-update-btn" data-act="updateReport" data-kind="${kind}" type="button">
-        <span class="report-update-ico">${I.cycle}</span>
-        <span>更新报告</span>
-      </button>
-      <div class="report-update-note">${note}</div>
-    </div>`;
   }
 
   function reportIntermediateCardHTML(title, subtitle, compact = false) {
@@ -5354,7 +5347,7 @@
       doneAppts.length ? ["打卡", `${opNames(doneAppts)} 已完成`] : ["计划", "本次未动"],
     ]);
     S.archivePlace = null;
-    triggerReportAnalysis(visit ? "review" : "baseline");
+    markReportMaterialUpdated(visit ? "review" : "baseline");
     // V10.49：复诊打卡提交不直接回首页，落复查报告页（该页底栏多一颗「返回首页」）
     if (fromCheckIn) {
       S.apptCapture = false;
@@ -10754,7 +10747,8 @@
         go("report-sub", "cover");
       },
       updateReport() {
-        const kind = el.dataset.kind || "overall";
+        const kind = el.dataset.kind || (S.reportKind === "visit" ? "review" : "baseline");
+        S.reportPane = "insight";
         triggerReportAnalysis(kind);
       },
       // V10.50：报告页顶部分页（AI 解读 / 资料合集），页内就地切换
@@ -10794,7 +10788,7 @@
           src.groups.splice(gi, 1);
         }
         syncCurrentPersonArchiveSnapshot();
-        triggerReportAnalysis(k === "visit" || k === "review" ? "review" : "baseline");
+        markReportMaterialUpdated(k === "visit" || k === "review" ? "review" : "baseline");
         render();
       },
       previewPage() { openOverlay("archivePreview", { title: el.dataset.t }); },
@@ -12223,7 +12217,7 @@
               <div class="grow col center" style="margin-top:14px;justify-content:flex-start">
                 ${reportIntermediateCardHTML("正在重新推演身体报告综合结论…", "已收到最新资料/随访数据变更，AI 正在综合各项体征指标与既往档案进行全面重算，请稍候。")}
               </div>` : `
-              <div class="scroll grow mt12 s21 fm t" style="line-height:1.45;padding-bottom:8px">${esc(rep.overall)}${S.consultReportOverall ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生问诊补充结论】${S.consultReportOverall}</div>` : ""}${reportUpdateFooterHTML("overall")}</div>`}
+              <div class="scroll grow mt12 s21 fm t" style="line-height:1.45">${esc(rep.overall)}${S.consultReportOverall ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生问诊补充结论】${S.consultReportOverall}</div>` : ""}</div>`}
           </div>
           <div class="island-card flex" style="margin:12px 0 20px;padding:8px;border-radius:18px">
             ${[
@@ -12242,8 +12236,11 @@
 
     "report-sub": () => {
       const rep = activePersonStore().report;
-      const isAnalyzingSub = S.reportKind === "visit" ? S.analyzingReview : S.analyzingBaseline;
-      const subTitle = S.reportKind === "visit" ? "复查报告" : "基础报告";
+      const isVisitSub = S.reportKind === "visit";
+      const isAnalyzingSub = isVisitSub ? S.analyzingReview : S.analyzingBaseline;
+      const hasPendingSub = isVisitSub ? !!S.pendingReviewUpdate : !!S.pendingBaselineUpdate;
+      const canUpdateSub = hasPendingSub && !isAnalyzingSub;
+      const subTitle = isVisitSub ? "复查报告" : "基础报告";
       return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回", "", S.reportReturnHome ? "reportBack" : "back"), subTitle)}
@@ -12254,14 +12251,14 @@
               ${S.reportPane === "archive" ? reportArchivePane() : (isAnalyzingSub ? `
                 ${reportIntermediateCardHTML(`AI 正在重新生成${subTitle}解读…`, "已检测到资料增删变更，AI 正在比对关键指标与基线档案，约需 2–3 秒…")}
               ` : `
-                <p class="s21 fm t">${esc(S.reportKind === "visit" ? rep.visit : rep.baseline)}</p>
-                ${S.reportKind === "visit" && S.consultReportSub?.review ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生跨期对照解读】${S.consultReportSub.review}</div>` : ""}
-                ${S.reportKind === "baseline" && S.consultReportSub?.baseline ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生基线报告解读】${S.consultReportSub.baseline}</div>` : ""}
-                ${reportUpdateFooterHTML(S.reportKind === "visit" ? "review" : "baseline")}`)}
+                <p class="s21 fm t">${esc(isVisitSub ? rep.visit : rep.baseline)}</p>
+                ${isVisitSub && S.consultReportSub?.review ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生跨期对照解读】${S.consultReportSub.review}</div>` : ""}
+                ${!isVisitSub && S.consultReportSub?.baseline ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生基线报告解读】${S.consultReportSub.baseline}</div>` : ""}`)}
             </div>
           </div>
         </div>
         <div class="px20 col gap10" style="padding-top:12px; padding-bottom:20px">
+          <button class="cta report-update-dock-btn ${canUpdateSub ? "is-ready" : "is-disabled"}" ${canUpdateSub ? `data-act="updateReport" data-kind="${isVisitSub ? "review" : "baseline"}"` : "disabled"} type="button">${I.cycle}更新报告</button>
           <button class="cta" data-act="addArchive" type="button">${I.cam}新增报告资料</button>
           ${S.reportReturnHome ? `<button class="cta white" data-act="reportHome" type="button">${I.house}返回首页</button>` : ""}
         </div>
