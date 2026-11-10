@@ -4840,8 +4840,52 @@
     return `<button class="${cls}" style="background:${bg};color:${color}" ${data} type="button">${icon || ""}<span>${label}</span></button>`;
   }
   const MONTH_DAY_SPECIAL_NOTE = "29、30、31号在无该日期的月份会自动跳过；「月末」固定为每月最后一天（自动适配大小月及二月28/29日）。";
-  function monthDayHints() {
-    return [MONTH_DAY_SPECIAL_NOTE];
+  function sanitizeMonthDays(rawDays) {
+    const arr = Array.isArray(rawDays) ? rawDays : [];
+    const nums = [];
+    let hasEnd = false;
+    for (const raw of arr) {
+      const n = Number(raw);
+      if (n === 0) hasEnd = true;
+      else if (Number.isFinite(n)) nums.push(Math.min(31, Math.max(1, Math.trunc(n))));
+    }
+    const uniq = Array.from(new Set(nums)).sort((a, b) => a - b);
+    const res = hasEnd ? [...uniq, 0] : uniq;
+    return res.length ? res : [1];
+  }
+  function monthDayDynamicNote(rawDays) {
+    const cleaned = sanitizeMonthDays(rawDays);
+    if (cleaned.length === 1 && cleaned[0] === 0) {
+      return "每月月末提醒，固定为当月最后一天（自动适配大小月及2月28/29日）。";
+    }
+    const prefix = cleaned.length === 1
+      ? (cleaned[0] === 0 ? "每月月末提醒" : `每月${cleaned[0]}日提醒`)
+      : `每月${cleaned.map((d) => (d === 0 ? "月末" : `${d}日`)).join("、")}提醒`;
+    const has29 = cleaned.includes(29);
+    const has30 = cleaned.includes(30);
+    const has31 = cleaned.includes(31);
+    const hasEnd = cleaned.includes(0);
+    const hasOverlapRisk = cleaned.some((d) => d >= 28 && d <= 31);
+    const skipParts = [];
+    if (has29) skipParts.push("平年2月无29日");
+    if (has30) skipParts.push("2月无30日");
+    if (has31) skipParts.push("2、4、6、9、11月无31日");
+    let skipClause = null;
+    if (skipParts.length === 1) {
+      skipClause = `${skipParts[0]}，${has31 ? "这些月份自动跳过" : "该月自动跳过"}`;
+    } else if (skipParts.length > 1) {
+      skipClause = `${skipParts.join("，")}，无该日期的月份自动跳过`;
+    }
+    const endClause = hasEnd
+      ? `「月末」固定为当月最后一天（自动适配大小月及2月28/29日${hasOverlapRisk ? "，同日仅提醒一次" : ""}）`
+      : null;
+    if (!skipClause && !endClause) return `${prefix}。`;
+    if (skipClause && !endClause) return `${prefix}；${skipClause}。`;
+    if (!skipClause && endClause) return `${prefix}；${endClause}。`;
+    return `${prefix}；${skipClause}；${endClause}。`;
+  }
+  function monthDayHints(days) {
+    return [monthDayDynamicNote(days)];
   }
   function durationOpts(rule, intervalUnit) {
     const g = durationGranularity(rule, intervalUnit);
@@ -11889,6 +11933,15 @@
 
           <div class="parsed-field-card">
             <div class="parsed-field-head">
+              <span class="parsed-field-title">用药处方</span>
+              <span class="parsed-badge req">必填</span>
+              <button class="parsed-clear-btn ${hasMed ? "" : "dim"}" data-act="clearParsedField" data-field="medication" ${hasMed ? "" : "disabled"} type="button">清空</button>
+            </div>
+            <textarea class="parsed-context-input" data-parsed-field="medication" rows="4" placeholder="请输入用药处方（每行一种药，如：阿司匹林肠溶片 100mg 每日1次 早餐后）">${esc(p.medication || "")}</textarea>
+          </div>
+
+          <div class="parsed-field-card">
+            <div class="parsed-field-head">
               <span class="parsed-field-title">出院时间</span>
               <span class="parsed-badge req">必填</span>
             </div>
@@ -11909,15 +11962,6 @@
                 </select>
               </label>
             </div>
-          </div>
-
-          <div class="parsed-field-card">
-            <div class="parsed-field-head">
-              <span class="parsed-field-title">用药处方</span>
-              <span class="parsed-badge req">必填</span>
-              <button class="parsed-clear-btn ${hasMed ? "" : "dim"}" data-act="clearParsedField" data-field="medication" ${hasMed ? "" : "disabled"} type="button">清空</button>
-            </div>
-            <textarea class="parsed-context-input" data-parsed-field="medication" rows="4" placeholder="请输入用药处方（每行一种药，如：阿司匹林肠溶片 100mg 每日1次 早餐后）">${esc(p.medication || "")}</textarea>
           </div>
 
           <div class="parsed-field-card">
@@ -17616,7 +17660,7 @@
           ${d.rule === "monthly" ? `<div class="month-day-grid mt8">${Array.from({ length: 31 }, (_, i) => i + 1).map((day) =>
             chip({ selected: (d.monthDays || []).includes(day), label: String(day), act: "draftMonthDay", extra: `data-d="${day}"`, compact: true })).join("")}
             ${chip({ selected: (d.monthDays || []).includes(0), label: "月末", act: "draftMonthDay", extra: 'data-d="0"', compact: true })}</div>
-            <div class="month-day-hint">${MONTH_DAY_SPECIAL_NOTE}</div>` : ""}`;
+            <div class="month-day-hint">${monthDayDynamicNote(d.monthDays || [])}</div>` : ""}`;
 
       const scheduleCard = `
         <div class="v02-editor-card">
