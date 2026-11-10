@@ -17888,7 +17888,6 @@
           const isWakeA = a.title === "起床" || (a.title && a.title.indexOf("起床") >= 0 && a.title.indexOf("血压") < 0);
           const isWakeB = b.title === "起床" || (b.title && b.title.indexOf("起床") >= 0 && b.title.indexOf("血压") < 0);
           if (isWakeA !== isWakeB) return isWakeA ? -1 : 1;
-          if (!!a.routineSkeleton !== !!b.routineSkeleton) return a.routineSkeleton ? -1 : 1;
           return (a.i ?? 0) - (b.i ?? 0);
         }),
     })).filter((g) => g.items.length);
@@ -17957,10 +17956,7 @@
       ? cardNote(I.alignLeft, note, idx == null ? null : draftNoteAct, idx, noteEmpty)
       : "";
     const notes = origHTML + baseNoteHTML;
-    const badgeLabel = isRoutine ? "基础作息" : "";
-    const titleHTML = badgeLabel
-      ? `<div class="act-title-row"><div class="s15 fb t">${title}</div><span class="diff-badge routine-badge">${badgeLabel}</span></div>`
-      : `<div class="s15 fb t">${title}</div>`;
+    const titleHTML = `<div class="s15 fb t">${title}</div>`;
     const rangeText = seedTask ? taskDateRangeLabel(seedTask) : taskDateRangeLabel({ cycle: isCycle });
     return `<div class="act-card ${cls}">
       <div class="act-card-main">
@@ -18239,12 +18235,9 @@
       const blkObj = BLOCKS.find((b) => b.id === d.block) || BLOCKS[0];
       const vitalsHTML = editorVitalsBlock(d, mode, done, accent);
 
-      const isRoutineDraft = !!(d && d.routineSkeleton);
-      const catLabel = isRoutineDraft
-        ? "基础作息"
-        : (d.cat === "custom"
-            ? ((S.customCats || []).find((x) => x.id === d.customId)?.name || "自定义")
-            : (CAT[d.cat]?.chip || "事项"));
+      const catLabel = d.cat === "custom"
+        ? ((S.customCats || []).find((x) => x.id === d.customId)?.name || "自定义")
+        : (CAT[d.cat]?.chip || "事项");
       const contentPrimary = (d.title || "").trim() || catLabel;
       const timePrimary = `${pad(d.hour)}:${pad(d.min)}`;
       const ruleMap = { daily: "每日", weekly: "每周", monthly: "每月", custom: customRuleDisplayName(d.intervalCount, d.intervalUnit) };
@@ -18286,7 +18279,7 @@
         </div>`;
 
       // 模块一：事项内容（事项名称 + 补充备注 + 今日血压 + 事项分类）
-      const isCatLocked = viewing || isRoutineDraft || (S.lockCategory && mode === "add");
+      const isCatLocked = viewing || (S.lockCategory && mode === "add");
       const catIcoHTML = d.cat === "custom" ? I[UNIFIED_CUSTOM_ICON] : (CAT_ICON[d.cat] ? CAT_ICON[d.cat]() : I.doc);
       const catKindBadge = PROFESSIONAL.has(d.cat) ? "专业康复日程" : "日常健康管理";
       const trimmedNote = String(d.note || "").trim();
@@ -18301,7 +18294,7 @@
         <div class="v02-editor-card">
           ${modHead(I.doc, mode !== "add" && rxOn() && S.rx && S.rx[t.id] ? `事项内容<span class="rx-chip" style="margin-left:8px">医嘱</span>` : "事项内容")}
           <div class="sec-label" style="margin-top:0">事项名称</div>
-          ${(editable && !isRoutineDraft)
+          ${editable
             ? `<input class="voice-box w100" name="taskTitle" style="color:${accent.fg};border:0;font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" ? "42px" : "46px"}" placeholder="填写事项名称" value="${String(d.title || "").replace(/"/g, "&quot;")}" />`
             : `<div class="v02-ro-box" style="background:${accent.muted};color:${accent.fg};font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" ? "42px" : "46px"}">${esc(contentPrimary)}</div>`}
           <div class="sec-label">补充备注</div>
