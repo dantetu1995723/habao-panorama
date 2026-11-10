@@ -12332,7 +12332,7 @@
       })).filter((g) => g.items.length);
       return `
         <div class="page">
-          ${navBar(cap(I.chevL, "返回"), `<span data-act="openScope">${S.scheduleScope} ▾</span>`,
+          ${navBar(cap(I.chevL, "返回"), "健康计划",
             `<button class="cap" data-act="calMode" type="button">${I.cal}${S.calMode === "week" ? "月图" : "周图"}</button>`)}
           <div class="scroll px20" style="padding-top:8px">
             <div class="cal-island" id="cal-swipe">
@@ -12360,9 +12360,11 @@
               })).join("")}</div>
             `).join("") : `<div class="island-card ta-c t-sec s15" style="padding:16px;margin-top:16px">${emptyPlanText()}</div>`}
           </div>
-          <button class="fab" data-act="addPlan" type="button">
-            ${I.plus}添加健康计划
-          </button>
+          ${liveTasks().length > 0 ? `
+            <button class="fab" data-act="addPlan" type="button">
+              ${I.plus}添加健康计划
+            </button>
+          ` : ""}
         </div>`;
     },
 
