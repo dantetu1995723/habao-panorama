@@ -12340,12 +12340,17 @@
 
     "confirm-plan": () => {
       if (!S.confirmDrafts) seedConfirmDrafts();
-      // V10.316：去除顶部统计卡，卡片右上角彻底移除「保留」等对比状态标签；卡片副行统一规范为时刻+剂量+循环+类别标准 Tag
+      // V10.316：去除顶部统计卡，卡片右上角保留「新建 / 已调整 / 保留」标识 Tag（首次排定统一标「新建」，再次排定按存量精准区分）
       const dupList = baselineSourceTasks();
-      const diff = computeBaselineDiffJS(S.confirmDrafts, dupList);
+      const hasBaseline = dupList && activeBaselineTasks(dupList).length > 0;
+      const diff = hasBaseline ? computeBaselineDiffJS(S.confirmDrafts, dupList) : null;
       const dupHint = (x) => {
         const h = baselineManualDupHint(x, dupList);
         return h ? `<div class="confirm-dup-hint">${esc(h)}</div>` : "";
+      };
+      const itemBadge = (i) => {
+        if (!diff) return "added";
+        return diff.statusByIdx[i] || "added";
       };
       const indexed = S.confirmDrafts.map((x, i) => ({ ...x, i, h: parseHour(x.time), m: parseMinute(x.time) }));
       const daily = indexed.filter((x) => x.cat !== "appointment");
@@ -12370,7 +12375,7 @@
                   dose: x.cat === "medication" ? (x.dose || medDose(x.title)) : "",
                   note: rawNote || "可编辑备注",
                   noteEmpty: !rawNote,
-                  statusBadge: null,
+                  statusBadge: itemBadge(x.i),
                   origNote: diff ? diff.origByIdx[x.i] : null,
                 }) + dupHint(x);
               }).join("")}</div>
@@ -12393,7 +12398,7 @@
                 cat: "appointment", title: a.title, time: `${prefix}${a.time}`, appt: true, draft: true, cycle: a.cycle !== false, idx: a.i,
                 note: rawNote || "可编辑备注",
                 noteEmpty: !rawNote,
-                statusBadge: null,
+                statusBadge: itemBadge(a.i),
                 origNote: diff ? diff.origByIdx[a.i] : null,
               }) + dupHint(a);
             }).join("")}</div>
@@ -17456,7 +17461,7 @@
       : `<div class="act-note">${inner}</div>`;
   }
 
-  const DIFF_BADGE_LABELS = { added: "新增", modified: "已调整", kept: "保留", stopped: "今日起停用" };
+  const DIFF_BADGE_LABELS = { added: "新建", modified: "已调整", kept: "保留", stopped: "今日起停用" };
 
   function actionCard({ cat, title, time, date, appt, done, hist, id, toggle, draft, cycle, idx, dose, note, noteEmpty, statusBadge, origNote, deactivated, restoreId }) {
     const kind = appt || cat === "appointment" ? "appointment" : cat;
