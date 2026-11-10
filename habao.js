@@ -12506,10 +12506,43 @@
         <div class="scroll px20" style="padding-top:12px;padding-bottom:120px">
           ${periodSections.length ? periodSections.map((g) => `
             <div class="confirm-period">
-              ${sectionHead(I[g.icon], g.title, g.activeItems.length)}
-              <div class="col gap10">
-                ${g.activeItems.map((r) => {
-                  if (r.isOtherPlan) {
+              <div class="confirm-period-head">
+                <div class="confirm-period-title">
+                  ${I[g.icon] || ""}${g.title}${g.activeItems.length ? `<span class="count-pill">${g.activeItems.length}</span>` : ""}
+                </div>
+                ${g.inactiveItems.length ? `
+                  <div class="confirm-period-add-chips">
+                    ${g.inactiveItems.map((r) => `
+                      <button class="routine-head-chip" data-act="restoreRestCard" data-i="${r.i}" type="button">
+                        ${I.plus}
+                        <span class="r-name">${esc(r.name)}</span>
+                        <span class="r-time">${esc(r.t)}</span>
+                      </button>`).join("")}
+                  </div>` : ""}
+              </div>
+              ${g.activeItems.length ? `
+                <div class="col gap10">
+                  ${g.activeItems.map((r) => {
+                    if (r.isOtherPlan) {
+                      const prefix = r.cycle === false
+                        ? ""
+                        : (r.rule === "weekly"
+                            ? `${scheduleRuleSummary(true, "weekly", r.weekdays)} `
+                            : r.rule === "monthly"
+                              ? `每月${((r.monthDays && r.monthDays.length) ? r.monthDays : [1]).map((d) => d === 0 ? "月末" : `${d}日`).join("、")} `
+                              : r.rule === "custom"
+                                ? `${customRuleDisplayName(r.intervalCount, r.intervalUnit)} `
+                                : "");
+                      return actionCard({
+                        id: r.id, cat: r.cat, title: r.title, time: `${prefix}${r.t}`, draft: false, routine: false,
+                        cycle: true,
+                        note: r.note || "",
+                        noteEmpty: !r.note,
+                        delAct: "delRestOtherCard",
+                      });
+                    }
+                    const rawNote = String(r.note || "").trim();
+                    const cat = r.cat || (["早餐", "午餐", "晚餐"].includes(r.name) ? "diet" : "rest");
                     const prefix = r.cycle === false
                       ? ""
                       : (r.rule === "weekly"
@@ -12520,44 +12553,16 @@
                               ? `${customRuleDisplayName(r.intervalCount, r.intervalUnit)} `
                               : "");
                     return actionCard({
-                      id: r.id, cat: r.cat, title: r.title, time: `${prefix}${r.t}`, draft: false, routine: false,
-                      cycle: true,
-                      note: r.note || "",
-                      noteEmpty: !r.note,
-                      delAct: "delRestOtherCard",
+                      cat, title: r.name, time: `${prefix}${r.t}`, draft: true, routine: true,
+                      cycle: r.cycle !== false, idx: r.i,
+                      note: rawNote || "可编辑备注",
+                      noteEmpty: !rawNote,
+                      editAct: "editRestCard",
+                      delAct: "delRestCard",
+                      noteAct: "editRestNote",
                     });
-                  }
-                  const rawNote = String(r.note || "").trim();
-                  const cat = r.cat || (["早餐", "午餐", "晚餐"].includes(r.name) ? "diet" : "rest");
-                  const prefix = r.cycle === false
-                    ? ""
-                    : (r.rule === "weekly"
-                        ? `${scheduleRuleSummary(true, "weekly", r.weekdays)} `
-                        : r.rule === "monthly"
-                          ? `每月${((r.monthDays && r.monthDays.length) ? r.monthDays : [1]).map((d) => d === 0 ? "月末" : `${d}日`).join("、")} `
-                          : r.rule === "custom"
-                            ? `${customRuleDisplayName(r.intervalCount, r.intervalUnit)} `
-                            : "");
-                  return actionCard({
-                    cat, title: r.name, time: `${prefix}${r.t}`, draft: true, routine: true,
-                    cycle: r.cycle !== false, idx: r.i,
-                    note: rawNote || "可编辑备注",
-                    noteEmpty: !rawNote,
-                    editAct: "editRestCard",
-                    delAct: "delRestCard",
-                    noteAct: "editRestNote",
-                  });
-                }).join("")}
-                ${g.inactiveItems.map((r) => `
-                  <button class="routine-add-card" data-act="restoreRestCard" data-i="${r.i}" type="button">
-                    <div class="r-icon">${I.plus}</div>
-                    <div class="r-info">
-                      <span class="r-name">添加「${esc(r.name)}」</span>
-                      <span class="r-time">${esc(r.t)}</span>
-                    </div>
-                    <span class="r-btn">添加</span>
-                  </button>`).join("")}
-              </div>
+                  }).join("")}
+                </div>` : ""}
             </div>`).join("") : `
             <div class="routine-empty-box">
               ${I.moonStars}
