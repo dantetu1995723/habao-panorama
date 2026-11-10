@@ -175,18 +175,18 @@
     // V10.312：origin:"baseline" = 来自「康复基础日程」整套（作息 / 用药 / 复查 / 测血压等）；无此标记即手建计划
     { id: "t1", title: "起床测血压", h: 6, m: 30, cat: "monitoring", note: "依据出院记录，确诊高血压3级，每日测血压两次", origin: "baseline" },
     { id: "t2", title: "晨起温水", h: 7, m: 0, cat: "diet", note: "200–300 ml 温水" },
-    { id: "t3", title: "早餐", h: 7, m: 30, cat: "diet", note: "低盐低脂，搭配粗粮", origin: "baseline" },
+    { id: "t3", title: "早餐", h: 7, m: 30, cat: "diet", note: "低盐低脂，搭配粗粮", origin: "baseline", routineSkeleton: true },
     { id: "t4", title: "服用阿司匹林肠溶片", h: 8, m: 0, cat: "medication", note: "依据出院记录，阿司匹林肠溶片每日用药一次", origin: "baseline" },
     { id: "t5", title: "服用美托洛尔缓释片", h: 8, m: 30, cat: "medication", note: "依据出院记录，美托洛尔缓释片每日用药一次", origin: "baseline" },
     { id: "t6", title: "晨间散步", h: 9, m: 0, cat: "exercise", note: "匀速步行，心率 ≤ 110 bpm" },
     { id: "t7", title: "上肢康复操", h: 10, m: 0, cat: "exercise", note: "坐姿弹力带训练 · 2 组 × 10 次" },
     { id: "t8", title: "上午加餐", h: 10, m: 30, cat: "diet", note: "一份水果 / 坚果", cycle: false },
     { id: "t9", title: "午餐控盐", h: 12, m: 0, cat: "diet", note: "每日盐摄入 < 5g · 多蔬菜" },
-    { id: "t10", title: "午休", h: 13, m: 0, cat: "rest", note: "保持安静环境，避免手机", origin: "baseline" },
+    { id: "t10", title: "午休", h: 13, m: 0, cat: "rest", note: "保持安静环境，避免手机", origin: "baseline", routineSkeleton: true },
     { id: "t11", title: "测心率", h: 14, m: 0, cat: "monitoring", note: "记录静息心率与自觉症状" },
     { id: "t12", title: "下午散步", h: 15, m: 0, cat: "exercise", note: "选择平坦路面，注意防滑" },
     { id: "t13", title: "饮水提醒", h: 16, m: 0, cat: "diet", note: "累计饮水 ≥ 800 ml（全天 1.5–2 L）" },
-    { id: "t14", title: "晚餐", h: 18, m: 0, cat: "diet", note: "七分饱 · 少油少盐", origin: "baseline" },
+    { id: "t14", title: "晚餐", h: 18, m: 0, cat: "diet", note: "七分饱 · 少油少盐", origin: "baseline", routineSkeleton: true },
     { id: "t15", title: "晚间散步", h: 19, m: 0, cat: "exercise", note: "饭后半小时 · 慢速" },
     { id: "t16", title: "服用阿托伐他汀钙片", h: 21, m: 0, cat: "medication", note: "依据出院记录，阿托伐他汀钙片每晚用药一次", origin: "baseline" },
     { id: "t17", title: "放松冥想", h: 21, m: 30, cat: "rest", note: "深呼吸练习 · 478 呼吸法" },
@@ -1341,6 +1341,7 @@
     "hardware>hardware-scan": "cover",
     "health-record>patient-edit": "cover",
     "notify>family": "cover",
+    "first-rest>task-add": "cover",
     "confirm-plan>task-add": "cover",
     "confirm-exercise>task-add": "cover",
     "task-view>task-edit": "replace",
@@ -1440,7 +1441,7 @@
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "V10.289：仅展示前一个拍摄页中已勾选/保留的分组。基础报告或首次上传报告中含出院记录时排在最上方；选传组为空时显示灰色说明文字。首次建日程与新增用药复查的资料详情右上为「解析」，点击后进入「资料解析结果」页；健康档案与身体报告子页的补拍通道右上为「提交」，提交后直接归入共享资料 BASE（不经过资料解析结果页）。" },
     "ocr-parsed": { code: "OCRParseResultView", note: "【V10.309】仅限创建计划步骤（排定 / 更新康复基础日程），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「解析结果」页（标题「解析结果」）。左上角为「< 返回」，右上角为同规格「提交」按钮。默认模拟已识别填好的状态，包含五个可编辑字段：① 疾病信息（必填，多行文本框 context + 右上角「清空」按钮）、② 出院时间（必填，年 / 月 / 日三个并排下拉框）、③ 用药处方（必填，多行文本框 context + 右上角「清空」按钮）、④ 手术名称（选填，多行文本框 context + 右上角「清空」按钮）、⑤ 手术时间（选填，年 / 月 / 日三个并排下拉框）。当三个必填字段非空时右上角「提交」按钮可点击，按修改后的解析结果生成计划并进入「确认计划」页。" },
-    "first-rest": { code: "CreateScheduleFlowView", note: "【V10.318 一日时间轴骨架 · 去顶部说明头】首页「排定康复基础日程」与选择类型「康复基础日程」共用本页。导航下无顶部标题与说明文字，直接呈现纵向时间轴图标串联 6 个节点（起床 / 早餐 / 午餐 / 午休 / 晚餐 / 上床睡觉）+ 中间事项名与同源状态 Tag + 右侧时刻胶囊与独立 Switch 开关：① 首次排定开启标「新建」、关掉标「不创建」；再次排定对比原有骨架完整呈现五态闭环——原有未改标「保留」、改时刻标「已调整（原 HH:MM）」、关掉原有在用项标「本次停用（原 HH:MM · 停用提醒，保留推算）」、原未包含标「未启用」、重新开启标「新建」；② 有改动时导航栏右上角动态轻显「恢复原骨架 / 恢复默认」一键还原；③ 开关只控制「是否生成该作息打卡提醒」，各节点时刻始终作为推算早/中/晚餐前后与睡前服药及测血压的时间基准。" },
+    "first-rest": { code: "CreateScheduleFlowView", note: "【V10.319 全局统一紫色基础作息卡片重构】首页「排定康复基础日程」与选择类型「康复基础日程」共用本页。重构为与「确认计划」100% 同构的页面（按 DayPeriod 时段分组 + 紫色 RehabTaskRowView 操作卡）：① 基础作息作为特殊骨架存在，全生命周期（基础作息页 / 确认计划页 / 首页今日卡片 / 健康计划列表 / 查看编辑详情页）未打卡均呈现专属紫色（完成后转绿），副行类别胶囊统一显示「基础作息」，彻底与用户手建的蓝色「作息/饮食」解耦；② 所见即在用骨架 + 底部「可添加的基础作息」轻量虚框补回池（删掉某张紫卡即落入底部待选区，点一下即作为「新建」紫卡飞回对应时段，右上角按需展示「恢复原骨架 / 恢复默认」）；③ 点「编辑」进入紫色主题草稿编辑页（锁定 6 项标准名称与「基础作息」分类不可改，开放时刻、循环周期、持续时长与备注），确认计划页原样合流紫色作息骨架卡 + 蓝色服药/测血压卡 + 红色复查卡。" },
     "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表，时段内严格按 HH:mm 由早到晚排布。【V10.315 极简三态对比】仅在已有存量基础日程再次排定时展示（首次排定保持纯净），全链路砍掉「将停用」与停用专区（页面所见即接下来要执行的，关掉/删掉即不再提醒）：① 顶部「对比原基础日程」摘要卡展示「新增 / 已调整 / 保留」三态计数 +「其余 M 项手建与运动计划不受影响，确认后继续保留」；② 各时段与复查卡片标题行右侧实时标注「新增 / 已调整 / 保留」胶囊，「已调整」卡内附琥珀色对比行「原计划：…」（用药自动忽略「服用」前缀匹配同一药品）。右上「确认」按类别+名称整套替换上一版基础日程，手建与运动计划不动；左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "【V10.312】专业组首卡「康复基础日程」（副标题「按病历排好用药、复查与作息」）标复查红（特殊），与首页「排定康复基础日程」同一条链：基础作息（预填已有作息时刻）→ 拍照 → 资料详情 → 解析结果 → 确认计划，确认后整套替换上一版基础日程、手建计划不动；运动走体测。专业听诊器 14 / 日常铃。两组岛：运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
@@ -2183,8 +2184,8 @@
   function navBar(left, title, right = "") {
     return `<div class="nav-row rel">${left}<div class="nav-title">${title}</div>${right || `<span style="width:36px"></span>`}</div>`;
   }
-  function badge(cat, done, seal) {
-    const cls = done ? "done" : cat === "appointment" ? "appt" : "";
+  function badge(cat, done, seal, routine) {
+    const cls = done ? "done" : routine ? "routine" : cat === "appointment" ? "appt" : "";
     return `<div class="badge ${cls}">${seal || ""}<img src="${A.task[cat]}" alt="" /></div>`;
   }
   function toast(msg) {
@@ -4481,37 +4482,54 @@
     return (list || []).filter((t) => isBaselineTask(t) && taskActiveFromToday(t, today));
   }
   function isBaselineRestItem(t) {
-    return (t.cat === "rest" || t.cat === "diet") && BASELINE_REST_NAMES.includes(t.title);
+    return !!t && (t.routineSkeleton || ((t.cat === "rest" || t.cat === "diet") && BASELINE_REST_NAMES.includes(t.title)));
   }
-  /// V10.317 一日时间轴骨架预填：首次排定 6 项默认全开；再次排定按当前存量骨架自动还原启停开关并继承原时刻与周期备注
+  function isRoutineSkeletonTask(t) {
+    return !!(t && (t.routineSkeleton || (isBaselineTask(t) && isBaselineRestItem(t))));
+  }
+  /// V10.319 基础作息紫色骨架卡预填：首次排定 6 项默认全在列表；再次排定存量在用的带入列表（标保留），未启用的收入底部「可添加的基础作息」补回池
   function baselineRestRows() {
     const old = activeBaselineTasks(baselineSourceTasks());
     const isRefresh = old.length > 0;
     const rows = REST_PRESET.map((p) => {
+      const defCat = ["早餐", "午餐", "晚餐"].includes(p.name) ? "diet" : "rest";
       if (!isRefresh) {
-        return { ...p, on: true, initOn: true, initT: p.t, origT: null, isRefresh: false };
+        return {
+          ...p, cat: defCat, on: true, initOn: true, initT: p.t, origT: null, origTask: null,
+          isRefresh: false, cycle: true, rule: "daily", duration: "oneYear", routineSkeleton: true,
+        };
       }
       const hit = old.find((t) => isBaselineRestItem(t) && t.title === p.name);
       if (hit) {
         const origT = `${pad(hit.h ?? 0)}:${pad(hit.m ?? 0)}`;
         return {
           ...p,
+          cat: hit.cat || defCat,
           t: origT,
           on: true,
           initOn: true,
           initT: origT,
           origT,
+          origTask: { ...hit },
           isRefresh: true,
           note: hit.note || "",
           cycle: hit.cycle !== false,
-          rule: hit.rule,
+          rule: hit.rule || "daily",
           weekdays: hit.weekdays ? hit.weekdays.slice() : undefined,
           monthDays: hit.monthDays ? hit.monthDays.slice() : undefined,
           intervalCount: hit.intervalCount,
           intervalUnit: hit.intervalUnit,
+          duration: hit.duration || "oneYear",
+          endDate: hit.endDate,
+          customDays: hit.customDays,
+          onceDate: hit.onceDate,
+          routineSkeleton: true,
         };
       }
-      return { ...p, on: false, initOn: false, initT: p.t, origT: null, isRefresh: true };
+      return {
+        ...p, cat: defCat, on: false, initOn: false, initT: p.t, origT: null, origTask: null,
+        isRefresh: true, cycle: true, rule: "daily", duration: "oneYear", routineSkeleton: true,
+      };
     });
     rows._mode = `${!!S.enrolled}|${S.proxyTargetPersonName || ""}`;
     rows._isRefresh = isRefresh;
@@ -4525,56 +4543,29 @@
     return S.restRows;
   }
   function hasRestSkeletonChanges(rows) {
-    return (rows || []).some((r) => Boolean(r.on !== false) !== Boolean(r.initOn !== false) || r.t !== r.initT);
-  }
-  /// V10.317：单行骨架节点与原有骨架的五态闭环（新建 / 保留 / 已调整 / 本次停用 / 未启用·不创建）+ 医嘱基准说明
-  function routineRowSkeletonState(r) {
-    const isOn = r.on !== false;
-    const hasAnchor = r.hasMedicalAnchor !== false;
-    const anchorDesc = r.anchor || "日常作息提醒";
-    if (r.isRefresh) {
-      if (r.origT) {
-        if (!isOn) {
-          return {
-            badgeText: "本次停用",
-            badgeCls: "stopped",
-            subText: hasAnchor ? `原 ${r.origT} · 停用提醒，保留推算` : `原 ${r.origT} · 确认后停用该提醒`,
-            subCls: "stopped",
-          };
-        }
-        if (r.t !== r.origT) {
-          return {
-            badgeText: "已调整",
-            badgeCls: "modified",
-            subText: hasAnchor ? `原 ${r.origT} · 关联医嘱同步顺延` : `原 ${r.origT} · 提醒时刻已更新`,
-            subCls: "modified",
-          };
-        }
-        return { badgeText: "保留", badgeCls: "kept", subText: anchorDesc, subCls: "" };
+    return (rows || []).some((r) => {
+      if (Boolean(r.on !== false) !== Boolean(r.initOn !== false)) return true;
+      if (r.origTask) {
+        if (!isSameBaselineScheduleJS({ ...r, time: r.t }, r.origTask)) return true;
+        return String(r.note || "").trim() !== String(r.origTask.note || "").trim();
       }
-      if (isOn) {
-        return { badgeText: "新建", badgeCls: "added", subText: anchorDesc, subCls: "" };
-      }
-      return {
-        badgeText: "未启用",
-        badgeCls: "inactive",
-        subText: hasAnchor ? `不设提醒 · 仍按 ${r.t} 推算` : "原骨架未启用 · 开启即新建",
-        subCls: "",
-      };
-    }
-    if (isOn) {
-      return { badgeText: "新建", badgeCls: "added", subText: anchorDesc, subCls: "" };
-    }
-    return {
-      badgeText: "不创建",
-      badgeCls: "inactive",
-      subText: hasAnchor ? `不设提醒 · 仍按 ${r.t} 推算` : "不生成每日午休提醒",
-      subCls: "",
-    };
+      if (r.t !== r.initT) return true;
+      if (r.cycle === false || (r.rule && r.rule !== "daily")) return true;
+      return String(r.note || "").trim() !== "";
+    });
   }
-  /// V10.317：开关只控制「是否生成该作息打卡提醒」，全量 6 个骨架节点的时刻始终作为推算服药与测血压的基准
+  /// V10.319：与确认计划页 100% 同源的紫色作息卡状态判定（新建 / 已调整 / 保留 + 原计划脚注）
+  function routineCardDiffJS(r) {
+    if (!r.isRefresh || !r.origTask) return { status: "added", origNote: null };
+    const draftLike = { ...r, time: r.t };
+    if (isSameBaselineScheduleJS(draftLike, r.origTask)) {
+      return { status: "kept", origNote: null };
+    }
+    return { status: "modified", origNote: oldBaselineSummaryJS(r.origTask, draftLike) };
+  }
+  /// V10.319：从当前保留在骨架中的紫色基础作息卡提取时刻锚点，未保留项自然回落标准默认时刻
   function routineAnchorsFromRows() {
-    const rows = ensureRestRowsSynced();
+    const rows = (ensureRestRowsSynced() || []).filter((r) => r.on !== false);
     const minsOf = (name) => {
       const hit = rows.find((r) => r.name === name);
       if (!hit || !hit.t) return null;
@@ -4828,6 +4819,7 @@
         customDays: isCyc && x.customDays ? x.customDays : undefined,
         onceDate: x.onceDate || undefined,
         muteFirst: x.muteFirst === true,
+        routineSkeleton: !!x.routineSkeleton,
       };
     });
     const place = (t) => {
@@ -4880,6 +4872,7 @@
     const iUnit = (t.intervalUnit === "week" || t.intervalUnit === "month") ? t.intervalUnit : "day";
     return {
       cat: t.cat,
+      routineSkeleton: isRoutineSkeletonTask(t),
       cycle: t.cycle !== false,
       // 保留已存的循环规则，否则编辑一次「每周三」就退化成「每日」
       rule: t.rule || (appt ? "monthly" : "daily"),
@@ -5086,6 +5079,7 @@
   }
   function editorAccent(d, done) {
     if (done) return { fg: "#1AA64A", muted: "rgba(26,166,74,.12)" };
+    if (d && d.routineSkeleton) return { fg: "#764ADA", muted: "rgba(118,74,218,.14)" };
     if (d.cat === "appointment") return { fg: "#DC4848", muted: "rgba(220,72,72,.16)" };
     return { fg: "#1054E0", muted: "rgba(16,84,224,.12)" };
   }
@@ -7245,11 +7239,82 @@
         // 带着这条草稿原本的提醒设置回来，否则编辑一次就被重置成开
         S.draft.remind = existingItem.remind !== false;
         S.draft.muteFirst = !!existingItem.muteFirst;
+        S.draft.routineSkeleton = !!existingItem.routineSkeleton;
+        if (S.draft.routineSkeleton) S.lockCategory = true;
         go("task-add", "cover");
       },
       delConfirmDraft() {
         const i = +el.dataset.i;
         if (!Number.isNaN(i) && S.confirmDrafts) S.confirmDrafts.splice(i, 1);
+        render();
+      },
+      editRestCard() {
+        ensureRestRowsSynced();
+        const i = +el.dataset.i;
+        const r = S.restRows[i];
+        if (!r) return;
+        S.draftReturn = "first-rest";
+        S.confirmEditIndex = i;
+        S.addTitle = "编辑计划";
+        S.isConfirmDraftEdit = true;
+        S.lockBlock = false;
+        S.lockRecurrence = false;
+        S.lockCategory = true;
+        S.lockProfessional = false;
+        S.allowedCategories = null;
+        const cat = r.cat || (["早餐", "午餐", "晚餐"].includes(r.name) ? "diet" : "rest");
+        const hm = String(r.t || "07:00").match(/(\d{1,2}):(\d{2})/);
+        initDraft({
+          cat,
+          h: hm ? +hm[1] : 7,
+          m: hm ? +hm[2] : 0,
+          title: r.name,
+          note: r.note || "",
+          cycle: r.cycle !== false,
+          rule: r.rule || "daily",
+          weekdays: r.weekdays,
+          monthDays: r.monthDays,
+          intervalCount: r.intervalCount,
+          intervalUnit: r.intervalUnit,
+          duration: r.duration || "oneYear",
+          endDate: r.endDate || null,
+          customDays: r.customDays || null,
+          onceDate: r.onceDate,
+        });
+        S.draft.routineSkeleton = true;
+        go("task-add", "cover");
+      },
+      delRestCard() {
+        ensureRestRowsSynced();
+        const i = +el.dataset.i;
+        const r = S.restRows[i];
+        if (!r) return;
+        r.on = false;
+        S.meds = null;
+        S.bps = null;
+        S.confirmDrafts = null;
+        render();
+      },
+      restoreRestCard() {
+        ensureRestRowsSynced();
+        const i = +el.dataset.i;
+        const r = S.restRows[i];
+        if (!r) return;
+        r.on = true;
+        S.meds = null;
+        S.bps = null;
+        S.confirmDrafts = null;
+        render();
+      },
+      editRestNote() {
+        ensureRestRowsSynced();
+        const i = +el.dataset.i;
+        const r = S.restRows[i];
+        if (!r) return;
+        const v = window.prompt(`补充备注 · ${r.name}`, r.note || "");
+        if (v === null) return;
+        r.note = v.trim();
+        S.confirmDrafts = null;
         render();
       },
       toggleRestRow() {
@@ -8670,19 +8735,48 @@
           return;
         }
         if (S.draftReturn) {
+          const retScreen = S.draftReturn;
           const i = S.confirmEditIndex;
           const wasEdit = !!S.isConfirmDraftEdit;
           S.draftReturn = null;
           S.confirmEditIndex = null;
           S.isConfirmDraftEdit = false;
           S.allowedCategories = null;
+          if (retScreen === "first-rest" && S.restRows && i != null && S.restRows[i] && S.draft) {
+            const origRow = S.restRows[i];
+            S.restRows[i] = {
+              ...origRow,
+              t: `${pad(S.draft.hour)}:${pad(S.draft.min)}`,
+              note: S.draft.note || "",
+              cycle: !!S.draft.cycle,
+              rule: S.draft.cycle ? (S.draft.rule || "daily") : "once",
+              weekdays: S.draft.cycle && S.draft.weekdays ? S.draft.weekdays.slice() : undefined,
+              monthDays: S.draft.cycle && S.draft.monthDays ? S.draft.monthDays.slice() : undefined,
+              intervalCount: S.draft.cycle && S.draft.rule === "custom" ? clampRuleInterval(S.draft.intervalCount, S.draft.intervalUnit) : undefined,
+              intervalUnit: S.draft.cycle && S.draft.rule === "custom" ? ((S.draft.intervalUnit === "week" || S.draft.intervalUnit === "month") ? S.draft.intervalUnit : "day") : undefined,
+              duration: S.draft.cycle ? S.draft.duration : null,
+              endDate: S.draft.cycle ? (S.draft.endDate || null) : null,
+              customDays: S.draft.cycle ? (S.draft.customDays || null) : null,
+              onceDate: S.draft.onceDate,
+              on: true,
+              routineSkeleton: true,
+            };
+            S.meds = null;
+            S.bps = null;
+            S.confirmDrafts = null;
+            dismissCover();
+            toast("已更新基础作息");
+            return;
+          }
           // 回写草稿列表（真机确认页编辑保存回写 draftTasks）
           if (S.confirmDrafts && S.draft) {
+            const prev = (i != null && S.confirmDrafts[i]) ? S.confirmDrafts[i] : null;
+            const keepRoutine = !!(prev && prev.routineSkeleton);
             const next = {
-              title: S.draft.title,
+              title: keepRoutine ? prev.title : S.draft.title,
               time: `${pad(S.draft.hour)}:${pad(S.draft.min)}`,
-              cat: S.draft.cat,
-              customId: S.draft.cat === "custom" ? S.draft.customId : undefined,
+              cat: keepRoutine ? prev.cat : S.draft.cat,
+              customId: (!keepRoutine && S.draft.cat === "custom") ? S.draft.customId : undefined,
               note: S.draft.note || "",
               cycle: !!S.draft.cycle,
               rule: S.draft.cycle ? (S.draft.rule || (S.draft.cat === "appointment" ? "monthly" : "daily")) : "once",
@@ -8695,8 +8789,9 @@
               customDays: S.draft.cycle ? (S.draft.customDays || null) : null,
               onceDate: S.draft.onceDate,
               muteFirst: !!S.draft.muteFirst,
+              routineSkeleton: keepRoutine,
             };
-            if (i != null && S.confirmDrafts[i]) S.confirmDrafts[i] = { ...S.confirmDrafts[i], ...next };
+            if (prev) S.confirmDrafts[i] = { ...prev, ...next };
             else S.confirmDrafts.push(next);
           }
           dismissCover();
@@ -11479,9 +11574,10 @@
 
   function s4CardHTML(t) {
     const done = !!S.completed[t.id];
+    const isRoutine = isRoutineSkeletonTask(t);
     const clock = s4DoneClock(t.id);
     return `
-      <div class="s4-card ${done ? "done" : ""} ${t.cat === "appointment" ? "appt" : ""}">
+      <div class="s4-card ${done ? "done" : ""} ${isRoutine ? "routine" : (t.cat === "appointment" ? "appt" : "")}">
         <span class="s4-badge">${done ? "已完成" : "未完成"}</span>
         <button class="s4-more" data-act="detail" data-id="${t.id}" type="button">查看详情${I.chevR}</button>
         <div class="s4-card-main">
@@ -12173,45 +12269,65 @@
       const isRefresh = !!(rows._isRefresh ?? (rows[0] && rows[0].isRefresh));
       const changed = hasRestSkeletonChanges(rows);
       const rightBtn = changed
-        ? `<button class="nav-text blue nav-hit" data-act="resetRestSkeleton" type="button">${isRefresh ? "恢复原骨架" : "恢复默认"}</button>`
+        ? `<button class="nav-text purple nav-hit" data-act="resetRestSkeleton" type="button">${isRefresh ? "恢复原骨架" : "恢复默认"}</button>`
         : "";
+      const activeIndexed = rows
+        .map((r, i) => ({ ...r, i, time: r.t, h: parseHour(r.t), m: parseMinute(r.t) }))
+        .filter((r) => r.on !== false);
+      const groups = groupByPeriod(activeIndexed, (x) => x.h);
+      const inactiveRows = rows.map((r, i) => ({ ...r, i })).filter((r) => r.on === false);
       return `
       <div class="page">
-        ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "基础作息", rightBtn)}
-        <div class="scroll pad-16" style="padding-top:16px;padding-bottom:16px">
-          <div class="white-island sk-card">
-            ${rows.length ? rows.map((r, i) => {
-              const isOn = r.on !== false;
-              const st = routineRowSkeletonState(r);
-              const isFirst = i === 0;
-              const isLast = i === rows.length - 1;
-              const ico = I[r.icon] || I.clock;
-              return `
-              <div class="sk-row ${isOn ? "" : "off"} ${st.badgeCls === "stopped" ? "stopped" : ""}">
-                <div class="sk-axis">
-                  <span class="sk-line ${isFirst ? "hide" : ""}"></span>
-                  <span class="sk-node ${st.badgeCls === "stopped" ? "stopped" : (isOn ? "on" : "off")}">${ico}</span>
-                  <span class="sk-line ${isLast ? "hide" : ""}"></span>
-                </div>
-                <div class="sk-content ${isLast ? "last" : ""}">
-                  <div class="sk-main">
-                    <div class="sk-info">
-                      <div class="sk-title-line">
-                        <span class="sk-name">${esc(r.name)}</span>
-                        <span class="sk-badge ${st.badgeCls}">${esc(st.badgeText)}</span>
-                      </div>
-                      <div class="sk-sub ${st.subCls}">${esc(st.subText)}</div>
-                    </div>
-                    <button class="sk-time ${isOn ? "" : "off"}" data-act="editRestTime" data-i="${i}" type="button">${r.t}</button>
-                    <button class="sk-switch ${isOn ? "on" : ""}" data-act="toggleRestRow" data-i="${i}" type="button" aria-label="${esc(r.name)}日常提醒开关"><i></i></button>
-                  </div>
-                </div>
-              </div>`;
-            }).join("") : `<div class="ta-c t-sec s15" style="padding:28px 4px">暂无计划</div>`}
-          </div>
+        ${navBar(`<button class="nav-text nav-hit" data-act="later" type="button">稍后</button>`, "基础作息", rightBtn)}
+        <div class="scroll px20" style="padding-top:12px;padding-bottom:120px">
+          ${groups.length ? groups.map((g) => `
+            <div class="confirm-period">
+              ${sectionHead(I[g.icon], g.title, g.items.length, false, true)}
+              <div class="col gap10">${g.items.map((r) => {
+                const rawNote = String(r.note || "").trim();
+                const diffInfo = routineCardDiffJS(r);
+                const cat = r.cat || (["早餐", "午餐", "晚餐"].includes(r.name) ? "diet" : "rest");
+                const prefix = r.cycle === false
+                  ? ""
+                  : (r.rule === "weekly"
+                      ? `${scheduleRuleSummary(true, "weekly", r.weekdays)} `
+                      : r.rule === "monthly"
+                        ? `每月${((r.monthDays && r.monthDays.length) ? r.monthDays : [1]).map((d) => d === 0 ? "月末" : `${d}日`).join("、")} `
+                        : r.rule === "custom"
+                          ? `${customRuleDisplayName(r.intervalCount, r.intervalUnit)} `
+                          : "");
+                return actionCard({
+                  cat, title: r.name, time: `${prefix}${r.t}`, draft: true, routine: true,
+                  cycle: r.cycle !== false, idx: r.i,
+                  note: rawNote || "可编辑备注",
+                  noteEmpty: !rawNote,
+                  statusBadge: diffInfo.status,
+                  origNote: diffInfo.origNote,
+                  editAct: "editRestCard",
+                  delAct: "delRestCard",
+                  noteAct: "editRestNote",
+                });
+              }).join("")}</div>
+            </div>`).join("") : `
+            <div class="routine-empty-box">
+              ${I.moonStars}
+              <span>当前未保留基础作息卡片，可从下方点选添加，或直接拍照上传病历。</span>
+            </div>`}
+          ${inactiveRows.length ? `
+            <div class="confirm-period" style="margin-top:6px">
+              ${sectionHead(I.plusCirc, "可添加的基础作息", inactiveRows.length, false, true)}
+              <div class="routine-pool-grid">
+                ${inactiveRows.map((r) => `
+                  <button class="routine-add-chip" data-act="restoreRestCard" data-i="${r.i}" type="button">
+                    ${I.plusCirc}
+                    <span class="r-name">${esc(r.name)}</span>
+                    <span class="r-time">${esc(r.t)}</span>
+                  </button>`).join("")}
+              </div>
+            </div>` : ""}
         </div>
-        <div class="pad-16" style="padding-bottom:36px">
-          <button class="cta h64" data-act="uploadDischarge" type="button">${I.cam}拍照上传病历</button>
+        <div class="px20 col gap10" style="padding-bottom:28px">
+          <button class="cta h52" data-act="uploadDischarge" type="button">${I.cam}拍照上传病历</button>
         </div>
       </div>`;
     },
@@ -12443,7 +12559,7 @@
                   ? (x.note != null ? x.note : confirmMedNote(x.title))
                   : (x.note || "");
                 return actionCard({
-                  cat: x.cat, title: x.title, time: x.time, draft: true, cycle: x.cycle !== false, idx: x.i,
+                  cat: x.cat, title: x.title, time: x.time, draft: true, routine: !!x.routineSkeleton, cycle: x.cycle !== false, idx: x.i,
                   dose: x.cat === "medication" ? (x.dose || medDose(x.title)) : "",
                   note: rawNote || "可编辑备注",
                   noteEmpty: !rawNote,
@@ -14388,7 +14504,12 @@
         monthDays: r.monthDays ? r.monthDays.slice() : undefined,
         intervalCount: r.intervalCount,
         intervalUnit: r.intervalUnit,
+        duration: r.duration,
+        endDate: r.endDate,
+        customDays: r.customDays,
+        onceDate: r.onceDate,
         muteFirst: false,
+        routineSkeleton: true,
       })),
       ...bpDrafts,
       ...baselineCarryOverDrafts(baselineSourceTasks(), bpDrafts.length > 0),
@@ -17262,10 +17383,11 @@
 
   function taskCard(t, focus) {
     const done = !!S.completed[t.id];
+    const isRoutine = isRoutineSkeletonTask(t);
     const appt = t.cat === "appointment" && !done;
-    const stroke = done ? "#1AA64A" : "rgba(16,84,224,.10)";
+    const stroke = done ? "#1AA64A" : (isRoutine ? "rgba(118,74,218,.22)" : "rgba(16,84,224,.10)");
     const sw = done ? 1.2 : 0.8;
-    return `<div class="task-card hug ${done ? "done" : ""} ${appt ? "appt" : ""} ${focus ? "focus" : ""}" id="task-${t.id}" data-hug="18">
+    return `<div class="task-card hug ${done ? "done" : ""} ${isRoutine && !done ? "routine" : ""} ${appt ? "appt" : ""} ${focus ? "focus" : ""}" id="task-${t.id}" data-hug="18">
       <svg class="hug-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
         <path class="hug-path" fill="#fff"/>
         <path class="hug-stroke" fill="none" stroke="${stroke}" stroke-width="${sw}" vector-effect="non-scaling-stroke"/>
@@ -17290,11 +17412,13 @@
 
   function planRow(t, hist, green) {
     const done = !!S.completed[t.id];
+    const isRoutine = isRoutineSkeletonTask(t);
+    const catLab = isRoutine ? "基础作息" : CAT[t.cat].name;
     return `<div class="plan-row" data-act="detail" data-id="${t.id}">
-      <div class="badge b40 ${done ? "done" : t.cat === "appointment" ? "appt" : ""}"><img src="${A.task[t.cat]}" width="26" height="26" alt="" /></div>
+      <div class="badge b40 ${done ? "done" : isRoutine ? "routine" : t.cat === "appointment" ? "appt" : ""}"><img src="${A.task[t.cat]}" width="26" height="26" alt="" /></div>
       <div class="grow">
-        <div class="s15 fb ${done ? "t-green" : t.cat === "appointment" ? "t-appt" : "t"}">${t.title}</div>
-        <div class="s12 t-sec">${spoken(t.h, t.m)}　${CAT[t.cat].name}${done ? "" : "　未打卡"}</div>
+        <div class="s15 fb ${done ? "t-green" : isRoutine ? "t-routine" : t.cat === "appointment" ? "t-appt" : "t"}">${t.title}</div>
+        <div class="s12 t-sec">${spoken(t.h, t.m)}　${catLab}${done ? "" : "　未打卡"}</div>
       </div>
       ${hist ? `<span class="view-link">${I.eye}查看</span>` : ""}
     </div>`;
@@ -17520,8 +17644,9 @@
         }),
     })).filter((g) => g.items.length);
   }
-  function sectionHead(icon, title, count, red) {
-    return `<div class="type-h ${red ? "red" : ""}">${icon || ""}${title}${count ? `<span class="count-pill ${red ? "red" : ""}">${count}</span>` : ""}</div>`;
+  function sectionHead(icon, title, count, red, purple) {
+    const cls = purple ? "purple" : (red ? "red" : "");
+    return `<div class="type-h ${cls}">${icon || ""}${title}${count ? `<span class="count-pill ${cls}">${count}</span>` : ""}</div>`;
   }
   function periodHead(p, count) {
     return `<div class="period-h">${I[p.icon] || ""}${p.title}<span class="s12 t-sec">${count} 项</span></div>`;
@@ -17535,10 +17660,13 @@
 
   const DIFF_BADGE_LABELS = { added: "新建", modified: "已调整", kept: "保留", stopped: "今日起停用" };
 
-  function actionCard({ cat, title, time, date, appt, done, hist, id, toggle, draft, cycle, idx, dose, note, noteEmpty, statusBadge, origNote, deactivated, restoreId }) {
+  function actionCard({ cat, title, time, date, appt, routine, done, hist, id, toggle, draft, cycle, idx, dose, note, noteEmpty, statusBadge, origNote, deactivated, restoreId, editAct, delAct, noteAct }) {
+    const seedTask = id ? SEED.find((x) => x.id === id) : null;
+    const isRoutine = !!(routine || (seedTask && isRoutineSkeletonTask(seedTask)));
     const kind = appt || cat === "appointment" ? "appointment" : cat;
-    const cls = [done ? "done" : kind === "appointment" ? "appt" : "", deactivated ? "stopped" : ""].filter(Boolean).join(" ");
-    const chip = CAT[kind]?.name || "";
+    const cls = [done ? "done" : "", isRoutine ? "routine" : (kind === "appointment" && !done ? "appt" : ""), deactivated ? "stopped" : ""].filter(Boolean).join(" ");
+    const badgeCls = isRoutine ? (done ? "done" : "routine") : (kind === "appointment" && !done ? "appt" : "");
+    const chip = isRoutine ? "基础作息" : (CAT[kind]?.name || "");
     const isCycle = !!cycle;
     const editLab = "查看";
     const editIco = I.eye;
@@ -17551,17 +17679,20 @@
     const timeAttr = String(time || "").replace(/"/g, "&quot;");
     const idxAttr = idx == null ? "" : ` data-i="${idx}"`;
     const idAttr = id ? ` data-id="${id}"` : "";
+    const draftEditAct = editAct || "editConfirmDraft";
+    const draftDelAct = delAct || "delConfirmDraft";
+    const draftNoteAct = noteAct || "editNote";
     const editBtn = restoreId != null
       ? `<button type="button" data-act="restoreStoppedDraft" data-id="${esc(String(restoreId))}">↩ 保留此项</button>`
       : draft
-        ? `<button type="button" data-act="editConfirmDraft" data-title="${titleAttr}" data-cat="${kind}" data-time="${timeAttr}"${idxAttr}>${I.pencil}编辑</button>`
+        ? `<button type="button" data-act="${draftEditAct}" data-title="${titleAttr}" data-cat="${kind}" data-time="${timeAttr}"${idxAttr}>${I.pencil}编辑</button>`
         : `<button type="button"${id ? ` data-act="detail" data-id="${id}"` : ""}>${editIco}${editLab}</button>`;
     // 今日之前、以及该日已打卡：删除不出现。确认页草稿仍可删；停用恢复卡只展示一枚「保留此项」。
     const showDelete = restoreId == null && !hist && (!done || draft);
     let delBtn = "";
     if (showDelete) {
       if (draft) {
-        delBtn = `<button class="del" type="button" data-act="delConfirmDraft"${idxAttr}>${I.trash}删除</button>`;
+        delBtn = `<button class="del" type="button" data-act="${draftDelAct}"${idxAttr}>${I.trash}删除</button>`;
       } else if (isCycle) {
         delBtn = `<button class="del" type="button" data-act="delCardToday"${idAttr}>${I.trash}仅删本次</button>
         <button class="del" type="button" data-act="delCardAll"${idAttr}>${I.trash}长期删除</button>`;
@@ -17574,18 +17705,17 @@
       ? `<div class="act-note diff-orig">${I.clock || ""}<span>${esc(origNote)}</span></div>`
       : "";
     const baseNoteHTML = note
-      ? cardNote(I.alignLeft, note, idx == null ? null : "editNote", idx, noteEmpty)
+      ? cardNote(I.alignLeft, note, idx == null ? null : draftNoteAct, idx, noteEmpty)
       : "";
     const notes = origHTML + baseNoteHTML;
     const badgeLabel = statusBadge ? DIFF_BADGE_LABELS[statusBadge] : "";
     const titleHTML = badgeLabel
       ? `<div class="act-title-row"><div class="s15 fb t">${title}</div><span class="diff-badge ${statusBadge}">${badgeLabel}</span></div>`
       : `<div class="s15 fb t">${title}</div>`;
-    const seedTask = id ? SEED.find((x) => x.id === id) : null;
     const rangeText = seedTask ? taskDateRangeLabel(seedTask) : taskDateRangeLabel({ cycle: isCycle });
     return `<div class="act-card ${cls}">
       <div class="act-card-main">
-        <div class="badge b40"><img src="${A.task[kind]}" alt="" /></div>
+        <div class="badge b40 ${badgeCls}"><img src="${A.task[kind]}" alt="" /></div>
         <div class="grow">
           ${titleHTML}
           <div class="act-info"><span class="tm">${time}</span>${dose ? `<span class="act-chip">${dose}</span>` : ""}<span class="act-chip">${isCycle ? "循环" : "单日"}</span><span class="act-chip">${chip}</span></div>
@@ -17860,9 +17990,12 @@
       const blkObj = BLOCKS.find((b) => b.id === d.block) || BLOCKS[0];
       const vitalsHTML = editorVitalsBlock(d, mode, done, accent);
 
-      const catLabel = d.cat === "custom"
-        ? ((S.customCats || []).find((x) => x.id === d.customId)?.name || "自定义")
-        : (CAT[d.cat]?.chip || "事项");
+      const isRoutineDraft = !!(d && d.routineSkeleton);
+      const catLabel = isRoutineDraft
+        ? "基础作息"
+        : (d.cat === "custom"
+            ? ((S.customCats || []).find((x) => x.id === d.customId)?.name || "自定义")
+            : (CAT[d.cat]?.chip || "事项"));
       const contentPrimary = (d.title || "").trim() || catLabel;
       const timePrimary = `${pad(d.hour)}:${pad(d.min)}`;
       const ruleMap = { daily: "每日", weekly: "每周", monthly: "每月", custom: customRuleDisplayName(d.intervalCount, d.intervalUnit) };
@@ -17904,7 +18037,7 @@
         </div>`;
 
       // 模块一：事项内容（事项名称 + 补充备注 + 今日血压 + 事项分类）
-      const isCatLocked = viewing || (S.lockCategory && mode === "add");
+      const isCatLocked = viewing || isRoutineDraft || (S.lockCategory && mode === "add");
       const catIcoHTML = d.cat === "custom" ? I[UNIFIED_CUSTOM_ICON] : (CAT_ICON[d.cat] ? CAT_ICON[d.cat]() : I.doc);
       const catKindBadge = PROFESSIONAL.has(d.cat) ? "专业康复日程" : "日常健康管理";
       const trimmedNote = String(d.note || "").trim();
@@ -17919,7 +18052,7 @@
         <div class="v02-editor-card">
           ${modHead(I.doc, mode !== "add" && rxOn() && S.rx && S.rx[t.id] ? `事项内容<span class="rx-chip" style="margin-left:8px">医嘱</span>` : "事项内容")}
           <div class="sec-label" style="margin-top:0">事项名称</div>
-          ${editable
+          ${(editable && !isRoutineDraft)
             ? `<input class="voice-box w100" name="taskTitle" style="color:${accent.fg};border:0;font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" ? "42px" : "46px"}" placeholder="填写事项名称" value="${String(d.title || "").replace(/"/g, "&quot;")}" />`
             : `<div class="v02-ro-box" style="background:${accent.muted};color:${accent.fg};font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" ? "42px" : "46px"}">${esc(contentPrimary)}</div>`}
           <div class="sec-label">补充备注</div>

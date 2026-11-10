@@ -7,6 +7,7 @@
   --amber: #F2994A;
   --heart: #F05A6E;
   --appt: #DC4848;
+  --routine: #764ADA;
   --cyan: #1EBED6;
   --coral: #F0644A;
   --bg: #FFFFFF;
@@ -549,6 +550,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .badge img { width: 22px; height: 22px; object-fit: contain; padding: 0; }
 .badge.appt { background: rgba(220,72,72,.92); }
+.badge.routine { background: rgba(118,74,218,.90); }
 .badge.done { background: rgba(52,199,89,.92); }
 .badge.b40, .plan-row .b40 {
   width: 40px; height: 40px; border-radius: 9.6px; flex: 0 0 40px;
@@ -563,6 +565,9 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .task-card.appt:not(.done) .task-status {
   background: rgba(220,72,72,.09); color: var(--appt);
+}
+.task-card.routine:not(.done) .task-status {
+  background: rgba(118,74,218,.10); color: var(--routine);
 }
 .task-card.done .task-status {
   background: rgba(26,166,74,.12); color: var(--green-deep);
@@ -579,6 +584,8 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .task-card.done .task-title { color: var(--green-deep); }
 .task-card.appt:not(.done) .task-title { color: var(--appt); }
+.task-card.routine:not(.done) .task-title { color: var(--routine); }
+.t-routine { color: var(--routine) !important; }
 .task-dates {
   margin-top: 4px;
   font-size: calc(12px * var(--fs)); font-weight: 500;
@@ -599,6 +606,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   cursor: pointer; box-shadow: 0 2px 6px rgba(16,84,224,.22);
 }
 .task-card.appt:not(.done) .btn-check { background: var(--appt); box-shadow: 0 2px 6px rgba(220,72,72,.22); }
+.task-card.routine:not(.done) .btn-check { background: var(--routine); box-shadow: 0 2px 6px rgba(118,74,218,.26); }
 .task-card.done .btn-check { background: #1AA64A; color: #fff; box-shadow: 0 2px 6px rgba(26,166,74,.22); }
 .btn-check svg { width: 15px; height: 15px; flex: 0 0 15px; }
 .btn-detail {
@@ -610,6 +618,9 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .btn-detail svg { width: 13px; height: 13px; flex: 0 0 13px; }
 .task-card.appt:not(.done) .btn-detail {
   background: rgba(220,72,72,.085); border-color: rgba(220,72,72,.20); color: var(--appt);
+}
+.task-card.routine:not(.done) .btn-detail {
+  background: rgba(118,74,218,.09); border-color: rgba(118,74,218,.22); color: var(--routine);
 }
 .task-card.done .btn-detail {
   background: rgba(26,166,74,.10); border-color: rgba(26,166,74,.22); color: var(--green-deep);
@@ -962,6 +973,10 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .act-card.done { background: #fff; border-color: rgba(16,84,224,.18); border-width: 1px; }
 .act-card.appt { border-color: rgba(16,84,224,.14); }
+.act-card.routine:not(.done) { border-color: rgba(118,74,218,.28); }
+.act-card.routine.done { border-color: rgba(26,166,74,.45); border-width: 1.1px; }
+.act-card.routine:not(.done) .act-card-main .t { color: var(--routine); }
+.act-card.routine.done .act-card-main .t { color: var(--green-deep); }
 .act-card-main { display: flex; align-items: center; gap: 12px; padding: 14px 14px 12px; }
 .act-info { display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
 .act-info .tm {
@@ -970,6 +985,8 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .act-card.done .act-info .tm { color: var(--blue); }
 .act-card.appt .act-info .tm { color: var(--blue); }
+.act-card.routine:not(.done) .act-info .tm { color: rgba(118,74,218,.82); }
+.act-card.routine.done .act-info .tm { color: rgba(26,166,74,.82); }
 /* 副行前置的完整年月日：与时刻同色、字重略轻（对齐真机 RehabTaskRowView） */
 .act-info .dt {
   font-size: calc(12px * var(--fs)); font-weight: 500;
@@ -977,12 +994,16 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .act-card.done .act-info .dt { color: var(--blue); }
 .act-card.appt .act-info .dt { color: var(--blue); }
+.act-card.routine:not(.done) .act-info .dt { color: rgba(118,74,218,.78); }
+.act-card.routine.done .act-info .dt { color: rgba(26,166,74,.78); }
 .act-chip {
   font-size: calc(11px * var(--fs)); font-weight: 500; color: var(--secondary);
   padding: 2px 7px; border-radius: 999px; background: rgba(16,84,224,.08);
 }
 .act-card.appt .act-chip { background: rgba(16,84,224,.08); }
 .act-card.done .act-chip { background: rgba(16,84,224,.08); }
+.act-card.routine:not(.done) .act-chip { background: rgba(118,74,218,.09); color: rgba(118,74,218,.78); }
+.act-card.routine.done .act-chip { background: rgba(26,166,74,.10); color: rgba(26,166,74,.82); }
 .act-dates {
   margin-top: 4px;
   font-size: calc(12px * var(--fs)); font-weight: 500;
@@ -995,7 +1016,9 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   display: grid; place-items: center; color: #fff; padding: 0; cursor: pointer;
 }
 .act-card.appt .act-check { border-color: rgba(16,84,224,.35); }
+.act-card.routine:not(.done) .act-check { border-color: rgba(118,74,218,.38); }
 .act-check.on { background: var(--blue); border-color: var(--blue); box-shadow: 0 2px 6px rgba(16,84,224,.22); }
+.act-card.routine.done .act-check.on { background: var(--green-deep); border-color: var(--green-deep); box-shadow: 0 2px 6px rgba(26,166,74,.24); }
 .act-check svg { width: 15px; height: 15px; }
 /* 历史日只读徽标：已完成蓝实心勾圈 / 未完成蓝虚线空圈 +「未打卡」 */
 .act-ro { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
@@ -1003,7 +1026,9 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
   border: 1.8px dashed rgba(16,84,224,.35); background: #fff;
 }
+.act-card.routine:not(.done) .act-ro i { border-color: rgba(118,74,218,.38); }
 .act-ro.done i { border: 0; background: var(--blue); }
+.act-card.routine.done .act-ro.done i { background: var(--green-deep); }
 .act-ro.done i svg { width: 15px; height: 15px; color: #fff; }
 .act-ro em { font-size: calc(11px * var(--fs)); font-style: normal; color: var(--secondary); }
 .act-card-bar {
@@ -1012,6 +1037,8 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .act-card.appt .act-card-bar { background: rgba(16,84,224,.055); }
 .act-card.done .act-card-bar { background: rgba(16,84,224,.055); }
+.act-card.routine:not(.done) .act-card-bar { background: rgba(118,74,218,.065); }
+.act-card.routine.done .act-card-bar { background: rgba(26,166,74,.07); }
 .act-card-bar button {
   flex: 1; border: 0; background: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -1022,6 +1049,8 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .act-card.appt .act-card-bar button:not(.del) { color: rgba(16,84,224,.88); }
 .act-card.done .act-card-bar button:not(.del) { color: rgba(16,84,224,.88); }
 .act-card-bar button.del { color: rgba(16,84,224,.88); }
+.act-card.routine:not(.done) .act-card-bar button { color: rgba(118,74,218,.90); }
+.act-card.routine.done .act-card-bar button { color: rgba(26,166,74,.90); }
 .act-card-bar button svg { width: 14px; height: 14px; }
 .act-card-bar.triple button {
   gap: 4px;
@@ -2572,87 +2601,39 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .bar.d { background: var(--cyan); }
 .line-path { fill: none; stroke: var(--blue); stroke-width: 2.2; }
 
-/* V10.318 基础作息重构：无顶部说明头，直接呈现一日时间轴骨架 + 同源五态 Tag + 时刻胶囊 + 独立 Switch 开关 */
-.sk-card {
-  padding: 6px 14px !important; border-radius: 24px !important;
+/* V10.319 基础作息重构：与确认计划同构的时段分组 + 紫色操作卡 + 底部轻量补回池 */
+.type-h.purple { color: var(--routine); }
+.count-pill.purple { background: var(--routine); }
+.nav-text.purple { color: var(--routine); }
+.routine-empty-box {
+  display: flex; align-items: center; gap: 10px;
+  padding: 16px; border-radius: 18px;
+  background: rgba(255,255,255,.88);
+  border: 0.8px solid rgba(118,74,218,.18);
+  color: var(--secondary); font-size: calc(13.5px * var(--fs)); font-weight: 500; line-height: 1.45;
 }
-.sk-row {
-  display: flex; align-items: stretch; gap: 10px;
+.routine-empty-box svg { width: 18px; height: 18px; flex: 0 0 18px; color: rgba(118,74,218,.68); }
+.routine-pool-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;
 }
-.sk-axis {
-  width: 32px; flex: 0 0 32px;
-  display: flex; flex-direction: column; align-items: center;
-}
-.sk-line {
-  width: 2px; flex: 1; background: rgba(16,84,224,.14);
-}
-.sk-line.hide { background: transparent; }
-.sk-node {
-  width: 32px; height: 32px; flex: 0 0 32px; border-radius: 50%;
-  display: grid; place-items: center;
-  background: rgba(16,84,224,.10); color: var(--blue);
-  transition: background .18s ease, color .18s ease;
-}
-.sk-node svg { width: 15px; height: 15px; }
-.sk-node.off { background: rgba(15,23,42,.045); color: rgba(100,116,139,.6); }
-.sk-node.stopped { background: rgba(244,63,94,.10); color: #be123c; }
-.sk-content {
-  flex: 1; min-width: 0;
-  border-bottom: 1px solid rgba(16,84,224,.06);
-  display: flex; align-items: center;
-}
-.sk-content.last { border-bottom: 0; }
-.sk-main {
-  flex: 1; min-width: 0; padding: 12px 0;
+.routine-add-chip {
   display: flex; align-items: center; gap: 8px;
+  padding: 12px; border-radius: 15px;
+  background: rgba(255,255,255,.92);
+  border: 1.1px dashed rgba(118,74,218,.34);
+  color: var(--routine); font-family: inherit; cursor: pointer;
 }
-.sk-info {
-  flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;
-}
-.sk-title-line {
-  display: flex; align-items: center; gap: 6px; min-width: 0;
-}
-.sk-name {
-  font-size: calc(17.5px * var(--fs)); font-weight: 700; color: var(--blue);
-  line-height: 1.22; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.sk-row.off .sk-name { color: var(--secondary); opacity: .74; }
-.sk-badge {
-  flex: 0 0 auto; border-radius: 99px; padding: 2px 7px;
-  font-size: calc(11px * var(--fs)); font-weight: 700; line-height: 1.35;
-}
-.sk-badge.added { color: #15803d; background: rgba(22,163,74,.13); }
-.sk-badge.modified { color: #b45309; background: rgba(245,158,11,.15); }
-.sk-badge.kept { color: var(--secondary); background: rgba(15,23,42,.055); }
-.sk-badge.stopped { color: #be123c; background: rgba(244,63,94,.12); }
-.sk-badge.inactive { color: rgba(100,116,139,.82); background: rgba(15,23,42,.045); }
-.sk-sub {
-  font-size: calc(12px * var(--fs)); font-weight: 500; color: rgba(100,116,139,.86);
-  font-variant-numeric: tabular-nums; line-height: 1.3;
+.routine-add-chip svg { width: 15px; height: 15px; flex: 0 0 15px; color: var(--routine); }
+.routine-add-chip .r-name {
+  flex: 1; min-width: 0; text-align: left;
+  font-size: calc(15px * var(--fs)); font-weight: 700; color: var(--routine);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.sk-sub.modified { color: #b45309; }
-.sk-sub.stopped { color: rgba(190,18,60,.88); }
-.sk-time {
+.routine-add-chip .r-time {
   flex: 0 0 auto;
-  background: rgba(16,84,224,.08); color: var(--blue);
-  border-radius: 11px; padding: 6px 10px; border: 0;
-  font-size: calc(16.5px * var(--fs)); font-weight: 700; font-variant-numeric: tabular-nums;
-  font-family: inherit; cursor: pointer;
+  font-size: calc(13.5px * var(--fs)); font-weight: 600; font-variant-numeric: tabular-nums;
+  color: rgba(118,74,218,.78);
 }
-.sk-time.off { background: rgba(15,23,42,.045); color: var(--secondary); opacity: .8; }
-.sk-switch {
-  width: 44px; height: 26px; flex: 0 0 44px; border-radius: 99px; border: 0;
-  background: #E1E6EE; position: relative; cursor: pointer; padding: 0;
-  transition: background .18s ease;
-}
-.sk-switch.on { background: var(--blue); }
-.sk-switch i {
-  position: absolute; top: 2px; left: 2px; width: 22px; height: 22px;
-  background: #fff; border-radius: 50%; transition: transform .18s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,.16);
-}
-.sk-switch.on i { transform: translateX(18px); }
 
 .toast {
   position: absolute; top: 82px; left: 50%; transform: translateX(-50%);
@@ -3594,6 +3575,12 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .s4-card.done .s4-card-t { color: var(--green-deep); }
 .s4-card.appt:not(.done) .s4-card-t { color: var(--appt); }
+.s4-card.routine:not(.done) { border-color: rgba(118,74,218,.22); }
+.s4-card.routine:not(.done) .s4-card-t { color: var(--routine); }
+.s4-card.routine:not(.done) .s4-more { color: rgba(118,74,218,.78); }
+.s4-card.routine:not(.done) .s4-art { color: rgba(118,74,218,.16); }
+.s4-card.routine:not(.done) .s4-check { background: var(--routine); box-shadow: 0 3px 6px rgba(118,74,218,.28); }
+.s4-card.appt:not(.done) .s4-check { background: var(--appt); box-shadow: 0 3px 6px rgba(220,72,72,.26); }
 .s4-card-plan {
   font-size: calc(14px * var(--fs)); font-weight: 500; color: var(--secondary);
   font-variant-numeric: tabular-nums;
