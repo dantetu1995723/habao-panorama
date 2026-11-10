@@ -5084,7 +5084,6 @@
   }
   function editorAccent(d, done) {
     if (done) return { fg: "#1AA64A", muted: "rgba(26,166,74,.12)" };
-    if (d && d.routineSkeleton) return { fg: "#764ADA", muted: "rgba(118,74,218,.14)" };
     if (d.cat === "appointment") return { fg: "#DC4848", muted: "rgba(220,72,72,.16)" };
     return { fg: "#1054E0", muted: "rgba(16,84,224,.12)" };
   }
@@ -11758,10 +11757,9 @@
 
   function s4CardHTML(t) {
     const done = !!S.completed[t.id];
-    const isRoutine = isRoutineSkeletonTask(t);
     const clock = s4DoneClock(t.id);
     return `
-      <div class="s4-card ${done ? "done" : ""} ${isRoutine ? "routine" : (t.cat === "appointment" ? "appt" : "")}">
+      <div class="s4-card ${done ? "done" : ""} ${t.cat === "appointment" ? "appt" : ""}">
         <span class="s4-badge">${done ? "已完成" : "未完成"}</span>
         <button class="s4-more" data-act="detail" data-id="${t.id}" type="button">查看详情${I.chevR}</button>
         <div class="s4-card-main">
@@ -17623,11 +17621,10 @@
 
   function taskCard(t, focus) {
     const done = !!S.completed[t.id];
-    const isRoutine = isRoutineSkeletonTask(t);
     const appt = t.cat === "appointment" && !done;
-    const stroke = done ? "#1AA64A" : (isRoutine ? "rgba(118,74,218,.22)" : "rgba(16,84,224,.10)");
+    const stroke = done ? "#1AA64A" : "rgba(16,84,224,.10)";
     const sw = done ? 1.2 : 0.8;
-    return `<div class="task-card hug ${done ? "done" : ""} ${isRoutine && !done ? "routine" : ""} ${appt ? "appt" : ""} ${focus ? "focus" : ""}" id="task-${t.id}" data-hug="18">
+    return `<div class="task-card hug ${done ? "done" : ""} ${appt ? "appt" : ""} ${focus ? "focus" : ""}" id="task-${t.id}" data-hug="18">
       <svg class="hug-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
         <path class="hug-path" fill="#fff"/>
         <path class="hug-stroke" fill="none" stroke="${stroke}" stroke-width="${sw}" vector-effect="non-scaling-stroke"/>
@@ -17655,9 +17652,9 @@
     const isRoutine = isRoutineSkeletonTask(t);
     const catLab = isRoutine ? "基础作息" : CAT[t.cat].name;
     return `<div class="plan-row" data-act="detail" data-id="${t.id}">
-      <div class="badge b40 ${done ? "done" : isRoutine ? "routine" : t.cat === "appointment" ? "appt" : ""}"><img src="${A.task[t.cat]}" width="26" height="26" alt="" /></div>
+      <div class="badge b40 ${done ? "done" : t.cat === "appointment" ? "appt" : ""}"><img src="${A.task[t.cat]}" width="26" height="26" alt="" /></div>
       <div class="grow">
-        <div class="s15 fb ${done ? "t-green" : isRoutine ? "t-routine" : t.cat === "appointment" ? "t-appt" : "t"}">${t.title}</div>
+        <div class="s15 fb ${done ? "t-green" : t.cat === "appointment" ? "t-appt" : "t"}">${t.title}</div>
         <div class="s12 t-sec">${spoken(t.h, t.m)}　${catLab}${done ? "" : "　未打卡"}</div>
       </div>
       ${hist ? `<span class="view-link">${I.eye}查看</span>` : ""}
@@ -17889,8 +17886,8 @@
         }),
     })).filter((g) => g.items.length);
   }
-  function sectionHead(icon, title, count, red, purple) {
-    const cls = purple ? "purple" : (red ? "red" : "");
+  function sectionHead(icon, title, count, red) {
+    const cls = red ? "red" : "";
     return `<div class="type-h ${cls}">${icon || ""}${title}${count ? `<span class="count-pill ${cls}">${count}</span>` : ""}</div>`;
   }
   function periodHead(p, count) {

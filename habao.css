@@ -7,7 +7,7 @@
   --amber: #F2994A;
   --heart: #F05A6E;
   --appt: #DC4848;
-  --routine: #764ADA;
+  --routine: var(--blue);
   --cyan: #1EBED6;
   --coral: #F0644A;
   --bg: #FFFFFF;
@@ -550,7 +550,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .badge img { width: 22px; height: 22px; object-fit: contain; padding: 0; }
 .badge.appt { background: rgba(220,72,72,.92); }
-.badge.routine { background: rgba(118,74,218,.90); }
+.badge.routine { background: rgba(16,84,224,.88); }
 .badge.done { background: rgba(52,199,89,.92); }
 .badge.b40, .plan-row .b40 {
   width: 40px; height: 40px; border-radius: 9.6px; flex: 0 0 40px;
@@ -567,7 +567,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   background: rgba(220,72,72,.09); color: var(--appt);
 }
 .task-card.routine:not(.done) .task-status {
-  background: rgba(118,74,218,.10); color: var(--routine);
+  background: rgba(16,84,224,.085); color: var(--blue);
 }
 .task-card.done .task-status {
   background: rgba(26,166,74,.12); color: var(--green-deep);
@@ -584,8 +584,8 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .task-card.done .task-title { color: var(--green-deep); }
 .task-card.appt:not(.done) .task-title { color: var(--appt); }
-.task-card.routine:not(.done) .task-title { color: var(--routine); }
-.t-routine { color: var(--routine) !important; }
+.task-card.routine:not(.done) .task-title { color: var(--blue); }
+.t-routine { color: var(--blue) !important; }
 .task-dates {
   margin-top: 4px;
   font-size: calc(12px * var(--fs)); font-weight: 500;
@@ -606,7 +606,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   cursor: pointer; box-shadow: 0 2px 6px rgba(16,84,224,.22);
 }
 .task-card.appt:not(.done) .btn-check { background: var(--appt); box-shadow: 0 2px 6px rgba(220,72,72,.22); }
-.task-card.routine:not(.done) .btn-check { background: var(--routine); box-shadow: 0 2px 6px rgba(118,74,218,.26); }
+.task-card.routine:not(.done) .btn-check { background: var(--blue); box-shadow: 0 2px 6px rgba(16,84,224,.22); }
 .task-card.done .btn-check { background: #1AA64A; color: #fff; box-shadow: 0 2px 6px rgba(26,166,74,.22); }
 .btn-check svg { width: 15px; height: 15px; flex: 0 0 15px; }
 .btn-detail {
@@ -620,7 +620,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   background: rgba(220,72,72,.085); border-color: rgba(220,72,72,.20); color: var(--appt);
 }
 .task-card.routine:not(.done) .btn-detail {
-  background: rgba(118,74,218,.09); border-color: rgba(118,74,218,.22); color: var(--routine);
+  background: rgba(16,84,224,.085); border-color: rgba(16,84,224,.18); color: var(--blue);
 }
 .task-card.done .btn-detail {
   background: rgba(26,166,74,.10); border-color: rgba(26,166,74,.22); color: var(--green-deep);
@@ -977,9 +977,9 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .act-card.done { background: #fff; border-color: rgba(16,84,224,.18); border-width: 1px; }
 .act-card.appt { border-color: rgba(16,84,224,.14); }
-.act-card.routine:not(.done) { border-color: rgba(118,74,218,.28); }
+.act-card.routine:not(.done) { border-color: rgba(16,84,224,.10); }
 .act-card.routine.done { border-color: rgba(26,166,74,.45); border-width: 1.1px; }
-.act-card.routine:not(.done) .act-card-main .t { color: var(--routine); }
+.act-card.routine:not(.done) .act-card-main .t { color: var(--blue); }
 .act-card.routine.done .act-card-main .t { color: var(--green-deep); }
 .act-card-main { display: flex; align-items: center; gap: 12px; padding: 14px 14px 12px; }
 .act-info { display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
@@ -989,7 +989,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .act-card.done .act-info .tm { color: var(--blue); }
 .act-card.appt .act-info .tm { color: var(--blue); }
-.act-card.routine:not(.done) .act-info .tm { color: rgba(118,74,218,.82); }
+.act-card.routine:not(.done) .act-info .tm { color: var(--blue); }
 .act-card.routine.done .act-info .tm { color: rgba(26,166,74,.82); }
 /* 副行前置的完整年月日：与时刻同色、字重略轻（对齐真机 RehabTaskRowView） */
 .act-info .dt {
@@ -998,7 +998,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .act-card.done .act-info .dt { color: var(--blue); }
 .act-card.appt .act-info .dt { color: var(--blue); }
-.act-card.routine:not(.done) .act-info .dt { color: rgba(118,74,218,.78); }
+.act-card.routine:not(.done) .act-info .dt { color: var(--blue); }
 .act-card.routine.done .act-info .dt { color: rgba(26,166,74,.78); }
 .act-chip {
   font-size: calc(11px * var(--fs)); font-weight: 500; color: var(--secondary);
@@ -1006,7 +1006,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .act-card.appt .act-chip { background: rgba(16,84,224,.08); }
 .act-card.done .act-chip { background: rgba(16,84,224,.08); }
-.act-card.routine:not(.done) .act-chip { background: rgba(118,74,218,.09); color: rgba(118,74,218,.78); }
+.act-card.routine:not(.done) .act-chip { background: rgba(16,84,224,.08); color: var(--secondary); }
 .act-card.routine.done .act-chip { background: rgba(26,166,74,.10); color: rgba(26,166,74,.82); }
 .act-dates {
   margin-top: 4px;
@@ -1020,7 +1020,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   display: grid; place-items: center; color: #fff; padding: 0; cursor: pointer;
 }
 .act-card.appt .act-check { border-color: rgba(16,84,224,.35); }
-.act-card.routine:not(.done) .act-check { border-color: rgba(118,74,218,.38); }
+.act-card.routine:not(.done) .act-check { border-color: rgba(16,84,224,.35); }
 .act-check.on { background: var(--blue); border-color: var(--blue); box-shadow: 0 2px 6px rgba(16,84,224,.22); }
 .act-card.routine.done .act-check.on { background: var(--green-deep); border-color: var(--green-deep); box-shadow: 0 2px 6px rgba(26,166,74,.24); }
 .act-check svg { width: 15px; height: 15px; }
@@ -1030,7 +1030,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
   border: 1.8px dashed rgba(16,84,224,.35); background: #fff;
 }
-.act-card.routine:not(.done) .act-ro i { border-color: rgba(118,74,218,.38); }
+.act-card.routine:not(.done) .act-ro i { border-color: rgba(16,84,224,.35); }
 .act-ro.done i { border: 0; background: var(--blue); }
 .act-card.routine.done .act-ro.done i { background: var(--green-deep); }
 .act-ro.done i svg { width: 15px; height: 15px; color: #fff; }
@@ -1041,7 +1041,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .act-card.appt .act-card-bar { background: rgba(16,84,224,.055); }
 .act-card.done .act-card-bar { background: rgba(16,84,224,.055); }
-.act-card.routine:not(.done) .act-card-bar { background: rgba(118,74,218,.065); }
+.act-card.routine:not(.done) .act-card-bar { background: rgba(16,84,224,.055); }
 .act-card.routine.done .act-card-bar { background: rgba(26,166,74,.07); }
 .act-card-bar button {
   flex: 1; border: 0; background: none; cursor: pointer;
@@ -1053,7 +1053,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .act-card.appt .act-card-bar button:not(.del) { color: rgba(16,84,224,.88); }
 .act-card.done .act-card-bar button:not(.del) { color: rgba(16,84,224,.88); }
 .act-card-bar button.del { color: rgba(16,84,224,.88); }
-.act-card.routine:not(.done) .act-card-bar button { color: rgba(118,74,218,.90); }
+.act-card.routine:not(.done) .act-card-bar button { color: rgba(16,84,224,.88); }
 .act-card.routine.done .act-card-bar button { color: rgba(26,166,74,.90); }
 .act-card-bar button svg { width: 14px; height: 14px; }
 .act-card-bar.triple button {
@@ -2605,10 +2605,10 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .bar.d { background: var(--cyan); }
 .line-path { fill: none; stroke: var(--blue); stroke-width: 2.2; }
 
-/* V10.319 基础作息重构：与确认计划同构的时段分组 + 紫色操作卡 + 底部轻量补回池 */
-.type-h.purple { color: var(--routine); }
-.count-pill.purple { background: var(--routine); }
-.nav-text.purple { color: var(--routine); }
+/* V10.323/V10.327 基础作息回归标准蓝色视觉体系 */
+.type-h.purple { color: var(--blue); }
+.count-pill.purple { background: var(--blue); }
+.nav-text.purple { color: var(--blue); }
 .routine-empty-box {
   display: flex; align-items: center; gap: 10px;
   padding: 16px; border-radius: 18px;
@@ -3591,11 +3591,11 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .s4-card.done .s4-card-t { color: var(--green-deep); }
 .s4-card.appt:not(.done) .s4-card-t { color: var(--appt); }
-.s4-card.routine:not(.done) { border-color: rgba(118,74,218,.22); }
-.s4-card.routine:not(.done) .s4-card-t { color: var(--routine); }
-.s4-card.routine:not(.done) .s4-more { color: rgba(118,74,218,.78); }
-.s4-card.routine:not(.done) .s4-art { color: rgba(118,74,218,.16); }
-.s4-card.routine:not(.done) .s4-check { background: var(--routine); box-shadow: 0 3px 6px rgba(118,74,218,.28); }
+.s4-card.routine:not(.done) { border-color: rgba(16,84,224,.10); }
+.s4-card.routine:not(.done) .s4-card-t { color: var(--blue); }
+.s4-card.routine:not(.done) .s4-more { color: rgba(16,84,224,.72); }
+.s4-card.routine:not(.done) .s4-art { color: rgba(16,84,224,.16); }
+.s4-card.routine:not(.done) .s4-check { background: var(--blue); box-shadow: 0 3px 6px rgba(16,84,224,.28); }
 .s4-card.appt:not(.done) .s4-check { background: var(--appt); box-shadow: 0 3px 6px rgba(220,72,72,.26); }
 .s4-card-plan {
   font-size: calc(14px * var(--fs)); font-weight: 500; color: var(--secondary);
