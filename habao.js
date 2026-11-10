@@ -12098,10 +12098,12 @@
         const h = baselineManualDupHint(x, dupList);
         return h ? `<div class="confirm-dup-hint">${esc(h)}</div>` : "";
       };
-      const indexed = S.confirmDrafts.map((x, i) => ({ ...x, i, h: parseHour(x.time) }));
+      const indexed = S.confirmDrafts.map((x, i) => ({ ...x, i, h: parseHour(x.time), m: parseMinute(x.time) }));
       const daily = indexed.filter((x) => x.cat !== "appointment");
       const groups = groupByPeriod(daily, (x) => x.h);
-      const appts = indexed.filter((x) => x.cat === "appointment");
+      const appts = indexed
+        .filter((x) => x.cat === "appointment")
+        .sort((a, b) => (a.h !== b.h ? a.h - b.h : a.m !== b.m ? a.m - b.m : a.i - b.i));
       return `
       <div class="page">
         ${navBar(`<button class="nav-text nav-hit" data-act="later" type="button">稍后</button>`, "确认计划",
@@ -17154,13 +17156,26 @@
     const m = String(t).match(/^(\d{1,2})/);
     return m ? +m[1] : 8;
   }
+  function parseMinute(t) {
+    const m = String(t).match(/^\d{1,2}:(\d{1,2})/);
+    return m ? +m[1] : 0;
+  }
   function groupByPeriod(items, hourFn) {
     return PERIODS.map((p) => ({
       ...p,
-      items: items.filter((x) => {
-        const h = hourFn(x);
-        return p.title === "夜间" ? (h >= 21 || h < 6) : (h >= p.from && h < p.to);
-      }),
+      items: items
+        .filter((x) => {
+          const h = hourFn(x);
+          return p.title === "夜间" ? (h >= 21 || h < 6) : (h >= p.from && h < p.to);
+        })
+        .sort((a, b) => {
+          const ha = hourFn(a), hb = hourFn(b);
+          if (ha !== hb) return ha - hb;
+          const ma = a.m != null ? a.m : parseMinute(a.time);
+          const mb = b.m != null ? b.m : parseMinute(b.time);
+          if (ma !== mb) return ma - mb;
+          return (a.i ?? 0) - (b.i ?? 0);
+        }),
     })).filter((g) => g.items.length);
   }
   function sectionHead(icon, title, count, red) {
