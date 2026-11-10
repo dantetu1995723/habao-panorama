@@ -1372,7 +1372,7 @@
       { id: "stamps", t: "今日集章进度", code: "TodayStampShareView", how: "cover" },
       { id: "profile", t: "个人中心", code: "ServiceView", how: "cover" },
       { id: "vip", t: "VIP 会员", code: "VIPView", how: "cover" },
-      { id: "first-rest", t: "基础作息", code: "CreateScheduleFlowView", how: "cover" },
+      { id: "first-rest", t: "当前计划", code: "CreateScheduleFlowView", how: "cover" },
       { id: "task-add", t: "早晨临时计划", code: "AddEditTaskView", how: "cover" },
       { id: "task-view", t: "查看计划", code: "AddEditTaskView", how: "cover" },
     ]},
@@ -1444,7 +1444,7 @@
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "V10.289：仅展示前一个拍摄页中已勾选/保留的分组。基础报告或首次上传报告中含出院记录时排在最上方；选传组为空时显示灰色说明文字。首次建日程与新增用药复查的资料详情右上为「解析」，点击后进入「资料解析结果」页；健康档案与身体报告子页的补拍通道右上为「提交」，提交后直接归入共享资料 BASE（不经过资料解析结果页）。" },
     "ocr-parsed": { code: "OCRParseResultView", note: "【V10.309】仅限创建计划步骤（排定 / 更新康复基础日程），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「解析结果」页（标题「解析结果」）。左上角为「< 返回」，右上角为同规格「提交」按钮。默认模拟已识别填好的状态，包含五个可编辑字段：① 疾病信息（必填，多行文本框 context + 右上角「清空」按钮）、② 出院时间（必填，年 / 月 / 日三个并排下拉框）、③ 用药处方（必填，多行文本框 context + 右上角「清空」按钮）、④ 手术名称（选填，多行文本框 context + 右上角「清空」按钮）、⑤ 手术时间（选填，年 / 月 / 日三个并排下拉框）。当三个必填字段非空时右上角「提交」按钮可点击，按修改后的解析结果生成计划并进入「确认计划」页。" },
-    "first-rest": { code: "CreateScheduleFlowView", note: "【V10.319 / V10.321 全局统一紫色基础作息卡片 + 独立基础作息开关】首页「排定康复基础日程」与选择类型「康复基础日程」共用本页。重构为与「确认计划」100% 同构的页面（按 DayPeriod 时段分组 + 紫色 RehabTaskRowView 操作卡）：① 基础作息作为特殊骨架存在，全生命周期（基础作息页 / 确认计划页 / 首页今日卡片 / 健康计划列表 / 查看编辑详情页）未打卡均呈现专属紫色（完成后转绿），卡片副行同时展示真实分类与骨架标签（如「07:00 · 循环 · 作息 · 基础作息」）；② 计划详情/编辑页提供独立的「基础作息」开关（而非作为新分类），开启后「事项名称」仅限从 6 项标准基础作息（起床/早餐/午餐/午休/晚餐/上床睡觉）中点选，点选后「事项分类」自动对应为「作息」或「饮食」；③ 所见即在用骨架 + 底部「可添加的基础作息」轻量虚框补回池，确认计划页原样合流紫色作息骨架卡 + 蓝色服药/测血压卡 + 红色复查卡。" },
+    "first-rest": { code: "CreateScheduleFlowView", note: "【V10.323 全局统一蓝色卡片 + 首页「当前计划」合流】首页「排定康复基础日程」与选择类型「康复基础日程」第一页重命名为「当前计划」：① 包含当前生效的所有基础作息以及用户其它所有循环计划，按全天时段由早到晚（HH:mm）排布（起床置顶）；② 基础作息全部改回蓝色卡片，卡片右上角不再展示「新建 / 保留 / 已调整」等 tag，基础作息作为副行「基础作息」特殊 tag 存在；③ 支持逐项编辑与删除，底部配备「可添加的基础作息」蓝色虚框补回池；底部大按钮「拍照上传病历」继续推进。" },
     "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表，时段内严格按 HH:mm 由早到晚排布。【V10.320 首项规则】「起床」必须是一天计划的绝对第一个条目：推算测血压规范为起床后静坐测量（wake + 10 分钟，如 07:00 起床 → 07:10 起床测血压），同刻排序保底置顶「起床」卡。【V10.315 极简三态对比】仅在已有存量基础日程再次排定时展示（首次排定保持纯净），全链路砍掉「将停用」与停用专区（页面所见即接下来要执行的，关掉/删掉即不再提醒）：① 顶部「对比原基础日程」摘要卡展示「新增 / 已调整 / 保留」三态计数 +「其余 M 项手建与运动计划不受影响，确认后继续保留」；② 各时段与复查卡片标题行右侧实时标注「新增 / 已调整 / 保留」胶囊，「已调整」卡内附琥珀色对比行「原计划：…」（用药自动忽略「服用」前缀匹配同一药品）。右上「确认」按类别+名称整套替换上一版基础日程，手建与运动计划不动；左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "【V10.312】专业组首卡「康复基础日程」（副标题「按病历排好用药、复查与作息」）标复查红（特殊），与首页「排定康复基础日程」同一条链：基础作息（预填已有作息时刻）→ 拍照 → 资料详情 → 解析结果 → 确认计划，确认后整套替换上一版基础日程、手建计划不动；运动走体测。专业听诊器 14 / 日常铃。两组岛：运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
@@ -7335,10 +7335,19 @@
       },
       resetRestSkeleton() {
         S.restRows = baselineRestRows();
+        S.restOtherDeleted = null;
         S.meds = null;
         S.bps = null;
         S.confirmDrafts = null;
         render();
+      },
+      delRestOtherCard(btn) {
+        const id = btn.getAttribute("data-id");
+        if (id) {
+          S.restOtherDeleted = S.restOtherDeleted || [];
+          if (!S.restOtherDeleted.includes(id)) S.restOtherDeleted.push(id);
+          render();
+        }
       },
       addRest() {
         S.restRows.push({ name: "早餐", t: "07:30" });
@@ -12442,25 +12451,54 @@
     "first-rest": () => {
       const rows = ensureRestRowsSynced();
       const isRefresh = !!(rows._isRefresh ?? (rows[0] && rows[0].isRefresh));
-      const changed = hasRestSkeletonChanges(rows);
+      const changed = hasRestSkeletonChanges(rows) || ((S.restOtherDeleted || []).length > 0);
       const rightBtn = changed
-        ? `<button class="nav-text purple nav-hit" data-act="resetRestSkeleton" type="button">${isRefresh ? "恢复原骨架" : "恢复默认"}</button>`
+        ? `<button class="nav-text blue nav-hit" data-act="resetRestSkeleton" type="button">${isRefresh ? "恢复原骨架" : "恢复默认"}</button>`
         : "";
       const activeIndexed = rows
-        .map((r, i) => ({ ...r, i, time: r.t, h: parseHour(r.t), m: parseMinute(r.t) }))
+        .map((r, i) => ({ ...r, i, time: r.t, h: parseHour(r.t), m: parseMinute(r.t), isRoutine: true }))
         .filter((r) => r.on !== false);
-      const groups = groupByPeriod(activeIndexed, (x) => x.h);
+      // 【V10.323】当前计划：包含所有基础作息以及用户其它所有循环计划
+      const otherRecurring = (S.enrolled ? (SEED || []) : [])
+        .filter((t) => t.cycle && !isRoutineSkeletonTask(t) && !(S.restOtherDeleted || []).includes(t.id))
+        .map((t) => ({
+          ...t,
+          name: t.title,
+          t: `${pad(t.h)}:${pad(t.m)}`,
+          time: `${pad(t.h)}:${pad(t.m)}`,
+          isRoutine: false,
+          isOtherPlan: true,
+        }));
+      const allPlanItems = [...activeIndexed, ...otherRecurring];
+      const groups = groupByPeriod(allPlanItems, (x) => x.h);
       const inactiveRows = rows.map((r, i) => ({ ...r, i })).filter((r) => r.on === false);
       return `
       <div class="page">
-        ${navBar(`<button class="nav-text nav-hit" data-act="later" type="button">稍后</button>`, "基础作息", rightBtn)}
+        ${navBar(`<button class="nav-text nav-hit" data-act="later" type="button">稍后</button>`, "当前计划", rightBtn)}
         <div class="scroll px20" style="padding-top:12px;padding-bottom:120px">
           ${groups.length ? groups.map((g) => `
             <div class="confirm-period">
-              ${sectionHead(I[g.icon], g.title, g.items.length, false, true)}
+              ${sectionHead(I[g.icon], g.title, g.items.length)}
               <div class="col gap10">${g.items.map((r) => {
+                if (r.isOtherPlan) {
+                  const prefix = r.cycle === false
+                    ? ""
+                    : (r.rule === "weekly"
+                        ? `${scheduleRuleSummary(true, "weekly", r.weekdays)} `
+                        : r.rule === "monthly"
+                          ? `每月${((r.monthDays && r.monthDays.length) ? r.monthDays : [1]).map((d) => d === 0 ? "月末" : `${d}日`).join("、")} `
+                          : r.rule === "custom"
+                            ? `${customRuleDisplayName(r.intervalCount, r.intervalUnit)} `
+                            : "");
+                  return actionCard({
+                    id: r.id, cat: r.cat, title: r.title, time: `${prefix}${r.t}`, draft: false, routine: false,
+                    cycle: true,
+                    note: r.note || "",
+                    noteEmpty: !r.note,
+                    delAct: "delRestOtherCard",
+                  });
+                }
                 const rawNote = String(r.note || "").trim();
-                const diffInfo = routineCardDiffJS(r);
                 const cat = r.cat || (["早餐", "午餐", "晚餐"].includes(r.name) ? "diet" : "rest");
                 const prefix = r.cycle === false
                   ? ""
@@ -12476,8 +12514,6 @@
                   cycle: r.cycle !== false, idx: r.i,
                   note: rawNote || "可编辑备注",
                   noteEmpty: !rawNote,
-                  statusBadge: diffInfo.status,
-                  origNote: diffInfo.origNote,
                   editAct: "editRestCard",
                   delAct: "delRestCard",
                   noteAct: "editRestNote",
@@ -12486,11 +12522,11 @@
             </div>`).join("") : `
             <div class="routine-empty-box">
               ${I.moonStars}
-              <span>当前未保留基础作息卡片，可从下方点选添加，或直接拍照上传病历。</span>
+              <span>当前未添加计划，可从下方添加基础作息，或直接拍照上传病历。</span>
             </div>`}
           ${inactiveRows.length ? `
             <div class="confirm-period" style="margin-top:6px">
-              ${sectionHead(I.plusCirc, "可添加的基础作息", inactiveRows.length, false, true)}
+              ${sectionHead(I.plusCirc, "可添加的基础作息", inactiveRows.length)}
               <div class="routine-pool-grid">
                 ${inactiveRows.map((r) => `
                   <button class="routine-add-chip" data-act="restoreRestCard" data-i="${r.i}" type="button">
@@ -17844,9 +17880,9 @@
     const seedTask = id ? SEED.find((x) => x.id === id) : null;
     const isRoutine = !!(routine || (seedTask && isRoutineSkeletonTask(seedTask)));
     const kind = appt || cat === "appointment" ? "appointment" : cat;
-    const cls = [done ? "done" : "", isRoutine ? "routine" : (kind === "appointment" && !done ? "appt" : ""), deactivated ? "stopped" : ""].filter(Boolean).join(" ");
-    const badgeCls = isRoutine ? (done ? "done" : "routine") : (kind === "appointment" && !done ? "appt" : "");
-    const chip = isRoutine ? "基础作息" : (CAT[kind]?.name || "");
+    const cls = [done ? "done" : "", (kind === "appointment" && !done ? "appt" : ""), deactivated ? "stopped" : ""].filter(Boolean).join(" ");
+    const badgeCls = (kind === "appointment" && !done ? "appt" : (done ? "done" : ""));
+    const chip = CAT[kind]?.name || "";
     const isCycle = !!cycle;
     const editLab = "查看";
     const editIco = I.eye;
@@ -17888,17 +17924,14 @@
       ? cardNote(I.alignLeft, note, idx == null ? null : draftNoteAct, idx, noteEmpty)
       : "";
     const notes = origHTML + baseNoteHTML;
-    const badgeLabel = statusBadge ? DIFF_BADGE_LABELS[statusBadge] : "";
-    const titleHTML = badgeLabel
-      ? `<div class="act-title-row"><div class="s15 fb t">${title}</div><span class="diff-badge ${statusBadge}">${badgeLabel}</span></div>`
-      : `<div class="s15 fb t">${title}</div>`;
+    const titleHTML = `<div class="s15 fb t">${title}</div>`;
     const rangeText = seedTask ? taskDateRangeLabel(seedTask) : taskDateRangeLabel({ cycle: isCycle });
     return `<div class="act-card ${cls}">
       <div class="act-card-main">
         <div class="badge b40 ${badgeCls}"><img src="${A.task[kind]}" alt="" /></div>
         <div class="grow">
           ${titleHTML}
-          <div class="act-info"><span class="tm">${time}</span>${dose ? `<span class="act-chip">${dose}</span>` : ""}<span class="act-chip">${isCycle ? "循环" : "单日"}</span><span class="act-chip">${chip}</span></div>
+          <div class="act-info"><span class="tm">${time}</span>${dose ? `<span class="act-chip">${dose}</span>` : ""}<span class="act-chip">${isCycle ? "循环" : "单日"}</span><span class="act-chip">${chip}</span>${isRoutine ? `<span class="act-chip">基础作息</span>` : ""}</div>
           <div class="act-dates">${rangeText}</div>
         </div>
         ${check}
