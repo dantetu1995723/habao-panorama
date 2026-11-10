@@ -2617,26 +2617,38 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   color: var(--secondary); font-size: calc(13.5px * var(--fs)); font-weight: 500; line-height: 1.45;
 }
 .routine-empty-box svg { width: 18px; height: 18px; flex: 0 0 18px; color: rgba(16,84,224,.68); }
-.routine-pool-grid {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;
-}
-.routine-add-chip {
-  display: flex; align-items: center; gap: 8px;
-  padding: 12px; border-radius: 15px;
-  background: rgba(255,255,255,.92);
-  border: 1.1px dashed rgba(16,84,224,.34);
+.routine-add-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: 18px;
+  background: rgba(255,255,255,.88);
+  border: 1.1px dashed rgba(16,84,224,.32);
   color: var(--blue); font-family: inherit; cursor: pointer;
+  width: 100%; box-sizing: border-box; text-align: left;
+  transition: transform .15s ease, background .15s ease;
 }
-.routine-add-chip svg { width: 15px; height: 15px; flex: 0 0 15px; color: var(--blue); }
-.routine-add-chip .r-name {
-  flex: 1; min-width: 0; text-align: left;
+.routine-add-card:active {
+  transform: scale(.985);
+  background: rgba(255,255,255,.98);
+}
+.routine-add-card * { pointer-events: none; }
+.routine-add-card .r-icon {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(16,84,224,.09); color: var(--blue);
+  display: grid; place-items: center; flex: 0 0 32px;
+}
+.routine-add-card .r-icon svg { width: 14px; height: 14px; color: var(--blue); }
+.routine-add-card .r-info { flex: 1; min-width: 0; }
+.routine-add-card .r-name {
   font-size: calc(15px * var(--fs)); font-weight: 700; color: var(--blue);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  display: block; line-height: 1.25;
 }
-.routine-add-chip .r-time {
-  flex: 0 0 auto;
-  font-size: calc(13.5px * var(--fs)); font-weight: 600; font-variant-numeric: tabular-nums;
-  color: rgba(16,84,224,.78);
+.routine-add-card .r-time {
+  font-size: calc(12.5px * var(--fs)); font-weight: 500; color: var(--secondary);
+  display: block; margin-top: 2px; line-height: 1.2;
+}
+.routine-add-card .r-btn {
+  font-size: calc(12.5px * var(--fs)); font-weight: 700; color: var(--blue);
+  padding: 5px 12px; border-radius: 999px; background: rgba(16,84,224,.10); flex: 0 0 auto;
 }
 
 .toast {

@@ -12470,17 +12470,67 @@
           isOtherPlan: true,
         }));
       const allPlanItems = [...activeIndexed, ...otherRecurring];
-      const groups = groupByPeriod(allPlanItems, (x) => x.h);
-      const inactiveRows = rows.map((r, i) => ({ ...r, i })).filter((r) => r.on === false);
+      const inactiveRows = rows
+        .map((r, i) => ({ ...r, i, time: r.t, h: parseHour(r.t), m: parseMinute(r.t) }))
+        .filter((r) => r.on === false);
+
+      const periodSections = PERIODS.map((p) => {
+        const matchPeriod = (h) => p.title === "夜间" ? (h >= 21 || h < 6) : (h >= p.from && h < p.to);
+        const activeItems = allPlanItems
+          .filter((x) => matchPeriod(x.h))
+          .sort((a, b) => {
+            if (a.h !== b.h) return a.h - b.h;
+            const ma = a.m != null ? a.m : parseMinute(a.time);
+            const mb = b.m != null ? b.m : parseMinute(b.time);
+            if (ma !== mb) return ma - mb;
+            const isWakeA = a.name === "起床" || (a.name && a.name.indexOf("起床") >= 0);
+            const isWakeB = b.name === "起床" || (b.name && b.name.indexOf("起床") >= 0);
+            if (isWakeA !== isWakeB) return isWakeA ? -1 : 1;
+            return (a.i ?? 0) - (b.i ?? 0);
+          });
+        const inactiveItems = inactiveRows
+          .filter((x) => matchPeriod(x.h))
+          .sort((a, b) => {
+            if (a.h !== b.h) return a.h - b.h;
+            return a.m - b.m;
+          });
+        return {
+          ...p,
+          activeItems,
+          inactiveItems,
+          total: activeItems.length + inactiveItems.length
+        };
+      }).filter((g) => g.total > 0);
+
       return `
       <div class="page">
         ${navBar(`<button class="nav-text nav-hit" data-act="later" type="button">稍后</button>`, "当前计划", rightBtn)}
         <div class="scroll px20" style="padding-top:12px;padding-bottom:120px">
-          ${groups.length ? groups.map((g) => `
+          ${periodSections.length ? periodSections.map((g) => `
             <div class="confirm-period">
-              ${sectionHead(I[g.icon], g.title, g.items.length)}
-              <div class="col gap10">${g.items.map((r) => {
-                if (r.isOtherPlan) {
+              ${sectionHead(I[g.icon], g.title, g.activeItems.length)}
+              <div class="col gap10">
+                ${g.activeItems.map((r) => {
+                  if (r.isOtherPlan) {
+                    const prefix = r.cycle === false
+                      ? ""
+                      : (r.rule === "weekly"
+                          ? `${scheduleRuleSummary(true, "weekly", r.weekdays)} `
+                          : r.rule === "monthly"
+                            ? `每月${((r.monthDays && r.monthDays.length) ? r.monthDays : [1]).map((d) => d === 0 ? "月末" : `${d}日`).join("、")} `
+                            : r.rule === "custom"
+                              ? `${customRuleDisplayName(r.intervalCount, r.intervalUnit)} `
+                              : "");
+                    return actionCard({
+                      id: r.id, cat: r.cat, title: r.title, time: `${prefix}${r.t}`, draft: false, routine: false,
+                      cycle: true,
+                      note: r.note || "",
+                      noteEmpty: !r.note,
+                      delAct: "delRestOtherCard",
+                    });
+                  }
+                  const rawNote = String(r.note || "").trim();
+                  const cat = r.cat || (["早餐", "午餐", "晚餐"].includes(r.name) ? "diet" : "rest");
                   const prefix = r.cycle === false
                     ? ""
                     : (r.rule === "weekly"
@@ -12491,51 +12541,30 @@
                             ? `${customRuleDisplayName(r.intervalCount, r.intervalUnit)} `
                             : "");
                   return actionCard({
-                    id: r.id, cat: r.cat, title: r.title, time: `${prefix}${r.t}`, draft: false, routine: false,
-                    cycle: true,
-                    note: r.note || "",
-                    noteEmpty: !r.note,
-                    delAct: "delRestOtherCard",
+                    cat, title: r.name, time: `${prefix}${r.t}`, draft: true, routine: true,
+                    cycle: r.cycle !== false, idx: r.i,
+                    note: rawNote || "可编辑备注",
+                    noteEmpty: !rawNote,
+                    editAct: "editRestCard",
+                    delAct: "delRestCard",
+                    noteAct: "editRestNote",
                   });
-                }
-                const rawNote = String(r.note || "").trim();
-                const cat = r.cat || (["早餐", "午餐", "晚餐"].includes(r.name) ? "diet" : "rest");
-                const prefix = r.cycle === false
-                  ? ""
-                  : (r.rule === "weekly"
-                      ? `${scheduleRuleSummary(true, "weekly", r.weekdays)} `
-                      : r.rule === "monthly"
-                        ? `每月${((r.monthDays && r.monthDays.length) ? r.monthDays : [1]).map((d) => d === 0 ? "月末" : `${d}日`).join("、")} `
-                        : r.rule === "custom"
-                          ? `${customRuleDisplayName(r.intervalCount, r.intervalUnit)} `
-                          : "");
-                return actionCard({
-                  cat, title: r.name, time: `${prefix}${r.t}`, draft: true, routine: true,
-                  cycle: r.cycle !== false, idx: r.i,
-                  note: rawNote || "可编辑备注",
-                  noteEmpty: !rawNote,
-                  editAct: "editRestCard",
-                  delAct: "delRestCard",
-                  noteAct: "editRestNote",
-                });
-              }).join("")}</div>
+                }).join("")}
+                ${g.inactiveItems.map((r) => `
+                  <button class="routine-add-card" data-act="restoreRestCard" data-i="${r.i}" type="button">
+                    <div class="r-icon">${I.plus}</div>
+                    <div class="r-info">
+                      <span class="r-name">${esc(r.name)}</span>
+                      <span class="r-time">${esc(r.t)}</span>
+                    </div>
+                    <span class="r-btn">添加</span>
+                  </button>`).join("")}
+              </div>
             </div>`).join("") : `
             <div class="routine-empty-box">
               ${I.moonStars}
-              <span>当前未添加计划，可从下方添加基础作息，或直接拍照上传病历。</span>
+              <span>当前未添加计划，可直接拍照上传病历。</span>
             </div>`}
-          ${inactiveRows.length ? `
-            <div class="confirm-period" style="margin-top:6px">
-              ${sectionHead(I.plusCirc, "可添加的基础作息", inactiveRows.length)}
-              <div class="routine-pool-grid">
-                ${inactiveRows.map((r) => `
-                  <button class="routine-add-chip" data-act="restoreRestCard" data-i="${r.i}" type="button">
-                    ${I.plusCirc}
-                    <span class="r-name">${esc(r.name)}</span>
-                    <span class="r-time">${esc(r.t)}</span>
-                  </button>`).join("")}
-              </div>
-            </div>` : ""}
         </div>
         <div class="px20 col gap10" style="padding-bottom:28px">
           <button class="cta h52" data-act="uploadDischarge" type="button">${I.cam}拍照上传病历</button>
