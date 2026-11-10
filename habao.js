@@ -1447,7 +1447,7 @@
     "first-rest": { code: "CreateScheduleFlowView", note: "【V10.323 全局统一蓝色卡片 + 首页「当前计划」合流】首页「排定康复基础日程」与选择类型「康复基础日程」第一页重命名为「当前计划」：① 包含当前生效的所有基础作息以及用户其它所有循环计划，按全天时段由早到晚（HH:mm）排布（起床置顶）；② 基础作息全部改回蓝色卡片，卡片右上角不再展示「新建 / 保留 / 已调整」等 tag，基础作息作为副行「基础作息」特殊 tag 存在；③ 支持逐项编辑与删除，底部配备「可添加的基础作息」蓝色虚框补回池；底部大按钮「拍照上传病历」继续推进。" },
     "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表，时段内严格按 HH:mm 由早到晚排布。【V10.320 首项规则】「起床」必须是一天计划的绝对第一个条目：推算测血压规范为起床后静坐测量（wake + 10 分钟，如 07:00 起床 → 07:10 起床测血压），同刻排序保底置顶「起床」卡。【V10.315 极简三态对比】仅在已有存量基础日程再次排定时展示（首次排定保持纯净），全链路砍掉「将停用」与停用专区（页面所见即接下来要执行的，关掉/删掉即不再提醒）：① 顶部「对比原基础日程」摘要卡展示「新增 / 已调整 / 保留」三态计数 +「其余 M 项手建与运动计划不受影响，确认后继续保留」；② 各时段与复查卡片标题行右侧实时标注「新增 / 已调整 / 保留」胶囊，「已调整」卡内附琥珀色对比行「原计划：…」（用药自动忽略「服用」前缀匹配同一药品）。右上「确认」按类别+名称整套替换上一版基础日程，手建与运动计划不动；左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
-    "select-type": { code: "CreateScheduleFlowView", note: "【V10.312】专业组首卡「康复基础日程」（副标题「按病历排好用药、复查与作息」）标复查红（特殊），与首页「排定康复基础日程」同一条链：基础作息（预填已有作息时刻）→ 拍照 → 资料详情 → 解析结果 → 确认计划，确认后整套替换上一版基础日程、手建计划不动；运动走体测。专业听诊器 14 / 日常铃。两组岛：运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
+    "select-type": { code: "CreateScheduleFlowView", note: "【V10.325 分类界面分为「基础计划」与「其他计划」】分类界面重构为极简两组：① 基础计划（按病历排定）：内含「基础康复计划」（副标「按病历排好用药、复查与作息」），与首页底缘「基础康复计划」按钮统一同链；② 其他计划：内含「运动」（体测评估）、「测血压」、「饮食」、「作息」及自建类别。右上「管理」推入管理类别。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
     "task-add": { code: "AddEditTaskView", note: "V0.0 / V0.1 为「事项」「时间与提醒」两大类折叠；V0.2 重构为**无滚动「三联动态磁贴 + 单屏模块舞台」切换架构**（字段不变）：顶部三联动态磁贴（① 事项内容、② 时刻与提醒、③ 周期与日期）实时回显三大模块核心设定，不切页即可一眼总览；中部单屏舞台一次仅聚焦展示 1 个大模块（支持点按磁贴、点按卡头 `‹ 1/3 ›` 步进或左右滑动手势切换），彻底消除滚动与视觉负担。" },
     "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。V0.2 采用无滚动「三联动态磁贴 + 单屏模块舞台」切换架构：顶部磁贴实时回显事项、时刻与周期摘要，中部单屏切换「事项内容 / 时刻与提醒 / 周期与日期」；「提醒时间」与「打卡时间」1:1 对称同构，「时间段」配备醒目粗体时间范围标注，「起止日期」通栏对齐零截断。修改时间或周期字段保存前弹出「确认更新计划」双卡弹窗；仅改名称/备注/血压等直接原地保存。" },
@@ -1767,8 +1767,8 @@
       { act: "enter", label: "填姓名后完成", hint: "点右上「进入哈宝」" },
       { screen: "home", label: "进入首页" },
     ]},
-    { id: "first-create", label: "未入组 · 排定康复基础日程（入组主链）", cold: "new", steps: [
-      { act: "firstCreate", label: "首页底缘「排定康复基础日程」" },
+    { id: "first-create", label: "未入组 · 基础康复计划（入组主链）", cold: "new", steps: [
+      { act: "firstCreate", label: "首页底缘「基础康复计划」" },
       { screen: "first-rest", label: "基础作息 6 项预设" },
       { act: "editRestTime", label: "改作息时刻", optional: true },
       { act: "uploadDischarge", label: "拍照上传病历" },
@@ -2756,8 +2756,8 @@
       remind: "提醒",
       checkIn: "代打卡",
       createPlan: "新增计划",
-      firstCreatePlan: "排定康复基础日程",
-      refreshMedicationPlan: "更新康复基础日程",
+      firstCreatePlan: "排定基础康复计划",
+      refreshMedicationPlan: "更新基础康复计划",
       inviteExerciseTest: "运动体测邀请",
       acceptExerciseInvite: "运动体测回执",
       rejectExerciseInvite: "运动体测回执",
@@ -2865,8 +2865,8 @@
     if (kind === "remind") return "提醒";
     if (kind === "checkIn") return "代打卡";
     if (kind === "createPlan") return "新增计划";
-    if (kind === "firstCreatePlan") return "排定康复基础日程";
-    if (kind === "refreshMedicationPlan") return "更新康复基础日程";
+    if (kind === "firstCreatePlan") return "排定基础康复计划";
+    if (kind === "refreshMedicationPlan") return "更新基础康复计划";
     if (kind === "inviteExerciseTest") return "运动体测邀请";
     if (kind === "acceptExerciseInvite" || kind === "rejectExerciseInvite") return "运动体测回执";
     if (kind === "updatePlan") return "修改计划";
@@ -7089,8 +7089,8 @@
             };
           });
           const summaryTitle = isFirst
-            ? `排定康复基础日程（共 ${batch.length} 项）`
-            : `更新康复基础日程（共 ${batch.length} 项）`;
+            ? `排定基础康复计划（共 ${batch.length} 项）`
+            : `更新基础康复计划（共 ${batch.length} 项）`;
           const summaryNote = `含作息、用药、复查等共 ${batch.length} 项`;
           const snapshot = {
             id: `proxy_batch_${Date.now()}`,
@@ -7112,7 +7112,7 @@
             summaryNote,
           });
           closeFlow();
-          toast(isFirst ? `已为${famName}排定康复基础日程（共 ${batch.length} 项）` : `已为${famName}更新康复基础日程（共 ${batch.length} 项）`);
+          toast(isFirst ? `已为${famName}排定基础康复计划（共 ${batch.length} 项）` : `已为${famName}更新基础康复计划（共 ${batch.length} 项）`);
           return;
         }
         const wasEnrolled = S.enrolled;
@@ -10088,8 +10088,8 @@
           : activeBaselineTasks(ensurePersonStore(famName).tasks || []).filter((t) => t.cat !== "medication" && t.cat !== "appointment").map((t) => ({ ...t }));
         const batch = [...medTasks, ...apptTasks, ...bpTasks, ...restItems];
         const summaryTitle = isFirstCreate
-          ? `排定康复基础日程（共 ${batch.length} 项）`
-          : `更新康复基础日程（共 ${batch.length} 项）`;
+          ? `排定基础康复计划（共 ${batch.length} 项）`
+          : `更新基础康复计划（共 ${batch.length} 项）`;
         const summaryNote = isFirstCreate
           ? `含用药 ${medTasks.length} 项、复查 ${apptTasks.length} 项、日常与测血压 ${bpTasks.length + restItems.length} 项`
           : `含用药 ${medTasks.length} 项、复查 ${apptTasks.length} 项`;
@@ -10113,7 +10113,7 @@
           summaryNote,
         });
         S.proxyEditorDraft = null;
-        toast(isFirstCreate ? `已为${famName}排定康复基础日程（共 ${batch.length} 项），对方进入首页将收到弹窗通知` : `已为${famName}更新康复基础日程，对方进入首页将收到弹窗通知`);
+        toast(isFirstCreate ? `已为${famName}排定基础康复计划（共 ${batch.length} 项），对方进入首页将收到弹窗通知` : `已为${famName}更新基础康复计划，对方进入首页将收到弹窗通知`);
         render();
       },
       submitProxyExerciseInvite() {
@@ -11793,7 +11793,7 @@
             <span class="s4-add-plus">${I.plus}</span>
             <span class="s4-add-t">${b.title}临时计划</span>
           </button>` : `
-          <button class="s4-first" data-act="firstCreate" type="button">排定康复基础日程</button>`}
+          <button class="s4-first" data-act="firstCreate" type="button">基础康复计划</button>`}
         <div class="s4-none">
           <span class="s4-none-mark">${I.calLarge}</span>
           <span class="s4-none-t">暂无计划</span>
@@ -12303,7 +12303,7 @@
               </div>
               <div class="scrub" id="scrub"></div>
             </div>
-            ${S.enrolled ? "" : `<button class="first-create" data-act="firstCreate" type="button">排定康复基础日程 ${I.tap}</button>`}
+            ${S.enrolled ? "" : `<button class="first-create" data-act="firstCreate" type="button">基础康复计划 ${I.tap}</button>`}
           </div>
           <div class="dock">
             <div class="orb" data-go="walk">${I.walk}<span>运动</span></div>
@@ -12377,11 +12377,11 @@
         ${navBar(`<button class="cap" data-act="later" type="button">${I.chevL}返回</button>`, "选择类型",
           `<button class="cap" data-act="openCatManage" type="button">${I.slider}管理</button>`)}
         <div class="scroll px20" style="padding-top:16px;padding-bottom:30px">
-          ${typeGroup("专业康复计划", "按病例与体测生成", { icon: I.steth }, [
-            ["康复基础日程", "按病历排好用药、复查与作息", "medication", "typeMed", { special: true }],
-            ["运动", "完成运动前风险提示与体测评估", "exercise", "typeEx"],
+          ${typeGroup("基础计划", "按病历排定", { icon: I.steth }, [
+            ["基础康复计划", "按病历排好用药、复查与作息", "medication", "typeMed", { special: true }],
           ])}
-          ${typeGroup("普通日常计划", "", { icon: I.bell, includeCustom: true }, [
+          ${typeGroup("其他计划", "", { icon: I.bell, includeCustom: true }, [
+            ["运动", "完成运动前风险提示与体测评估", "exercise", "typeEx"],
             ["测血压", "记录每日血压与心率", "monitoring", "typeDaily"],
             ["饮食", "创建饮食提醒", "diet", "typeDaily"],
             ["作息", "创建起床、午休与入睡提醒", "rest", "typeDaily"],
@@ -14548,7 +14548,7 @@
         bottomDockHTML = (isUnbound || isPending) ? "" : `
           <div class="px20 flex gap8" style="padding-bottom:28px">
             <button class="cta grow" data-act="openProxyTaskEditor" type="button">
-              ${famHasPlans ? `为${esc(selectedFamName)}添加计划` : `为${esc(selectedFamName)}排定康复基础日程`}
+              ${famHasPlans ? `为${esc(selectedFamName)}添加计划` : `为${esc(selectedFamName)}排定基础康复计划`}
             </button>
           </div>`;
       } else {
