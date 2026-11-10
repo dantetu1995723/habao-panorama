@@ -482,7 +482,14 @@
   /// 依据页可改的解析结果（活数据）：用药 / 复查 / 测血压 / 诊断标签。
   /// 真机两页共用同一份数组，这里同样——依据页改了，计划页那张卡跟着变。
   function liveMeds() {
-    if (!S.meds) S.meds = MEDS.map((m) => ({ ...m, src: m.name }));
+    if (!S.meds) {
+      const anchors = routineAnchorsFromRows();
+      S.meds = MEDS.map((m) => ({
+        ...m,
+        time: anchors.medTimeFor(`${m.freq || ""} ${m.scene || ""} ${m.usage || ""}`),
+        src: m.name,
+      }));
+    }
     return S.meds;
   }
   function liveAppts() {
@@ -610,11 +617,7 @@
     if (freqParts.length) freq = freqParts.join(" ");
     if (usageParts.length) usage = usageParts.join(" ");
     const combined = `${freq} ${usage}`;
-    let time = "08:00";
-    if (/睡前|每晚|qn/i.test(combined)) time = "21:00";
-    else if (/午餐|午间/.test(combined)) time = "12:00";
-    else if (/晚餐/.test(combined)) time = "18:30";
-    else if (/空腹|餐前/.test(combined)) time = "07:30";
+    const time = routineAnchorsFromRows().medTimeFor(combined);
     return { name, dose, freq, usage, time, src: name };
   }
 
@@ -1435,8 +1438,8 @@
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "V10.289：仅展示前一个拍摄页中已勾选/保留的分组。基础报告或首次上传报告中含出院记录时排在最上方；选传组为空时显示灰色说明文字。首次建日程与新增用药复查的资料详情右上为「解析」，点击后进入「资料解析结果」页；健康档案与身体报告子页的补拍通道右上为「提交」，提交后直接归入共享资料 BASE（不经过资料解析结果页）。" },
     "ocr-parsed": { code: "OCRParseResultView", note: "【V10.309】仅限创建计划步骤（排定 / 更新康复基础日程），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「解析结果」页（标题「解析结果」）。左上角为「< 返回」，右上角为同规格「提交」按钮。默认模拟已识别填好的状态，包含五个可编辑字段：① 疾病信息（必填，多行文本框 context + 右上角「清空」按钮）、② 出院时间（必填，年 / 月 / 日三个并排下拉框）、③ 用药处方（必填，多行文本框 context + 右上角「清空」按钮）、④ 手术名称（选填，多行文本框 context + 右上角「清空」按钮）、⑤ 手术时间（选填，年 / 月 / 日三个并排下拉框）。当三个必填字段非空时右上角「提交」按钮可点击，按修改后的解析结果生成计划并进入「确认计划」页。" },
-    "first-rest": { code: "CreateScheduleFlowView", note: "【V10.312】首页「排定康复基础日程」与选择类型「康复基础日程」共用本页；六项始终都在，已有同名基础日程作息则预填其当前时刻，否则默认时刻。【V10.308】移除事项名称选项模组与展开框（不设选项框/不可改选类型），事项名称固定展示（起床 / 早餐 / 午餐 / 午休 / 晚餐 / 上床睡觉，不含测血压）；点时刻出居中「时刻调整」弹层（标题为事项名，双列时/分步进，分步长 5，取消 / 完成，点遮罩取消）。「稍后」关整段创建流回首页；底栏「拍照上传病历」替换本页，不压栈。" },
-    "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表，时段内严格按 HH:mm 由早到晚排布。【V10.314 再次排定新旧四态对比】仅在已有存量基础日程再次排定时展示（首次排定保持纯净）：① 顶部「对比原基础日程」摘要卡（展示 新增 / 已调整 / 将停用 / 保留 四态计数 +「其余 M 项手建与运动计划不受影响，确认后继续保留」）；② 各时段与复查卡片标题行右侧实时标注「新增 / 已调整 / 保留」胶囊，「已调整」卡内附琥珀色对比行「原计划：…」（用药自动忽略「服用」前缀匹配同一药品）；③ 页面底部新增「确认后将停用」灰卡专区（展示新病历未开或确认页删掉的原基础日程，标「今日起停用」+ 底栏「保留此项」一键救回）。右上「确认」按类别+名称整套替换上一版基础日程，手建与运动计划不动；左上「稍后」关整段流。" },
+    "first-rest": { code: "CreateScheduleFlowView", note: "【V10.315 基础作息极简协同】首页「排定康复基础日程」与选择类型「康复基础日程」共用本页。六项固定顺序（起床 / 早餐 / 午餐 / 午休 / 晚餐 / 上床睡觉），每行左侧配备轻量勾选开关：① 首次排定默认 6 项全开（可当场关掉不需要的项，甚至全关仅排用药与复查）；② 再次排定按当前存量骨架自动还原开关并继承原时刻与周期备注（在用的默认开、之前删掉的默认关置灰不强塞回确认页）；③ 平时零状态小字，仅再次排定「新勾上」轻显绿色「新增」、「改了原时刻」轻显琥珀色「原 HH:MM」；④ 已开启的作息时刻自动作为时间锚点，联动推算后续解析的用药与测血压默认时刻（起床测血压=起床前30分，三餐前后药=餐前后30分，睡前药=睡觉前60分，睡前测血压=睡觉前120分）。" },
+    "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表，时段内严格按 HH:mm 由早到晚排布。【V10.315 极简三态对比】仅在已有存量基础日程再次排定时展示（首次排定保持纯净），全链路砍掉「将停用」与停用专区（页面所见即接下来要执行的，关掉/删掉即不再提醒）：① 顶部「对比原基础日程」摘要卡展示「新增 / 已调整 / 保留」三态计数 +「其余 M 项手建与运动计划不受影响，确认后继续保留」；② 各时段与复查卡片标题行右侧实时标注「新增 / 已调整 / 保留」胶囊，「已调整」卡内附琥珀色对比行「原计划：…」（用药自动忽略「服用」前缀匹配同一药品）。右上「确认」按类别+名称整套替换上一版基础日程，手建与运动计划不动；左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "【V10.312】专业组首卡「康复基础日程」（副标题「按病历排好用药、复查与作息」）标复查红（特殊），与首页「排定康复基础日程」同一条链：基础作息（预填已有作息时刻）→ 拍照 → 资料详情 → 解析结果 → 确认计划，确认后整套替换上一版基础日程、手建计划不动；运动走体测。专业听诊器 14 / 日常铃。两组岛：运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
@@ -4478,13 +4481,79 @@
   function isBaselineRestItem(t) {
     return (t.cat === "rest" || t.cat === "diet") && BASELINE_REST_NAMES.includes(t.title);
   }
-  /// 基础作息页预填：已有同名基础日程作息 → 带当前时刻；否则默认时刻。六项始终都在
+  /// V10.315 基础作息页预填：首次排定 6 项默认全开；再次排定按当前存量骨架自动还原启停开关并继承原时刻与周期备注（未启用的默认关置灰）
   function baselineRestRows() {
     const old = activeBaselineTasks(baselineSourceTasks());
-    return REST_PRESET.map((p) => {
+    const isRefresh = old.length > 0;
+    const rows = REST_PRESET.map((p) => {
+      if (!isRefresh) return { ...p, on: true, origT: null, isRefresh: false };
       const hit = old.find((t) => isBaselineRestItem(t) && t.title === p.name);
-      return hit ? { ...p, t: `${pad(hit.h ?? 0)}:${pad(hit.m ?? 0)}` } : { ...p };
+      if (hit) {
+        const origT = `${pad(hit.h ?? 0)}:${pad(hit.m ?? 0)}`;
+        return {
+          ...p,
+          t: origT,
+          on: true,
+          origT,
+          isRefresh: true,
+          note: hit.note || "",
+          cycle: hit.cycle !== false,
+          rule: hit.rule,
+          weekdays: hit.weekdays ? hit.weekdays.slice() : undefined,
+          monthDays: hit.monthDays ? hit.monthDays.slice() : undefined,
+          intervalCount: hit.intervalCount,
+          intervalUnit: hit.intervalUnit,
+        };
+      }
+      return { ...p, on: false, origT: null, isRefresh: true };
     });
+    rows._mode = `${!!S.enrolled}|${S.proxyTargetPersonName || ""}`;
+    return rows;
+  }
+  function ensureRestRowsSynced() {
+    const mode = `${!!S.enrolled}|${S.proxyTargetPersonName || ""}`;
+    if (!S.restRows || S.restRows._mode !== mode) {
+      S.restRows = baselineRestRows();
+    }
+    return S.restRows;
+  }
+  function routineRowChangeHint(r) {
+    if (!r || !r.isRefresh || r.on === false) return null;
+    if (!r.origT) return { text: "新增", cls: "added" };
+    if (r.t !== r.origT) return { text: `原 ${r.origT}`, cls: "modified" };
+    return null;
+  }
+  /// V10.315：从当前已开启的基础作息行提取时间锚点，自动联动推算用药与测血压默认时刻
+  function routineAnchorsFromRows() {
+    const rows = (S.restRows || []).filter((r) => r.on !== false);
+    const minsOf = (name) => {
+      const hit = rows.find((r) => r.name === name);
+      if (!hit || !hit.t) return null;
+      const [h, m] = String(hit.t).split(":").map(Number);
+      return (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0);
+    };
+    const fmtClamped = (tot) => {
+      const c = Math.max(0, Math.min(23 * 60 + 55, tot));
+      return `${pad(Math.floor(c / 60))}:${pad(c % 60)}`;
+    };
+    const wake = minsOf("起床");
+    const breakfast = minsOf("早餐");
+    const lunch = minsOf("午餐");
+    const dinner = minsOf("晚餐");
+    const sleep = minsOf("上床睡觉");
+    return {
+      morningBPTime: () => (wake != null ? fmtClamped(wake - 30) : "06:30"),
+      eveningBPTime: () => (sleep != null ? fmtClamped(sleep - 120) : "20:00"),
+      medTimeFor: (combined) => {
+        const s = String(combined || "");
+        const isBefore = /餐前|饭前|空腹/.test(s);
+        if (/睡前|每晚|qn/i.test(s)) return sleep != null ? fmtClamped(sleep - 60) : "21:00";
+        if (/午餐|午间/.test(s)) return lunch != null ? fmtClamped(lunch + (isBefore ? -30 : 30)) : "12:00";
+        if (/晚餐/.test(s)) return dinner != null ? fmtClamped(dinner + (isBefore ? -30 : 30)) : "18:30";
+        if (/空腹|餐前/.test(s)) return breakfast != null ? fmtClamped(breakfast - 30) : "07:30";
+        return breakfast != null ? fmtClamped(breakfast + (isBefore ? -30 : 30)) : "08:00";
+      },
+    };
   }
   /// 确认页沿用上一版基础日程里「非作息 / 用药 / 复查」的条目（测血压、上次确认页自由添加的计划等）；
   /// 本次解析已生成测血压（新诊断含高血压）时不再沿用旧测血压
@@ -4631,15 +4700,7 @@
       });
       oldByKey.set(k, olds);
     });
-    const stopped = [];
-    oldByKey.forEach((olds) => stopped.push(...olds));
-    stopped.sort((a, b) => {
-      const apA = a.cat === "appointment" ? 1 : 0;
-      const apB = b.cat === "appointment" ? 1 : 0;
-      if (apA !== apB) return apA - apB;
-      return ((a.h ?? 8) - (b.h ?? 8)) || ((a.m ?? 0) - (b.m ?? 0));
-    });
-    return { statusByIdx, origByIdx, stopped, addedCount, modifiedCount, keptCount, unaffectedCount };
+    return { statusByIdx, origByIdx, addedCount, modifiedCount, keptCount, unaffectedCount };
   }
   /// 写入规则：新旧基础日程按 类别+归一化标题 配对（优先精确时刻周期配对，再按时刻顺序配对）。配上 → 原地更新（保留 id 与打卡历史）；
   /// 旧有新无 → 系列截止到昨天（今天起消失，历史保留）；新有旧无 → 从今天起新建。
@@ -7142,31 +7203,15 @@
         if (!Number.isNaN(i) && S.confirmDrafts) S.confirmDrafts.splice(i, 1);
         render();
       },
-      restoreStoppedDraft() {
-        const id = el.dataset.id;
-        const old = activeBaselineTasks(baselineSourceTasks()).find((t) => String(t.id) === String(id));
-        if (!old) return;
-        if (!S.confirmDrafts) seedConfirmDrafts();
-        const hm = `${pad(old.h ?? 8)}:${pad(old.m ?? 0)}`;
-        const isCyc = old.cycle !== false;
-        const rule = old.rule || (old.cat === "appointment" ? "monthly" : "daily");
-        S.confirmDrafts.push({
-          title: old.cat === "medication" ? normBaselineMedName(old.title) : old.title,
-          time: hm,
-          cat: old.cat,
-          customId: old.customId,
-          dose: old.cat === "medication" ? (extractOldMedDose(old.note) || medDose(normBaselineMedName(old.title))) : undefined,
-          note: old.note || "",
-          cycle: isCyc,
-          rule,
-          weekdays: old.weekdays ? old.weekdays.slice() : undefined,
-          monthDays: rule === "monthly" ? oldTaskMonthDays(old) : undefined,
-          intervalCount: old.intervalCount,
-          intervalUnit: old.intervalUnit,
-          onceDate: !isCyc ? old.onceDate : undefined,
-          muteFirst: false,
-        });
-        toast(`已恢复保留「${old.title}」`);
+      toggleRestRow() {
+        ensureRestRowsSynced();
+        const i = +el.dataset.i;
+        const r = S.restRows[i];
+        if (!r) return;
+        r.on = r.on === false;
+        S.meds = null;
+        S.bps = null;
+        S.confirmDrafts = null;
         render();
       },
       addRest() {
@@ -7178,8 +7223,11 @@
         render();
       },
       editRestTime() {
+        ensureRestRowsSynced();
         const i = +el.dataset.i;
         const r = S.restRows[i];
+        if (!r) return;
+        r.on = true;
         const [h, m] = r.t.split(":").map(Number);
         openOverlay("time", { title: r.name, h, m: Math.round(m / 5) * 5 % 60, kind: "rest", i });
       },
@@ -7199,7 +7247,13 @@
       timeStep() { stepTime(el.dataset.unit, +el.dataset.dir); },
       timeDone() {
         const d = S.overlayData;
-        if (d.kind === "rest") S.restRows[d.i].t = `${pad(d.h)}:${pad(d.m)}`;
+        if (d.kind === "rest") {
+          S.restRows[d.i].t = `${pad(d.h)}:${pad(d.m)}`;
+          S.restRows[d.i].on = true;
+          S.meds = null;
+          S.bps = null;
+          S.confirmDrafts = null;
+        }
         if (d.kind === "draft" && S.draft) { S.draft.hour = d.h; S.draft.min = d.m; }
         closeOverlay();
       },
@@ -12060,22 +12114,35 @@
       </div>`;
     },
 
-    "first-rest": () => `
+    "first-rest": () => {
+      const rows = ensureRestRowsSynced();
+      return `
       <div class="page">
         ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "基础作息")}
         <div class="scroll pad-16" style="padding-top:16px">
           <div class="white-island" style="padding:4px 16px">
-            ${S.restRows.length ? S.restRows.map((r, i) => `
-              <div class="rest-row">
-                <div class="rest-name">${r.name}</div>
-                <button class="time-cap" data-act="editRestTime" data-i="${i}" type="button">${r.t}</button>
-              </div>`).join("") : `<div class="ta-c t-sec s15" style="padding:28px 4px">暂无计划</div>`}
+            ${rows.length ? rows.map((r, i) => {
+              const isOn = r.on !== false;
+              const hint = routineRowChangeHint(r);
+              return `
+              <div class="rest-row ${isOn ? "" : "off"}">
+                <button class="rest-toggle-area" data-act="toggleRestRow" data-i="${i}" type="button">
+                  <span class="rest-chk ${isOn ? "on" : ""}">${isOn ? I.check : ""}</span>
+                  <span class="rest-title-col">
+                    <span class="rest-name">${r.name}</span>
+                    ${hint ? `<span class="rest-hint ${hint.cls}">${esc(hint.text)}</span>` : ""}
+                  </span>
+                </button>
+                <button class="time-cap ${isOn ? "" : "off"}" data-act="editRestTime" data-i="${i}" type="button">${r.t}</button>
+              </div>`;
+            }).join("") : `<div class="ta-c t-sec s15" style="padding:28px 4px">暂无计划</div>`}
           </div>
         </div>
         <div class="pad-16" style="padding-bottom:36px">
           <button class="cta h64" data-act="uploadDischarge" type="button">${I.cam}拍照上传病历</button>
         </div>
-      </div>`,
+      </div>`;
+    },
 
     "ocr-capture": () => {
       if (!S.docGroups) seedDocGroups(0);
@@ -12273,7 +12340,7 @@
 
     "confirm-plan": () => {
       if (!S.confirmDrafts) seedConfirmDrafts();
-      // V10.312 / V10.314：再次排定时对比存量基础日程展示四态对比（新增 / 已调整 / 保留 / 确认后将停用）；手建重名灰字提示
+      // V10.315：再次排定时对比存量基础日程展示极简三态（新增 / 已调整 / 保留）；砍掉「将停用」与底部停用专区
       const dupList = baselineSourceTasks();
       const diff = computeBaselineDiffJS(S.confirmDrafts, dupList);
       const dupHint = (x) => {
@@ -12286,7 +12353,6 @@
           <div class="diff-banner-pills">
             <span class="diff-metric added">新增 ${diff.addedCount}</span>
             <span class="diff-metric modified">已调整 ${diff.modifiedCount}</span>
-            <span class="diff-metric ${diff.stopped.length > 0 ? "stopped" : "kept"}">将停用 ${diff.stopped.length}</span>
             <span class="diff-metric kept">保留 ${diff.keptCount}</span>
           </div>
           ${diff.unaffectedCount > 0 ? `<div class="diff-banner-sub">其余 ${diff.unaffectedCount} 项手建与运动计划不受影响，确认后继续保留</div>` : ""}
@@ -12297,38 +12363,6 @@
       const appts = indexed
         .filter((x) => x.cat === "appointment")
         .sort((a, b) => (a.h !== b.h ? a.h - b.h : a.m !== b.m ? a.m - b.m : a.i - b.i));
-      const stoppedHTML = (diff && diff.stopped.length) ? `
-        <div class="confirm-period">
-          ${sectionHead(I.minusCirc || "", "确认后将停用", diff.stopped.length)}
-          <div class="confirm-stop-sub">今日起停止提醒，历史打卡记录保留；若需继续执行可点「保留此项」</div>
-          <div class="col gap10">${diff.stopped.map((old) => {
-            const hm = `${pad(old.h ?? 8)}:${pad(old.m ?? 0)}`;
-            const isCyc = old.cycle !== false;
-            const rule = old.rule || (old.cat === "appointment" ? "monthly" : "daily");
-            const md = oldTaskMonthDays(old);
-            const prefix = !isCyc
-              ? ""
-              : (rule === "daily"
-                  ? ""
-                  : rule === "weekly"
-                    ? `${scheduleRuleSummary(true, "weekly", old.weekdays)} `
-                    : rule === "custom"
-                      ? `${customRuleDisplayName(old.intervalCount, old.intervalUnit)} `
-                      : `每月${md.map((d) => d === 0 ? "月末" : `${d}日`).join("、")} `);
-            return actionCard({
-              cat: old.cat,
-              title: old.title,
-              time: `${prefix}${hm}`,
-              appt: old.cat === "appointment",
-              cycle: isCyc,
-              dose: old.cat === "medication" ? (extractOldMedDose(old.note) || medDose(normBaselineMedName(old.title))) : "",
-              note: old.note || "",
-              statusBadge: "stopped",
-              deactivated: true,
-              restoreId: old.id,
-            });
-          }).join("")}</div>
-        </div>` : "";
       return `
       <div class="page">
         ${navBar(`<button class="nav-text nav-hit" data-act="later" type="button">稍后</button>`, "确认计划",
@@ -12375,7 +12409,6 @@
               }) + dupHint(a);
             }).join("")}</div>
           </div>
-          ${stoppedHTML}
         </div>
         <div class="px20 col gap10" style="padding-bottom:28px">
           <button class="cta h52" data-act="reparseCase" type="button">${I.cam}重新拍照解析</button>
@@ -14267,6 +14300,7 @@
   /// 确认页草稿种子（V10.312 康复基础日程）：首次与已入组同一套——作息 + 用药 + 测血压（解析补入，Demo 出院诊断含高血压）+ 复查，
   /// 再沿用上一版基础日程里非作息 / 用药 / 复查的条目（本次已解析出测血压时不沿用旧测血压）
   function seedConfirmDrafts() {
+    ensureRestRowsSynced();
     const bpDrafts = liveBPs().map((b) => ({
       title: b.title,
       time: b.time,
@@ -14276,13 +14310,19 @@
       cycle: true, rule: "daily", muteFirst: false,
     }));
     const rest = [
-      ...(S.restRows || baselineRestRows()).map((r) => ({
+      ...(S.restRows || []).filter((r) => r.on !== false).map((r) => ({
         title: r.name,
         time: r.t,
         cat: r.cat || (["早餐", "午餐", "晚餐"].includes(r.name) ? "diet" : "rest"),
         srcTitle: r.name,
         note: r.cat === "monitoring" ? confirmMonitorNote(r.name) : (r.note || ""),
-        cycle: true, rule: "daily", muteFirst: false,
+        cycle: r.cycle !== false,
+        rule: r.rule || "daily",
+        weekdays: r.weekdays ? r.weekdays.slice() : undefined,
+        monthDays: r.monthDays ? r.monthDays.slice() : undefined,
+        intervalCount: r.intervalCount,
+        intervalUnit: r.intervalUnit,
+        muteFirst: false,
       })),
       ...bpDrafts,
       ...baselineCarryOverDrafts(baselineSourceTasks(), bpDrafts.length > 0),
@@ -14310,8 +14350,13 @@
   }
 
   function parsedBloodPressureRows() {
-    const hasBP = (S.restRows || []).some((r) => r.cat === "monitoring" || /血压/.test(r.name || ""));
-    return hasBP ? [] : BP_FROM_PARSE.map((x) => ({ ...x }));
+    const hasBP = (S.restRows || []).filter((r) => r.on !== false).some((r) => r.cat === "monitoring" || /血压/.test(r.name || ""));
+    if (hasBP) return [];
+    const anchors = routineAnchorsFromRows();
+    return [
+      { name: "起床测血压", t: anchors.morningBPTime(), cat: "monitoring" },
+      { name: "晚上测血压", t: anchors.eveningBPTime(), cat: "monitoring" },
+    ];
   }
   // 运动评估链的确认草稿（与用药链分开，避免串味）
   function seedExerciseDrafts() {
