@@ -569,6 +569,7 @@
       const defaultMeds = MEDS.map((m) => `${m.name} ${m.dose} ${m.freq} ${m.usage}`).join("\n");
       S.parsedResult = {
         disease: DISEASE_INFO.join("、"),
+        dischargeYMD: "2026-09-17",
         medication: defaultMeds,
         surgeryName: "冠脉造影 + PCI术",
         surgeryYMD: "2026-09-08",
@@ -579,7 +580,7 @@
 
   function canGeneratePlanFromParsed() {
     const p = ensureParsedResult(false);
-    return Boolean((p.disease || "").trim() && (p.medication || "").trim());
+    return Boolean((p.disease || "").trim() && (p.dischargeYMD || "").trim() && (p.medication || "").trim());
   }
 
   function parseMedicationLineToItem(line) {
@@ -633,8 +634,9 @@
     const hasHTN = S.diseaseInfo.some((d) => d.indexOf("高血压") >= 0);
     S.bps = hasHTN ? parsedBloodPressureRows().map((r) => ({ title: r.name, time: r.t, src: r.name })) : [];
 
+    const disYMD = p.dischargeYMD || "2026-09-17";
     const appts = [
-      { title: "心内科复查", source: "出院日期", category: "出院记录", sourceYMD: "2026-09-17", addDays: 7, time: "09:00" },
+      { title: "心内科复查", source: "出院日期", category: "出院记录", sourceYMD: disYMD, addDays: 7, time: "09:00" },
     ];
     if (p.surgeryYMD) {
       appts.push({
@@ -781,12 +783,26 @@
     }
     if (event.target instanceof HTMLSelectElement && event.target.dataset.parsedDate) {
       const p = ensureParsedResult(false);
+      const part = event.target.dataset.parsedDate;
+      const val = parseInt(event.target.value, 10);
+      if (part.startsWith("discharge")) {
+        const cur = parseYMD(p.dischargeYMD || "2026-09-17");
+        let y = cur.getFullYear();
+        let m = cur.getMonth() + 1;
+        let d = cur.getDate();
+        if (part === "dischargeYear") y = val;
+        else if (part === "dischargeMonth") m = val;
+        else if (part === "dischargeDay") d = val;
+        const maxDay = new Date(y, m, 0).getDate();
+        d = Math.min(d, maxDay);
+        p.dischargeYMD = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        render();
+        return;
+      }
       const cur = parseYMD(p.surgeryYMD || "2026-09-08");
       let y = cur.getFullYear();
       let m = cur.getMonth() + 1;
       let d = cur.getDate();
-      const part = event.target.dataset.parsedDate;
-      const val = parseInt(event.target.value, 10);
       if (part === "year") y = val;
       else if (part === "month") m = val;
       else if (part === "day") d = val;
@@ -1410,7 +1426,7 @@
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.275：首次建日程与新增用药复查统一走「拍照 → 资料详情 → 解析」独立通道流程，进入时从空白拍摄起（不预载资料 BASE 存量）。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "V10.289：仅展示前一个拍摄页中已勾选/保留的分组。基础报告或首次上传报告中含出院记录时排在最上方；选传组为空时显示灰色说明文字。首次建日程与新增用药复查的资料详情右上为「解析」，点击后进入「资料解析结果」页；健康档案与身体报告子页的补拍通道右上为「提交」，提交后直接归入共享资料 BASE（不经过资料解析结果页）。" },
-    "ocr-parsed": { code: "OCRParseResultView", note: "V10.296：仅限创建计划步骤（首次创建计划、用药与复查创建/更新计划），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「解析结果」页（标题「解析结果」）。左上角为「< 返回」，右上角为同规格「提交」按钮（移除底部「生成计划」按钮）。默认模拟已识别填好的状态，包含四个可编辑字段：① 疾病信息（必填，多行文本框 context + 右上角「清空」按钮）、② 用药处方（必填，多行文本框 context + 右上角「清空」按钮）、③ 手术名称（选填，多行文本框 context + 右上角「清空」按钮）、④ 手术时间（选填，年 / 月 / 日三个并排下拉框，不设清空按钮）。当两个必填字段非空时右上角「提交」按钮可点击，按修改后的解析结果生成计划并进入「确认计划」页。" },
+    "ocr-parsed": { code: "OCRParseResultView", note: "【V10.309】仅限创建计划步骤（首次创建计划、用药与复查创建/更新计划），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「解析结果」页（标题「解析结果」）。左上角为「< 返回」，右上角为同规格「提交」按钮。默认模拟已识别填好的状态，包含五个可编辑字段：① 疾病信息（必填，多行文本框 context + 右上角「清空」按钮）、② 出院时间（必填，年 / 月 / 日三个并排下拉框）、③ 用药处方（必填，多行文本框 context + 右上角「清空」按钮）、④ 手术名称（选填，多行文本框 context + 右上角「清空」按钮）、⑤ 手术时间（选填，年 / 月 / 日三个并排下拉框）。当三个必填字段非空时右上角「提交」按钮可点击，按修改后的解析结果生成计划并进入「确认计划」页。" },
     "first-rest": { code: "CreateScheduleFlowView", note: "【V10.308】移除事项名称选项模组与展开框（不设选项框/不可改选类型），事项名称固定展示（起床 / 早餐 / 午餐 / 午休 / 晚餐 / 上床睡觉，不含测血压）；点时刻出居中「时刻调整」弹层（标题为事项名，双列时/分步进，分步长 5，取消 / 完成，点遮罩取消）。「稍后」关整段创建流回首页；底栏「拍照上传病历」替换本页，不压栈。" },
     "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表（不再单设「计划 / 解析依据」顶部切换与解析依据页），解析来源直接写明在每条计划卡片的补充备注里（如「依据出院记录，阿司匹林肠溶片每日用药一次」「依据出院记录，确诊高血压3级，每日测血压两次」「依据出院记录，2026年9月17日出院，每月复查一次」）；起床、早餐等非解析预设日程初始为无备注空集，默认显示「可编辑备注」占位。点开备注或点「编辑」即可修改。作息区首次入组才带；复查置底标红；底栏一枚「重新拍照解析」；右上「确认」写入用药+复查，左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
@@ -2177,10 +2193,9 @@
     { id: "ct", t: "CT", req: false, hint: "对准CT报告，避免反光与遮挡" },
   ];
   function isVisitCapture() { return S.captureMode === "archive" && S.reportKind === "visit"; }
-  /// 仅首次上传报告（未入组首次创建计划，或代家属首次创建计划）保持「出院记录」必传且不可删除；
-  /// 后续已入组「用药与复查」上传、基础报告上传、复查报告上传中，「出院记录」等所有组均可删、可多选。
+  /// 【V10.309】首次创建计划出院记录改成和普通一样，非必传可删除；全流程出院记录均非必传
   function requiresDischargeCapture() {
-    return !isVisitCapture() && S.captureMode === "intake" && (!S.enrolled || !!S.proxyIsFirstCreate);
+    return false;
   }
   function docCat(id) {
     if (String(id).startsWith("custom:")) {
@@ -7637,7 +7652,7 @@
       },
       generatePlanFromParsed() {
         if (!canGeneratePlanFromParsed()) {
-          toast("请填写必填项：疾病信息与用药处方");
+          toast("请填写必填项：疾病信息、出院时间与用药处方");
           return;
         }
         applyParsedResultToPlan();
@@ -11830,8 +11845,17 @@
 
     "ocr-parsed": () => {
       const p = ensureParsedResult(false);
+      if (!p.dischargeYMD) p.dischargeYMD = "2026-09-17";
       if (!p.surgeryYMD) p.surgeryYMD = "2026-09-08";
       const ready = canGeneratePlanFromParsed();
+
+      const disObj = parseYMD(p.dischargeYMD);
+      const disY = disObj.getFullYear();
+      const disM = disObj.getMonth() + 1;
+      const disD = disObj.getDate();
+      const disMaxD = new Date(disY, disM, 0).getDate();
+      const disDays = Array.from({ length: disMaxD }, (_, i) => i + 1);
+
       const dObj = parseYMD(p.surgeryYMD);
       const selY = dObj.getFullYear();
       const selM = dObj.getMonth() + 1;
@@ -11861,6 +11885,30 @@
               <button class="parsed-clear-btn ${hasDisease ? "" : "dim"}" data-act="clearParsedField" data-field="disease" ${hasDisease ? "" : "disabled"} type="button">清空</button>
             </div>
             <textarea class="parsed-context-input" data-parsed-field="disease" rows="3" placeholder="请输入疾病诊断信息，如：冠心病、PCI术后、高血压3级">${esc(p.disease || "")}</textarea>
+          </div>
+
+          <div class="parsed-field-card">
+            <div class="parsed-field-head">
+              <span class="parsed-field-title">出院时间</span>
+              <span class="parsed-badge req">必填</span>
+            </div>
+            <div class="parsed-ymd-row">
+              <label class="parsed-ymd-col">
+                <select class="parsed-ymd-select" data-parsed-date="dischargeYear">
+                  ${years.map((y) => `<option value="${y}" ${y === disY ? "selected" : ""}>${y}年</option>`).join("")}
+                </select>
+              </label>
+              <label class="parsed-ymd-col">
+                <select class="parsed-ymd-select" data-parsed-date="dischargeMonth">
+                  ${months.map((m) => `<option value="${m}" ${m === disM ? "selected" : ""}>${m}月</option>`).join("")}
+                </select>
+              </label>
+              <label class="parsed-ymd-col">
+                <select class="parsed-ymd-select" data-parsed-date="dischargeDay">
+                  ${disDays.map((d) => `<option value="${d}" ${d === disD ? "selected" : ""}>${d}日</option>`).join("")}
+                </select>
+              </label>
+            </div>
           </div>
 
           <div class="parsed-field-card">
