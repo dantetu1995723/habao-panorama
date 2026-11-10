@@ -907,6 +907,53 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .confirm-period.tight { margin-top: 16px; }
 /* V10.312 康复基础日程：与手建计划同类别同名时卡片下方的灰字提示 */
 .confirm-dup-hint { margin-top: -4px; padding: 0 6px; font-size: 12px; line-height: 1.4; color: var(--secondary); opacity: .8; }
+/* V10.314 再次排定康复基础日程：新旧四态对比摘要卡 + 状态胶囊 + 原计划对比行 + 停用专区 */
+.confirm-diff-banner {
+  background: rgba(16,84,224,.055);
+  border: 1px solid rgba(16,84,224,.15);
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+}
+.confirm-diff-banner + .confirm-period { margin-top: 0; }
+.diff-banner-head {
+  display: flex; align-items: center; gap: 6px;
+  font-size: calc(14px * var(--fs)); font-weight: 700; color: var(--text);
+}
+.diff-banner-head svg { width: 14px; height: 14px; color: var(--blue); flex: 0 0 14px; }
+.diff-banner-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.diff-metric {
+  font-size: calc(12px * var(--fs)); font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 4px 8px; border-radius: 999px; line-height: 1.2;
+}
+.diff-metric.added, .diff-badge.added { color: #15803d; background: rgba(22,163,74,.13); }
+.diff-metric.modified, .diff-badge.modified { color: #b45309; background: rgba(245,158,11,.15); }
+.diff-metric.kept, .diff-badge.kept { color: var(--secondary); background: rgba(15,23,42,.055); }
+.diff-metric.stopped, .diff-badge.stopped { color: #be123c; background: rgba(244,63,94,.12); }
+.diff-banner-sub {
+  margin-top: 8px;
+  font-size: calc(12.5px * var(--fs)); font-weight: 500; line-height: 1.45;
+  color: var(--secondary);
+}
+.act-title-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.diff-badge {
+  flex: 0 0 auto; white-space: nowrap;
+  font-size: calc(11.5px * var(--fs)); font-weight: 700;
+  padding: 2.5px 8px; border-radius: 999px; line-height: 1.25;
+}
+.act-note.diff-orig { color: #b45309; font-weight: 600; margin-bottom: 6px; }
+.act-note.diff-orig svg { color: #d97706; opacity: .9; }
+.confirm-stop-sub {
+  margin: -6px 0 10px; padding-left: 4px;
+  font-size: calc(12.5px * var(--fs)); font-weight: 500; line-height: 1.45;
+  color: var(--secondary);
+}
+.act-card.stopped { background: #F8FAFC; border-color: rgba(100,116,139,.18); }
+.act-card.stopped .act-card-main .badge { opacity: .52; }
+.act-card.stopped .act-card-main .s15,
+.act-card.stopped .act-card-main .act-info,
+.act-card.stopped .act-card-main .act-dates { opacity: .64; }
 
 .act-card {
   background: #fff; border-radius: 20px; overflow: hidden;
