@@ -2537,7 +2537,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .rest-name {
   flex: 1; display: flex; align-items: center; gap: 4px;
   font-size: calc(22px * var(--fs)); font-weight: 600; color: var(--blue);
-  cursor: pointer;
+  cursor: default;
 }
 .rest-name svg { width: 12px; height: 12px; flex: 0 0 12px; }
 .time-cap {
