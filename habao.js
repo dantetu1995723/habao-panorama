@@ -12340,23 +12340,13 @@
 
     "confirm-plan": () => {
       if (!S.confirmDrafts) seedConfirmDrafts();
-      // V10.315：再次排定时对比存量基础日程展示极简三态（新增 / 已调整 / 保留）；砍掉「将停用」与底部停用专区
+      // V10.316：去除顶部统计卡，卡片右上角彻底移除「保留」等对比状态标签；卡片副行统一规范为时刻+剂量+循环+类别标准 Tag
       const dupList = baselineSourceTasks();
       const diff = computeBaselineDiffJS(S.confirmDrafts, dupList);
       const dupHint = (x) => {
         const h = baselineManualDupHint(x, dupList);
         return h ? `<div class="confirm-dup-hint">${esc(h)}</div>` : "";
       };
-      const diffBannerHTML = diff ? `
-        <div class="confirm-diff-banner">
-          <div class="diff-banner-head">${I.refresh || ""}<span>对比原基础日程</span></div>
-          <div class="diff-banner-pills">
-            <span class="diff-metric added">新增 ${diff.addedCount}</span>
-            <span class="diff-metric modified">已调整 ${diff.modifiedCount}</span>
-            <span class="diff-metric kept">保留 ${diff.keptCount}</span>
-          </div>
-          ${diff.unaffectedCount > 0 ? `<div class="diff-banner-sub">其余 ${diff.unaffectedCount} 项手建与运动计划不受影响，确认后继续保留</div>` : ""}
-        </div>` : "";
       const indexed = S.confirmDrafts.map((x, i) => ({ ...x, i, h: parseHour(x.time), m: parseMinute(x.time) }));
       const daily = indexed.filter((x) => x.cat !== "appointment");
       const groups = groupByPeriod(daily, (x) => x.h);
@@ -12368,7 +12358,6 @@
         ${navBar(`<button class="nav-text nav-hit" data-act="later" type="button">稍后</button>`, "确认计划",
           `<button class="nav-text blue nav-hit" data-act="confirmPlan" type="button">确认</button>`)}
         <div class="scroll px20" style="padding-top:12px;padding-bottom:120px">
-          ${diffBannerHTML}
           ${groups.map((g) => `
             <div class="confirm-period">
               ${sectionHead(I[g.icon], g.title, g.items.length)}
@@ -12381,7 +12370,7 @@
                   dose: x.cat === "medication" ? (x.dose || medDose(x.title)) : "",
                   note: rawNote || "可编辑备注",
                   noteEmpty: !rawNote,
-                  statusBadge: diff ? diff.statusByIdx[x.i] : null,
+                  statusBadge: null,
                   origNote: diff ? diff.origByIdx[x.i] : null,
                 }) + dupHint(x);
               }).join("")}</div>
@@ -12404,7 +12393,7 @@
                 cat: "appointment", title: a.title, time: `${prefix}${a.time}`, appt: true, draft: true, cycle: a.cycle !== false, idx: a.i,
                 note: rawNote || "可编辑备注",
                 noteEmpty: !rawNote,
-                statusBadge: diff ? diff.statusByIdx[a.i] : null,
+                statusBadge: null,
                 origNote: diff ? diff.origByIdx[a.i] : null,
               }) + dupHint(a);
             }).join("")}</div>
