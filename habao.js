@@ -173,15 +173,17 @@
 
   const SEED = [
     // V10.312：origin:"baseline" = 来自「康复基础日程」整套（作息 / 用药 / 复查 / 测血压等）；无此标记即手建计划
-    { id: "t1", title: "起床测血压", h: 6, m: 30, cat: "monitoring", note: "依据出院记录，确诊高血压3级，每日测血压两次", origin: "baseline" },
-    { id: "t2", title: "晨起温水", h: 7, m: 0, cat: "diet", note: "200–300 ml 温水" },
+    // V10.320：起床是一天计划的第一个条目（07:00）；晨起测血压对齐临床规范排在起床后静坐测量（07:10）
+    { id: "t0", title: "起床", h: 7, m: 0, cat: "rest", note: "晨起舒展放松，保持室内空气流通", origin: "baseline", routineSkeleton: true },
+    { id: "t1", title: "起床测血压", h: 7, m: 10, cat: "monitoring", note: "依据出院记录，确诊高血压3级，晨起静坐5分钟后测量", origin: "baseline" },
+    { id: "t2", title: "晨起温水", h: 7, m: 15, cat: "diet", note: "200–300 ml 温水" },
     { id: "t3", title: "早餐", h: 7, m: 30, cat: "diet", note: "低盐低脂，搭配粗粮", origin: "baseline", routineSkeleton: true },
     { id: "t4", title: "服用阿司匹林肠溶片", h: 8, m: 0, cat: "medication", note: "依据出院记录，阿司匹林肠溶片每日用药一次", origin: "baseline" },
     { id: "t5", title: "服用美托洛尔缓释片", h: 8, m: 30, cat: "medication", note: "依据出院记录，美托洛尔缓释片每日用药一次", origin: "baseline" },
     { id: "t6", title: "晨间散步", h: 9, m: 0, cat: "exercise", note: "匀速步行，心率 ≤ 110 bpm" },
     { id: "t7", title: "上肢康复操", h: 10, m: 0, cat: "exercise", note: "坐姿弹力带训练 · 2 组 × 10 次" },
     { id: "t8", title: "上午加餐", h: 10, m: 30, cat: "diet", note: "一份水果 / 坚果", cycle: false },
-    { id: "t9", title: "午餐控盐", h: 12, m: 0, cat: "diet", note: "每日盐摄入 < 5g · 多蔬菜" },
+    { id: "t9", title: "午餐控盐", h: 12, m: 0, cat: "diet", note: "每日盐摄入 < 5g · 多蔬菜", origin: "baseline", routineSkeleton: true },
     { id: "t10", title: "午休", h: 13, m: 0, cat: "rest", note: "保持安静环境，避免手机", origin: "baseline", routineSkeleton: true },
     { id: "t11", title: "测心率", h: 14, m: 0, cat: "monitoring", note: "记录静息心率与自觉症状" },
     { id: "t12", title: "下午散步", h: 15, m: 0, cat: "exercise", note: "选择平坦路面，注意防滑" },
@@ -191,6 +193,7 @@
     { id: "t16", title: "服用阿托伐他汀钙片", h: 21, m: 0, cat: "medication", note: "依据出院记录，阿托伐他汀钙片每晚用药一次", origin: "baseline" },
     { id: "t17", title: "放松冥想", h: 21, m: 30, cat: "rest", note: "深呼吸练习 · 478 呼吸法" },
     { id: "t18", title: "准备入睡", h: 22, m: 0, cat: "rest", note: "关闭屏幕，调暗灯光" },
+    { id: "t18_routine", title: "上床睡觉", h: 22, m: 0, cat: "rest", note: "保持卧室安静避光，规律入睡", origin: "baseline", routineSkeleton: true },
     { id: "t19", title: "心内科复查", h: 9, m: 0, cat: "appointment", note: "依据出院记录，每月复查一次，带齐近期血压/心率记录", origin: "baseline" },
   ];
   // 真机模拟：SEED 是 const 绑定、内容可变；冷启动时从这份快照还原
@@ -213,7 +216,7 @@
   ];
 
   const REST_PRESET = [
-    { name: "起床", t: "07:00", note: "", icon: "sunrise", hasMedicalAnchor: true, anchor: "晨起测血压基准（前30分）" },
+    { name: "起床", t: "07:00", note: "", icon: "sunrise", hasMedicalAnchor: true, anchor: "晨起测血压基准（起床后10分静坐测量）" },
     { name: "早餐", t: "07:30", note: "", icon: "forkKnife", hasMedicalAnchor: true, anchor: "早饭前/后服药时间基准" },
     { name: "午餐", t: "12:00", note: "", icon: "forkKnife", hasMedicalAnchor: true, anchor: "午饭前/后服药时间基准" },
     { name: "午休", t: "13:00", note: "", icon: "bed", hasMedicalAnchor: false, anchor: "午间规律休息日常提醒" },
@@ -223,7 +226,7 @@
 
   /// 出院诊断含高血压时由解析补进确认页，不进基础作息预设
   const BP_FROM_PARSE = [
-    { name: "起床测血压", t: "06:30", cat: "monitoring" },
+    { name: "起床测血压", t: "07:10", cat: "monitoring" },
     { name: "晚上测血压", t: "20:00", cat: "monitoring" },
   ];
 
@@ -1442,7 +1445,7 @@
     "ocr-detail": { code: "IntakeCaptureView", note: "V10.289：仅展示前一个拍摄页中已勾选/保留的分组。基础报告或首次上传报告中含出院记录时排在最上方；选传组为空时显示灰色说明文字。首次建日程与新增用药复查的资料详情右上为「解析」，点击后进入「资料解析结果」页；健康档案与身体报告子页的补拍通道右上为「提交」，提交后直接归入共享资料 BASE（不经过资料解析结果页）。" },
     "ocr-parsed": { code: "OCRParseResultView", note: "【V10.309】仅限创建计划步骤（排定 / 更新康复基础日程），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「解析结果」页（标题「解析结果」）。左上角为「< 返回」，右上角为同规格「提交」按钮。默认模拟已识别填好的状态，包含五个可编辑字段：① 疾病信息（必填，多行文本框 context + 右上角「清空」按钮）、② 出院时间（必填，年 / 月 / 日三个并排下拉框）、③ 用药处方（必填，多行文本框 context + 右上角「清空」按钮）、④ 手术名称（选填，多行文本框 context + 右上角「清空」按钮）、⑤ 手术时间（选填，年 / 月 / 日三个并排下拉框）。当三个必填字段非空时右上角「提交」按钮可点击，按修改后的解析结果生成计划并进入「确认计划」页。" },
     "first-rest": { code: "CreateScheduleFlowView", note: "【V10.319 全局统一紫色基础作息卡片重构】首页「排定康复基础日程」与选择类型「康复基础日程」共用本页。重构为与「确认计划」100% 同构的页面（按 DayPeriod 时段分组 + 紫色 RehabTaskRowView 操作卡）：① 基础作息作为特殊骨架存在，全生命周期（基础作息页 / 确认计划页 / 首页今日卡片 / 健康计划列表 / 查看编辑详情页）未打卡均呈现专属紫色（完成后转绿），副行类别胶囊统一显示「基础作息」，彻底与用户手建的蓝色「作息/饮食」解耦；② 所见即在用骨架 + 底部「可添加的基础作息」轻量虚框补回池（删掉某张紫卡即落入底部待选区，点一下即作为「新建」紫卡飞回对应时段，右上角按需展示「恢复原骨架 / 恢复默认」）；③ 点「编辑」进入紫色主题草稿编辑页（锁定 6 项标准名称与「基础作息」分类不可改，开放时刻、循环周期、持续时长与备注），确认计划页原样合流紫色作息骨架卡 + 蓝色服药/测血压卡 + 红色复查卡。" },
-    "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表，时段内严格按 HH:mm 由早到晚排布。【V10.315 极简三态对比】仅在已有存量基础日程再次排定时展示（首次排定保持纯净），全链路砍掉「将停用」与停用专区（页面所见即接下来要执行的，关掉/删掉即不再提醒）：① 顶部「对比原基础日程」摘要卡展示「新增 / 已调整 / 保留」三态计数 +「其余 M 项手建与运动计划不受影响，确认后继续保留」；② 各时段与复查卡片标题行右侧实时标注「新增 / 已调整 / 保留」胶囊，「已调整」卡内附琥珀色对比行「原计划：…」（用药自动忽略「服用」前缀匹配同一药品）。右上「确认」按类别+名称整套替换上一版基础日程，手建与运动计划不动；左上「稍后」关整段流。" },
+    "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表，时段内严格按 HH:mm 由早到晚排布。【V10.320 首项规则】「起床」必须是一天计划的绝对第一个条目：推算测血压规范为起床后静坐测量（wake + 10 分钟，如 07:00 起床 → 07:10 起床测血压），同刻排序保底置顶「起床」卡。【V10.315 极简三态对比】仅在已有存量基础日程再次排定时展示（首次排定保持纯净），全链路砍掉「将停用」与停用专区（页面所见即接下来要执行的，关掉/删掉即不再提醒）：① 顶部「对比原基础日程」摘要卡展示「新增 / 已调整 / 保留」三态计数 +「其余 M 项手建与运动计划不受影响，确认后继续保留」；② 各时段与复查卡片标题行右侧实时标注「新增 / 已调整 / 保留」胶囊，「已调整」卡内附琥珀色对比行「原计划：…」（用药自动忽略「服用」前缀匹配同一药品）。右上「确认」按类别+名称整套替换上一版基础日程，手建与运动计划不动；左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "【V10.312】专业组首卡「康复基础日程」（副标题「按病历排好用药、复查与作息」）标复查红（特殊），与首页「排定康复基础日程」同一条链：基础作息（预填已有作息时刻）→ 拍照 → 资料详情 → 解析结果 → 确认计划，确认后整套替换上一版基础日程、手建计划不动；运动走体测。专业听诊器 14 / 日常铃。两组岛：运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
@@ -1676,7 +1679,7 @@
       cur: {
         no: 2, start: "2026-09-08", ids: ["t1", "t4", "t5", "t15", "t16"],
         rows: [
-          { op: "adjust", id: "t1", cat: "monitoring", title: "起床测血压", change: "先静坐 5 分钟再测", time: "每日 06:30" },
+          { op: "adjust", id: "t1", cat: "monitoring", title: "起床测血压", change: "先静坐 5 分钟再测", time: "每日 07:10" },
           { op: "keep", id: "t4", cat: "medication", title: "服用阿司匹林肠溶片", change: "", time: "每日 08:00" },
           { op: "keep", id: "t5", cat: "medication", title: "服用美托洛尔缓释片", change: "", time: "每日 08:30" },
           { op: "keep", id: "t15", cat: "exercise", title: "晚间散步", change: "", time: "每日 19:00" },
@@ -1690,7 +1693,7 @@
         no: 1, start: "2026-09-01", end: "2026-09-07", ids: ["t1", "t4", "t5", "t15", "t16"],
         rows: [
           { op: "adjust", id: "t15", cat: "exercise", title: "晚间散步", change: "改为饭后半小时慢走", time: "每日 19:00" },
-          { op: "keep", id: "t1", cat: "monitoring", title: "起床测血压", change: "", time: "每日 06:30" },
+          { op: "keep", id: "t1", cat: "monitoring", title: "起床测血压", change: "", time: "每日 07:10" },
           { op: "keep", id: "t4", cat: "medication", title: "服用阿司匹林肠溶片", change: "", time: "每日 08:00" },
           { op: "keep", id: "t5", cat: "medication", title: "服用美托洛尔缓释片", change: "", time: "每日 08:30" },
           { op: "keep", id: "t16", cat: "medication", title: "服用阿托伐他汀钙片", change: "", time: "每日 21:00" },
@@ -4582,7 +4585,7 @@
     const dinner = minsOf("晚餐");
     const sleep = minsOf("上床睡觉");
     return {
-      morningBPTime: () => (wake != null ? fmtClamped(wake - 30) : "06:30"),
+      morningBPTime: () => (wake != null ? fmtClamped(wake + 10) : "07:10"),
       eveningBPTime: () => (sleep != null ? fmtClamped(sleep - 120) : "20:00"),
       medTimeFor: (combined) => {
         const s = String(combined || "");
@@ -9895,7 +9898,7 @@
           { id: `p_a1_${Date.now()}`, title: "心内科门诊复查", cat: "appointment", h: 9, m: 30, cycle: false, rule: "once", note: "携带出院小结与近期血压记录" },
         ];
         const bpTasks = isFirstCreate ? [
-          { id: `p_bp1_${Date.now()}`, title: "起床测血压", cat: "monitoring", h: 6, m: 30, cycle: true, rule: "daily", note: "依据出院记录，每日晨起与睡前测血压" },
+          { id: `p_bp1_${Date.now()}`, title: "起床测血压", cat: "monitoring", h: 7, m: 10, cycle: true, rule: "daily", note: "依据出院记录，每日晨起与睡前测血压" },
           { id: `p_bp2_${Date.now()}`, title: "睡前测血压", cat: "monitoring", h: 21, m: 30, cycle: true, rule: "daily", note: "安静休息 5 分钟后测量" },
         ] : [];
         const restItems = isFirstCreate
@@ -17640,6 +17643,11 @@
           const ma = a.m != null ? a.m : parseMinute(a.time);
           const mb = b.m != null ? b.m : parseMinute(b.time);
           if (ma !== mb) return ma - mb;
+          // 特别规则：同刻情况下，「起床」永远排在一天计划的绝对第一位
+          const isWakeA = a.title === "起床" || (a.title && a.title.indexOf("起床") >= 0 && a.title.indexOf("血压") < 0);
+          const isWakeB = b.title === "起床" || (b.title && b.title.indexOf("起床") >= 0 && b.title.indexOf("血压") < 0);
+          if (isWakeA !== isWakeB) return isWakeA ? -1 : 1;
+          if (!!a.routineSkeleton !== !!b.routineSkeleton) return a.routineSkeleton ? -1 : 1;
           return (a.i ?? 0) - (b.i ?? 0);
         }),
     })).filter((g) => g.items.length);
