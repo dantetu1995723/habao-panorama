@@ -17956,7 +17956,11 @@
       ? cardNote(I.alignLeft, note, idx == null ? null : draftNoteAct, idx, noteEmpty)
       : "";
     const notes = origHTML + baseNoteHTML;
-    const titleHTML = `<div class="s15 fb t">${title}</div>`;
+    const isRoutineCard = !!(isRoutine || (seedTask && isRoutineSkeletonTask(seedTask)) || BASELINE_REST_NAMES.includes(title));
+    const badgeLabel = isRoutineCard ? "基础作息" : "";
+    const titleHTML = badgeLabel
+      ? `<div class="act-title-row"><div class="s15 fb t">${title}</div><span class="diff-badge routine-badge">${badgeLabel}</span></div>`
+      : `<div class="s15 fb t">${title}</div>`;
     const rangeText = seedTask ? taskDateRangeLabel(seedTask) : taskDateRangeLabel({ cycle: isCycle });
     return `<div class="act-card ${cls}">
       <div class="act-card-main">
