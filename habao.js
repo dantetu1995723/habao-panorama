@@ -17924,14 +17924,17 @@
       ? cardNote(I.alignLeft, note, idx == null ? null : draftNoteAct, idx, noteEmpty)
       : "";
     const notes = origHTML + baseNoteHTML;
-    const titleHTML = `<div class="s15 fb t">${title}</div>`;
+    const badgeLabel = isRoutine ? "基础作息" : "";
+    const titleHTML = badgeLabel
+      ? `<div class="act-title-row"><div class="s15 fb t">${title}</div><span class="diff-badge routine-badge">${badgeLabel}</span></div>`
+      : `<div class="s15 fb t">${title}</div>`;
     const rangeText = seedTask ? taskDateRangeLabel(seedTask) : taskDateRangeLabel({ cycle: isCycle });
     return `<div class="act-card ${cls}">
       <div class="act-card-main">
         <div class="badge b40 ${badgeCls}"><img src="${A.task[kind]}" alt="" /></div>
         <div class="grow">
           ${titleHTML}
-          <div class="act-info"><span class="tm">${time}</span>${dose ? `<span class="act-chip">${dose}</span>` : ""}<span class="act-chip">${isCycle ? "循环" : "单日"}</span><span class="act-chip">${chip}</span>${isRoutine ? `<span class="act-chip">基础作息</span>` : ""}</div>
+          <div class="act-info"><span class="tm">${time}</span>${dose ? `<span class="act-chip">${dose}</span>` : ""}<span class="act-chip">${isCycle ? "循环" : "单日"}</span><span class="act-chip">${chip}</span></div>
           <div class="act-dates">${rangeText}</div>
         </div>
         ${check}
