@@ -183,7 +183,7 @@
     { id: "t6", title: "晨间散步", h: 9, m: 0, cat: "exercise", note: "匀速步行，心率 ≤ 110 bpm" },
     { id: "t7", title: "上肢康复操", h: 10, m: 0, cat: "exercise", note: "坐姿弹力带训练 · 2 组 × 10 次" },
     { id: "t8", title: "上午加餐", h: 10, m: 30, cat: "diet", note: "一份水果 / 坚果", cycle: false },
-    { id: "t9", title: "午餐控盐", h: 12, m: 0, cat: "diet", note: "每日盐摄入 < 5g · 多蔬菜", origin: "baseline", routineSkeleton: true },
+    { id: "t9", title: "午餐", h: 12, m: 0, cat: "diet", note: "午餐控盐 · 每日盐摄入 < 5g · 多蔬菜", origin: "baseline", routineSkeleton: true },
     { id: "t10", title: "午休", h: 13, m: 0, cat: "rest", note: "保持安静环境，避免手机", origin: "baseline", routineSkeleton: true },
     { id: "t11", title: "测心率", h: 14, m: 0, cat: "monitoring", note: "记录静息心率与自觉症状" },
     { id: "t12", title: "下午散步", h: 15, m: 0, cat: "exercise", note: "选择平坦路面，注意防滑" },
@@ -1444,7 +1444,7 @@
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "V10.289：仅展示前一个拍摄页中已勾选/保留的分组。基础报告或首次上传报告中含出院记录时排在最上方；选传组为空时显示灰色说明文字。首次建日程与新增用药复查的资料详情右上为「解析」，点击后进入「资料解析结果」页；健康档案与身体报告子页的补拍通道右上为「提交」，提交后直接归入共享资料 BASE（不经过资料解析结果页）。" },
     "ocr-parsed": { code: "OCRParseResultView", note: "【V10.309】仅限创建计划步骤（排定 / 更新康复基础日程），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「解析结果」页（标题「解析结果」）。左上角为「< 返回」，右上角为同规格「提交」按钮。默认模拟已识别填好的状态，包含五个可编辑字段：① 疾病信息（必填，多行文本框 context + 右上角「清空」按钮）、② 出院时间（必填，年 / 月 / 日三个并排下拉框）、③ 用药处方（必填，多行文本框 context + 右上角「清空」按钮）、④ 手术名称（选填，多行文本框 context + 右上角「清空」按钮）、⑤ 手术时间（选填，年 / 月 / 日三个并排下拉框）。当三个必填字段非空时右上角「提交」按钮可点击，按修改后的解析结果生成计划并进入「确认计划」页。" },
-    "first-rest": { code: "CreateScheduleFlowView", note: "【V10.323 全局统一蓝色卡片 + 首页「当前计划」合流】首页「排定康复基础日程」与选择类型「康复基础日程」第一页重命名为「当前计划」：① 包含当前生效的所有基础作息以及用户其它所有循环计划，按全天时段由早到晚（HH:mm）排布（起床置顶）；② 基础作息全部改回蓝色卡片，卡片右上角不再展示「新建 / 保留 / 已调整」等 tag，基础作息作为副行「基础作息」特殊 tag 存在；③ 支持逐项编辑与删除，底部配备「可添加的基础作息」蓝色虚框补回池；底部大按钮「拍照上传病历」继续推进。" },
+    "first-rest": { code: "CreateScheduleFlowView", note: "【V10.323/V10.334 全局统一蓝色卡片 + 「当前计划」合流】首页底缘「基础康复计划」与选择类型「基础康复计划」第一页重命名为「当前计划」：① 包含当前生效的所有基础作息以及用户其它所有循环计划，按全天时段由早到晚（HH:mm）排布（起床置顶）；② 基础作息全部为统一蓝色卡片，卡片右上角保留「基础作息」专属标签；③ 支持逐项编辑与删除，删掉的基础作息就地融合至对应时段标题栏右侧待添加胶囊（点按即加回）；改动后右上角展示极简「恢复」按钮；底部大按钮「拍照上传病历」继续推进。" },
     "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表，时段内严格按 HH:mm 由早到晚排布。【V10.320 首项规则】「起床」必须是一天计划的绝对第一个条目：推算测血压规范为起床后静坐测量（wake + 10 分钟，如 07:00 起床 → 07:10 起床测血压），同刻排序保底置顶「起床」卡。【V10.315 极简三态对比】仅在已有存量基础日程再次排定时展示（首次排定保持纯净），全链路砍掉「将停用」与停用专区（页面所见即接下来要执行的，关掉/删掉即不再提醒）：① 顶部「对比原基础日程」摘要卡展示「新增 / 已调整 / 保留」三态计数 +「其余 M 项手建与运动计划不受影响，确认后继续保留」；② 各时段与复查卡片标题行右侧实时标注「新增 / 已调整 / 保留」胶囊，「已调整」卡内附琥珀色对比行「原计划：…」（用药自动忽略「服用」前缀匹配同一药品）。右上「确认」按类别+名称整套替换上一版基础日程，手建与运动计划不动；左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "【V10.325 分类界面分为「基础计划」与「其他计划」】分类界面重构为极简两组：① 基础计划：内含「基础康复计划」（副标「按病历排好用药、复查与作息」），与首页底缘「基础康复计划」按钮统一同链；② 其他计划：内含「运动」（体测评估）、「测血压」、「饮食」、「作息」及自建类别。右上「管理」推入管理类别。" },
@@ -1769,13 +1769,15 @@
     ]},
     { id: "first-create", label: "未入组 · 基础康复计划（入组主链）", cold: "new", steps: [
       { act: "firstCreate", label: "首页底缘「基础康复计划」" },
-      { screen: "first-rest", label: "基础作息 6 项预设" },
+      { screen: "first-rest", label: "当前计划（基础作息预设）" },
       { act: "editRestTime", label: "改作息时刻", optional: true },
       { act: "uploadDischarge", label: "拍照上传病历" },
       { screen: "ocr-capture", label: "拍摄页（出院记录必传）" },
       { act: "shutter", label: "拍一张" },
       { act: "ocrConfirm", label: "确认 → 资料详情" },
       { act: "ocrParse", label: "解析" },
+      { screen: "ocr-parsed", label: "解析结果核对" },
+      { act: "generatePlanFromParsed", label: "提交生成计划" },
       { screen: "confirm-plan", label: "确认计划（用药 + 测血压 + 复查 + 作息）" },
       { act: "confirmPlan", label: "点「确认」" },
       { screen: "home", state: (s) => s.enrolled, label: "回首页点亮康复时钟" },
@@ -1783,8 +1785,12 @@
     { id: "first-manual", label: "未入组 · 分支：自主新建直接入组", cold: "new", steps: [
       { act: "firstCreate", label: "首次创建" },
       { act: "uploadDischarge", label: "拍照上传病历" },
+      { screen: "ocr-capture", label: "拍摄页（出院记录必传）" },
+      { act: "shutter", label: "拍一张" },
       { act: "ocrConfirm", label: "确认 → 资料详情" },
       { act: "ocrParse", label: "解析" },
+      { screen: "ocr-parsed", label: "解析结果核对" },
+      { act: "generatePlanFromParsed", label: "提交生成计划" },
       { act: "manualCreate", label: "确认页「自主新建计划」" },
       { act: "addTask", label: "填名称后「添加」" },
       { state: (s) => s.enrolled, label: "直接入组" },
@@ -1792,22 +1798,28 @@
     { id: "first-reparse", label: "未入组 · 分支：重新解析病例", cold: "new", steps: [
       { act: "firstCreate", label: "首次创建" },
       { act: "uploadDischarge", label: "拍照上传病历" },
+      { screen: "ocr-capture", label: "拍摄页（出院记录必传）" },
+      { act: "shutter", label: "拍一张" },
       { act: "ocrConfirm", label: "确认 → 资料详情" },
       { act: "ocrParse", label: "解析" },
+      { screen: "ocr-parsed", label: "解析结果核对" },
+      { act: "generatePlanFromParsed", label: "提交生成计划" },
       { act: "reparseCase", label: "确认页「重新解析病例」" },
       { screen: "ocr-capture", label: "回拍摄取景（保留已拍）" },
     ]},
-    { id: "med-revisit", label: "已入组 · 康复基础日程（重走，与首次同链）", cold: "demo", steps: [
+    { id: "med-revisit", label: "已入组 · 基础康复计划（重走，与首次同链）", cold: "demo", steps: [
       { screen: "schedule", label: "健康计划" },
       { act: "addPlan", label: "底栏「添加健康计划」" },
       { screen: "select-type", label: "选择类型" },
-      { act: "typeMed", label: "康复基础日程" },
-      { screen: "first-rest", label: "基础作息（预填已有作息时刻）" },
+      { act: "typeMed", label: "基础康复计划" },
+      { screen: "first-rest", label: "当前计划（含基础作息与存量循环计划）" },
       { act: "uploadDischarge", label: "拍照上传病历" },
       { screen: "ocr-capture", label: "拍摄页（可多选类别，出院记录可删）" },
       { act: "shutter", label: "拍一张" },
       { act: "ocrConfirm", label: "确认 → 资料详情" },
       { act: "ocrParse", label: "解析" },
+      { screen: "ocr-parsed", label: "解析结果核对" },
+      { act: "generatePlanFromParsed", label: "提交生成计划" },
       { screen: "confirm-plan", label: "确认计划（作息 + 用药 + 复查 + 测血压，整套替换上一版）" },
       { act: "confirmPlan", label: "确认 → 落回健康计划" },
     ]},
@@ -2782,8 +2794,8 @@
     if (r.kind === "remind") return `${r.senderName}提醒你按时完成「${hm} ${t}」`;
     if (r.kind === "checkIn") return `${r.senderName}刚刚帮你完成了「${hm} ${t}」打卡`;
     if (r.kind === "createPlan") return `${r.senderName}为你新增了康复计划「${hm} ${t}」`;
-    if (r.kind === "firstCreatePlan") return `${r.senderName}已为你排定了康复基础日程${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
-    if (r.kind === "refreshMedicationPlan") return `${r.senderName}已为你更新了康复基础日程${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
+    if (r.kind === "firstCreatePlan") return `${r.senderName}已为你排定了基础康复计划${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
+    if (r.kind === "refreshMedicationPlan") return `${r.senderName}已为你更新了基础康复计划${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
     if (r.kind === "inviteExerciseTest") return `${r.senderName}提醒你完成运动体测，评估后即可生成专属运动计划`;
     if (r.kind === "acceptExerciseInvite") return `${r.senderName}已收到你的体测提醒，完成体测并创建了运动计划`;
     if (r.kind === "rejectExerciseInvite") return `${r.senderName}已收到你的体测提醒，选择暂不创建运动计划`;
@@ -4487,12 +4499,12 @@
     return (list || []).filter((t) => isBaselineTask(t) && taskActiveFromToday(t, today));
   }
   function isBaselineRestItem(t) {
-    return !!t && (t.routineSkeleton || ((t.cat === "rest" || t.cat === "diet") && BASELINE_REST_NAMES.includes(t.title)));
+    return !!t && (t.routineSkeleton || ((t.cat === "rest" || t.cat === "diet") && (BASELINE_REST_NAMES.includes(t.title) || BASELINE_REST_NAMES.some((n) => t.title && t.title.startsWith(n)))));
   }
   function isRoutineSkeletonTask(t) {
     return !!(t && (t.routineSkeleton || (isBaselineTask(t) && isBaselineRestItem(t))));
   }
-  /// V10.319 基础作息紫色骨架卡预填：首次排定 6 项默认全在列表；再次排定存量在用的带入列表（标保留），未启用的收入底部「可添加的基础作息」补回池
+  /// V10.319 基础作息骨架卡预填：首次排定 6 项默认全在列表；再次排定存量在用的带入列表，未启用的收入各时段标题栏待添加胶囊
   function baselineRestRows() {
     const old = activeBaselineTasks(baselineSourceTasks());
     const isRefresh = old.length > 0;
@@ -4504,7 +4516,7 @@
           isRefresh: false, cycle: true, rule: "daily", duration: "oneYear", routineSkeleton: true,
         };
       }
-      const hit = old.find((t) => isBaselineRestItem(t) && t.title === p.name);
+      const hit = old.find((t) => isBaselineRestItem(t) && (t.title === p.name || (t.title && t.title.startsWith(p.name))));
       if (hit) {
         const origT = `${pad(hit.h ?? 0)}:${pad(hit.m ?? 0)}`;
         return {
@@ -5447,7 +5459,7 @@
       "hardware-scan": [...home, C("profile"), C("hardware"), C("hardware-scan")],
       privacy: S.loggedIn ? [...home, C("profile"), C("privacy")] : [...login, C("privacy")],
       "service-terms": S.loggedIn ? [...home, C("profile"), C("service-terms")] : [...login, C("service-terms")],
-      "first-rest": [...home, C("first-rest")],
+      "first-rest": S.enrolled ? [...home, C("schedule"), C("first-rest")] : [...home, C("first-rest")],
       "select-type": [...home, C("schedule"), C("select-type")],
       "ocr-capture": S.enrolled ? [...home, C("schedule"), C("ocr-capture")] : [...home, C("ocr-capture")],
       "ocr-group": S.enrolled
@@ -7128,7 +7140,7 @@
         const material = opMaterialChange();
         // 确认即提交：整批草稿按「整套替换上一版基础日程」合并落库
         commitConfirmDrafts();
-        logOp(wasEnrolled ? "更新了康复基础日程" : "排定了康复基础日程", wasEnrolled ? "健康计划" : entryPlace(), [
+        logOp(wasEnrolled ? "更新了基础康复计划" : "排定了基础康复计划", wasEnrolled ? "健康计划" : entryPlace(), [
           ["资料", material],
           ...opPlanLines(written, replacing),
         ]);
@@ -12460,7 +12472,7 @@
         .filter((r) => r.on !== false);
       // 【V10.323】当前计划：包含所有基础作息以及用户其它所有循环计划
       const otherRecurring = (S.enrolled ? (SEED || []) : [])
-        .filter((t) => t.cycle && !isRoutineSkeletonTask(t) && !(S.restOtherDeleted || []).includes(t.id))
+        .filter((t) => t.cycle !== false && !isRoutineSkeletonTask(t) && !(S.restOtherDeleted || []).includes(t.id))
         .map((t) => ({
           ...t,
           name: t.title,
