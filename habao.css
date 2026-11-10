@@ -905,6 +905,8 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .confirm-period { margin-top: 20px; }
 .confirm-period:first-child { margin-top: 0; }
 .confirm-period.tight { margin-top: 16px; }
+/* V10.312 康复基础日程：与手建计划同类别同名时卡片下方的灰字提示 */
+.confirm-dup-hint { margin-top: -4px; padding: 0 6px; font-size: 12px; line-height: 1.4; color: var(--secondary); opacity: .8; }
 
 .act-card {
   background: #fff; border-radius: 20px; overflow: hidden;

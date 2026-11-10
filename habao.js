@@ -170,25 +170,26 @@
   };
 
   const SEED = [
-    { id: "t1", title: "起床测血压", h: 6, m: 30, cat: "monitoring", note: "依据出院记录，确诊高血压3级，每日测血压两次" },
+    // V10.312：origin:"baseline" = 来自「康复基础日程」整套（作息 / 用药 / 复查 / 测血压等）；无此标记即手建计划
+    { id: "t1", title: "起床测血压", h: 6, m: 30, cat: "monitoring", note: "依据出院记录，确诊高血压3级，每日测血压两次", origin: "baseline" },
     { id: "t2", title: "晨起温水", h: 7, m: 0, cat: "diet", note: "200–300 ml 温水" },
-    { id: "t3", title: "早餐", h: 7, m: 30, cat: "diet", note: "低盐低脂，搭配粗粮" },
-    { id: "t4", title: "服用阿司匹林肠溶片", h: 8, m: 0, cat: "medication", note: "依据出院记录，阿司匹林肠溶片每日用药一次" },
-    { id: "t5", title: "服用美托洛尔缓释片", h: 8, m: 30, cat: "medication", note: "依据出院记录，美托洛尔缓释片每日用药一次" },
+    { id: "t3", title: "早餐", h: 7, m: 30, cat: "diet", note: "低盐低脂，搭配粗粮", origin: "baseline" },
+    { id: "t4", title: "服用阿司匹林肠溶片", h: 8, m: 0, cat: "medication", note: "依据出院记录，阿司匹林肠溶片每日用药一次", origin: "baseline" },
+    { id: "t5", title: "服用美托洛尔缓释片", h: 8, m: 30, cat: "medication", note: "依据出院记录，美托洛尔缓释片每日用药一次", origin: "baseline" },
     { id: "t6", title: "晨间散步", h: 9, m: 0, cat: "exercise", note: "匀速步行，心率 ≤ 110 bpm" },
     { id: "t7", title: "上肢康复操", h: 10, m: 0, cat: "exercise", note: "坐姿弹力带训练 · 2 组 × 10 次" },
     { id: "t8", title: "上午加餐", h: 10, m: 30, cat: "diet", note: "一份水果 / 坚果", cycle: false },
     { id: "t9", title: "午餐控盐", h: 12, m: 0, cat: "diet", note: "每日盐摄入 < 5g · 多蔬菜" },
-    { id: "t10", title: "午休", h: 13, m: 0, cat: "rest", note: "保持安静环境，避免手机" },
+    { id: "t10", title: "午休", h: 13, m: 0, cat: "rest", note: "保持安静环境，避免手机", origin: "baseline" },
     { id: "t11", title: "测心率", h: 14, m: 0, cat: "monitoring", note: "记录静息心率与自觉症状" },
     { id: "t12", title: "下午散步", h: 15, m: 0, cat: "exercise", note: "选择平坦路面，注意防滑" },
     { id: "t13", title: "饮水提醒", h: 16, m: 0, cat: "diet", note: "累计饮水 ≥ 800 ml（全天 1.5–2 L）" },
-    { id: "t14", title: "晚餐", h: 18, m: 0, cat: "diet", note: "七分饱 · 少油少盐" },
+    { id: "t14", title: "晚餐", h: 18, m: 0, cat: "diet", note: "七分饱 · 少油少盐", origin: "baseline" },
     { id: "t15", title: "晚间散步", h: 19, m: 0, cat: "exercise", note: "饭后半小时 · 慢速" },
-    { id: "t16", title: "服用阿托伐他汀钙片", h: 21, m: 0, cat: "medication", note: "依据出院记录，阿托伐他汀钙片每晚用药一次" },
+    { id: "t16", title: "服用阿托伐他汀钙片", h: 21, m: 0, cat: "medication", note: "依据出院记录，阿托伐他汀钙片每晚用药一次", origin: "baseline" },
     { id: "t17", title: "放松冥想", h: 21, m: 30, cat: "rest", note: "深呼吸练习 · 478 呼吸法" },
     { id: "t18", title: "准备入睡", h: 22, m: 0, cat: "rest", note: "关闭屏幕，调暗灯光" },
-    { id: "t19", title: "心内科复查", h: 9, m: 0, cat: "appointment", note: "依据出院记录，每月复查一次，带齐近期血压/心率记录" },
+    { id: "t19", title: "心内科复查", h: 9, m: 0, cat: "appointment", note: "依据出院记录，每月复查一次，带齐近期血压/心率记录", origin: "baseline" },
   ];
   // 真机模拟：SEED 是 const 绑定、内容可变；冷启动时从这份快照还原
   const SEED0 = SEED.map((t) => ({ ...t }));
@@ -1021,6 +1022,8 @@
     S.diseaseInfo = labels.slice();
     if (labels.some((l) => l.indexOf("高血压") >= 0)) {
       if (!liveBPs().length) {
+        // V10.312：重新生成测血压时，撤掉沿用的上一版测血压
+        if (S.confirmDrafts) S.confirmDrafts = S.confirmDrafts.filter((d) => !(d.carried && d.cat === "monitoring" && /血压/.test(d.title || "")));
         // 补上高血压：按首次创建同一条规则补早晚两槽
         BP_FROM_PARSE.forEach((r) => {
           liveBPs().push({ title: r.name, time: r.t, src: r.name });
@@ -1032,11 +1035,15 @@
         liveBPs().forEach((b) => syncDraft(b.src, { note: confirmMonitorNote(b.title) }));
       }
     } else {
-      // 去掉高血压：解析补的测血压一并撤
+      // 去掉高血压：解析补的测血压一并撤；V10.312 改为沿用上一版基础日程里的测血压（若有）
       const srcs = liveBPs().map((b) => b.src);
       S.bps = [];
       if (S.confirmDrafts) {
         S.confirmDrafts = S.confirmDrafts.filter((d) => !(d.cat === "monitoring" && srcs.indexOf(d.srcTitle) >= 0));
+        const carriedBP = baselineCarryOverDrafts(baselineSourceTasks(), false)
+          .filter((d) => d.cat === "monitoring" && /血压/.test(d.title || ""))
+          .filter((d) => !S.confirmDrafts.some((x) => x.cat === d.cat && x.title === d.title));
+        S.confirmDrafts.push(...carriedBP);
       }
     }
     afterBasisEdit("disease");
@@ -1296,6 +1303,7 @@
     "schedule>select-type": "cover",
     "schedule>task-view": "cover",
     "select-type>ocr-capture": "replace",
+    "select-type>first-rest": "replace",
     "select-type>exercise-risk": "replace",
     "select-type>task-add": "replace",
     "select-type>category-manage": "push",
@@ -1426,11 +1434,11 @@
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.275：首次建日程与新增用药复查统一走「拍照 → 资料详情 → 解析」独立通道流程，进入时从空白拍摄起（不预载资料 BASE 存量）。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "V10.289：仅展示前一个拍摄页中已勾选/保留的分组。基础报告或首次上传报告中含出院记录时排在最上方；选传组为空时显示灰色说明文字。首次建日程与新增用药复查的资料详情右上为「解析」，点击后进入「资料解析结果」页；健康档案与身体报告子页的补拍通道右上为「提交」，提交后直接归入共享资料 BASE（不经过资料解析结果页）。" },
-    "ocr-parsed": { code: "OCRParseResultView", note: "【V10.309】仅限创建计划步骤（首次创建计划、用药与复查创建/更新计划），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「解析结果」页（标题「解析结果」）。左上角为「< 返回」，右上角为同规格「提交」按钮。默认模拟已识别填好的状态，包含五个可编辑字段：① 疾病信息（必填，多行文本框 context + 右上角「清空」按钮）、② 出院时间（必填，年 / 月 / 日三个并排下拉框）、③ 用药处方（必填，多行文本框 context + 右上角「清空」按钮）、④ 手术名称（选填，多行文本框 context + 右上角「清空」按钮）、⑤ 手术时间（选填，年 / 月 / 日三个并排下拉框）。当三个必填字段非空时右上角「提交」按钮可点击，按修改后的解析结果生成计划并进入「确认计划」页。" },
-    "first-rest": { code: "CreateScheduleFlowView", note: "【V10.308】移除事项名称选项模组与展开框（不设选项框/不可改选类型），事项名称固定展示（起床 / 早餐 / 午餐 / 午休 / 晚餐 / 上床睡觉，不含测血压）；点时刻出居中「时刻调整」弹层（标题为事项名，双列时/分步进，分步长 5，取消 / 完成，点遮罩取消）。「稍后」关整段创建流回首页；底栏「拍照上传病历」替换本页，不压栈。" },
-    "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表（不再单设「计划 / 解析依据」顶部切换与解析依据页），解析来源直接写明在每条计划卡片的补充备注里（如「依据出院记录，阿司匹林肠溶片每日用药一次」「依据出院记录，确诊高血压3级，每日测血压两次」「依据出院记录，2026年9月17日出院，每月复查一次」）；起床、早餐等非解析预设日程初始为无备注空集，默认显示「可编辑备注」占位。点开备注或点「编辑」即可修改。作息区首次入组才带；复查置底标红；底栏一枚「重新拍照解析」；右上「确认」写入用药+复查，左上「稍后」关整段流。" },
+    "ocr-parsed": { code: "OCRParseResultView", note: "【V10.309】仅限创建计划步骤（排定 / 更新康复基础日程），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「解析结果」页（标题「解析结果」）。左上角为「< 返回」，右上角为同规格「提交」按钮。默认模拟已识别填好的状态，包含五个可编辑字段：① 疾病信息（必填，多行文本框 context + 右上角「清空」按钮）、② 出院时间（必填，年 / 月 / 日三个并排下拉框）、③ 用药处方（必填，多行文本框 context + 右上角「清空」按钮）、④ 手术名称（选填，多行文本框 context + 右上角「清空」按钮）、⑤ 手术时间（选填，年 / 月 / 日三个并排下拉框）。当三个必填字段非空时右上角「提交」按钮可点击，按修改后的解析结果生成计划并进入「确认计划」页。" },
+    "first-rest": { code: "CreateScheduleFlowView", note: "【V10.312】首页「排定康复基础日程」与选择类型「康复基础日程」共用本页；六项始终都在，已有同名基础日程作息则预填其当前时刻，否则默认时刻。【V10.308】移除事项名称选项模组与展开框（不设选项框/不可改选类型），事项名称固定展示（起床 / 早餐 / 午餐 / 午休 / 晚餐 / 上床睡觉，不含测血压）；点时刻出居中「时刻调整」弹层（标题为事项名，双列时/分步进，分步长 5，取消 / 完成，点遮罩取消）。「稍后」关整段创建流回首页；底栏「拍照上传病历」替换本页，不压栈。" },
+    "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表（不再单设「计划 / 解析依据」顶部切换与解析依据页），解析来源直接写明在每条计划卡片的补充备注里（如「依据出院记录，阿司匹林肠溶片每日用药一次」「依据出院记录，确诊高血压3级，每日测血压两次」「依据出院记录，2026年9月17日出院，每月复查一次」）；起床、早餐等非解析预设日程初始为无备注空集，默认显示「可编辑备注」占位。点开备注或点「编辑」即可修改。【V10.312 康复基础日程】首次与已入组同一页：作息 + 用药 + 复查 + 测血压一起出，并沿用上一版基础日程里非作息/用药/复查的条目（如测血压、上次自由添加的计划；新诊断无高血压时沿用旧测血压）；某条与手建计划同类别同名时卡片下方灰字「你已有手建的 HH:MM 标题」，不自动删除。复查置底标红；底栏一枚「重新拍照解析」；右上「确认」按类别+标题整套替换上一版基础日程（配上原地更新保留打卡、旧有新无截止到昨天、新有旧无今天起新建），手建与运动计划不动；左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
-    "select-type": { code: "CreateScheduleFlowView", note: "专业听诊器 14 / 日常铃。两组岛：用药与复查标复查红（特殊），统一走独立拍照 → 资料详情 → 解析通道流程，确认后覆盖更新用药+复查；运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
+    "select-type": { code: "CreateScheduleFlowView", note: "【V10.312】专业组首卡「康复基础日程」（副标题「按病历排好用药、复查与作息」）标复查红（特殊），与首页「排定康复基础日程」同一条链：基础作息（预填已有作息时刻）→ 拍照 → 资料详情 → 解析结果 → 确认计划，确认后整套替换上一版基础日程、手建计划不动；运动走体测。专业听诊器 14 / 日常铃。两组岛：运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
     "task-add": { code: "AddEditTaskView", note: "V0.0 / V0.1 为「事项」「时间与提醒」两大类折叠；V0.2 重构为**无滚动「三联动态磁贴 + 单屏模块舞台」切换架构**（字段不变）：顶部三联动态磁贴（① 事项内容、② 时刻与提醒、③ 周期与日期）实时回显三大模块核心设定，不切页即可一眼总览；中部单屏舞台一次仅聚焦展示 1 个大模块（支持点按磁贴、点按卡头 `‹ 1/3 ›` 步进或左右滑动手势切换），彻底消除滚动与视觉负担。" },
     "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。V0.2 采用无滚动「三联动态磁贴 + 单屏模块舞台」切换架构：顶部磁贴实时回显事项、时刻与周期摘要，中部单屏切换「事项内容 / 时刻与提醒 / 周期与日期」；「提醒时间」与「打卡时间」1:1 对称同构，「时间段」配备醒目粗体时间范围标注，「起止日期」通栏对齐零截断。修改时间或周期字段保存前弹出「确认更新计划」双卡弹窗；仅改名称/备注/血压等直接原地保存。" },
@@ -1750,8 +1758,8 @@
       { act: "enter", label: "填姓名后完成", hint: "点右上「进入哈宝」" },
       { screen: "home", label: "进入首页" },
     ]},
-    { id: "first-create", label: "未入组 · 首次创建（入组主链）", cold: "new", steps: [
-      { act: "firstCreate", label: "首页底缘「首次创建计划」" },
+    { id: "first-create", label: "未入组 · 排定康复基础日程（入组主链）", cold: "new", steps: [
+      { act: "firstCreate", label: "首页底缘「排定康复基础日程」" },
       { screen: "first-rest", label: "基础作息 6 项预设" },
       { act: "editRestTime", label: "改作息时刻", optional: true },
       { act: "uploadDischarge", label: "拍照上传病历" },
@@ -1780,16 +1788,18 @@
       { act: "reparseCase", label: "确认页「重新解析病例」" },
       { screen: "ocr-capture", label: "回拍摄取景（保留已拍）" },
     ]},
-    { id: "med-revisit", label: "已入组 · 用药与复查（重走）", cold: "demo", steps: [
+    { id: "med-revisit", label: "已入组 · 康复基础日程（重走，与首次同链）", cold: "demo", steps: [
       { screen: "schedule", label: "健康计划" },
       { act: "addPlan", label: "底栏「添加健康计划」" },
       { screen: "select-type", label: "选择类型" },
-      { act: "typeMed", label: "用药与复查" },
+      { act: "typeMed", label: "康复基础日程" },
+      { screen: "first-rest", label: "基础作息（预填已有作息时刻）" },
+      { act: "uploadDischarge", label: "拍照上传病历" },
       { screen: "ocr-capture", label: "拍摄页（可多选类别，出院记录可删）" },
       { act: "shutter", label: "拍一张" },
       { act: "ocrConfirm", label: "确认 → 资料详情" },
       { act: "ocrParse", label: "解析" },
-      { screen: "confirm-plan", label: "确认计划（只有用药 + 复查，无作息区）" },
+      { screen: "confirm-plan", label: "确认计划（作息 + 用药 + 复查 + 测血压，整套替换上一版）" },
       { act: "confirmPlan", label: "确认 → 落回健康计划" },
     ]},
     { id: "ex-normal", label: "已入组 · 运动评估（低风险）", cold: "demo", steps: [
@@ -2737,8 +2747,8 @@
       remind: "提醒",
       checkIn: "代打卡",
       createPlan: "新增计划",
-      firstCreatePlan: "首次创建计划",
-      refreshMedicationPlan: "用药与复查",
+      firstCreatePlan: "排定康复基础日程",
+      refreshMedicationPlan: "更新康复基础日程",
       inviteExerciseTest: "运动体测邀请",
       acceptExerciseInvite: "运动体测回执",
       rejectExerciseInvite: "运动体测回执",
@@ -2763,8 +2773,8 @@
     if (r.kind === "remind") return `${r.senderName}提醒你按时完成「${hm} ${t}」`;
     if (r.kind === "checkIn") return `${r.senderName}刚刚帮你完成了「${hm} ${t}」打卡`;
     if (r.kind === "createPlan") return `${r.senderName}为你新增了康复计划「${hm} ${t}」`;
-    if (r.kind === "firstCreatePlan") return `${r.senderName}已为你首次创建了全天康复计划${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
-    if (r.kind === "refreshMedicationPlan") return `${r.senderName}已为你更新了用药与复查计划${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
+    if (r.kind === "firstCreatePlan") return `${r.senderName}已为你排定了康复基础日程${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
+    if (r.kind === "refreshMedicationPlan") return `${r.senderName}已为你更新了康复基础日程${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
     if (r.kind === "inviteExerciseTest") return `${r.senderName}提醒你完成运动体测，评估后即可生成专属运动计划`;
     if (r.kind === "acceptExerciseInvite") return `${r.senderName}已收到你的体测提醒，完成体测并创建了运动计划`;
     if (r.kind === "rejectExerciseInvite") return `${r.senderName}已收到你的体测提醒，选择暂不创建运动计划`;
@@ -2846,8 +2856,8 @@
     if (kind === "remind") return "提醒";
     if (kind === "checkIn") return "代打卡";
     if (kind === "createPlan") return "新增计划";
-    if (kind === "firstCreatePlan") return "首次创建计划";
-    if (kind === "refreshMedicationPlan") return "用药与复查";
+    if (kind === "firstCreatePlan") return "排定康复基础日程";
+    if (kind === "refreshMedicationPlan") return "更新康复基础日程";
     if (kind === "inviteExerciseTest") return "运动体测邀请";
     if (kind === "acceptExerciseInvite" || kind === "rejectExerciseInvite") return "运动体测回执";
     if (kind === "updatePlan") return "修改计划";
@@ -2859,8 +2869,8 @@
     if (r.kind === "remind") return `${r.senderName} 提醒你完成「${t}」`;
     if (r.kind === "checkIn") return `${r.senderName} 帮你打卡「${t}」`;
     if (r.kind === "createPlan") return `${r.senderName} 为你新增计划「${t}」`;
-    if (r.kind === "firstCreatePlan") return `${r.senderName} 为你首次创建了康复计划`;
-    if (r.kind === "refreshMedicationPlan") return `${r.senderName} 为你更新了用药与复查计划`;
+    if (r.kind === "firstCreatePlan") return `${r.senderName} 为你排定了康复基础日程`;
+    if (r.kind === "refreshMedicationPlan") return `${r.senderName} 为你更新了康复基础日程`;
     if (r.kind === "inviteExerciseTest") return `${r.senderName} 邀请你完成运动体测`;
     if (r.kind === "updatePlan") return `${r.senderName} 修改了你的计划「${t}」`;
     if (r.kind === "deletePlan") return `${r.senderName} 申请删除计划「${t}」`;
@@ -3125,32 +3135,11 @@
         taskList.sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
       }
       if (isCurrentBound) S.enrolled = true;
-    } else if (req.kind === "firstCreatePlan") {
+    } else if (req.kind === "firstCreatePlan" || req.kind === "refreshMedicationPlan") {
+      // V10.312：家属代排 / 代更新康复基础日程同一条写入规则——整套替换上一版基础日程，手建计划与运动不动
       const batch = Array.isArray(req.batchTasks) && req.batchTasks.length ? req.batchTasks : [req.taskSnapshot];
-      for (let i = taskList.length - 1; i >= 0; i--) {
-        const c = taskList[i].cat;
-        if (["medication", "appointment", "rest", "diet", "monitoring"].includes(c)) {
-          taskList.splice(i, 1);
-        }
-      }
-      batch.forEach((item, idx) => {
-        if (!item) return;
-        taskList.push({ ...item, id: item.id || `proxy_fc_${Date.now()}_${idx}` });
-      });
-      taskList.sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
-      if (isCurrentBound) S.enrolled = true;
-    } else if (req.kind === "refreshMedicationPlan") {
-      const batch = Array.isArray(req.batchTasks) && req.batchTasks.length ? req.batchTasks : [req.taskSnapshot];
-      for (let i = taskList.length - 1; i >= 0; i--) {
-        const c = taskList[i].cat;
-        if (c === "medication" || c === "appointment") {
-          taskList.splice(i, 1);
-        }
-      }
-      batch.forEach((item, idx) => {
-        if (!item) return;
-        taskList.push({ ...item, id: item.id || `proxy_med_${Date.now()}_${idx}` });
-      });
+      const stamp = Date.now();
+      mergeBaselineInto(taskList, batch.filter(Boolean).map((item) => ({ ...item })), (item, idx) => item.id || `proxy_fc_${stamp}_${idx}`);
       taskList.sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
       if (isCurrentBound) S.enrolled = true;
     } else if (req.kind === "updatePlan") {
@@ -4448,8 +4437,103 @@
     SEED.push(task);
     return { id: task.id, created: true };
   }
+  // ----- V10.312 康复基础日程：基础日程是一个整体，整套替换上一版；手建计划不动 -----
+  const BASELINE_ORIGIN = "baseline";
+  const BASELINE_REST_NAMES = REST_PRESET.map((r) => r.name);
+  function isBaselineTask(t) { return !!t && t.origin === BASELINE_ORIGIN; }
+  function baselineKey(t) { return `${t.cat}|${t.title}`; }
+  function taskActiveFromToday(t, today = toYMD(demoDate())) {
+    if (!t) return false;
+    if (t.endDate && t.endDate < today) return false;
+    if (t.cycle === false && t.onceDate && t.onceDate < today) return false;
+    return true;
+  }
+  /// 当前操作对象的计划表：家属代办 → 对方的 bucket；本人 → SEED
+  function baselineSourceTasks() {
+    if (S.proxyTargetPersonName) return ensurePersonStore(S.proxyTargetPersonName).tasks || [];
+    return SEED;
+  }
+  function activeBaselineTasks(list) {
+    const today = toYMD(demoDate());
+    return (list || []).filter((t) => isBaselineTask(t) && taskActiveFromToday(t, today));
+  }
+  function isBaselineRestItem(t) {
+    return (t.cat === "rest" || t.cat === "diet") && BASELINE_REST_NAMES.includes(t.title);
+  }
+  /// 基础作息页预填：已有同名基础日程作息 → 带当前时刻；否则默认时刻。六项始终都在
+  function baselineRestRows() {
+    const old = activeBaselineTasks(baselineSourceTasks());
+    return REST_PRESET.map((p) => {
+      const hit = old.find((t) => isBaselineRestItem(t) && t.title === p.name);
+      return hit ? { ...p, t: `${pad(hit.h ?? 0)}:${pad(hit.m ?? 0)}` } : { ...p };
+    });
+  }
+  /// 确认页沿用上一版基础日程里「非作息 / 用药 / 复查」的条目（测血压、上次确认页自由添加的计划等）；
+  /// 本次解析已生成测血压（新诊断含高血压）时不再沿用旧测血压
+  function baselineCarryOverDrafts(list, hasNewBP) {
+    return activeBaselineTasks(list)
+      .filter((t) => t.cat !== "medication" && t.cat !== "appointment" && t.cat !== "exercise" && !isBaselineRestItem(t))
+      .filter((t) => !(hasNewBP && t.cat === "monitoring" && /血压/.test(t.title || "")))
+      .map((t) => ({
+        title: t.title,
+        time: `${pad(t.h ?? 8)}:${pad(t.m ?? 0)}`,
+        cat: t.cat,
+        customId: t.customId,
+        note: t.note || "",
+        cycle: t.cycle !== false,
+        rule: t.rule,
+        weekdays: t.weekdays ? t.weekdays.slice() : undefined,
+        monthDays: t.monthDays ? t.monthDays.slice() : undefined,
+        intervalCount: t.intervalCount,
+        intervalUnit: t.intervalUnit,
+        duration: t.duration,
+        endDate: t.endDate,
+        customDays: t.customDays,
+        onceDate: t.cycle === false ? t.onceDate : undefined,
+        muteFirst: false,
+        carried: true,
+      }));
+  }
+  /// 确认页重复提示：已有同类别同名的手建计划（非基础日程）→ 卡片下一行灰字，不自动删
+  function baselineManualDupHint(d, list) {
+    const today = toYMD(demoDate());
+    const hit = (list || []).find((t) => !isBaselineTask(t) && taskActiveFromToday(t, today) && t.cat === d.cat && t.title === d.title);
+    return hit ? `你已有手建的 ${pad(hit.h ?? 0)}:${pad(hit.m ?? 0)} ${hit.title}` : "";
+  }
+  /// 写入规则：新旧基础日程按 类别+标题 配对。配上 → 原地更新（保留 id 与打卡历史）；
+  /// 旧有新无 → 系列截止到昨天（今天起消失，历史保留）；新有旧无 → 从今天起新建。
+  /// 手建计划与运动计划永远不碰。返回 { updated, created, ended }
+  function mergeBaselineInto(list, items, makeId) {
+    const today = toYMD(demoDate());
+    const yesterday = addDaysYMD(today, -1);
+    const old = activeBaselineTasks(list);
+    const used = new Set();
+    const out = { updated: [], created: [], ended: [] };
+    (items || []).forEach((item, idx) => {
+      if (!item) return;
+      const hit = old.find((t) => !used.has(t) && baselineKey(t) === baselineKey(item));
+      if (hit) {
+        used.add(hit);
+        const keepStart = hit.cycle !== false && item.cycle !== false ? hit.onceDate : (item.onceDate || today);
+        Object.assign(hit, { ...item, id: hit.id, origin: BASELINE_ORIGIN, onceDate: keepStart });
+        out.updated.push(hit);
+      } else {
+        const t = { ...item, id: makeId(item, idx), origin: BASELINE_ORIGIN, onceDate: item.onceDate || today };
+        list.push(t);
+        out.created.push(t);
+      }
+    });
+    old.forEach((t) => {
+      if (used.has(t)) return;
+      t.endDate = yesterday;
+      out.ended.push(t);
+    });
+    return out;
+  }
+
   // 确认页提交：整批草稿落成计划（真机 confirmMedications + syncMedications / syncAppointments）；
-  // kind = "exercise" 时只整批替换运动（真机 syncExerciseTasks），不碰用药与复查
+  // kind = "exercise" 时只整批替换运动（真机 syncExerciseTasks），不碰基础日程
+  // V10.312：非运动 = 康复基础日程，按 mergeBaselineInto 整套替换上一版基础日程，手建计划不动
   function commitConfirmDrafts(kind) {
     const drafts = S.confirmDrafts || [];
     if (!drafts.length) return 0;
@@ -4459,18 +4543,10 @@
         if (SEED[i].cat === "exercise") SEED.splice(i, 1);
       }
     }
-    // 已入组重走：用药 / 复查按本次确认整表覆盖，其它日常与运动不动
-    if (S.enrolled && !isExercise) {
-      for (let i = SEED.length - 1; i >= 0; i--) {
-        if (SEED[i].cat === "medication" || SEED[i].cat === "appointment") SEED.splice(i, 1);
-      }
-    }
-    drafts.forEach((x) => {
+    const items = drafts.map((x) => {
       const [hh, mm] = String(x.time || "08:00").split(":").map(Number);
-      const id = nextTaskId();
       const isCyc = x.cycle !== false;
-      SEED.push({
-        id,
+      return {
         title: x.title,
         cat: x.cat,
         customId: x.cat === "custom" ? x.customId : undefined,
@@ -4487,9 +4563,19 @@
         endDate: isCyc && x.endDate ? x.endDate : undefined,
         customDays: isCyc && x.customDays ? x.customDays : undefined,
         onceDate: x.onceDate || undefined,
-      });
-      S.mutedToday[id] = x.muteFirst === true;
+        muteFirst: x.muteFirst === true,
+      };
     });
+    const place = (t) => {
+      S.mutedToday[t.id] = t.muteFirst === true;
+      delete t.muteFirst;
+    };
+    if (isExercise) {
+      items.forEach((t) => { t.id = nextTaskId(); SEED.push(t); place(t); });
+    } else {
+      const res = mergeBaselineInto(SEED, items, () => nextTaskId());
+      [...res.updated, ...res.created].forEach(place);
+    }
     sortSeed();
     if (S.boundPersonKey && S.personStoreMap && S.personStoreMap[S.boundPersonKey]) {
       S.personStoreMap[S.boundPersonKey].tasks = SEED.map((t) => ({ ...t }));
@@ -6461,7 +6547,8 @@
         go("task-add", "cover");
       },
       firstCreate() {
-        S.restRows = REST_PRESET.map((x) => ({ ...x }));
+        // V10.312：排定康复基础日程——作息页预填已有基础日程时刻，没有则默认
+        S.restRows = baselineRestRows();
         go("first-rest", "cover");
       },
       // 底坞「运动」圆钮 = 自由运动：不带计划归属，结束后新建「自主散步」
@@ -6739,11 +6826,9 @@
             };
           });
           const summaryTitle = isFirst
-            ? `首次创建康复计划（共 ${batch.length} 项）`
-            : `更新用药与复查计划（共 ${batch.length} 项）`;
-          const summaryNote = isFirst
-            ? `含用药、复查与日常作息共 ${batch.length} 项`
-            : `含用药与复查共 ${batch.length} 项`;
+            ? `排定康复基础日程（共 ${batch.length} 项）`
+            : `更新康复基础日程（共 ${batch.length} 项）`;
+          const summaryNote = `含作息、用药、复查等共 ${batch.length} 项`;
           const snapshot = {
             id: `proxy_batch_${Date.now()}`,
             title: summaryTitle,
@@ -6764,17 +6849,24 @@
             summaryNote,
           });
           closeFlow();
-          toast(isFirst ? `已为${famName}首次创建计划（共 ${batch.length} 项）` : `已为${famName}更新用药与复查计划（共 ${batch.length} 项）`);
+          toast(isFirst ? `已为${famName}排定康复基础日程（共 ${batch.length} 项）` : `已为${famName}更新康复基础日程（共 ${batch.length} 项）`);
           return;
         }
         const wasEnrolled = S.enrolled;
         // 操作记录：资料 + 各类计划合成一条（真机 recordPlanConfirmed）
         const written = (S.confirmDrafts || []).map((d) => ({ title: d.title, cat: d.cat }));
-        const replacing = wasEnrolled ? opPlanCounts(["用药", "复查"]) : {};
+        // V10.312：被整套替换的是上一版基础日程（手建计划不动），按类统计旧条数
+        const replacing = {};
+        if (wasEnrolled) {
+          activeBaselineTasks(SEED).forEach((t) => {
+            const g = t.cat === "medication" ? "用药" : t.cat === "appointment" ? "复查" : "日常";
+            replacing[g] = (replacing[g] || 0) + 1;
+          });
+        }
         const material = opMaterialChange();
-        // 确认即提交：整批草稿落成计划（真机确认页 confirm → syncMedications / syncAppointments）
+        // 确认即提交：整批草稿按「整套替换上一版基础日程」合并落库
         commitConfirmDrafts();
-        logOp(wasEnrolled ? "更新了用药与复查" : "完成了首次创建", wasEnrolled ? "健康计划" : entryPlace(), [
+        logOp(wasEnrolled ? "更新了康复基础日程" : "排定了康复基础日程", wasEnrolled ? "健康计划" : entryPlace(), [
           ["资料", material],
           ...opPlanLines(written, replacing),
         ]);
@@ -6851,18 +6943,12 @@
         S.isConfirmDraftEdit = true;
         S.lockBlock = false;
         S.lockRecurrence = false;
-        const isFirstCreateConfirm = fromScreen === "confirm-plan" && (!S.enrolled || !!(S.proxyTargetPersonName && S.proxyIsFirstCreate));
-        const isMedApptConfirm = fromScreen === "confirm-plan" && !isFirstCreateConfirm;
-        if (isFirstCreateConfirm) {
-          // 首次添加计划确认页：类别选项放开都能选择
+        // V10.312：康复基础日程确认页（首次 / 已入组 / 家属代办同一页）类别选项都放开
+        const isBaselineConfirm = fromScreen === "confirm-plan";
+        if (isBaselineConfirm) {
           S.lockCategory = false;
           S.lockProfessional = false;
           S.allowedCategories = null;
-        } else if (isMedApptConfirm) {
-          // 用药与复查步骤确认页：类别选项默认为用药和复查可选
-          S.lockCategory = false;
-          S.lockProfessional = false;
-          S.allowedCategories = ["medication", "appointment"];
         } else {
           // 运动评估确认页：锁定运动分类
           S.lockCategory = true;
@@ -8055,11 +8141,12 @@
       today() { S.calSelYMD = toYMD(demoDate()); S.calOffset = 0; render(); },
       addPlan() { go("select-type", "cover"); },
       typeMed() {
+        // V10.312：「康复基础日程」与首次创建同一条链：基础作息 → 拍照 → 解析结果 → 确认计划（作息 + 用药 + 复查 + 测血压）
         S.captureMode = "intake";
         S.docStock = null;
-        // V10.275：首次建日程与新增用药复查均走独立的「拍照 → 资料详情 → 解析」通道流程，不预载资料 BASE 存量
-        seedDocGroups(0);
-        replace("ocr-capture");
+        S.confirmDrafts = null;
+        S.restRows = baselineRestRows();
+        replace("first-rest");
       },
       // 运动链独立草稿：先清空，进确认页时再种（避免沿用用药链的草稿）；家属代办时进运动体测邀请页（真机 CreateScheduleFlowView.proxyExerciseInviteStep）
       typeEx() {
@@ -9356,7 +9443,7 @@
         } else if (famTasks.length === 0) {
           S.proxyTargetPersonName = famName;
           S.proxyIsFirstCreate = true;
-          S.restRows = REST_PRESET.slice(0, 6).map((x) => ({ ...x }));
+          S.restRows = baselineRestRows();
           go("first-rest", "cover");
         } else {
           S.proxyTargetPersonName = famName;
@@ -9427,11 +9514,14 @@
           { id: `p_bp1_${Date.now()}`, title: "起床测血压", cat: "monitoring", h: 6, m: 30, cycle: true, rule: "daily", note: "依据出院记录，每日晨起与睡前测血压" },
           { id: `p_bp2_${Date.now()}`, title: "睡前测血压", cat: "monitoring", h: 21, m: 30, cycle: true, rule: "daily", note: "安静休息 5 分钟后测量" },
         ] : [];
-        const restItems = isFirstCreate ? (S.proxyEditorDraft.restItems || []) : [];
+        const restItems = isFirstCreate
+          ? (S.proxyEditorDraft.restItems || [])
+          // V10.312：更新时沿用对方上一版基础日程里的作息 / 测血压等，避免整套替换时被截止
+          : activeBaselineTasks(ensurePersonStore(famName).tasks || []).filter((t) => t.cat !== "medication" && t.cat !== "appointment").map((t) => ({ ...t }));
         const batch = [...medTasks, ...apptTasks, ...bpTasks, ...restItems];
         const summaryTitle = isFirstCreate
-          ? `首次创建康复计划（共 ${batch.length} 项）`
-          : `更新用药与复查计划（共 ${batch.length} 项）`;
+          ? `排定康复基础日程（共 ${batch.length} 项）`
+          : `更新康复基础日程（共 ${batch.length} 项）`;
         const summaryNote = isFirstCreate
           ? `含用药 ${medTasks.length} 项、复查 ${apptTasks.length} 项、日常与测血压 ${bpTasks.length + restItems.length} 项`
           : `含用药 ${medTasks.length} 项、复查 ${apptTasks.length} 项`;
@@ -9455,7 +9545,7 @@
           summaryNote,
         });
         S.proxyEditorDraft = null;
-        toast(isFirstCreate ? `已为${famName}首次创建计划（共 ${batch.length} 项），对方进入首页将收到弹窗通知` : `已为${famName}更新用药与复查计划，对方进入首页将收到弹窗通知`);
+        toast(isFirstCreate ? `已为${famName}排定康复基础日程（共 ${batch.length} 项），对方进入首页将收到弹窗通知` : `已为${famName}更新康复基础日程，对方进入首页将收到弹窗通知`);
         render();
       },
       submitProxyExerciseInvite() {
@@ -11134,7 +11224,7 @@
             <span class="s4-add-plus">${I.plus}</span>
             <span class="s4-add-t">${b.title}临时计划</span>
           </button>` : `
-          <button class="s4-first" data-act="firstCreate" type="button">首次创建计划</button>`}
+          <button class="s4-first" data-act="firstCreate" type="button">排定康复基础日程</button>`}
         <div class="s4-none">
           <span class="s4-none-mark">${I.calLarge}</span>
           <span class="s4-none-t">暂无计划</span>
@@ -11644,7 +11734,7 @@
               </div>
               <div class="scrub" id="scrub"></div>
             </div>
-            ${S.enrolled ? "" : `<button class="first-create" data-act="firstCreate" type="button">首次创建计划 ${I.tap}</button>`}
+            ${S.enrolled ? "" : `<button class="first-create" data-act="firstCreate" type="button">排定康复基础日程 ${I.tap}</button>`}
           </div>
           <div class="dock">
             <div class="orb" data-go="walk">${I.walk}<span>运动</span></div>
@@ -11719,7 +11809,7 @@
           `<button class="cap" data-act="openCatManage" type="button">${I.slider}管理</button>`)}
         <div class="scroll px20" style="padding-top:16px;padding-bottom:30px">
           ${typeGroup("专业康复计划", "按病例与体测生成", { icon: I.steth }, [
-            ["用药与复查", "根据资料覆盖更新用药与复查", "medication", "typeMed", { special: true }],
+            ["康复基础日程", "按病历排好用药、复查与作息", "medication", "typeMed", { special: true }],
             ["运动", "完成运动前风险提示与体测评估", "exercise", "typeEx"],
           ])}
           ${typeGroup("普通日常计划", "", { icon: I.bell, includeCustom: true }, [
@@ -12002,6 +12092,12 @@
 
     "confirm-plan": () => {
       if (!S.confirmDrafts) seedConfirmDrafts();
+      // V10.312：与手建计划同类别同名 → 卡片下方灰字提示，不自动删
+      const dupList = baselineSourceTasks();
+      const dupHint = (x) => {
+        const h = baselineManualDupHint(x, dupList);
+        return h ? `<div class="confirm-dup-hint">${esc(h)}</div>` : "";
+      };
       const indexed = S.confirmDrafts.map((x, i) => ({ ...x, i, h: parseHour(x.time) }));
       const daily = indexed.filter((x) => x.cat !== "appointment");
       const groups = groupByPeriod(daily, (x) => x.h);
@@ -12023,7 +12119,7 @@
                   dose: x.cat === "medication" ? medDose(x.title) : "",
                   note: rawNote || "可编辑备注",
                   noteEmpty: !rawNote,
-                });
+                }) + dupHint(x);
               }).join("")}</div>
             </div>`).join("")}
           <div class="confirm-period">
@@ -12044,7 +12140,7 @@
                 cat: "appointment", title: a.title, time: `${prefix}${a.time}`, appt: true, draft: true, cycle: a.cycle !== false, idx: a.i,
                 note: rawNote || "可编辑备注",
                 noteEmpty: !rawNote,
-              });
+              }) + dupHint(a);
             }).join("")}</div>
           </div>
         </div>
@@ -13793,7 +13889,7 @@
         bottomDockHTML = (isUnbound || isPending) ? "" : `
           <div class="px20 flex gap8" style="padding-bottom:28px">
             <button class="cta grow" data-act="openProxyTaskEditor" type="button">
-              ${famHasPlans ? `为${esc(selectedFamName)}添加计划` : `为${esc(selectedFamName)}首次创建计划`}
+              ${famHasPlans ? `为${esc(selectedFamName)}添加计划` : `为${esc(selectedFamName)}排定康复基础日程`}
             </button>
           </div>`;
       } else {
@@ -13935,11 +14031,19 @@
     <div class="chart-xlabs">${xLabels.map((t) => `<span>${t}</span>`).join("")}</div>`;
   }
 
-  /// 确认页草稿种子：首次入组带作息区；测血压由解析补入（Demo 出院诊断含高血压）。已入组重走用药复查只有用药与复查（真机 showsRestSection = restItems != nil）
+  /// 确认页草稿种子（V10.312 康复基础日程）：首次与已入组同一套——作息 + 用药 + 测血压（解析补入，Demo 出院诊断含高血压）+ 复查，
+  /// 再沿用上一版基础日程里非作息 / 用药 / 复查的条目（本次已解析出测血压时不沿用旧测血压）
   function seedConfirmDrafts() {
-    const isFirst = !S.enrolled || !!(S.proxyTargetPersonName && S.proxyIsFirstCreate);
-    const rest = !isFirst ? [] : [
-      ...S.restRows.map((r) => ({
+    const bpDrafts = liveBPs().map((b) => ({
+      title: b.title,
+      time: b.time,
+      cat: "monitoring",
+      srcTitle: b.src,
+      note: confirmMonitorNote(b.title),
+      cycle: true, rule: "daily", muteFirst: false,
+    }));
+    const rest = [
+      ...(S.restRows || baselineRestRows()).map((r) => ({
         title: r.name,
         time: r.t,
         cat: r.cat || (["早餐", "午餐", "晚餐"].includes(r.name) ? "diet" : "rest"),
@@ -13947,14 +14051,8 @@
         note: r.cat === "monitoring" ? confirmMonitorNote(r.name) : (r.note || ""),
         cycle: true, rule: "daily", muteFirst: false,
       })),
-      ...liveBPs().map((b) => ({
-        title: b.title,
-        time: b.time,
-        cat: "monitoring",
-        srcTitle: b.src,
-        note: confirmMonitorNote(b.title),
-        cycle: true, rule: "daily", muteFirst: false,
-      })),
+      ...bpDrafts,
+      ...baselineCarryOverDrafts(baselineSourceTasks(), bpDrafts.length > 0),
     ];
     const appts = confirmApptItems().map((a) => ({
       title: a.title,
