@@ -1444,7 +1444,7 @@
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "V10.289：仅展示前一个拍摄页中已勾选/保留的分组。基础报告或首次上传报告中含出院记录时排在最上方；选传组为空时显示灰色说明文字。首次建日程与新增用药复查的资料详情右上为「解析」，点击后进入「资料解析结果」页；健康档案与身体报告子页的补拍通道右上为「提交」，提交后直接归入共享资料 BASE（不经过资料解析结果页）。" },
     "ocr-parsed": { code: "OCRParseResultView", note: "【V10.309】仅限创建计划步骤（排定 / 更新康复基础日程），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「解析结果」页（标题「解析结果」）。左上角为「< 返回」，右上角为同规格「提交」按钮。默认模拟已识别填好的状态，包含五个可编辑字段：① 疾病信息（必填，多行文本框 context + 右上角「清空」按钮）、② 出院时间（必填，年 / 月 / 日三个并排下拉框）、③ 用药处方（必填，多行文本框 context + 右上角「清空」按钮）、④ 手术名称（选填，多行文本框 context + 右上角「清空」按钮）、⑤ 手术时间（选填，年 / 月 / 日三个并排下拉框）。当三个必填字段非空时右上角「提交」按钮可点击，按修改后的解析结果生成计划并进入「确认计划」页。" },
-    "first-rest": { code: "CreateScheduleFlowView", note: "【V10.319 全局统一紫色基础作息卡片重构】首页「排定康复基础日程」与选择类型「康复基础日程」共用本页。重构为与「确认计划」100% 同构的页面（按 DayPeriod 时段分组 + 紫色 RehabTaskRowView 操作卡）：① 基础作息作为特殊骨架存在，全生命周期（基础作息页 / 确认计划页 / 首页今日卡片 / 健康计划列表 / 查看编辑详情页）未打卡均呈现专属紫色（完成后转绿），副行类别胶囊统一显示「基础作息」，彻底与用户手建的蓝色「作息/饮食」解耦；② 所见即在用骨架 + 底部「可添加的基础作息」轻量虚框补回池（删掉某张紫卡即落入底部待选区，点一下即作为「新建」紫卡飞回对应时段，右上角按需展示「恢复原骨架 / 恢复默认」）；③ 点「编辑」进入紫色主题草稿编辑页（锁定 6 项标准名称与「基础作息」分类不可改，开放时刻、循环周期、持续时长与备注），确认计划页原样合流紫色作息骨架卡 + 蓝色服药/测血压卡 + 红色复查卡。" },
+    "first-rest": { code: "CreateScheduleFlowView", note: "【V10.319 / V10.321 全局统一紫色基础作息卡片 + 独立基础作息开关】首页「排定康复基础日程」与选择类型「康复基础日程」共用本页。重构为与「确认计划」100% 同构的页面（按 DayPeriod 时段分组 + 紫色 RehabTaskRowView 操作卡）：① 基础作息作为特殊骨架存在，全生命周期（基础作息页 / 确认计划页 / 首页今日卡片 / 健康计划列表 / 查看编辑详情页）未打卡均呈现专属紫色（完成后转绿），卡片副行同时展示真实分类与骨架标签（如「07:00 · 循环 · 作息 · 基础作息」）；② 计划详情/编辑页提供独立的「基础作息」开关（而非作为新分类），开启后「事项名称」仅限从 6 项标准基础作息（起床/早餐/午餐/午休/晚餐/上床睡觉）中点选，点选后「事项分类」自动对应为「作息」或「饮食」；③ 所见即在用骨架 + 底部「可添加的基础作息」轻量虚框补回池，确认计划页原样合流紫色作息骨架卡 + 蓝色服药/测血压卡 + 红色复查卡。" },
     "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表，时段内严格按 HH:mm 由早到晚排布。【V10.320 首项规则】「起床」必须是一天计划的绝对第一个条目：推算测血压规范为起床后静坐测量（wake + 10 分钟，如 07:00 起床 → 07:10 起床测血压），同刻排序保底置顶「起床」卡。【V10.315 极简三态对比】仅在已有存量基础日程再次排定时展示（首次排定保持纯净），全链路砍掉「将停用」与停用专区（页面所见即接下来要执行的，关掉/删掉即不再提醒）：① 顶部「对比原基础日程」摘要卡展示「新增 / 已调整 / 保留」三态计数 +「其余 M 项手建与运动计划不受影响，确认后继续保留」；② 各时段与复查卡片标题行右侧实时标注「新增 / 已调整 / 保留」胶囊，「已调整」卡内附琥珀色对比行「原计划：…」（用药自动忽略「服用」前缀匹配同一药品）。右上「确认」按类别+名称整套替换上一版基础日程，手建与运动计划不动；左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "【V10.312】专业组首卡「康复基础日程」（副标题「按病历排好用药、复查与作息」）标复查红（特殊），与首页「排定康复基础日程」同一条链：基础作息（预填已有作息时刻）→ 拍照 → 资料详情 → 解析结果 → 确认计划，确认后整套替换上一版基础日程、手建计划不动；运动走体测。专业听诊器 14 / 日常铃。两组岛：运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
@@ -4416,6 +4416,8 @@
       customDays: d.cycle ? (d.customDays || null) : null,
       customId: d.customId || undefined,
       onceDate: d.onceDate || undefined,
+      routineSkeleton: !!d.routineSkeleton,
+      origin: d.routineSkeleton ? "baseline" : undefined,
     });
     if (S.proxyTargetPersonName) {
       const bucket = ensurePersonStore(S.proxyTargetPersonName);
@@ -7394,7 +7396,7 @@
         closeOverlay();
       },
       draftCat() {
-        if (!S.draft || S.lockCategory) return;
+        if (!S.draft || S.lockCategory || S.draft.routineSkeleton) return;
         if (Array.isArray(S.allowedCategories) && S.allowedCategories.length && !S.allowedCategories.includes(el.dataset.c)) return;
         const prev = S.draft.cat;
         S.draft.cat = el.dataset.c;
@@ -7412,6 +7414,42 @@
           S.draft.cycle = true;
           if (S.draft.rule === "monthly") S.draft.rule = "daily";
         }
+        render();
+      },
+      toggleDraftRoutine() {
+        if (!S.draft) return;
+        syncDraftInputs();
+        const next = !S.draft.routineSkeleton;
+        S.draft.routineSkeleton = next;
+        if (next) {
+          const hit = REST_PRESET.find((r) => r.name === S.draft.title || (r.name === "上床睡觉" && S.draft.title === "睡觉"));
+          const chosen = hit || (S.draft.cat === "diet" ? REST_PRESET[1] : REST_PRESET[0]);
+          S.draft.title = chosen.name;
+          S.draft.cat = ["早餐", "午餐", "晚餐"].includes(chosen.name) ? "diet" : "rest";
+          S.draft.customId = null;
+          if (!hit) {
+            const [hh, mm] = String(chosen.t || "07:00").split(":").map(Number);
+            S.draft.hour = hh || 7;
+            S.draft.min = mm || 0;
+            if (!S.lockBlock) S.draft.block = blockForHour(S.draft.hour);
+          }
+        }
+        render();
+      },
+      pickDraftRoutinePreset() {
+        if (!S.draft) return;
+        syncDraftInputs();
+        const name = el.dataset.name;
+        const chosen = REST_PRESET.find((r) => r.name === name);
+        if (!chosen) return;
+        S.draft.routineSkeleton = true;
+        S.draft.title = chosen.name;
+        S.draft.cat = ["早餐", "午餐", "晚餐"].includes(chosen.name) ? "diet" : "rest";
+        S.draft.customId = null;
+        const [hh, mm] = String(chosen.t || "07:00").split(":").map(Number);
+        S.draft.hour = hh || 7;
+        S.draft.min = mm || 0;
+        if (!S.lockBlock) S.draft.block = blockForHour(S.draft.hour);
         render();
       },
       draftCycle() {
@@ -8747,23 +8785,33 @@
           S.allowedCategories = null;
           if (retScreen === "first-rest" && S.restRows && i != null && S.restRows[i] && S.draft) {
             const origRow = S.restRows[i];
-            S.restRows[i] = {
-              ...origRow,
-              t: `${pad(S.draft.hour)}:${pad(S.draft.min)}`,
-              note: S.draft.note || "",
-              cycle: !!S.draft.cycle,
-              rule: S.draft.cycle ? (S.draft.rule || "daily") : "once",
-              weekdays: S.draft.cycle && S.draft.weekdays ? S.draft.weekdays.slice() : undefined,
-              monthDays: S.draft.cycle && S.draft.monthDays ? S.draft.monthDays.slice() : undefined,
-              intervalCount: S.draft.cycle && S.draft.rule === "custom" ? clampRuleInterval(S.draft.intervalCount, S.draft.intervalUnit) : undefined,
-              intervalUnit: S.draft.cycle && S.draft.rule === "custom" ? ((S.draft.intervalUnit === "week" || S.draft.intervalUnit === "month") ? S.draft.intervalUnit : "day") : undefined,
-              duration: S.draft.cycle ? S.draft.duration : null,
-              endDate: S.draft.cycle ? (S.draft.endDate || null) : null,
-              customDays: S.draft.cycle ? (S.draft.customDays || null) : null,
-              onceDate: S.draft.onceDate,
-              on: true,
-              routineSkeleton: true,
-            };
+            if (!S.draft.routineSkeleton) {
+              S.restRows[i].on = false;
+            } else {
+              const targetIdx = S.restRows.findIndex((r) => r.name === S.draft.title);
+              const writeIdx = targetIdx >= 0 ? targetIdx : i;
+              if (writeIdx !== i) S.restRows[i].on = false;
+              const targetOrig = S.restRows[writeIdx] || origRow;
+              S.restRows[writeIdx] = {
+                ...targetOrig,
+                name: S.draft.title || targetOrig.name,
+                cat: S.draft.cat || targetOrig.cat,
+                t: `${pad(S.draft.hour)}:${pad(S.draft.min)}`,
+                note: S.draft.note || "",
+                cycle: !!S.draft.cycle,
+                rule: S.draft.cycle ? (S.draft.rule || "daily") : "once",
+                weekdays: S.draft.cycle && S.draft.weekdays ? S.draft.weekdays.slice() : undefined,
+                monthDays: S.draft.cycle && S.draft.monthDays ? S.draft.monthDays.slice() : undefined,
+                intervalCount: S.draft.cycle && S.draft.rule === "custom" ? clampRuleInterval(S.draft.intervalCount, S.draft.intervalUnit) : undefined,
+                intervalUnit: S.draft.cycle && S.draft.rule === "custom" ? ((S.draft.intervalUnit === "week" || S.draft.intervalUnit === "month") ? S.draft.intervalUnit : "day") : undefined,
+                duration: S.draft.cycle ? S.draft.duration : null,
+                endDate: S.draft.cycle ? (S.draft.endDate || null) : null,
+                customDays: S.draft.cycle ? (S.draft.customDays || null) : null,
+                onceDate: S.draft.onceDate,
+                on: true,
+                routineSkeleton: true,
+              };
+            }
             S.meds = null;
             S.bps = null;
             S.confirmDrafts = null;
@@ -8774,11 +8822,11 @@
           // 回写草稿列表（真机确认页编辑保存回写 draftTasks）
           if (S.confirmDrafts && S.draft) {
             const prev = (i != null && S.confirmDrafts[i]) ? S.confirmDrafts[i] : null;
-            const keepRoutine = !!(prev && prev.routineSkeleton);
+            const keepRoutine = !!S.draft.routineSkeleton;
             const next = {
-              title: keepRoutine ? prev.title : S.draft.title,
+              title: S.draft.title,
               time: `${pad(S.draft.hour)}:${pad(S.draft.min)}`,
-              cat: keepRoutine ? prev.cat : S.draft.cat,
+              cat: S.draft.cat,
               customId: (!keepRoutine && S.draft.cat === "custom") ? S.draft.customId : undefined,
               note: S.draft.note || "",
               cycle: !!S.draft.cycle,
