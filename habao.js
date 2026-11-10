@@ -12451,7 +12451,7 @@
       const isRefresh = !!(rows._isRefresh ?? (rows[0] && rows[0].isRefresh));
       const changed = hasRestSkeletonChanges(rows) || ((S.restOtherDeleted || []).length > 0);
       const rightBtn = changed
-        ? `<button class="nav-text blue nav-hit" data-act="resetRestSkeleton" type="button">${isRefresh ? "恢复原骨架" : "恢复默认"}</button>`
+        ? `<button class="nav-text blue nav-hit" data-act="resetRestSkeleton" type="button">恢复</button>`
         : "";
       const activeIndexed = rows
         .map((r, i) => ({ ...r, i, time: r.t, h: parseHour(r.t), m: parseMinute(r.t), isRoutine: true }))
