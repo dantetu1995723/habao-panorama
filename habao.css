@@ -2572,30 +2572,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .bar.d { background: var(--cyan); }
 .line-path { fill: none; stroke: var(--blue); stroke-width: 2.2; }
 
-/* V10.317 基础作息重构：一日时间轴骨架 + 同源五态 Tag + 时刻胶囊 + 独立 Switch 开关 */
-.sk-banner {
-  padding: 0 2px; margin-bottom: 12px;
-  display: flex; flex-direction: column; gap: 6px;
-}
-.sk-banner-top {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 26px;
-}
-.sk-banner-title {
-  display: flex; align-items: center; gap: 6px;
-  font-size: calc(15px * var(--fs)); font-weight: 700; color: var(--blue);
-}
-.sk-banner-title svg { width: 15px; height: 15px; flex: 0 0 15px; }
-.sk-reset-btn {
-  display: inline-flex; align-items: center; gap: 4px;
-  background: rgba(16,84,224,.09); color: var(--blue);
-  border: 0; border-radius: 99px; padding: 5px 10px;
-  font-size: calc(12px * var(--fs)); font-weight: 700; font-family: inherit; cursor: pointer;
-}
-.sk-reset-btn svg { width: 12px; height: 12px; flex: 0 0 12px; }
-.sk-banner-desc {
-  font-size: calc(13px * var(--fs)); font-weight: 500; color: var(--secondary);
-  line-height: 1.45;
-}
+/* V10.318 基础作息重构：无顶部说明头，直接呈现一日时间轴骨架 + 同源五态 Tag + 时刻胶囊 + 独立 Switch 开关 */
 .sk-card {
   padding: 6px 14px !important; border-radius: 24px !important;
 }

@@ -1440,7 +1440,7 @@
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "V10.289：仅展示前一个拍摄页中已勾选/保留的分组。基础报告或首次上传报告中含出院记录时排在最上方；选传组为空时显示灰色说明文字。首次建日程与新增用药复查的资料详情右上为「解析」，点击后进入「资料解析结果」页；健康档案与身体报告子页的补拍通道右上为「提交」，提交后直接归入共享资料 BASE（不经过资料解析结果页）。" },
     "ocr-parsed": { code: "OCRParseResultView", note: "【V10.309】仅限创建计划步骤（排定 / 更新康复基础日程），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「解析结果」页（标题「解析结果」）。左上角为「< 返回」，右上角为同规格「提交」按钮。默认模拟已识别填好的状态，包含五个可编辑字段：① 疾病信息（必填，多行文本框 context + 右上角「清空」按钮）、② 出院时间（必填，年 / 月 / 日三个并排下拉框）、③ 用药处方（必填，多行文本框 context + 右上角「清空」按钮）、④ 手术名称（选填，多行文本框 context + 右上角「清空」按钮）、⑤ 手术时间（选填，年 / 月 / 日三个并排下拉框）。当三个必填字段非空时右上角「提交」按钮可点击，按修改后的解析结果生成计划并进入「确认计划」页。" },
-    "first-rest": { code: "CreateScheduleFlowView", note: "【V10.317 一日时间轴骨架重构】首页「排定康复基础日程」与选择类型「康复基础日程」共用本页。重构为纵向时间轴图标串联 6 个节点（起床 / 早餐 / 午餐 / 午休 / 晚餐 / 上床睡觉）+ 中间事项名与同源状态 Tag + 右侧时刻胶囊与独立 Switch 开关（彻底去掉像打卡的蓝圆勾）：① 顶部骨架引导头说明作息节点与后续病历解析排药的关系，有改动时动态浮现「恢复原骨架 / 恢复默认」一键还原；② 首次排定开启标「新建」、关掉标「不创建」；再次排定对比原有骨架完整呈现五态闭环——原有未改标「保留」、改时刻标「已调整（原 HH:MM）」、关掉原有在用项标「本次停用（原 HH:MM · 停用提醒，保留推算）」、原未包含标「未启用」、重新开启标「新建」，开启项进入确认计划页延续同一 Tag；③ 开关只控制「是否生成该作息打卡提醒」，各节点时刻始终作为推算早/中/晚餐前后与睡前服药及测血压的时间基准。" },
+    "first-rest": { code: "CreateScheduleFlowView", note: "【V10.318 一日时间轴骨架 · 去顶部说明头】首页「排定康复基础日程」与选择类型「康复基础日程」共用本页。导航下无顶部标题与说明文字，直接呈现纵向时间轴图标串联 6 个节点（起床 / 早餐 / 午餐 / 午休 / 晚餐 / 上床睡觉）+ 中间事项名与同源状态 Tag + 右侧时刻胶囊与独立 Switch 开关：① 首次排定开启标「新建」、关掉标「不创建」；再次排定对比原有骨架完整呈现五态闭环——原有未改标「保留」、改时刻标「已调整（原 HH:MM）」、关掉原有在用项标「本次停用（原 HH:MM · 停用提醒，保留推算）」、原未包含标「未启用」、重新开启标「新建」；② 有改动时导航栏右上角动态轻显「恢复原骨架 / 恢复默认」一键还原；③ 开关只控制「是否生成该作息打卡提醒」，各节点时刻始终作为推算早/中/晚餐前后与睡前服药及测血压的时间基准。" },
     "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表，时段内严格按 HH:mm 由早到晚排布。【V10.315 极简三态对比】仅在已有存量基础日程再次排定时展示（首次排定保持纯净），全链路砍掉「将停用」与停用专区（页面所见即接下来要执行的，关掉/删掉即不再提醒）：① 顶部「对比原基础日程」摘要卡展示「新增 / 已调整 / 保留」三态计数 +「其余 M 项手建与运动计划不受影响，确认后继续保留」；② 各时段与复查卡片标题行右侧实时标注「新增 / 已调整 / 保留」胶囊，「已调整」卡内附琥珀色对比行「原计划：…」（用药自动忽略「服用」前缀匹配同一药品）。右上「确认」按类别+名称整套替换上一版基础日程，手建与运动计划不动；左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "【V10.312】专业组首卡「康复基础日程」（副标题「按病历排好用药、复查与作息」）标复查红（特殊），与首页「排定康复基础日程」同一条链：基础作息（预填已有作息时刻）→ 拍照 → 资料详情 → 解析结果 → 确认计划，确认后整套替换上一版基础日程、手建计划不动；运动走体测。专业听诊器 14 / 日常铃。两组岛：运动走体测。新建类别并进日常岛。首页虚框不经本页（首页「添加今日计划」第一层也不放右上「管理」，保持快捷路径轻量）。选类型后替换本页；返回关整段创建 cover。右上「管理」推入管理类别（仅两处「选择类型」页有）。" },
@@ -12172,19 +12172,13 @@
       const rows = ensureRestRowsSynced();
       const isRefresh = !!(rows._isRefresh ?? (rows[0] && rows[0].isRefresh));
       const changed = hasRestSkeletonChanges(rows);
+      const rightBtn = changed
+        ? `<button class="nav-text blue nav-hit" data-act="resetRestSkeleton" type="button">${isRefresh ? "恢复原骨架" : "恢复默认"}</button>`
+        : "";
       return `
       <div class="page">
-        ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "基础作息")}
-        <div class="scroll pad-16" style="padding-top:12px;padding-bottom:16px">
-          <div class="sk-banner">
-            <div class="sk-banner-top">
-              <div class="sk-banner-title">${I.clock}<span>${isRefresh ? "核对当前作息骨架" : "设定全天作息骨架"}</span></div>
-              ${changed ? `<button class="sk-reset-btn" data-act="resetRestSkeleton" type="button">${I.undo}<span>${isRefresh ? "恢复原骨架" : "恢复默认"}</span></button>` : ""}
-            </div>
-            <div class="sk-banner-desc">${isRefresh
-              ? "已载入在用骨架。右侧开关控制是否保留日常提醒，各节点时刻仍作为下一步推算服药与测血压的基准。"
-              : "先定一日作息锚点：开启项将生成每日提醒；下一步拍病历时，按各节点时刻自动推算服药与测血压时间。"}</div>
-          </div>
+        ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "基础作息", rightBtn)}
+        <div class="scroll pad-16" style="padding-top:16px;padding-bottom:16px">
           <div class="white-island sk-card">
             ${rows.length ? rows.map((r, i) => {
               const isOn = r.on !== false;
