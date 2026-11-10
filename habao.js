@@ -8943,6 +8943,19 @@
         toast("已删除");
       },
       delToday() {
+        const t = findEditableTask(S.taskId);
+        const title = t ? t.title : "该计划";
+        openOverlay("confirm", {
+          title: "删除本次计划",
+          body: `确认仅删除本次「${title}」吗？后续日期的循环计划将继续保留。`,
+          cancel: "取消",
+          ok: "确认删除",
+          danger: true,
+          action: "doConfirmDelToday",
+        });
+      },
+      doConfirmDelToday() {
+        closeOverlay();
         if (S.proxyTargetPersonName) {
           const famName = S.proxyTargetPersonName;
           const me = currentDemoPerson();
@@ -8971,6 +8984,22 @@
         toast("已删除本次计划");
       },
       delAll() {
+        const t = findEditableTask(S.taskId);
+        const title = t ? t.title : "该计划";
+        const isCycle = t ? t.cycle !== false : true;
+        openOverlay("confirm", {
+          title: isCycle ? "长期删除计划" : "删除计划",
+          body: isCycle
+            ? `确认长期删除「${title}」吗？本次及后续日期的计划将被移除，已完成的历史记录将保留。`
+            : `确认删除「${title}」吗？该计划将被移除。`,
+          cancel: "取消",
+          ok: isCycle ? "确认长期删除" : "确认删除",
+          danger: true,
+          action: "doConfirmDelAll",
+        });
+      },
+      doConfirmDelAll() {
+        closeOverlay();
         if (S.proxyTargetPersonName) {
           const famName = S.proxyTargetPersonName;
           const me = currentDemoPerson();
@@ -8994,9 +9023,84 @@
         dismissCover();
         toast("已删除本次和后续计划");
       },
-      delCardToday() { logDrop(el.dataset.id, true); addSkipped(toYMD(demoDate()), el.dataset.id); toast("已仅删本次"); },
-      delCardAll() { logDrop(el.dataset.id); dropTask(el.dataset.id); toast("已长期删除"); },
-      delCardOnce() { logDrop(el.dataset.id); dropTask(el.dataset.id); toast("已删除"); },
+      delCardToday() {
+        const id = el.dataset.id;
+        if (!id) return;
+        const task = (SEED || []).find((t) => String(t.id) === String(id));
+        const title = task ? task.title : "该计划";
+        S.pendingDelCardId = id;
+        S.pendingDelCardYMD = S.calSelYMD || toYMD(demoDate());
+        openOverlay("confirm", {
+          title: "删除本次计划",
+          body: `确认仅删除本次「${title}」吗？后续日期的循环计划将继续保留。`,
+          cancel: "取消",
+          ok: "确认删除",
+          danger: true,
+          action: "doConfirmDelCardToday",
+        });
+      },
+      doConfirmDelCardToday() {
+        closeOverlay();
+        const id = S.pendingDelCardId;
+        if (!id) return;
+        const ymd = S.pendingDelCardYMD || S.calSelYMD || toYMD(demoDate());
+        logDrop(id, true);
+        addSkipped(ymd, id);
+        toast("已仅删本次");
+        S.pendingDelCardId = null;
+        S.pendingDelCardYMD = null;
+        render();
+      },
+      delCardAll() {
+        const id = el.dataset.id;
+        if (!id) return;
+        const task = (SEED || []).find((t) => String(t.id) === String(id));
+        const title = task ? task.title : "该计划";
+        S.pendingDelCardId = id;
+        openOverlay("confirm", {
+          title: "长期删除计划",
+          body: `确认长期删除「${title}」吗？本次及后续日期的计划将被移除，已完成的历史记录将保留。`,
+          cancel: "取消",
+          ok: "确认长期删除",
+          danger: true,
+          action: "doConfirmDelCardAll",
+        });
+      },
+      doConfirmDelCardAll() {
+        closeOverlay();
+        const id = S.pendingDelCardId;
+        if (!id) return;
+        logDrop(id);
+        dropTask(id);
+        toast("已长期删除");
+        S.pendingDelCardId = null;
+        render();
+      },
+      delCardOnce() {
+        const id = el.dataset.id;
+        if (!id) return;
+        const task = (SEED || []).find((t) => String(t.id) === String(id));
+        const title = task ? task.title : "该计划";
+        S.pendingDelCardId = id;
+        openOverlay("confirm", {
+          title: "删除计划",
+          body: `确认删除「${title}」吗？该计划将被移除。`,
+          cancel: "取消",
+          ok: "确认删除",
+          danger: true,
+          action: "doConfirmDelCardOnce",
+        });
+      },
+      doConfirmDelCardOnce() {
+        closeOverlay();
+        const id = S.pendingDelCardId;
+        if (!id) return;
+        logDrop(id);
+        dropTask(id);
+        toast("已删除");
+        S.pendingDelCardId = null;
+        render();
+      },
       doDelTask() {
         const id = el.dataset.id || S.taskId;
         logDrop(id);
@@ -9621,6 +9725,25 @@
         const famName = resolvedSelectedFamilyNameFor(me.name);
         const tid = el.dataset.id;
         if (!famName || !tid) return;
+        const bucket = ensurePersonStore(famName);
+        const task = (bucket.tasks || []).find((t) => String(t.id) === String(tid));
+        const title = task ? task.title : "该计划";
+        S.pendingProxySkipTaskId = tid;
+        openOverlay("confirm", {
+          title: "删除本次计划",
+          body: `确认仅删除${famName}本次「${title}」吗？后续日期的循环计划将继续保留。`,
+          cancel: "取消",
+          ok: "确认删除",
+          danger: true,
+          action: "doProxySkipTaskToday",
+        });
+      },
+      doProxySkipTaskToday() {
+        closeOverlay();
+        const me = currentDemoPerson();
+        const famName = resolvedSelectedFamilyNameFor(me.name);
+        const tid = S.pendingProxySkipTaskId;
+        if (!famName || !tid) return;
         const ymd = S.calSelYMD || toYMD(demoDate());
         const bucket = ensurePersonStore(famName);
         const task = (bucket.tasks || []).find((t) => String(t.id) === String(tid));
@@ -9637,6 +9760,7 @@
           skipDirectMutation: true,
         });
         toast(`已为${famName}移除当次「${task.title}」`);
+        S.pendingProxySkipTaskId = null;
         render();
       },
       prevProxyPopupPage() {
