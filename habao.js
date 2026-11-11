@@ -5958,9 +5958,20 @@
     }
     closeFlow();
   }
+  function initVitalsDefaults() {
+    const latest = (S.vitalsLog && S.vitalsLog.length) ? S.vitalsLog[0] : null;
+    S.sys = latest?.sys ?? 120;
+    S.dia = latest?.dia ?? 78;
+    S.hr = latest?.hr ?? 72;
+    S.vitalsSyncPhase = "idle";
+    S.vitalsFromHw = false;
+  }
   function openOverlay(name, data = {}) {
     S.overlay = name;
     S.overlayData = data;
+    if (name === "vitals") {
+      initVitalsDefaults();
+    }
     render();
   }
   function closeOverlay() {
@@ -19607,7 +19618,10 @@
         </div>
       </div>`,
     vitals: () => {
-      // 有上次读数就预填、没有就空态（真机 VitalsInputSheet 预填最近读数）
+      // 测血压打卡界面预填默认值：优先上次读数，无读数则走临床基准默认值（收缩压 120 / 舒张压 78 / 心率 72）
+      if (S.sys == null || S.dia == null || S.hr == null) {
+        initVitalsDefaults();
+      }
       const vSys = S.sys; const vDia = S.dia; const vHr = S.hr;
       const tTitle = (SEED.find((t) => t.id === S.overlayData.id) || {}).title || "起床测血压";
       const bpDev = hasBoundBPMonitor() ? hwBound("bloodPressure") : null;
