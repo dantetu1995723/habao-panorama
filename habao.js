@@ -15922,19 +15922,66 @@
     return { badge, tone, bpStat, hrStat, text: `${parts.join("，")}。` };
   }
 
-  /// 录入面板动态提示：逐项判档，取更严重的一档作为整条底色（真机 VitalsInputSheet 五档）
+  /// 录入面板动态提示：高压 / 低压 / 心率三项分开独立判档（无数学符号纯中文适老表述，取更严重一档着色）
+  function systolicStatus(sys, age) {
+    if (sys >= 180) return "alertHigh";
+    if (sys < 90) return "alertLow";
+    const upper = age >= 80 ? 150 : 140;
+    if (sys >= upper) return "aboveTarget";
+    return "inTarget";
+  }
+
+  function diastolicStatus(dia) {
+    if (dia >= 110) return "alertHigh";
+    if (dia < 60) return "belowTarget";
+    if (dia >= 90) return "aboveTarget";
+    return "inTarget";
+  }
+
   function vitalsStatus() {
     const age = S.age ?? 58;
     const sys = S.sys; const dia = S.dia; const hr = S.hr;
     if (sys == null || dia == null || hr == null) {
       return { level: "none", text: "录入收缩压 / 舒张压 / 心率后自动判档" };
     }
-    const bp = VITAL.bpStatus(sys, dia, age);
-    const st = VITAL.hrStatus(hr);
-    const level = VITAL_RANK[st] > VITAL_RANK[bp] ? st : bp;
+    const sysUpper = age >= 80 ? 150 : 140;
+    const stSys = systolicStatus(sys, age);
+    const stDia = diastolicStatus(dia);
+    const stHr = VITAL.hrStatus(hr);
+
+    let sysTxt = "";
+    if (stSys === "alertHigh") sysTxt = `高压 ${sys} 显著偏高（高于 180 报警线）`;
+    else if (stSys === "alertLow") sysTxt = `高压 ${sys} 偏低（低于 90 防眩晕）`;
+    else if (stSys === "aboveTarget") sysTxt = `高压 ${sys} 偏高（目标低于 ${sysUpper}）`;
+    else sysTxt = `高压 ${sys} 达标（目标低于 ${sysUpper}）`;
+
+    let diaTxt = "";
+    if (stDia === "alertHigh") diaTxt = `低压 ${dia} 显著偏高（高于 110 报警线）`;
+    else if (stDia === "belowTarget") diaTxt = `低压 ${dia} 偏低（低于 60 防眩晕）`;
+    else if (stDia === "aboveTarget") diaTxt = `低压 ${dia} 偏高（目标低于 90）`;
+    else diaTxt = `低压 ${dia} 达标（目标低于 90）`;
+
+    let hrTxt = "";
+    if (stHr === "alertHigh") hrTxt = `心率 ${hr} 过快（高于 100 报警线）`;
+    else if (stHr === "alertLow") hrTxt = `心率 ${hr} 过慢（低于 50 报警线）`;
+    else if (stHr === "aboveTarget") hrTxt = `心率 ${hr} 偏快（目标 55 到 60）`;
+    else if (stHr === "belowTarget") hrTxt = `心率 ${hr} 偏慢（目标 55 到 60）`;
+    else hrTxt = `心率 ${hr} 达标（目标 55 到 60）`;
+
+    const rSys = VITAL_RANK[stSys] || 0;
+    const rDia = VITAL_RANK[stDia] || 0;
+    const rHr = VITAL_RANK[stHr] || 0;
+    const maxRank = Math.max(rSys, rDia, rHr);
+    let level = "inTarget";
+    if (maxRank === 2) {
+      level = (stSys === "alertHigh" || stDia === "alertHigh" || stHr === "alertHigh") ? "alertHigh" : "alertLow";
+    } else if (maxRank === 1) {
+      level = (stSys === "aboveTarget" || stDia === "aboveTarget" || stHr === "aboveTarget") ? "aboveTarget" : "belowTarget";
+    }
+
     return {
       level,
-      text: `血压 ${sys}/${dia} ${VITAL_LAB[bp]}（目标 ${VITAL.bpTargetText(age)}）；心率 ${hr} ${VITAL_LAB[st]}（目标 55–60）`,
+      text: `${sysTxt}；${diaTxt}；${hrTxt}`,
     };
   }
 
