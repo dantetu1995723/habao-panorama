@@ -2219,12 +2219,21 @@
   }
   function blockOf(h) { return BLOCKS.find((b) => h >= b.start && h < b.end) || BLOCKS[6]; }
   function spoken(h, m) { return `${blockOf(h).title}${h}:${pad(m)}`; }
-  function greeting() {
+  function greeting(blockId) {
     const tasks = liveTasks();
     const allDone = tasks.length > 0 && tasks.every((t) => S.completed[t.id]);
     if (allDone) return "今天都照顾好了，真棒";
     if (!S.enrolled) return "慢慢来，从创建计划开始";
-    const h = new Date().getHours();
+    let b = blockId;
+    if (b == null) {
+      if (S.scheme === 3) {
+        b = S.s4Block != null ? S.s4Block : blockOf(demoNowHM().h).id;
+      } else {
+        b = S.block != null ? S.block : blockOf(demoNowHM().h).id;
+      }
+    }
+    const blk = BLOCKS[b] || BLOCKS[1];
+    const h = blk.start;
     if (h < 6) return "夜深了，安心歇一歇";
     if (h < 9) return "早上好，慢慢开启今天";
     if (h < 12) return "上午安稳，按时吃药休息";
@@ -2232,6 +2241,13 @@
     if (h < 18) return "下午慢慢来，身体最要紧";
     if (h < 21) return "傍晚放缓脚步，今天辛苦了";
     return "夜幕已至，好好休息吧";
+  }
+  function updateHomeSubtitle(blockId) {
+    const text = greeting(blockId);
+    const greet = document.querySelector(".welcome p");
+    if (greet) greet.textContent = text;
+    const s4Greet = document.querySelector(".s4-greet-txt .s4-weather");
+    if (s4Greet) s4Greet.textContent = text;
   }
   function bmi() {
     const v = S.weight / ((S.height / 100) ** 2);
@@ -6293,6 +6309,7 @@
     S.block = b;
     const title = $("#add-slot-title");
     if (title) title.textContent = `${BLOCKS[b].title}临时计划`;
+    updateHomeSubtitle(b);
     animateFaceTo(continuousSnapFace(currentFace(), b), () => {
       S.liveFace = null;
       S.syncDriver = "idle";
@@ -6372,6 +6389,7 @@
         S.block = nearest;
         const title = $("#add-slot-title");
         if (title) title.textContent = `${BLOCKS[S.block].title}临时计划`;
+        updateHomeSubtitle(nearest);
         syncLaneForBlock(nearest);
       }
       drawDial();
@@ -6381,6 +6399,7 @@
       dragging = false;
       const nearest = nearestBlockFacing(S.liveFace);
       S.block = nearest;
+      updateHomeSubtitle(nearest);
       animateFaceTo(continuousSnapFace(S.liveFace, nearest), () => {
         S.liveFace = null;
         S.syncDriver = "idle";
@@ -6422,8 +6441,7 @@
   function refreshHomeSoft() {
     const lane = laneScroll();
     const keep = lane ? lane.scrollTop : 0;
-    const greet = document.querySelector(".welcome p");
-    if (greet) greet.textContent = greeting();
+    updateHomeSubtitle(S.block);
     paintLaneBody();
     const n = laneScroll();
     if (n) n.scrollTop = keep;
@@ -10882,6 +10900,22 @@
         go("consult", "cover");
       },
       openDebug() { openOverlay("debugMenu"); },
+      debugPickBlock() {
+        const b = +el.dataset.block;
+        S.block = b;
+        closeOverlay();
+        if (S.screen !== "home") go("home", "root");
+        setTimeout(() => {
+          syncLaneForBlock(b);
+          animateFaceTo(continuousSnapFace(currentFace(), b), () => {
+            S.liveFace = null;
+            S.syncDriver = "idle";
+            drawDial();
+          });
+          updateHomeSubtitle(b);
+          toast(`已切至「${BLOCKS[b].title}」：${greeting(b)}`);
+        }, 60);
+      },
       // 设计版本（真机 DesignGenerationStore.select）：V0.0 对应非 VIP 状态，V0.1 对应已开通 VIP 状态，方便直接对比 UI。
       debugGen() {
         S.gen = el.dataset.gen;
@@ -12310,6 +12344,8 @@
     document.querySelectorAll(".s4-dots").forEach((d) => { d.innerHTML = s4DotsHTML(cur); });
     const cap = document.getElementById("s4-cap");
     if (cap) cap.innerHTML = s4CapHTML(cur);
+    const s4Greet = document.querySelector(".s4-greet-txt .s4-weather");
+    if (s4Greet) s4Greet.textContent = greeting(cur);
   }
   function s4ScrollTo(id, animate) {
     const sc = document.getElementById("s4-lanes");
@@ -12405,7 +12441,7 @@
         <div class="s4-greet">
           <div class="s4-greet-txt">
             <h2 class="s4-hello"><span>${s4Greeting(now.h)}，</span>${S.name}</h2>
-            <p class="s4-weather">今天天气很凉爽，气温26~18度</p>
+            <p class="s4-weather">${greeting(s4Cur())}</p>
           </div>
           <button class="circle-btn lg dbg-btn" data-act="openDebug" type="button" aria-label="开发菜单">${I.ellipsis}</button>
           <button class="circle-btn lg" data-go="profile" type="button" aria-label="个人中心">${I.person}</button>
@@ -19480,6 +19516,13 @@
             <button class="dbg-row" data-act="debugGen" data-gen="${v}" type="button">
               ${S.gen === v ? I.check : `<span style="width:19px;height:19px;flex:0 0 19px"></span>`}
               <span>设计版本 V${v}<em>${S.gen === v ? "当前" : ""}</em></span>
+            </button>`).join("")}
+          <div class="dbg-sep"></div>
+          <div style="padding:8px 14px 4px;font-size:12px;font-weight:700;color:var(--text-sec)">时段副标题预览（拨盘联动）</div>
+          ${BLOCKS.map((b) => `
+            <button class="dbg-row" data-act="debugPickBlock" data-block="${b.id}" type="button">
+              ${S.block === b.id ? I.check : `<span style="width:19px;height:19px;flex:0 0 19px"></span>`}
+              <span>${b.title}（${b.range}）<em style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${greeting(b.id)}</em></span>
             </button>`).join("")}
         </div>
       </div>`,
