@@ -1445,15 +1445,15 @@
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。V0.1 + VIP 且采纳过方案时，标题下方多一张「方案章卡」：7 个日格（🌸 满日 / ◐ 部分 / ○ 空或未到 / 休 = 当天没排方案计划，算满日；今天蓝描边，点日格换日）、右上「本期已集 X/Y 章」、鼓励语（再集满 N 天拿金章 / 银章，只奖不罚）与「本期计划 ›」展开清单（调整 / 新增 / 保留 + 医嘱标）。其它状态：待采纳「📮 去采纳」、本期结束待交反馈（七格定格 + 期章 + 蓝色「交反馈」开期末反馈弹窗）、已交反馈下一期待采纳（「下一期方案已送达 去看看 ›」）。章卡下一行「我的期章」横排期章（金 ≥6 满日 / 银 4–5 / 铜 ≤3 且打过卡），点开看该期小结。海报日期下加「第 N 期康复方案 · 第 D 天 · 满日 X/7」（已结束带期章）。只有方案里的计划计入章卡，家属代打卡同样点亮，海报不带操作人。V0.0 / V0.2 / 未开通 VIP 只显示日章。" },
     consult: { code: "SmartConsultChatView", note: "纯粹的 AI 问诊对话界面（所有入口始终可点击进入）：顶部导航左「返回」、居中「哈宝医生」；中间消息区在未发消息时展示问候卡（你好，这里是哈宝医生 / 有不适或用药疑问，都可以问我）；VIP 用户发送消息后以左右纯文本/图片气泡进行问答交流，非 VIP 用户发送消息后弹出「需购买 VIP 才能使用哈宝问诊」提示对话卡（可一键跳转 VIP 会员页开通，已购买 VIP 后自动转为哈宝医生打招呼气泡以便正式聊天问诊）；底部主输入框默认为「长按说话」按钮（按住说话、上滑取消、松开发送），左侧为键盘切换按钮（点击切换为文字输入框），右侧为「+」号功能面板（仅保留拍照、相册，已移除 AI 电话）。" },
-    profile: { code: "ServiceView", note: "V10.340：Hero 健康档案（展示脱敏绑定手机号如 138****5678）+ VIP 权益区 + 功能列表（VIP 专区「硬件管理 / 操作记录 / 添加家属」与免费基础区「家属管理 / 打卡通知 / 更换手机号 / 联系客服 / 隐私管理 / 关于我们」清晰分流）+ 底部「退出登录 / 注销账号（全身份开放，进短信验证码校验页）/ 哈宝 V0.1.0」。全面满足 iOS App Store 与 Android 应用商店上架审核要求。" },
-    "change-phone": { code: "ChangePhoneView", note: "V10.340：更换手机号页。展示当前绑定脱敏手机号，输入 11 位新手机号 + 6 位短信验证码（60s 倒计时）校验后换绑，本机健康档案、康复计划、家属绑定与 VIP 权益无缝保留。" },
-    support: { code: "CustomerSupportView", note: "V10.340：联系客服与意见反馈页。顶部展示康复客服热线 400-1666-199（08:00–21:00）一键呼叫卡片，下方提供四类问题分类（功能使用 / 计划与打卡 / VIP 与理赔 / 账号与隐私）+ 意见反馈提交与本地受理记录。" },
-    "privacy-center": { code: "PrivacyCenterView", note: "V10.340：隐私管理中心。聚合上架审核要求的四大合规子项——「系统权限管理」、「个人信息收集清单」、「第三方信息共享清单」与「隐私协议」。" },
-    permissions: { code: "SystemPermissionsView", note: "V10.340：系统权限管理页。逐项展示相机、相册、定位与运动、麦克风与语音识别、蓝牙设备、通知提醒的调用场景与当前授权状态，并支持跳转系统设置撤回授权。" },
-    "info-collected": { code: "PersonalInfoListView", note: "V10.340：个人信息收集清单。动态统计并透明展示当前已收集的账号信息（脱敏手机号）、基本健康资料、日常健康监测条数与病历检查报告照片张数。" },
-    "third-party": { code: "ThirdPartySDKListView", note: "V10.340：第三方信息共享清单。公示短信验证码、医疗单据 OCR、智能语音识别、地图定位、消息推送及中国人民保险理赔协助（仅申请理赔时授权）的使用目的、涉及信息与共享方式。" },
-    about: { code: "AboutHabaoView", note: "V10.340：关于我们页。展示哈宝品牌 Logo、当前版本号 V0.1.0、《用户服务协议》、《VIP 会员服务协议》、《支架保险理赔须知》及检查新版本入口。" },
-    "unregister-verify": { code: "DeleteAccountVerifyView", note: "V10.340：注销账号身份核验页。全账号开放，列明不可逆清空范围（健康档案、病历图片、计划打卡、血压散步随访、家属与硬件绑定、问诊与 VIP 状态），通过绑定手机号 6 位短信验证码校验后方可执行永久注销。" },
+    profile: { code: "ServiceView", note: "V10.341：个人中心适老极简重构。顶部蓝卡移除重复手机号胶囊（保持清爽的性别+我）；下方拆分为上下两张白卡——上卡承载 5 项核心照护功能（硬件管理 / 操作记录 / 添加家属 / 家属管理 / 打卡通知），下卡以极简单行展示 4 项低频设置（更换手机号右侧展示 138****5678 ›、联系客服 ›、隐私管理 ›、关于我们右侧展示 V0.1.0 ›），底部去除重复版本号小字。" },
+    "change-phone": { code: "ChangePhoneView", note: "V10.341：更换手机号页（极简版）。顶部单行展示「当前绑定 138****5678 · 档案与 VIP 不变」，紧接新手机号与 6 位验证码输入框及「确认更换」按钮，首屏清爽无冗长说明框。" },
+    support: { code: "CustomerSupportView", note: "V10.341：联系客服页（首屏免滚版）。顶部压缩为紧凑单横条（400-1666-199 + 客服热线 08:00–20:00 + 右侧「拨打」胶囊），下方首屏完整呈现 4 项问题分类、反馈输入框与「提交反馈」按钮。" },
+    "privacy-center": { code: "PrivacyCenterView", note: "V10.341：隐私管理中心（极简单行版）。移除顶部口号说明与冗长副标题，一张白卡展示干净单行列表：系统权限管理、个人信息收集清单、第三方信息共享清单、隐私协议。" },
+    permissions: { code: "SystemPermissionsView", note: "V10.341：系统权限管理页。简明展示相机、相册、位置与运动、麦克风与语音、蓝牙、通知提醒 6 项用途与跳转入口。" },
+    "info-collected": { code: "PersonalInfoListView", note: "V10.341：个人信息收集清单。去掉花哨角标，每项统一采用「标题 + 已收集内容 + 一句话用途」三行清爽结构。" },
+    "third-party": { code: "ThirdPartySDKListView", note: "V10.341：第三方信息共享清单。去掉“SDK”生僻术语，每项统一采用「服务名称 + 信息 + 用途」简明清单结构。" },
+    about: { code: "AboutHabaoView", note: "V10.341：关于我们页（去重极简版）。Logo 下展示「版本 V0.1.0」，下方白卡采用无副标题干净单行列表（用户服务协议、VIP 会员服务协议、支架保险理赔须知、检查新版本 · 已是最新）。" },
+    "unregister-verify": { code: "DeleteAccountVerifyView", note: "V10.341：注销账号安全验证页（3 行短词条版）。红框精简为 3 条一目了然的清空影响要点 + 绑定手机号 6 位验证码校验 + 对称双按钮「取消 / 确认注销」。" },
     "family-add": { code: "FamilyAddView", note: "VIP 专属「添加家属」独立页：顶部左「返回」+ 居中「添加家属」；下方 24pt 边距展示三字段绑定表单（姓名、关系四选一、11 位手机号）与底部通栏「点击绑定」按钮；已发出的待确认请求以全蓝色三层同构卡片展示在表单下方并支持「撤回绑定申请」；满 5 位上限时提示「已达 5 位家属上限」。" },
     family: { code: "FamilyManageView", note: "免费开放的「家属管理」独立页（移除「收家属通知」栏目与代操作待接受/撤回步骤）：本人为家属执行的任何代操作立即生效落库；家属进入首页直接收到居中弹窗通知（文字表述刚才家属做了什么事，点击「知道了」确认），并在首页右上角个人中心、家属管理入口及家属切换胶囊上展示舒适通知红点。页面内嵌与「健康计划」同款的整体计划管理（顶部深蓝家属档案头 + 周/月日历选日期 + 未完成/已完成切换 + 全蓝白色调分时段操作卡）。" },
     vip: { code: "VIPView", note: "V10.340：VIP 会员页。顶栏右上新增「恢复购买」胶囊按钮；Hero 写哈宝 VIP 与 ¥2400 / 年；五项权益中「支架保险理赔服务」内嵌可点击的「查看《理赔须知》 ›」入口；底栏「立即开通」上方配备《VIP 会员服务协议》勾选与协议详情入口（未勾选点开通时弹出协议确认框）；已开通展示《VIP 会员服务协议》查看入口与「取消订阅」。" },
@@ -1694,7 +1694,7 @@
     vipPurchasedByPerson: { "李建国": true },
     vipTermsChecked: false,
     changePhoneDraft: { phone: "", code: "", cd: 0 },
-    supportDraft: { cat: "功能使用", text: "" },
+    supportDraft: { cat: "功能异常", text: "" },
     feedbackTickets: [],
     deleteVerifyCode: "",
     deleteVerifyCd: 0,
@@ -9260,8 +9260,8 @@
       },
       callSupportHotline() {
         openOverlay("confirm", {
-          title: "拨打客服热线",
-          body: "是否呼叫哈宝康复客服热线 400-1666-199？（服务时间：每日 08:00–21:00）",
+          title: "拨打客服电话",
+          body: "呼叫哈宝客服热线 400-1666-199（每日 08:00–20:00）？",
           ok: "立即拨打",
           action: "doCallHotline",
         });
@@ -9272,33 +9272,30 @@
         toast("正在呼叫 400-1666-199（演示环境）");
       },
       pickSupportCat() {
-        if (!S.supportDraft) S.supportDraft = { cat: "功能使用", text: "" };
+        if (!S.supportDraft) S.supportDraft = { cat: "功能异常", text: "" };
         const ta = $("textarea[name=fbText]");
         if (ta) S.supportDraft.text = ta.value;
-        S.supportDraft.cat = el.dataset.cat || "功能使用";
+        S.supportDraft.cat = el.dataset.cat || "功能异常";
         render();
       },
       submitSupportFeedback() {
-        if (!S.supportDraft) S.supportDraft = { cat: "功能使用", text: "" };
+        if (!S.supportDraft) S.supportDraft = { cat: "功能异常", text: "" };
         const text = ($("textarea[name=fbText]")?.value || S.supportDraft.text || "").trim();
-        if (!text) { toast("请填写您遇到的问题或建议"); return; }
+        if (!text) { toast("请填写遇到的问题或建议"); return; }
         if (!S.feedbackTickets) S.feedbackTickets = [];
-        const now = new Date();
-        const hm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
         S.feedbackTickets.unshift({
-          cat: S.supportDraft.cat || "功能使用",
+          cat: S.supportDraft.cat || "功能异常",
           text,
-          time: `今天 ${hm}`,
-          status: "已受理 · 预计 24 小时内回复",
+          status: "已受理",
         });
         S.supportDraft.text = "";
         render();
-        toast("反馈已提交，客服团队将尽快跟进");
+        toast("已提交，客服将尽快跟进");
       },
       checkAppUpdate() {
         openOverlay("confirm", {
           title: "已是最新版本",
-          body: "当前哈宝版本 V0.1.0 已是最新版本，无需更新。",
+          body: "当前版本 V0.1.0 已是最新，无需更新。",
           ok: "知道了",
           action: "close",
         });
@@ -14211,10 +14208,9 @@
                       ? `<span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.crown} VIP</span>`
                       : (genIsV01() ? `<span class="vip-badge-pill" style="color:rgba(255,255,255,.95);background:rgba(255,255,255,.22)">免费用户</span>` : "")}
                   </div>
-                  <div style="display:flex;align-items:center;gap:5px;margin-top:5px;flex-wrap:wrap">
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:5px;white-space:nowrap">
                     <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.18);padding:2.5px 8px;border-radius:999px">${esc(curPerson.gender)}</span>
                     <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.18);padding:2.5px 8px;border-radius:999px">我</span>
-                    <span style="font-size:11.5px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.16);padding:2.5px 8px;border-radius:999px">${esc(maskedPhone)}</span>
                   </div>
                 </div>
                 <button class="view-cap" data-go="health-record" type="button">查看档案</button>
@@ -14272,30 +14268,33 @@
               <div class="grow"><h4 class="neutral-title">打卡通知</h4><p>${notifyCaption()}</p></div>
               <span class="neutral-chev">${I.chevR}</span>
             </button>
-            <button class="list-row base-feature-row" data-go="change-phone" type="button">
-              <div class="well neutral-well">${I.phone}</div>
-              <div class="grow"><h4 class="neutral-title">更换手机号</h4><p>当前绑定 ${esc(maskedPhone)}</p></div>
+          </div>
+          <div class="list-island mt16">
+            <button class="list-row base-feature-row" data-go="change-phone" type="button" style="padding-top:11px;padding-bottom:11px">
+              <div class="well neutral-well" style="width:40px;height:40px">${I.phone}</div>
+              <div class="grow"><h4 class="neutral-title">更换手机号</h4></div>
+              <span style="font-size:14.5px;font-weight:600;color:var(--sec);margin-right:4px;font-variant-numeric:tabular-nums">${esc(maskedPhone)}</span>
               <span class="neutral-chev">${I.chevR}</span>
             </button>
-            <button class="list-row base-feature-row" data-go="support" type="button">
-              <div class="well neutral-well">${I.chat}</div>
-              <div class="grow"><h4 class="neutral-title">联系客服</h4><p>客服电话与意见反馈</p></div>
+            <button class="list-row base-feature-row" data-go="support" type="button" style="padding-top:11px;padding-bottom:11px">
+              <div class="well neutral-well" style="width:40px;height:40px">${I.chat}</div>
+              <div class="grow"><h4 class="neutral-title">联系客服</h4></div>
               <span class="neutral-chev">${I.chevR}</span>
             </button>
-            <button class="list-row base-feature-row" data-go="privacy-center" type="button">
-              <div class="well neutral-well">${I.shieldCheck}</div>
-              <div class="grow"><h4 class="neutral-title">隐私管理</h4><p>隐私协议、系统权限与信息清单</p></div>
+            <button class="list-row base-feature-row" data-go="privacy-center" type="button" style="padding-top:11px;padding-bottom:11px">
+              <div class="well neutral-well" style="width:40px;height:40px">${I.shieldCheck}</div>
+              <div class="grow"><h4 class="neutral-title">隐私管理</h4></div>
               <span class="neutral-chev">${I.chevR}</span>
             </button>
-            <button class="list-row base-feature-row" data-go="about" type="button">
-              <div class="well neutral-well">${I.info}</div>
-              <div class="grow"><h4 class="neutral-title">关于我们</h4><p>服务协议与版本信息 V0.1.0</p></div>
+            <button class="list-row base-feature-row" data-go="about" type="button" style="padding-top:11px;padding-bottom:11px">
+              <div class="well neutral-well" style="width:40px;height:40px">${I.info}</div>
+              <div class="grow"><h4 class="neutral-title">关于我们</h4></div>
+              <span style="font-size:14.5px;font-weight:600;color:var(--sec);margin-right:4px;font-variant-numeric:tabular-nums">V0.1.0</span>
               <span class="neutral-chev">${I.chevR}</span>
             </button>
           </div>
           <button class="cta-ghost mt16" data-act="logout" type="button">退出登录</button>
-          <button class="w100" style="border:0;background:none;color:#828EA5;padding:12px 12px 6px;font-size:16px;cursor:pointer" data-act="unregister" type="button">注销账号</button>
-          <div style="text-align:center;font-size:12.5px;font-weight:600;color:#94A3B8;padding:2px 0 24px">哈宝 V0.1.0</div>
+          <button class="w100" style="border:0;background:none;color:#828EA5;padding:12px 12px 24px;font-size:16px;cursor:pointer" data-act="unregister" type="button">注销账号</button>
         </div>
       </div>`;
     },
@@ -14308,74 +14307,69 @@
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "更换手机号")}
         <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:16px">
-          <div style="padding:18px;border-radius:22px;background:rgba(16,84,224,.08);display:flex;align-items:center;gap:14px">
-            <div style="width:46px;height:46px;border-radius:14px;background:rgba(16,84,224,.14);color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0">${I.phone}</div>
-            <div>
-              <div style="font-size:13.5px;font-weight:600;color:var(--sec)">当前绑定手机号</div>
-              <div style="font-size:20px;font-weight:800;color:#1E293B;margin-top:2px">${esc(masked)}</div>
+          <div style="padding:13px 16px;border-radius:16px;background:rgba(16,84,224,.07);display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <div style="display:flex;align-items:center;gap:8px;color:var(--blue);font-size:16px;font-weight:800">
+              ${I.phone}<span>当前绑定 ${esc(masked)}</span>
             </div>
+            <span style="font-size:13px;font-weight:600;color:var(--sec)">档案与 VIP 不变</span>
           </div>
-          <div class="island-card" style="padding:18px;border-radius:22px;display:flex;flex-direction:column;gap:14px">
+          <div class="island-card" style="padding:18px;border-radius:20px;display:flex;flex-direction:column;gap:14px">
             <div>
-              <div style="font-size:14px;font-weight:700;color:#1E293B;margin-bottom:8px">新手机号码</div>
-              <input name="newPhone" type="tel" maxlength="11" placeholder="请输入 11 位新手机号" value="${esc(draft.phone || "")}" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,11)" style="width:100%;height:50px;padding:0 14px;border-radius:14px;border:1.4px solid rgba(16,84,224,.16);background:#F8FAFC;font-size:17px;font-weight:600;color:#1E293B;font-family:inherit;box-sizing:border-box" />
+              <div style="font-size:15px;font-weight:700;color:var(--blue);margin-bottom:8px">新手机号</div>
+              <input name="newPhone" type="tel" maxlength="11" placeholder="请输入 11 位新手机号" value="${esc(draft.phone || "")}" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,11)" style="width:100%;height:50px;padding:0 14px;border-radius:14px;border:1.4px solid rgba(16,84,224,.16);background:#F8FAFC;font-size:18px;font-weight:600;color:var(--blue);font-family:inherit;box-sizing:border-box" />
             </div>
             <div>
-              <div style="font-size:14px;font-weight:700;color:#1E293B;margin-bottom:8px">短信验证码</div>
+              <div style="font-size:15px;font-weight:700;color:var(--blue);margin-bottom:8px">短信验证码</div>
               <div style="display:flex;gap:10px">
-                <input name="newPhoneCode" type="tel" maxlength="6" placeholder="请输入 6 位验证码" value="${esc(draft.code || "")}" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,6)" style="flex:1;min-width:0;height:50px;padding:0 14px;border-radius:14px;border:1.4px solid rgba(16,84,224,.16);background:#F8FAFC;font-size:17px;font-weight:600;color:#1E293B;font-family:inherit;box-sizing:border-box" />
-                <button type="button" data-act="sendChangePhoneCode" style="height:50px;padding:0 16px;border-radius:14px;border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit">${draft.cd > 0 ? "重新获取" : "获取验证码"}</button>
+                <input name="newPhoneCode" type="tel" maxlength="6" placeholder="6 位验证码" value="${esc(draft.code || "")}" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,6)" style="flex:1;min-width:0;height:50px;padding:0 14px;border-radius:14px;border:1.4px solid rgba(16,84,224,.16);background:#F8FAFC;font-size:18px;font-weight:600;color:var(--blue);font-family:inherit;box-sizing:border-box" />
+                <button type="button" data-act="sendChangePhoneCode" style="height:50px;padding:0 15px;border-radius:14px;border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit">${draft.cd > 0 ? "重新获取" : "获取验证码"}</button>
               </div>
             </div>
           </div>
-          <div style="font-size:13.5px;color:var(--sec);line-height:1.6;padding:0 4px">更换手机号后，下次请使用新手机号登录；您当前的健康档案、康复计划、家属绑定与 VIP 权益将完整保留。</div>
           <button class="cta" data-act="confirmChangePhone" type="button">确认更换</button>
         </div>
       </div>`;
     },
 
     support: () => {
-      const draft = S.supportDraft || { cat: "功能使用", text: "" };
-      const cats = ["功能使用", "计划与打卡", "VIP 与理赔", "账号与隐私"];
+      const draft = S.supportDraft || { cat: "功能异常", text: "" };
+      const cats = ["功能异常", "计划与打卡", "VIP 与理赔", "其他建议"];
       const tickets = S.feedbackTickets || [];
       return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "联系客服")}
-        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:16px">
-          <div class="hero" style="padding:18px 20px">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-              <div>
-                <div style="font-size:13.5px;font-weight:600;color:rgba(255,255,255,.85)">哈宝康复客服热线（08:00–21:00）</div>
-                <div style="font-size:24px;font-weight:800;color:#fff;margin-top:4px;letter-spacing:.5px">400-1666-199</div>
-                <div style="font-size:13px;color:rgba(255,255,255,.84);margin-top:4px">功能咨询 · 订单与会员问题 · 理赔指引</div>
-              </div>
-              <button type="button" data-act="callSupportHotline" style="padding:10px 16px;border-radius:999px;border:0;background:#fff;color:var(--blue);font-size:15px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:6px;flex-shrink:0;font-family:inherit">${I.phone}<span>拨打</span></button>
+        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:14px">
+          <div class="island-card" style="padding:16px;border-radius:20px;display:flex;align-items:center;gap:12px">
+            <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1054E0,#1E7BF6);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0">${I.phone}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:20px;font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums">400-1666-199</div>
+              <div style="font-size:13px;font-weight:600;color:var(--sec);margin-top:2px">客服热线 · 08:00–20:00</div>
             </div>
+            <button type="button" data-act="callSupportHotline" style="height:38px;padding:0 16px;border-radius:999px;border:0;background:var(--blue);color:#fff;font-size:15px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:5px;flex-shrink:0;font-family:inherit">${I.phone}<span>拨打</span></button>
           </div>
 
-          <div class="island-card" style="padding:18px;border-radius:22px;display:flex;flex-direction:column;gap:14px">
-            <div style="font-size:17px;font-weight:800;color:#1E293B">在线意见反馈</div>
-            <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <div class="island-card" style="padding:18px;border-radius:22px;display:flex;flex-direction:column;gap:12px">
+            <div style="font-size:17.5px;font-weight:800;color:var(--blue)">意见反馈</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
               ${cats.map((c) => {
                 const on = draft.cat === c;
-                return `<button type="button" data-act="pickSupportCat" data-cat="${esc(c)}" style="padding:7px 14px;border-radius:999px;border:${on ? "1.5px solid var(--blue)" : "1px solid #E2E8F0"};background:${on ? "rgba(16,84,224,.10)" : "#F8FAFC"};color:${on ? "var(--blue)" : "#475569"};font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">${esc(c)}</button>`;
+                return `<button type="button" data-act="pickSupportCat" data-cat="${esc(c)}" style="padding:10px 8px;border-radius:12px;border:0;background:${on ? "var(--blue)" : "rgba(16,84,224,.07)"};color:${on ? "#fff" : "var(--blue)"};font-size:14.5px;font-weight:700;cursor:pointer;font-family:inherit">${esc(c)}</button>`;
               }).join("")}
             </div>
-            <textarea name="fbText" rows="4" placeholder="请描述您遇到的问题或改进建议，我们将尽快核实跟进…" style="width:100%;padding:12px 14px;border-radius:16px;border:1.4px solid rgba(16,84,224,.15);background:#F8FAFC;font-size:15.5px;line-height:1.5;color:#1E293B;font-family:inherit;resize:none;box-sizing:border-box">${esc(draft.text || "")}</textarea>
+            <textarea name="fbText" rows="3" placeholder="请简单描述遇到的问题或建议…" style="width:100%;min-height:96px;padding:12px 14px;border-radius:14px;border:1px solid rgba(16,84,224,.14);background:#F8FAFC;font-size:15.5px;line-height:1.5;color:#1E293B;font-family:inherit;resize:none;box-sizing:border-box">${esc(draft.text || "")}</textarea>
             <button class="cta" data-act="submitSupportFeedback" type="button">提交反馈</button>
           </div>
 
           ${tickets.length ? `
-            <div class="island-card" style="padding:18px;border-radius:22px;display:flex;flex-direction:column;gap:12px">
-              <div style="font-size:16px;font-weight:800;color:#1E293B">我的反馈记录</div>
-              ${tickets.map((tk) => `
-                <div style="padding:12px 14px;border-radius:14px;background:#F8FAFC;border:1px solid #E2E8F0">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:14.5px;font-weight:800;color:var(--sec);padding:0 4px">已提交反馈</div>
+              ${tickets.slice(0, 3).map((tk) => `
+                <div class="island-card" style="padding:14px;border-radius:16px">
                   <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-                    <span style="font-size:12.5px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 8px;border-radius:999px">${esc(tk.cat)}</span>
-                    <span style="font-size:12px;font-weight:600;color:var(--sec)">${esc(tk.time)}</span>
+                    <span style="font-size:12.5px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2.5px 8px;border-radius:999px">${esc(tk.cat)}</span>
+                    <span style="font-size:12.5px;font-weight:700;color:#059669">${esc(tk.status || "已受理")}</span>
                   </div>
-                  <div style="font-size:14.5px;color:#1E293B;margin-top:7px;line-height:1.5">${esc(tk.text)}</div>
-                  <div style="font-size:12.5px;font-weight:600;color:#059669;margin-top:6px">${esc(tk.status)}</div>
+                  <div style="font-size:14.5px;color:#334155;margin-top:6px;line-height:1.45">${esc(tk.text)}</div>
                 </div>
               `).join("")}
             </div>
@@ -14387,29 +14381,26 @@
     "privacy-center": () => `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "隐私管理")}
-        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:16px">
-          <div style="padding:16px 18px;border-radius:20px;background:rgba(16,84,224,.07);font-size:14.5px;color:#1E293B;line-height:1.58;font-weight:500">
-            哈宝严格遵循「最小必要、用时方申请、全程加密」原则保护您的个人健康数据。您可在此随时查阅权限状态、信息收集清单与共享说明。
-          </div>
+        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px">
           <div class="list-island">
-            <button class="list-row base-feature-row" data-go="permissions" type="button">
-              <div class="well neutral-well">${I.slider}</div>
-              <div class="grow"><h4 class="neutral-title">系统权限管理</h4><p>相机、相册、定位、麦克风、蓝牙与通知授权状态</p></div>
+            <button class="list-row base-feature-row" data-go="permissions" type="button" style="padding-top:11px;padding-bottom:11px">
+              <div class="well neutral-well" style="width:40px;height:40px">${I.slider}</div>
+              <div class="grow"><h4 class="neutral-title">系统权限管理</h4></div>
               <span class="neutral-chev">${I.chevR}</span>
             </button>
-            <button class="list-row base-feature-row" data-go="info-collected" type="button">
-              <div class="well neutral-well">${I.list}</div>
-              <div class="grow"><h4 class="neutral-title">个人信息收集清单</h4><p>查看当前已收集的账号、档案与康复记录明细</p></div>
+            <button class="list-row base-feature-row" data-go="info-collected" type="button" style="padding-top:11px;padding-bottom:11px">
+              <div class="well neutral-well" style="width:40px;height:40px">${I.list}</div>
+              <div class="grow"><h4 class="neutral-title">个人信息收集清单</h4></div>
               <span class="neutral-chev">${I.chevR}</span>
             </button>
-            <button class="list-row base-feature-row" data-go="third-party" type="button">
-              <div class="well neutral-well">${I.two}</div>
-              <div class="grow"><h4 class="neutral-title">第三方信息共享清单</h4><p>短信、OCR 识别、语音、定位推送与保险理赔说明</p></div>
+            <button class="list-row base-feature-row" data-go="third-party" type="button" style="padding-top:11px;padding-bottom:11px">
+              <div class="well neutral-well" style="width:40px;height:40px">${I.two}</div>
+              <div class="grow"><h4 class="neutral-title">第三方信息共享清单</h4></div>
               <span class="neutral-chev">${I.chevR}</span>
             </button>
-            <button class="list-row base-feature-row" data-go="privacy" type="button">
-              <div class="well neutral-well">${I.shieldCheck}</div>
-              <div class="grow"><h4 class="neutral-title">隐私协议</h4><p>完整阅读《哈宝隐私保护政策》全文</p></div>
+            <button class="list-row base-feature-row" data-go="privacy" type="button" style="padding-top:11px;padding-bottom:11px">
+              <div class="well neutral-well" style="width:40px;height:40px">${I.shieldCheck}</div>
+              <div class="grow"><h4 class="neutral-title">隐私协议</h4></div>
               <span class="neutral-chev">${I.chevR}</span>
             </button>
           </div>
@@ -14419,24 +14410,24 @@
     permissions: () => `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "系统权限管理")}
-        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:14px">
-          <div style="font-size:13.5px;color:var(--sec);line-height:1.55;padding:0 4px">所有系统权限均仅在您使用对应功能时按需申请，您可随时前往手机系统设置开启或撤回授权。</div>
+        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:13.5px;color:var(--sec);padding:0 4px 2px">权限仅在使用对应功能时申请，点击可跳转系统设置。</div>
           ${[
-            [I.cam, "相机权限", "拍摄出院记录、复查化验单及扫码绑定智能设备", "按需授权"],
-            [I.folder, "相册权限", "导入手机相册中的病历照片或保存打卡集章海报", "按需授权"],
-            [I.walk, "位置与运动权限", "户外散步时计算运动距离、步数与路线轨迹", "使用时允许"],
-            [I.mic, "麦克风与语音识别", "在哈宝医生按住说话进行语音问诊输入", "按需授权"],
-            [I.waves, "蓝牙权限", "连接并同步哈宝智能血压计与智能手表测量数据", "按需授权"],
-            [I.bell, "通知推送权限", "按时发送服药、测血压、运动与复查提醒通知", "已开启"],
-          ].map(([ico, name, desc, state]) => `
-            <div class="island-card" style="padding:16px 18px;border-radius:20px;display:flex;align-items:center;gap:14px">
-              <div class="well neutral-well" style="flex-shrink:0">${ico}</div>
+            [I.cam, "相机", "拍摄病历报告、扫码绑定设备", "去设置", false],
+            [I.folder, "相册", "导入病历图片、保存集章海报", "去设置", false],
+            [I.walk, "位置与运动", "记录户外散步距离与路线", "已开启", true],
+            [I.mic, "麦克风与语音", "哈宝医生按住说话转文字", "去设置", false],
+            [I.waves, "蓝牙", "连接智能血压计与手表", "去设置", false],
+            [I.bell, "通知提醒", "发送吃药、测血压与复查提醒", "已开启", true],
+          ].map(([ico, name, desc, state, on]) => `
+            <button type="button" data-act="openSysSettingsHint" class="island-card" style="padding:14px 16px;border-radius:18px;display:flex;align-items:center;gap:14px;border:0;width:100%;text-align:left;cursor:pointer;font-family:inherit">
+              <div style="width:40px;height:40px;border-radius:50%;background:rgba(16,84,224,.10);color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0">${ico}</div>
               <div style="flex:1;min-width:0">
-                <div style="font-size:16.5px;font-weight:800;color:#1E293B">${name}</div>
-                <div style="font-size:13.5px;color:var(--sec);margin-top:3px;line-height:1.45">${desc}</div>
+                <div style="font-size:17px;font-weight:800;color:#1E293B">${name}</div>
+                <div style="font-size:13.5px;color:var(--sec);margin-top:3px">${desc}</div>
               </div>
-              <button type="button" data-act="openSysSettingsHint" style="padding:6px 11px;border-radius:999px;border:0;background:rgba(16,84,224,.09);color:var(--blue);font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit">${state} ›</button>
-            </div>
+              <span style="font-size:13.5px;font-weight:700;color:${on ? "#059669" : "var(--blue)"};white-space:nowrap">${state} ›</span>
+            </button>
           `).join("")}
         </div>
       </div>`,
@@ -14445,24 +14436,22 @@
       const curP = currentDemoPerson();
       const basePhotos = (ARCHIVE_DEMO?.baseline?.groups || []).reduce((n, g) => n + (g.pages || 0), 0);
       const revPhotos = (ARCHIVE_DEMO?.review?.groups || []).reduce((n, g) => n + (g.pages || 0), 0);
+      const totalPhotos = basePhotos + revPhotos;
       const taskCount = (SEED || []).length;
       return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "个人信息收集清单")}
-        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:14px">
+        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:12px">
           ${[
-            ["账号与身份认证", `绑定手机号：${curP.phone || "138****5678"}`, "用于注册登录、短信安全校验及守护家属关系识别", "用户主动输入"],
-            ["个人基本健康资料", `${curP.name} · ${curP.gender} · ${curP.age || 58}岁 · ${curP.height || 170}cm / ${curP.weight || 70}kg`, "用于计算 BMI、评估康复风险并生成个性化日程", "用户主动填写"],
-            ["康复计划与日常监测", `当前生效计划 ${taskCount} 项 · 含血压心率、散步与随访问卷记录`, "用于每日打卡提醒、趋势图表生成与康复进度评估", "日常打卡与设备同步"],
-            ["病历与检查报告影像", `基础报告 ${basePhotos} 张 · 复查报告 ${revPhotos} 张`, "用于病历 OCR 辅助建档、AI 报告解读与个人健康归档", "拍照或相册主动上传"],
-          ].map(([title, val, usage, src]) => `
-            <div class="island-card" style="padding:18px;border-radius:20px">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-                <span style="font-size:17px;font-weight:800;color:#1E293B">${title}</span>
-                <span style="font-size:12px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.09);padding:3px 9px;border-radius:999px">${src}</span>
-              </div>
-              <div style="font-size:15px;font-weight:700;color:var(--blue);margin-top:8px">${esc(val)}</div>
-              <div style="font-size:13.5px;color:var(--sec);margin-top:6px;line-height:1.5">使用目的：${usage}</div>
+            ["手机号码", `已收集：${curP.phone || "138****5678"}`, "用途：账号登录、短信验证与家属绑定识别"],
+            ["基本健康资料", `已填写：${curP.name} · ${curP.gender} · ${curP.age || 58}岁 · ${curP.height || 170}cm / ${curP.weight || 70}kg`, "用途：计算 BMI、展示档案与制定康复日程"],
+            ["日常监测记录", `生效计划 ${taskCount} 项 · 含血压心率、散步与随访记录`, "用途：生成体征趋势、记录康复完成进度"],
+            ["病历与复查照片", totalPhotos > 0 ? `已归档 ${totalPhotos} 张图片` : "暂未上传图片", "用途：识别用药复查医嘱、建立个人病历档案"],
+          ].map(([title, val, usage]) => `
+            <div class="island-card" style="padding:16px;border-radius:18px">
+              <div style="font-size:17px;font-weight:800;color:#1E293B">${title}</div>
+              <div style="font-size:14.5px;font-weight:700;color:var(--blue);margin-top:6px">${esc(val)}</div>
+              <div style="font-size:13.5px;color:var(--sec);margin-top:5px">${usage}</div>
             </div>
           `).join("")}
         </div>
@@ -14472,23 +14461,20 @@
     "third-party": () => `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "第三方信息共享清单")}
-        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:14px">
-          <div style="font-size:13.5px;color:var(--sec);line-height:1.55;padding:0 4px">我们不会出售或向任何广告商提供您的个人健康数据。仅在实现核心功能所必需的最小范围内调用以下服务：</div>
+        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:12px">
+          <div style="font-size:13.5px;color:var(--sec);padding:0 4px">我们不会出售您的健康数据，仅在以下功能按需调用：</div>
           ${[
-            ["短信验证码服务", "登录验证、更换手机号、注销身份核验", "手机号码", "加密接口调用（不留存营销用途）"],
-            ["医疗单据 OCR 识别服务", "辅助识别出院记录、用药处方与复查单文字", "用户主动上传的病历图片", "TLS 加密传输，识别后即销毁临时缓存"],
-            ["智能语音识别服务", "哈宝医生语音提问转文字", "按住说话期间的语音片段", "实时流式转写，不作声纹画像"],
-            ["系统定位与地图服务", "户外散步路线绘制与距离计算", "运动期间的位置信息", "系统原生框架按需调用"],
-            ["消息通知推送服务（APNs / 系统推送）", "发送服药、测血压与家属协同提醒", "设备推送标识（Push Token）", "系统级通道加密下发"],
-            ["中国人民保险理赔服务（按需）", "仅在 VIP 支架术后用户主动发起理赔报案时核验材料", "被保险人身份信息与住院诊疗单据", "经本人单独授权后专案提交"],
-          ].map(([name, purpose, fields, mode]) => `
-            <div class="island-card" style="padding:17px 18px;border-radius:20px">
-              <div style="font-size:16.5px;font-weight:800;color:#1E293B">${name}</div>
-              <div style="font-size:13.5px;color:#334155;line-height:1.6;margin-top:7px">
-                <div><b>使用目的：</b>${purpose}</div>
-                <div><b>涉及信息：</b>${fields}</div>
-                <div><b>共享方式：</b>${mode}</div>
-              </div>
+            ["短信验证码服务", "信息：手机号码", "用途：登录、换号与注销时发送验证码"],
+            ["病历文字识别", "信息：主动上传的病历图片", "用途：识别出院用药与复查时间，识别后不留存"],
+            ["语音转文字", "信息：按住说话时的语音片段", "用途：在哈宝医生将语音实时转为文字"],
+            ["地图与运动定位", "信息：户外散步期间的位置", "用途：计算步行距离并绘制散步路线"],
+            ["系统消息推送", "信息：设备推送标识", "用途：按计划时间下发吃药、测血压提醒"],
+            ["中国人民保险理赔（按需）", "信息：身份与住院材料（仅报案时）", "用途：平时不共享，仅在本人主动申请支架理赔时核验"],
+          ].map(([name, fields, purpose]) => `
+            <div class="island-card" style="padding:16px;border-radius:18px">
+              <div style="font-size:17px;font-weight:800;color:#1E293B">${name}</div>
+              <div style="font-size:14px;font-weight:700;color:var(--blue);margin-top:6px">${fields}</div>
+              <div style="font-size:13.5px;color:var(--sec);margin-top:5px">${purpose}</div>
             </div>
           `).join("")}
         </div>
@@ -14497,39 +14483,34 @@
     about: () => `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "关于我们")}
-        <div class="scroll px20" style="padding-top:16px;padding-bottom:32px;display:flex;flex-direction:column;gap:18px">
-          <div class="island-card" style="padding:26px 20px;border-radius:24px;text-align:center">
-            <img src="assets/brand_logo.png" alt="哈宝" style="width:68px;height:68px;border-radius:18px;box-shadow:0 6px 18px rgba(16,84,224,.16)" />
-            <div style="font-size:22px;font-weight:800;color:#1E293B;margin-top:12px">哈宝</div>
-            <div style="font-size:14px;font-weight:600;color:var(--sec);margin-top:4px">院外心肺康复管理助手 · 当前版本 V0.1.0</div>
+        <div class="scroll px20" style="padding-top:16px;padding-bottom:32px;display:flex;flex-direction:column;gap:20px">
+          <div style="text-align:center;padding-top:8px">
+            <img src="assets/brand_logo.png" alt="哈宝" style="width:72px;height:72px;border-radius:18px;box-shadow:0 6px 18px rgba(16,84,224,.16)" />
+            <div style="font-size:23px;font-weight:800;color:var(--blue);margin-top:10px">哈宝</div>
+            <div style="font-size:14px;font-weight:600;color:var(--sec);margin-top:4px;font-variant-numeric:tabular-nums">版本 V0.1.0</div>
           </div>
 
           <div class="list-island">
-            <button class="list-row base-feature-row" data-go="service-terms" type="button">
-              <div class="well neutral-well">${I.doc}</div>
-              <div class="grow"><h4 class="neutral-title">用户服务协议</h4><p>查看《哈宝用户服务协议》</p></div>
+            <button class="list-row base-feature-row" data-go="service-terms" type="button" style="padding-top:11px;padding-bottom:11px">
+              <div class="well neutral-well" style="width:40px;height:40px">${I.doc}</div>
+              <div class="grow"><h4 class="neutral-title">用户服务协议</h4></div>
               <span class="neutral-chev">${I.chevR}</span>
             </button>
-            <button class="list-row base-feature-row" data-go="vip-terms" type="button">
-              <div class="well neutral-well">${I.crown}</div>
-              <div class="grow"><h4 class="neutral-title">VIP 会员服务协议</h4><p>查看会员权益、有效期与退订规则</p></div>
+            <button class="list-row base-feature-row" data-go="vip-terms" type="button" style="padding-top:11px;padding-bottom:11px">
+              <div class="well neutral-well" style="width:40px;height:40px">${I.crown}</div>
+              <div class="grow"><h4 class="neutral-title">VIP 会员服务协议</h4></div>
               <span class="neutral-chev">${I.chevR}</span>
             </button>
-            <button class="list-row base-feature-row" data-go="insurance-claim" type="button">
-              <div class="well neutral-well">${I.shieldCheck}</div>
-              <div class="grow"><h4 class="neutral-title">支架保险理赔须知</h4><p>查看承保范围、报销标准与理赔流程</p></div>
+            <button class="list-row base-feature-row" data-go="insurance-claim" type="button" style="padding-top:11px;padding-bottom:11px">
+              <div class="well neutral-well" style="width:40px;height:40px">${I.shieldCheck}</div>
+              <div class="grow"><h4 class="neutral-title">支架保险理赔须知</h4></div>
               <span class="neutral-chev">${I.chevR}</span>
             </button>
-            <button class="list-row base-feature-row" data-act="checkAppUpdate" type="button">
-              <div class="well neutral-well">${I.cycle}</div>
-              <div class="grow"><h4 class="neutral-title">检查新版本</h4><p>当前版本 V0.1.0（已是最新）</p></div>
-              <span class="neutral-chev">${I.chevR}</span>
+            <button class="list-row base-feature-row" data-act="checkAppUpdate" type="button" style="padding-top:11px;padding-bottom:11px">
+              <div class="well neutral-well" style="width:40px;height:40px">${I.cycle}</div>
+              <div class="grow"><h4 class="neutral-title">检查新版本</h4></div>
+              <span style="font-size:14px;font-weight:600;color:var(--sec)">已是最新</span>
             </button>
-          </div>
-
-          <div style="text-align:center;font-size:12.5px;color:#94A3B8;line-height:1.65;padding:4px 8px">
-            客服热线：400-1666-199（08:00–21:00）<br>
-            哈瑞特医疗 · 守护每一次安心康复
           </div>
         </div>
       </div>`,
@@ -14595,32 +14576,28 @@
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "注销账号")}
         <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:16px">
-          <div style="padding:18px;border-radius:22px;background:#FEF2F2;border:1.2px solid #FECACA">
-            <div style="display:flex;align-items:center;gap:8px;color:#DC2626;font-size:18px;font-weight:800">
-              ${I.warn}<span>永久注销风险提示</span>
+          <div style="padding:18px;border-radius:20px;background:#FEF2F2;border:1px solid rgba(239,68,68,.24)">
+            <div style="display:flex;align-items:center;gap:8px;color:#D93838;font-size:17px;font-weight:800">
+              ${I.warn}<span>注销后不可恢复，将执行：</span>
             </div>
-            <div style="font-size:14.5px;color:#7F1D1D;line-height:1.6;margin-top:8px">
-              注销账号是不可逆操作。确认注销后，当前账号（${esc(masked)}）下的以下数据将被立即清空且无法恢复：
-              <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;font-weight:600">
-                <div>• 个人基本资料、出院记录与复查报告影像</div>
-                <div>• 全部康复计划、今日集章、血压心率、散步与随访记录</div>
-                <div>• 家属守护绑定关系、智能硬件绑定与操作记录</div>
-                <div>• 哈宝医生问诊记录及当前 VIP 会员开通权益</div>
-              </div>
+            <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;font-size:15px;font-weight:700;color:#334155">
+              <div>• 清空个人档案、病历照片与全部计划</div>
+              <div>• 清空血压心率、散步、随访与问诊记录</div>
+              <div>• 解除家属与硬件绑定，VIP 权益作废</div>
             </div>
           </div>
 
-          <div class="island-card" style="padding:18px;border-radius:22px;display:flex;flex-direction:column;gap:12px">
-            <div style="font-size:15px;font-weight:700;color:#1E293B">安全身份验证（绑定手机号 ${esc(masked)}）</div>
+          <div class="island-card" style="padding:18px;border-radius:20px;display:flex;flex-direction:column;gap:12px">
+            <div style="font-size:16.5px;font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums">验证手机号 ${esc(masked)}</div>
             <div style="display:flex;gap:10px">
-              <input name="delCode" type="tel" maxlength="6" placeholder="请输入 6 位短信验证码" value="${esc(code)}" data-act="syncDeleteCode" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,6);document.getElementById('btn-confirm-del').disabled=this.value.length!==6;document.getElementById('btn-confirm-del').style.background=this.value.length===6?'#EF4444':'#CBD5E1';document.getElementById('btn-confirm-del').style.cursor=this.value.length===6?'pointer':'not-allowed'" style="flex:1;min-width:0;height:50px;padding:0 14px;border-radius:14px;border:1.4px solid #E2E8F0;background:#F8FAFC;font-size:17px;font-weight:600;color:#1E293B;font-family:inherit;box-sizing:border-box" />
-              <button type="button" data-act="sendDeleteCode" style="height:50px;padding:0 16px;border-radius:14px;border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit">${S.deleteVerifyCd > 0 ? "重新获取" : "获取验证码"}</button>
+              <input name="delCode" type="tel" maxlength="6" placeholder="6 位短信验证码" value="${esc(code)}" data-act="syncDeleteCode" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,6);document.getElementById('btn-confirm-del').disabled=this.value.length!==6;document.getElementById('btn-confirm-del').style.background=this.value.length===6?'#DC3838':'rgba(220,56,56,.32)';document.getElementById('btn-confirm-del').style.cursor=this.value.length===6?'pointer':'not-allowed'" style="flex:1;min-width:0;height:50px;padding:0 14px;border-radius:14px;border:1.4px solid rgba(16,84,224,.16);background:#F8FAFC;font-size:18px;font-weight:600;color:var(--blue);font-family:inherit;box-sizing:border-box" />
+              <button type="button" data-act="sendDeleteCode" style="height:50px;padding:0 15px;border-radius:14px;border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit">${S.deleteVerifyCd > 0 ? "重新获取" : "获取验证码"}</button>
             </div>
           </div>
 
-          <div style="display:flex;gap:12px;margin-top:4px">
-            <button type="button" class="cta-ghost" style="flex:1" data-act="back">暂不注销</button>
-            <button id="btn-confirm-del" type="button" data-act="confirmDeleteAccount" ${ready ? "" : "disabled"} style="flex:1;height:54px;border-radius:999px;border:0;background:${ready ? "#EF4444" : "#CBD5E1"};color:#fff;font-size:17px;font-weight:800;cursor:${ready ? "pointer" : "not-allowed"};font-family:inherit">确认永久注销</button>
+          <div style="display:flex;gap:12px">
+            <button type="button" class="cta-ghost" style="flex:1;border-radius:16px" data-act="back">取消</button>
+            <button id="btn-confirm-del" type="button" data-act="confirmDeleteAccount" ${ready ? "" : "disabled"} style="flex:1;height:54px;border-radius:16px;border:0;background:${ready ? "#DC3838" : "rgba(220,56,56,.32)"};color:#fff;font-size:18px;font-weight:800;cursor:${ready ? "pointer" : "not-allowed"};font-family:inherit">确认注销</button>
           </div>
         </div>
       </div>`;
