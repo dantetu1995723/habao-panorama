@@ -1392,8 +1392,18 @@
       { id: "hardware", t: "硬件管理", code: "HardwareManageView", how: "cover" },
       { id: "hardware-scan", t: "扫码绑定", code: "HardwareScanView", how: "cover" },
       { id: "activity", t: "操作记录", code: "ActivityLogView", how: "cover" },
+      { id: "change-phone", t: "更换手机号", code: "ChangePhoneView", how: "cover" },
+      { id: "support", t: "联系客服", code: "CustomerSupportView", how: "cover" },
+      { id: "privacy-center", t: "隐私管理", code: "PrivacyCenterView", how: "cover" },
+      { id: "permissions", t: "系统权限管理", code: "SystemPermissionsView", how: "cover" },
+      { id: "info-collected", t: "个人信息收集清单", code: "PersonalInfoListView", how: "cover" },
+      { id: "third-party", t: "第三方信息共享清单", code: "ThirdPartySDKListView", how: "cover" },
+      { id: "about", t: "关于我们", code: "AboutHabaoView", how: "cover" },
       { id: "privacy", t: "隐私协议", code: "LegalAgreementDetailSheet", how: "cover" },
       { id: "service-terms", t: "服务协议", code: "LegalAgreementDetailSheet", how: "cover" },
+      { id: "vip-terms", t: "会员服务协议", code: "LegalAgreementDetailSheet", how: "cover" },
+      { id: "insurance-claim", t: "理赔须知", code: "LegalAgreementDetailSheet", how: "cover" },
+      { id: "unregister-verify", t: "注销账号", code: "DeleteAccountVerifyView", how: "cover" },
     ]},
     { g: "同 Cover 替换", items: [
       { id: "ocr-capture", t: "上传资料", code: "IntakeCaptureView", how: "replace" },
@@ -1421,8 +1431,10 @@
   const SPEC = {
     "onboard-login": { code: "OnboardingFlowView + FirstLaunchPrivacyConsentPopup", note: "首次进入 App（iOS & Android 通用合规）先弹出居中《用户隐私保护提示》弹窗（列明相机/相册、位置/运动、麦克风/语音、蓝牙设备四项按需动态权限，点「不同意」进入二次温情挽留态，点「同意并继续」落盘记住并自动勾选登录页底部协议框）。短信登录 Demo 不校验，11 位手机 + 6 位验证码后「登录」可点；若手动取消勾选底部《服务协议》和《隐私协议》直接点「登录」，则弹出居中「同意并登录」一键确认框。初登默认免费用户，新建档固定两步（短信登录 → 完善你的信息）；若输入已绑定的家属手机号登录，则后端自动识别家属身份并直接进入患者首页。" },
     "onboard-profile": { code: "PatientProfileFormFields", note: "姓名必填；「进入哈宝」始终可点，空姓名顶部 toast「请填写姓名」。步骤点固定为 2/2。" },
-    privacy: { code: "LegalAgreementDetailSheet(.privacy)", note: "《哈宝隐私保护政策》详情页（iOS / Android 通用合规口径）：涵盖收集与使用范围、系统权限用时方申请原则（相机/定位/麦克风/蓝牙/通知）、全程加密与家属共享规则、查阅/撤回授权/永久注销账号权利。首次进入弹窗、登录页协议行与个人中心列表共用。" },
-    "service-terms": { code: "LegalAgreementDetailSheet(.service)", note: "《哈宝用户服务协议》详情页：涵盖院外心肺康复管理服务范围、非急诊医疗安全免责声明（剧烈胸痛或危急血压请立即拨打 120）、账号与家庭守护规范、VIP 会员随患者档案生效与退订保留规则。首次进入弹窗、登录页协议行与个人中心列表共用。" },
+    privacy: { code: "LegalAgreementDetailSheet(.privacy)", note: "《哈宝隐私保护政策》详情页（iOS / Android 通用合规口径）：涵盖收集与使用范围、系统权限用时方申请原则（相机/定位/麦克风/蓝牙/通知）、全程加密与家属共享规则、查阅/撤回授权/永久注销账号权利、Apple HealthKit 数据保护与不用于广告承诺、未成年人保护及 400-1666-199 隐私联系渠道。首次进入弹窗、登录页协议行与个人中心「隐私管理」共用。" },
+    "service-terms": { code: "LegalAgreementDetailSheet(.service)", note: "《哈宝用户服务协议》详情页：涵盖院外心肺康复管理服务范围、非急诊医疗安全免责声明（剧烈胸痛或危急血压请立即拨打 120）、账号与家庭守护规范、VIP 会员随患者档案生效与退订保留规则、客服与投诉联系方式。首次进入弹窗、登录页协议行与个人中心「关于我们」共用。" },
+    "vip-terms": { code: "LegalAgreementDetailSheet(.vipMembership)", note: "《哈宝 VIP 会员服务协议》详情页：明确 ¥2400/年 非自动续费周期、五项核心权益范围、家庭共享规则及退订与本地数据保留规则。VIP 会员页底部协议勾选与个人中心「关于我们」共用。" },
+    "insurance-claim": { code: "LegalAgreementDetailSheet(.insuranceClaim)", note: "《支架保险理赔须知》详情页：明确中国人民保险承保范围（新植入支架内再狭窄介入自费最高 2 万元/次全年不限次 + 100 元/天住院津贴）、理赔申请材料清单及除外责任提示。VIP 会员页支架保险卡与个人中心「关于我们」共用。" },
     home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 196–206，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。每张计划卡展示标题、提醒时间（或已完成）及「开始日期 – 结束日期」起止区间。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页；底坞中圆哈宝医生始终常亮可点击进入问诊页（非 VIP 发送消息后在聊天流内弹出 VIP 购买提示对话卡）。打卡不再在卡片上盖家属章；谁打的记在 V0.1 个人中心「操作记录」，V0.0 没有这一页。" },
     schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行展示时刻与单日/循环/类别胶囊，下方展示「开始日期 – 结束日期」起止区间；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上更新才进编辑。未完成与已完成全程统一采用蓝白色系（去绿改蓝白）。" },
     vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。展示整体 AI 评估卡与平均血压/平均心率趋势折线图（已移除底栏「进入哈宝医生」按钮）。" },
@@ -1433,10 +1445,18 @@
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。V0.1 + VIP 且采纳过方案时，标题下方多一张「方案章卡」：7 个日格（🌸 满日 / ◐ 部分 / ○ 空或未到 / 休 = 当天没排方案计划，算满日；今天蓝描边，点日格换日）、右上「本期已集 X/Y 章」、鼓励语（再集满 N 天拿金章 / 银章，只奖不罚）与「本期计划 ›」展开清单（调整 / 新增 / 保留 + 医嘱标）。其它状态：待采纳「📮 去采纳」、本期结束待交反馈（七格定格 + 期章 + 蓝色「交反馈」开期末反馈弹窗）、已交反馈下一期待采纳（「下一期方案已送达 去看看 ›」）。章卡下一行「我的期章」横排期章（金 ≥6 满日 / 银 4–5 / 铜 ≤3 且打过卡），点开看该期小结。海报日期下加「第 N 期康复方案 · 第 D 天 · 满日 X/7」（已结束带期章）。只有方案里的计划计入章卡，家属代打卡同样点亮，海报不带操作人。V0.0 / V0.2 / 未开通 VIP 只显示日章。" },
     consult: { code: "SmartConsultChatView", note: "纯粹的 AI 问诊对话界面（所有入口始终可点击进入）：顶部导航左「返回」、居中「哈宝医生」；中间消息区在未发消息时展示问候卡（你好，这里是哈宝医生 / 有不适或用药疑问，都可以问我）；VIP 用户发送消息后以左右纯文本/图片气泡进行问答交流，非 VIP 用户发送消息后弹出「需购买 VIP 才能使用哈宝问诊」提示对话卡（可一键跳转 VIP 会员页开通，已购买 VIP 后自动转为哈宝医生打招呼气泡以便正式聊天问诊）；底部主输入框默认为「长按说话」按钮（按住说话、上滑取消、松开发送），左侧为键盘切换按钮（点击切换为文字输入框），右侧为「+」号功能面板（仅保留拍照、相册，已移除 AI 电话）。" },
-    profile: { code: "ServiceView", note: "Hero 健康档案 + VIP 权益区 + 功能列表（VIP 专区「添加家属 / 硬件管理 / 操作记录」与免费基础区「家属管理 / 打卡通知 / 隐私协议 / 服务协议」清晰分流）。将「添加家属」与「家属管理」两个动作彻底拆分并列在个人中心：1)「添加家属 [VIP]」归入上方蓝色 VIP 专区，未开通 VIP 时显示「开通 VIP 后可用」+ 右侧皇冠锁（与硬件管理、操作记录完全统一），开通 VIP 后显示剩余可添加名额并进入独立的「添加家属」页；2)「家属管理」归入下方免费基础功能区（中性石板灰图标、不带 VIP 徽标、右侧常驻箭头），对免费用户和 VIP 用户 100% 开放，方便免费用户随时接收绑定请求、处理代办通知并与已绑定的 VIP 家属互助照护。" },
+    profile: { code: "ServiceView", note: "V10.340：Hero 健康档案（展示脱敏绑定手机号如 138****5678）+ VIP 权益区 + 功能列表（VIP 专区「硬件管理 / 操作记录 / 添加家属」与免费基础区「家属管理 / 打卡通知 / 更换手机号 / 联系客服 / 隐私管理 / 关于我们」清晰分流）+ 底部「退出登录 / 注销账号（全身份开放，进短信验证码校验页）/ 哈宝 V0.1.0」。全面满足 iOS App Store 与 Android 应用商店上架审核要求。" },
+    "change-phone": { code: "ChangePhoneView", note: "V10.340：更换手机号页。展示当前绑定脱敏手机号，输入 11 位新手机号 + 6 位短信验证码（60s 倒计时）校验后换绑，本机健康档案、康复计划、家属绑定与 VIP 权益无缝保留。" },
+    support: { code: "CustomerSupportView", note: "V10.340：联系客服与意见反馈页。顶部展示康复客服热线 400-1666-199（08:00–21:00）一键呼叫卡片，下方提供四类问题分类（功能使用 / 计划与打卡 / VIP 与理赔 / 账号与隐私）+ 意见反馈提交与本地受理记录。" },
+    "privacy-center": { code: "PrivacyCenterView", note: "V10.340：隐私管理中心。聚合上架审核要求的四大合规子项——「系统权限管理」、「个人信息收集清单」、「第三方信息共享清单」与「隐私协议」。" },
+    permissions: { code: "SystemPermissionsView", note: "V10.340：系统权限管理页。逐项展示相机、相册、定位与运动、麦克风与语音识别、蓝牙设备、通知提醒的调用场景与当前授权状态，并支持跳转系统设置撤回授权。" },
+    "info-collected": { code: "PersonalInfoListView", note: "V10.340：个人信息收集清单。动态统计并透明展示当前已收集的账号信息（脱敏手机号）、基本健康资料、日常健康监测条数与病历检查报告照片张数。" },
+    "third-party": { code: "ThirdPartySDKListView", note: "V10.340：第三方信息共享清单。公示短信验证码、医疗单据 OCR、智能语音识别、地图定位、消息推送及中国人民保险理赔协助（仅申请理赔时授权）的使用目的、涉及信息与共享方式。" },
+    about: { code: "AboutHabaoView", note: "V10.340：关于我们页。展示哈宝品牌 Logo、当前版本号 V0.1.0、《用户服务协议》、《VIP 会员服务协议》、《支架保险理赔须知》及检查新版本入口。" },
+    "unregister-verify": { code: "DeleteAccountVerifyView", note: "V10.340：注销账号身份核验页。全账号开放，列明不可逆清空范围（健康档案、病历图片、计划打卡、血压散步随访、家属与硬件绑定、问诊与 VIP 状态），通过绑定手机号 6 位短信验证码校验后方可执行永久注销。" },
     "family-add": { code: "FamilyAddView", note: "VIP 专属「添加家属」独立页：顶部左「返回」+ 居中「添加家属」；下方 24pt 边距展示三字段绑定表单（姓名、关系四选一、11 位手机号）与底部通栏「点击绑定」按钮；已发出的待确认请求以全蓝色三层同构卡片展示在表单下方并支持「撤回绑定申请」；满 5 位上限时提示「已达 5 位家属上限」。" },
     family: { code: "FamilyManageView", note: "免费开放的「家属管理」独立页（移除「收家属通知」栏目与代操作待接受/撤回步骤）：本人为家属执行的任何代操作立即生效落库；家属进入首页直接收到居中弹窗通知（文字表述刚才家属做了什么事，点击「知道了」确认），并在首页右上角个人中心、家属管理入口及家属切换胶囊上展示舒适通知红点。页面内嵌与「健康计划」同款的整体计划管理（顶部深蓝家属档案头 + 周/月日历选日期 + 未完成/已完成切换 + 全蓝白色调分时段操作卡）。" },
-    vip: { code: "VIPView", note: "仅从 V0.1 入口进来。Hero 写哈宝 VIP 与 ¥2400 / 年，下面五项完整详情：家属管理、硬件管理、操作记录、哈宝医生（AI+真人医生前端统一为哈宝医生主体），以及支架保险理赔服务。底栏「立即开通」先确认，演示不扣款，开通后有效期一年；已开通可「取消订阅」，确认后四项功能重新上锁、服务权益同步终止，家属、记录和硬件绑定留在本机。注销清空开通状态，退出登录保留。" },
+    vip: { code: "VIPView", note: "V10.340：VIP 会员页。顶栏右上新增「恢复购买」胶囊按钮；Hero 写哈宝 VIP 与 ¥2400 / 年；五项权益中「支架保险理赔服务」内嵌可点击的「查看《理赔须知》 ›」入口；底栏「立即开通」上方配备《VIP 会员服务协议》勾选与协议详情入口（未勾选点开通时弹出协议确认框）；已开通展示《VIP 会员服务协议》查看入口与「取消订阅」。" },
     hardware: { code: "HardwareManageView", note: "仅 V0.1（V0.0 个人中心没有这一行）。两张设备模块卡：未绑定写「未绑定」、右端挂「扫码绑定」浅蓝胶囊；已绑定写绿色「已绑定 · 编号」、右端箭头。点未绑定卡进扫码页，点已绑定卡进设备页。副说明按已绑定的名字拼，两台齐了写「两台都已绑定」。绑定留在本机，切回 V0.0 只藏入口。" },
     "hardware-scan": { code: "HardwareScanView", note: "V10.128：深蓝黑底全屏扫码页——264pt 取景框 + 青色扫描线，约 1.5 秒识别到对应哈宝设备（血压计 3086 / 手表 1172），四角转绿、白卡上浮，「绑定这台」或「重新扫描」，绑定后回列表。已绑定页显示编号和绑定日，解除要确认、确认后回列表。不调用摄像头，测量不写进血压监测。退出保留，注销清空。" },
     activity: { code: "ActivityLogView", note: "仅 V0.1（V0.0 个人中心没有这一行）。一天一页、左右滑动换日，进入落在最近一条那天，右上角日期按钮开日历跳到任意一天（只到今天、最早到第一条记录那天）。页内遵循 Who / Where / When / What / How 大一统规则字段，并全面适配「互为家属」与「家属管理」协同逻辑：以 When（时刻 + 细分隔线）做块头，人物胶囊内嵌二元身份标签（本人为 [👤 姓名 · 我]，亲属统一为 [👤 姓名 · 家属]，解绑后追加灰签「已解绑」）；仅展示与当前登录人「我」相关的记录（我自己操作的 + 我在家属管理帮家属操作的 + 家属在家属管理帮我操作的）；跨人代打卡、新增/修改/删除计划在接收方点击「接受」生效时同步写入双方账本，发送提醒在发出时写入（撤回时移除），入口统一记为「家属管理」；长按记录仅提供「删除这条记录」（移除单机时代过时的「改归属」）。" },
@@ -1671,6 +1691,13 @@
     vip: true,
     vipUntil: 1824681600000,
     vipByPerson: { "李建国": true },
+    vipPurchasedByPerson: { "李建国": true },
+    vipTermsChecked: false,
+    changePhoneDraft: { phone: "", code: "", cd: 0 },
+    supportDraft: { cat: "功能使用", text: "" },
+    feedbackTickets: [],
+    deleteVerifyCode: "",
+    deleteVerifyCd: 0,
     // V0.1 哈宝医生「问诊 + 计划制定」（只在设计版本 V0.1 生效；V0.2 仍是三模块联动案例）。
     // Demo：第 1 期（9/1–9/7）已交反馈拿金章；第 2 期 9/8 采纳、今天 9/11 是第 4 天，前三天满日。
     // 过去日的方案打卡按 marks 给演示数据（缺省 full），今天读真实打卡。
@@ -5457,8 +5484,18 @@
       notify: [...home, C("profile"), C("notify")],
       hardware: [...home, C("profile"), C("hardware")],
       "hardware-scan": [...home, C("profile"), C("hardware"), C("hardware-scan")],
-      privacy: S.loggedIn ? [...home, C("profile"), C("privacy")] : [...login, C("privacy")],
-      "service-terms": S.loggedIn ? [...home, C("profile"), C("service-terms")] : [...login, C("service-terms")],
+      "change-phone": [...home, C("profile"), C("change-phone")],
+      support: [...home, C("profile"), C("support")],
+      "privacy-center": [...home, C("profile"), C("privacy-center")],
+      permissions: [...home, C("profile"), C("privacy-center"), C("permissions")],
+      "info-collected": [...home, C("profile"), C("privacy-center"), C("info-collected")],
+      "third-party": [...home, C("profile"), C("privacy-center"), C("third-party")],
+      about: [...home, C("profile"), C("about")],
+      "vip-terms": S.screen === "vip" ? [...home, C("profile"), C("vip"), C("vip-terms")] : [...home, C("profile"), C("about"), C("vip-terms")],
+      "insurance-claim": S.screen === "vip" ? [...home, C("profile"), C("vip"), C("insurance-claim")] : [...home, C("profile"), C("about"), C("insurance-claim")],
+      "unregister-verify": [...home, C("profile"), C("unregister-verify")],
+      privacy: S.loggedIn ? [...home, C("profile"), C("privacy-center"), C("privacy")] : [...login, C("privacy")],
+      "service-terms": S.loggedIn ? [...home, C("profile"), C("about"), C("service-terms")] : [...login, C("service-terms")],
       "first-rest": S.enrolled ? [...home, C("schedule"), C("first-rest")] : [...home, C("first-rest")],
       "select-type": [...home, C("schedule"), C("select-type")],
       "ocr-capture": S.enrolled ? [...home, C("schedule"), C("ocr-capture")] : [...home, C("ocr-capture")],
@@ -6734,10 +6771,11 @@
         proceedLoginWithPhone(phone);
       },
       openAgreementModal() {
-        const kind = el.dataset.kind === "service" ? "service-terms" : "privacy";
+        const map = { service: "service-terms", privacy: "privacy", vip: "vip-terms", claim: "insurance-claim" };
+        const kind = map[el.dataset.kind] || "privacy";
         const phoneInput = $("input[name=phone]");
         if (phoneInput) S.phone = phoneInput.value;
-        if (S.overlay === "loginTermsConfirm") S.overlay = null;
+        if (S.overlay === "loginTermsConfirm" || S.overlay === "vipTermsConfirm") S.overlay = null;
         go(kind, "cover");
       },
       sendCode() { toast("验证码已发送（Demo）"); },
@@ -9155,15 +9193,118 @@
         });
       },
       unregister() {
-        openOverlay("confirm", {
-          title: "注销账号",
-          body: genIsV01()
-            ? "注销将清空本机档案、入组状态、康复计划、家属绑定、操作记录、硬件绑定、问诊对话与 VIP 开通状态，且不可恢复。"
-            : "注销将清空本机档案、入组状态、康复计划与问诊对话，且不可恢复。",
-          ok: "确认注销",
-          danger: true,
-          action: "doUnregister",
+        S.deleteVerifyCode = "";
+        S.deleteVerifyCd = 0;
+        go("unregister-verify", "cover");
+      },
+      sendDeleteCode() {
+        const curInput = $("input[name=delCode]");
+        if (curInput) S.deleteVerifyCode = curInput.value;
+        S.deleteVerifyCd = 60;
+        render();
+        toast("验证码已发送至绑定手机号（Demo 输入任意 6 位数字）");
+      },
+      syncDeleteCode() {
+        S.deleteVerifyCode = (el.value || "").replace(/\D/g, "").slice(0, 6);
+        const btn = $("#btn-confirm-del");
+        if (btn) {
+          const ok = S.deleteVerifyCode.length === 6;
+          btn.disabled = !ok;
+          btn.style.background = ok ? "#EF4444" : "#CBD5E1";
+          btn.style.cursor = ok ? "pointer" : "not-allowed";
+        }
+      },
+      confirmDeleteAccount() {
+        const code = ($("input[name=delCode]")?.value || S.deleteVerifyCode || "").replace(/\D/g, "");
+        if (code.length !== 6) {
+          toast("请输入 6 位短信验证码");
+          return;
+        }
+        act("doUnregister", el);
+      },
+      syncChangePhoneInput() {
+        if (!S.changePhoneDraft) S.changePhoneDraft = { phone: "", code: "", cd: 0 };
+        if (el.name === "newPhone") S.changePhoneDraft.phone = (el.value || "").replace(/\D/g, "").slice(0, 11);
+        if (el.name === "newPhoneCode") S.changePhoneDraft.code = (el.value || "").replace(/\D/g, "").slice(0, 6);
+      },
+      sendChangePhoneCode() {
+        if (!S.changePhoneDraft) S.changePhoneDraft = { phone: "", code: "", cd: 0 };
+        const phone = ($("input[name=newPhone]")?.value || S.changePhoneDraft.phone || "").replace(/\D/g, "");
+        S.changePhoneDraft.phone = phone;
+        const curP = currentDemoPerson();
+        if (!/^1\d{10}$/.test(phone)) { toast("请输入正确的 11 位新手机号"); return; }
+        if (phone === curP.phoneRaw) { toast("新手机号不能与当前绑定手机号相同"); return; }
+        S.changePhoneDraft.cd = 60;
+        render();
+        toast("验证码已发送至新手机号（Demo 输入任意 6 位数字）");
+      },
+      confirmChangePhone() {
+        if (!S.changePhoneDraft) S.changePhoneDraft = { phone: "", code: "", cd: 0 };
+        const phone = ($("input[name=newPhone]")?.value || S.changePhoneDraft.phone || "").replace(/\D/g, "");
+        const code = ($("input[name=newPhoneCode]")?.value || S.changePhoneDraft.code || "").replace(/\D/g, "");
+        const curP = currentDemoPerson();
+        if (!/^1\d{10}$/.test(phone)) { toast("请输入正确的 11 位新手机号"); return; }
+        if (phone === curP.phoneRaw) { toast("新手机号不能与当前绑定手机号相同"); return; }
+        if (code.length !== 6) { toast("请输入 6 位短信验证码"); return; }
+        const masked = phone.replace(/^(\d{3})\d{4}(\d{4})$/, "$1****$2");
+        curP.phoneRaw = phone;
+        curP.phone = masked;
+        S.phone = phone;
+        (S.careBonds || []).forEach((b) => {
+          if (b.guardianName === curP.name) { b.guardianPhoneRaw = phone; b.guardianPhone = masked; }
+          if (b.wardName === curP.name) { b.wardPhoneRaw = phone; b.wardPhone = masked; }
         });
+        S.changePhoneDraft = { phone: "", code: "", cd: 0 };
+        dismissCover();
+        toast(`手机号已更换为 ${masked}`);
+      },
+      callSupportHotline() {
+        openOverlay("confirm", {
+          title: "拨打客服热线",
+          body: "是否呼叫哈宝康复客服热线 400-1666-199？（服务时间：每日 08:00–21:00）",
+          ok: "立即拨打",
+          action: "doCallHotline",
+        });
+      },
+      doCallHotline() {
+        S.overlay = null;
+        render();
+        toast("正在呼叫 400-1666-199（演示环境）");
+      },
+      pickSupportCat() {
+        if (!S.supportDraft) S.supportDraft = { cat: "功能使用", text: "" };
+        const ta = $("textarea[name=fbText]");
+        if (ta) S.supportDraft.text = ta.value;
+        S.supportDraft.cat = el.dataset.cat || "功能使用";
+        render();
+      },
+      submitSupportFeedback() {
+        if (!S.supportDraft) S.supportDraft = { cat: "功能使用", text: "" };
+        const text = ($("textarea[name=fbText]")?.value || S.supportDraft.text || "").trim();
+        if (!text) { toast("请填写您遇到的问题或建议"); return; }
+        if (!S.feedbackTickets) S.feedbackTickets = [];
+        const now = new Date();
+        const hm = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+        S.feedbackTickets.unshift({
+          cat: S.supportDraft.cat || "功能使用",
+          text,
+          time: `今天 ${hm}`,
+          status: "已受理 · 预计 24 小时内回复",
+        });
+        S.supportDraft.text = "";
+        render();
+        toast("反馈已提交，客服团队将尽快跟进");
+      },
+      checkAppUpdate() {
+        openOverlay("confirm", {
+          title: "已是最新版本",
+          body: "当前哈宝版本 V0.1.0 已是最新版本，无需更新。",
+          ok: "知道了",
+          action: "close",
+        });
+      },
+      openSysSettingsHint() {
+        toast("演示环境：真机将打开系统「设置 → 哈宝」权限管理页");
       },
       openHw() {
         const k = el.dataset.k || "bloodPressure";
@@ -9227,8 +9368,26 @@
         toast("已退出登录");
       },
       // 注销：清空本机全部数据（真机注销会清各 Store）
-      doUnregister() { resetAll(); setMode("login"); },
+      doUnregister() { resetAll(); setMode("login"); toast("账号已永久注销"); },
+      toggleVipTerms() {
+        S.vipTermsChecked = !S.vipTermsChecked;
+        render();
+      },
+      agreeAndAskVip() {
+        S.vipTermsChecked = true;
+        S.overlay = null;
+        openOverlay("confirm", {
+          title: "开通 VIP",
+          body: "费用 ¥2400 / 年。这是演示，不会真实扣款。开通后可以使用家属管理、硬件管理、操作记录、哈宝医生专属服务，并享有支架保险理赔服务。",
+          ok: "确认开通",
+          action: "activateVip",
+        });
+      },
       askVip() {
+        if (!S.vipTermsChecked) {
+          openOverlay("vipTermsConfirm");
+          return;
+        }
         openOverlay("confirm", {
           title: "开通 VIP",
           body: "费用 ¥2400 / 年。这是演示，不会真实扣款。开通后可以使用家属管理、硬件管理、操作记录、哈宝医生专属服务，并享有支架保险理赔服务。",
@@ -9240,6 +9399,8 @@
         ensureCareGraph();
         const curName = (S.currentPersonName || "李建国").trim();
         S.vipByPerson[curName] = true;
+        if (!S.vipPurchasedByPerson) S.vipPurchasedByPerson = {};
+        S.vipPurchasedByPerson[curName] = true;
         const d = new Date();
         d.setFullYear(d.getFullYear() + 1);
         S.vip = true;
@@ -9248,6 +9409,37 @@
         S.overlay = null;
         render();
         toast("已开通 VIP");
+      },
+      restoreVip() {
+        ensureCareGraph();
+        const curName = (S.currentPersonName || "李建国").trim();
+        const isFam = shownRole() === "family";
+        const alreadyOn = isFam ? true : !!S.vip;
+        if (alreadyOn) {
+          openOverlay("confirm", {
+            title: "当前会员有效",
+            body: `您的 VIP 会员当前处于有效期内（有效期至 ${vipExpiryText()}），无需重复恢复。`,
+            ok: "知道了",
+            action: "close",
+          });
+          return;
+        }
+        if (S.vipPurchasedByPerson && S.vipPurchasedByPerson[curName]) {
+          S.vipByPerson[curName] = true;
+          const d = new Date();
+          d.setFullYear(d.getFullYear() + 1);
+          S.vip = true;
+          S.vipUntil = d.getTime();
+          render();
+          toast("已恢复 VIP 会员权益");
+          return;
+        }
+        openOverlay("confirm", {
+          title: "未查询到购买记录",
+          body: "当前账号暂无可恢复的在期 VIP 会员订单。如有疑问可前往「个人中心 → 联系客服」拨打 400-1666-199 咨询。",
+          ok: "知道了",
+          action: "close",
+        });
       },
       askCancelVip() {
         openOverlay("confirm", {
@@ -13878,7 +14070,7 @@
         },
       ];
       return `<div class="page">
-        ${navBar(cap(I.chevL, "返回"), "VIP 会员")}
+        ${navBar(cap(I.chevL, "返回"), "VIP 会员", `<button class="cap" data-act="restoreVip" type="button">恢复购买</button>`)}
         <div class="scroll px20" style="padding-top:8px;padding-bottom:16px">
           <div class="hero">
             <div class="hero-top">
@@ -13912,6 +14104,11 @@
                   <div><span class="vip-sub-tag">${badge}</span></div>
                   <div class="s15 fb" style="color:var(--blue);margin-top:6px;line-height:1.4">${subTitle}</div>
                   <p class="s14 fm t-sec" style="margin:6px 0 0;line-height:1.55">${detail}</p>
+                  ${sec.title === "支架保险理赔服务" ? `
+                    <div style="margin-top:10px">
+                      <button type="button" data-go="insurance-claim" style="display:inline-flex;align-items:center;gap:5px;border:0;background:rgba(16,84,224,.09);color:var(--blue);padding:7px 13px;border-radius:999px;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit">${I.doc}<span>查看《理赔须知》 ›</span></button>
+                    </div>
+                  ` : ""}
                 </div>
               `).join("")}
             </div>
@@ -13921,8 +14118,20 @@
         </div>
         <div class="px20" style="padding-top:10px;padding-bottom:28px">
           ${on
-            ? `<button class="cta-ghost" data-act="askCancelVip" type="button">取消订阅</button>`
-            : `<button class="cta" data-act="askVip" type="button">立即开通</button>`}
+            ? `
+              <div style="display:flex;justify-content:center;margin-bottom:10px">
+                <button type="button" data-go="vip-terms" style="border:0;background:none;padding:2px 6px;color:var(--blue);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">查看《VIP 会员服务协议》 ›</button>
+              </div>
+              <button class="cta-ghost" data-act="askCancelVip" type="button">取消订阅</button>`
+            : `
+              <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+                <button type="button" data-act="toggleVipTerms" style="display:inline-flex;align-items:center;gap:7px;border:0;background:none;padding:2px 0;cursor:pointer;font-family:inherit;color:var(--sec);font-size:14px;font-weight:600">
+                  <span style="width:19px;height:19px;border-radius:6px;border:${S.vipTermsChecked ? "0" : "1.8px solid #94A3B8"};background:${S.vipTermsChecked ? "var(--blue)" : "#fff"};color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800">${S.vipTermsChecked ? "✓" : ""}</span>
+                  <span>我已阅读并同意</span>
+                </button>
+                <button type="button" data-go="vip-terms" style="border:0;background:none;padding:0;color:var(--blue);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">《VIP 会员服务协议》</button>
+              </div>
+              <button class="cta" data-act="askVip" type="button">立即开通</button>`}
         </div>
       </div>`;
     },
@@ -13932,6 +14141,7 @@
       syncPersonVipState(S.currentPersonName);
       const isVip = genHasVip();
       const curPerson = currentDemoPerson();
+      const maskedPhone = curPerson.phone || "138****5678";
       const myGuardians = myGuardiansList(curPerson.name);
       const myWards = myWardsList(curPerson.name);
       const curBmi = ((curPerson.weight || 70) / Math.pow((curPerson.height || 170) / 100, 2)).toFixed(1);
@@ -14001,9 +14211,10 @@
                       ? `<span class="vip-badge-pill" style="color:#FFDC6E;background:rgba(255,255,255,.24)">${I.crown} VIP</span>`
                       : (genIsV01() ? `<span class="vip-badge-pill" style="color:rgba(255,255,255,.95);background:rgba(255,255,255,.22)">免费用户</span>` : "")}
                   </div>
-                  <div style="display:flex;align-items:center;gap:6px;margin-top:5px;white-space:nowrap">
+                  <div style="display:flex;align-items:center;gap:5px;margin-top:5px;flex-wrap:wrap">
                     <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.18);padding:2.5px 8px;border-radius:999px">${esc(curPerson.gender)}</span>
                     <span style="font-size:12px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.18);padding:2.5px 8px;border-radius:999px">我</span>
+                    <span style="font-size:11.5px;font-weight:600;color:rgba(255,255,255,.92);background:rgba(255,255,255,.16);padding:2.5px 8px;border-radius:999px">${esc(maskedPhone)}</span>
                   </div>
                 </div>
                 <button class="view-cap" data-go="health-record" type="button">查看档案</button>
@@ -14061,19 +14272,356 @@
               <div class="grow"><h4 class="neutral-title">打卡通知</h4><p>${notifyCaption()}</p></div>
               <span class="neutral-chev">${I.chevR}</span>
             </button>
-            <button class="list-row base-feature-row" data-go="privacy" type="button">
-              <div class="well neutral-well">${I.shieldCheck}</div>
-              <div class="grow"><h4 class="neutral-title">隐私协议</h4><p>了解数据如何被保护</p></div>
+            <button class="list-row base-feature-row" data-go="change-phone" type="button">
+              <div class="well neutral-well">${I.phone}</div>
+              <div class="grow"><h4 class="neutral-title">更换手机号</h4><p>当前绑定 ${esc(maskedPhone)}</p></div>
               <span class="neutral-chev">${I.chevR}</span>
             </button>
-            <button class="list-row base-feature-row" data-go="service-terms" type="button">
-              <div class="well neutral-well">${I.doc}</div>
-              <div class="grow"><h4 class="neutral-title">服务协议</h4><p>使用条款与说明</p></div>
+            <button class="list-row base-feature-row" data-go="support" type="button">
+              <div class="well neutral-well">${I.chat}</div>
+              <div class="grow"><h4 class="neutral-title">联系客服</h4><p>客服电话与意见反馈</p></div>
+              <span class="neutral-chev">${I.chevR}</span>
+            </button>
+            <button class="list-row base-feature-row" data-go="privacy-center" type="button">
+              <div class="well neutral-well">${I.shieldCheck}</div>
+              <div class="grow"><h4 class="neutral-title">隐私管理</h4><p>隐私协议、系统权限与信息清单</p></div>
+              <span class="neutral-chev">${I.chevR}</span>
+            </button>
+            <button class="list-row base-feature-row" data-go="about" type="button">
+              <div class="well neutral-well">${I.info}</div>
+              <div class="grow"><h4 class="neutral-title">关于我们</h4><p>服务协议与版本信息 V0.1.0</p></div>
               <span class="neutral-chev">${I.chevR}</span>
             </button>
           </div>
           <button class="cta-ghost mt16" data-act="logout" type="button">退出登录</button>
-          <button class="w100" style="border:0;background:none;color:#828EA5;padding:12px;font-size:16px;cursor:pointer" data-act="unregister" type="button">注销账号</button>
+          <button class="w100" style="border:0;background:none;color:#828EA5;padding:12px 12px 6px;font-size:16px;cursor:pointer" data-act="unregister" type="button">注销账号</button>
+          <div style="text-align:center;font-size:12.5px;font-weight:600;color:#94A3B8;padding:2px 0 24px">哈宝 V0.1.0</div>
+        </div>
+      </div>`;
+    },
+
+    "change-phone": () => {
+      const curP = currentDemoPerson();
+      const masked = curP.phone || "138****5678";
+      const draft = S.changePhoneDraft || { phone: "", code: "", cd: 0 };
+      return `
+      <div class="page">
+        ${navBar(cap(I.chevL, "返回"), "更换手机号")}
+        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:16px">
+          <div style="padding:18px;border-radius:22px;background:rgba(16,84,224,.08);display:flex;align-items:center;gap:14px">
+            <div style="width:46px;height:46px;border-radius:14px;background:rgba(16,84,224,.14);color:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0">${I.phone}</div>
+            <div>
+              <div style="font-size:13.5px;font-weight:600;color:var(--sec)">当前绑定手机号</div>
+              <div style="font-size:20px;font-weight:800;color:#1E293B;margin-top:2px">${esc(masked)}</div>
+            </div>
+          </div>
+          <div class="island-card" style="padding:18px;border-radius:22px;display:flex;flex-direction:column;gap:14px">
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#1E293B;margin-bottom:8px">新手机号码</div>
+              <input name="newPhone" type="tel" maxlength="11" placeholder="请输入 11 位新手机号" value="${esc(draft.phone || "")}" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,11)" style="width:100%;height:50px;padding:0 14px;border-radius:14px;border:1.4px solid rgba(16,84,224,.16);background:#F8FAFC;font-size:17px;font-weight:600;color:#1E293B;font-family:inherit;box-sizing:border-box" />
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#1E293B;margin-bottom:8px">短信验证码</div>
+              <div style="display:flex;gap:10px">
+                <input name="newPhoneCode" type="tel" maxlength="6" placeholder="请输入 6 位验证码" value="${esc(draft.code || "")}" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,6)" style="flex:1;min-width:0;height:50px;padding:0 14px;border-radius:14px;border:1.4px solid rgba(16,84,224,.16);background:#F8FAFC;font-size:17px;font-weight:600;color:#1E293B;font-family:inherit;box-sizing:border-box" />
+                <button type="button" data-act="sendChangePhoneCode" style="height:50px;padding:0 16px;border-radius:14px;border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit">${draft.cd > 0 ? "重新获取" : "获取验证码"}</button>
+              </div>
+            </div>
+          </div>
+          <div style="font-size:13.5px;color:var(--sec);line-height:1.6;padding:0 4px">更换手机号后，下次请使用新手机号登录；您当前的健康档案、康复计划、家属绑定与 VIP 权益将完整保留。</div>
+          <button class="cta" data-act="confirmChangePhone" type="button">确认更换</button>
+        </div>
+      </div>`;
+    },
+
+    support: () => {
+      const draft = S.supportDraft || { cat: "功能使用", text: "" };
+      const cats = ["功能使用", "计划与打卡", "VIP 与理赔", "账号与隐私"];
+      const tickets = S.feedbackTickets || [];
+      return `
+      <div class="page">
+        ${navBar(cap(I.chevL, "返回"), "联系客服")}
+        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:16px">
+          <div class="hero" style="padding:18px 20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+              <div>
+                <div style="font-size:13.5px;font-weight:600;color:rgba(255,255,255,.85)">哈宝康复客服热线（08:00–21:00）</div>
+                <div style="font-size:24px;font-weight:800;color:#fff;margin-top:4px;letter-spacing:.5px">400-1666-199</div>
+                <div style="font-size:13px;color:rgba(255,255,255,.84);margin-top:4px">功能咨询 · 订单与会员问题 · 理赔指引</div>
+              </div>
+              <button type="button" data-act="callSupportHotline" style="padding:10px 16px;border-radius:999px;border:0;background:#fff;color:var(--blue);font-size:15px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:6px;flex-shrink:0;font-family:inherit">${I.phone}<span>拨打</span></button>
+            </div>
+          </div>
+
+          <div class="island-card" style="padding:18px;border-radius:22px;display:flex;flex-direction:column;gap:14px">
+            <div style="font-size:17px;font-weight:800;color:#1E293B">在线意见反馈</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              ${cats.map((c) => {
+                const on = draft.cat === c;
+                return `<button type="button" data-act="pickSupportCat" data-cat="${esc(c)}" style="padding:7px 14px;border-radius:999px;border:${on ? "1.5px solid var(--blue)" : "1px solid #E2E8F0"};background:${on ? "rgba(16,84,224,.10)" : "#F8FAFC"};color:${on ? "var(--blue)" : "#475569"};font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">${esc(c)}</button>`;
+              }).join("")}
+            </div>
+            <textarea name="fbText" rows="4" placeholder="请描述您遇到的问题或改进建议，我们将尽快核实跟进…" style="width:100%;padding:12px 14px;border-radius:16px;border:1.4px solid rgba(16,84,224,.15);background:#F8FAFC;font-size:15.5px;line-height:1.5;color:#1E293B;font-family:inherit;resize:none;box-sizing:border-box">${esc(draft.text || "")}</textarea>
+            <button class="cta" data-act="submitSupportFeedback" type="button">提交反馈</button>
+          </div>
+
+          ${tickets.length ? `
+            <div class="island-card" style="padding:18px;border-radius:22px;display:flex;flex-direction:column;gap:12px">
+              <div style="font-size:16px;font-weight:800;color:#1E293B">我的反馈记录</div>
+              ${tickets.map((tk) => `
+                <div style="padding:12px 14px;border-radius:14px;background:#F8FAFC;border:1px solid #E2E8F0">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                    <span style="font-size:12.5px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.10);padding:2px 8px;border-radius:999px">${esc(tk.cat)}</span>
+                    <span style="font-size:12px;font-weight:600;color:var(--sec)">${esc(tk.time)}</span>
+                  </div>
+                  <div style="font-size:14.5px;color:#1E293B;margin-top:7px;line-height:1.5">${esc(tk.text)}</div>
+                  <div style="font-size:12.5px;font-weight:600;color:#059669;margin-top:6px">${esc(tk.status)}</div>
+                </div>
+              `).join("")}
+            </div>
+          ` : ""}
+        </div>
+      </div>`;
+    },
+
+    "privacy-center": () => `
+      <div class="page">
+        ${navBar(cap(I.chevL, "返回"), "隐私管理")}
+        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:16px">
+          <div style="padding:16px 18px;border-radius:20px;background:rgba(16,84,224,.07);font-size:14.5px;color:#1E293B;line-height:1.58;font-weight:500">
+            哈宝严格遵循「最小必要、用时方申请、全程加密」原则保护您的个人健康数据。您可在此随时查阅权限状态、信息收集清单与共享说明。
+          </div>
+          <div class="list-island">
+            <button class="list-row base-feature-row" data-go="permissions" type="button">
+              <div class="well neutral-well">${I.slider}</div>
+              <div class="grow"><h4 class="neutral-title">系统权限管理</h4><p>相机、相册、定位、麦克风、蓝牙与通知授权状态</p></div>
+              <span class="neutral-chev">${I.chevR}</span>
+            </button>
+            <button class="list-row base-feature-row" data-go="info-collected" type="button">
+              <div class="well neutral-well">${I.list}</div>
+              <div class="grow"><h4 class="neutral-title">个人信息收集清单</h4><p>查看当前已收集的账号、档案与康复记录明细</p></div>
+              <span class="neutral-chev">${I.chevR}</span>
+            </button>
+            <button class="list-row base-feature-row" data-go="third-party" type="button">
+              <div class="well neutral-well">${I.two}</div>
+              <div class="grow"><h4 class="neutral-title">第三方信息共享清单</h4><p>短信、OCR 识别、语音、定位推送与保险理赔说明</p></div>
+              <span class="neutral-chev">${I.chevR}</span>
+            </button>
+            <button class="list-row base-feature-row" data-go="privacy" type="button">
+              <div class="well neutral-well">${I.shieldCheck}</div>
+              <div class="grow"><h4 class="neutral-title">隐私协议</h4><p>完整阅读《哈宝隐私保护政策》全文</p></div>
+              <span class="neutral-chev">${I.chevR}</span>
+            </button>
+          </div>
+        </div>
+      </div>`,
+
+    permissions: () => `
+      <div class="page">
+        ${navBar(cap(I.chevL, "返回"), "系统权限管理")}
+        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:14px">
+          <div style="font-size:13.5px;color:var(--sec);line-height:1.55;padding:0 4px">所有系统权限均仅在您使用对应功能时按需申请，您可随时前往手机系统设置开启或撤回授权。</div>
+          ${[
+            [I.cam, "相机权限", "拍摄出院记录、复查化验单及扫码绑定智能设备", "按需授权"],
+            [I.folder, "相册权限", "导入手机相册中的病历照片或保存打卡集章海报", "按需授权"],
+            [I.walk, "位置与运动权限", "户外散步时计算运动距离、步数与路线轨迹", "使用时允许"],
+            [I.mic, "麦克风与语音识别", "在哈宝医生按住说话进行语音问诊输入", "按需授权"],
+            [I.waves, "蓝牙权限", "连接并同步哈宝智能血压计与智能手表测量数据", "按需授权"],
+            [I.bell, "通知推送权限", "按时发送服药、测血压、运动与复查提醒通知", "已开启"],
+          ].map(([ico, name, desc, state]) => `
+            <div class="island-card" style="padding:16px 18px;border-radius:20px;display:flex;align-items:center;gap:14px">
+              <div class="well neutral-well" style="flex-shrink:0">${ico}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:16.5px;font-weight:800;color:#1E293B">${name}</div>
+                <div style="font-size:13.5px;color:var(--sec);margin-top:3px;line-height:1.45">${desc}</div>
+              </div>
+              <button type="button" data-act="openSysSettingsHint" style="padding:6px 11px;border-radius:999px;border:0;background:rgba(16,84,224,.09);color:var(--blue);font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit">${state} ›</button>
+            </div>
+          `).join("")}
+        </div>
+      </div>`,
+
+    "info-collected": () => {
+      const curP = currentDemoPerson();
+      const basePhotos = (ARCHIVE_DEMO?.baseline?.groups || []).reduce((n, g) => n + (g.pages || 0), 0);
+      const revPhotos = (ARCHIVE_DEMO?.review?.groups || []).reduce((n, g) => n + (g.pages || 0), 0);
+      const taskCount = (SEED || []).length;
+      return `
+      <div class="page">
+        ${navBar(cap(I.chevL, "返回"), "个人信息收集清单")}
+        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:14px">
+          ${[
+            ["账号与身份认证", `绑定手机号：${curP.phone || "138****5678"}`, "用于注册登录、短信安全校验及守护家属关系识别", "用户主动输入"],
+            ["个人基本健康资料", `${curP.name} · ${curP.gender} · ${curP.age || 58}岁 · ${curP.height || 170}cm / ${curP.weight || 70}kg`, "用于计算 BMI、评估康复风险并生成个性化日程", "用户主动填写"],
+            ["康复计划与日常监测", `当前生效计划 ${taskCount} 项 · 含血压心率、散步与随访问卷记录`, "用于每日打卡提醒、趋势图表生成与康复进度评估", "日常打卡与设备同步"],
+            ["病历与检查报告影像", `基础报告 ${basePhotos} 张 · 复查报告 ${revPhotos} 张`, "用于病历 OCR 辅助建档、AI 报告解读与个人健康归档", "拍照或相册主动上传"],
+          ].map(([title, val, usage, src]) => `
+            <div class="island-card" style="padding:18px;border-radius:20px">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                <span style="font-size:17px;font-weight:800;color:#1E293B">${title}</span>
+                <span style="font-size:12px;font-weight:700;color:var(--blue);background:rgba(16,84,224,.09);padding:3px 9px;border-radius:999px">${src}</span>
+              </div>
+              <div style="font-size:15px;font-weight:700;color:var(--blue);margin-top:8px">${esc(val)}</div>
+              <div style="font-size:13.5px;color:var(--sec);margin-top:6px;line-height:1.5">使用目的：${usage}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>`;
+    },
+
+    "third-party": () => `
+      <div class="page">
+        ${navBar(cap(I.chevL, "返回"), "第三方信息共享清单")}
+        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:14px">
+          <div style="font-size:13.5px;color:var(--sec);line-height:1.55;padding:0 4px">我们不会出售或向任何广告商提供您的个人健康数据。仅在实现核心功能所必需的最小范围内调用以下服务：</div>
+          ${[
+            ["短信验证码服务", "登录验证、更换手机号、注销身份核验", "手机号码", "加密接口调用（不留存营销用途）"],
+            ["医疗单据 OCR 识别服务", "辅助识别出院记录、用药处方与复查单文字", "用户主动上传的病历图片", "TLS 加密传输，识别后即销毁临时缓存"],
+            ["智能语音识别服务", "哈宝医生语音提问转文字", "按住说话期间的语音片段", "实时流式转写，不作声纹画像"],
+            ["系统定位与地图服务", "户外散步路线绘制与距离计算", "运动期间的位置信息", "系统原生框架按需调用"],
+            ["消息通知推送服务（APNs / 系统推送）", "发送服药、测血压与家属协同提醒", "设备推送标识（Push Token）", "系统级通道加密下发"],
+            ["中国人民保险理赔服务（按需）", "仅在 VIP 支架术后用户主动发起理赔报案时核验材料", "被保险人身份信息与住院诊疗单据", "经本人单独授权后专案提交"],
+          ].map(([name, purpose, fields, mode]) => `
+            <div class="island-card" style="padding:17px 18px;border-radius:20px">
+              <div style="font-size:16.5px;font-weight:800;color:#1E293B">${name}</div>
+              <div style="font-size:13.5px;color:#334155;line-height:1.6;margin-top:7px">
+                <div><b>使用目的：</b>${purpose}</div>
+                <div><b>涉及信息：</b>${fields}</div>
+                <div><b>共享方式：</b>${mode}</div>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>`,
+
+    about: () => `
+      <div class="page">
+        ${navBar(cap(I.chevL, "返回"), "关于我们")}
+        <div class="scroll px20" style="padding-top:16px;padding-bottom:32px;display:flex;flex-direction:column;gap:18px">
+          <div class="island-card" style="padding:26px 20px;border-radius:24px;text-align:center">
+            <img src="assets/brand_logo.png" alt="哈宝" style="width:68px;height:68px;border-radius:18px;box-shadow:0 6px 18px rgba(16,84,224,.16)" />
+            <div style="font-size:22px;font-weight:800;color:#1E293B;margin-top:12px">哈宝</div>
+            <div style="font-size:14px;font-weight:600;color:var(--sec);margin-top:4px">院外心肺康复管理助手 · 当前版本 V0.1.0</div>
+          </div>
+
+          <div class="list-island">
+            <button class="list-row base-feature-row" data-go="service-terms" type="button">
+              <div class="well neutral-well">${I.doc}</div>
+              <div class="grow"><h4 class="neutral-title">用户服务协议</h4><p>查看《哈宝用户服务协议》</p></div>
+              <span class="neutral-chev">${I.chevR}</span>
+            </button>
+            <button class="list-row base-feature-row" data-go="vip-terms" type="button">
+              <div class="well neutral-well">${I.crown}</div>
+              <div class="grow"><h4 class="neutral-title">VIP 会员服务协议</h4><p>查看会员权益、有效期与退订规则</p></div>
+              <span class="neutral-chev">${I.chevR}</span>
+            </button>
+            <button class="list-row base-feature-row" data-go="insurance-claim" type="button">
+              <div class="well neutral-well">${I.shieldCheck}</div>
+              <div class="grow"><h4 class="neutral-title">支架保险理赔须知</h4><p>查看承保范围、报销标准与理赔流程</p></div>
+              <span class="neutral-chev">${I.chevR}</span>
+            </button>
+            <button class="list-row base-feature-row" data-act="checkAppUpdate" type="button">
+              <div class="well neutral-well">${I.cycle}</div>
+              <div class="grow"><h4 class="neutral-title">检查新版本</h4><p>当前版本 V0.1.0（已是最新）</p></div>
+              <span class="neutral-chev">${I.chevR}</span>
+            </button>
+          </div>
+
+          <div style="text-align:center;font-size:12.5px;color:#94A3B8;line-height:1.65;padding:4px 8px">
+            客服热线：400-1666-199（08:00–21:00）<br>
+            哈瑞特医疗 · 守护每一次安心康复
+          </div>
+        </div>
+      </div>`,
+
+    "vip-terms": () => `
+      <div class="page">
+        ${navBar(cap(I.chevL, "返回"), "VIP 会员服务协议")}
+        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:16px">
+          <div style="padding:18px;border-radius:20px;background:rgba(16,84,224,.07)">
+            <div style="display:flex;align-items:center;gap:8px;color:var(--blue);font-size:20px;font-weight:800">
+              ${I.crown}<span>哈宝 VIP 会员服务协议</span>
+            </div>
+            <div style="font-size:13px;font-weight:600;color:var(--sec);margin-top:6px">生效日期：2026年10月29日 · 适用端：iOS / Android 通用</div>
+            <div style="font-size:15px;font-weight:500;color:#1E293B;line-height:1.55;margin-top:8px">感谢您选择哈宝 VIP 院外康复管理会员服务。开通前请仔细阅读本协议关于服务内容、收费标准、非自动续费周期及退订规则的说明。</div>
+          </div>
+          ${[
+            ["一、收费标准与服务周期", "¥2400 / 年 · 按年一次性开通（不自动扣费）", "哈宝 VIP 会员服务费为人民币 2400 元 / 年，自开通成功之日起算，有效期为 365 天。本服务为固定年包，到期后不会自动扣费续订，您可根据康复需要自主决定是否续期。"],
+            ["二、五项核心会员权益", "哈宝医生 · 支架保险 · 家属共管 · 智能硬件 · 操作记录", "开通有效期内，患者档案享有：① 哈宝医生（心内科与多学科康复团队 + AI 全年不限次在线问诊与 7 天一期康复方案推送）；② 支架保险理赔服务（符合条件的支架术后用户享中国人民保险再狭窄介入自费报销与住院津贴）；③ 最多绑定 5 位守护家属多端协同；④ 智能血压计与手表绑定监测；⑤ 全流程照护操作留痕。"],
+            ["三、家庭共享与权益归属", "随患者康复档案生效，守护家属免重复付费", "VIP 会员权益绑定在开通患者的康复档案上，经双向确认绑定的守护家属在看护该患者时，可直接协同使用家属共管、哈宝医生咨询与操作记录核对，无需单独重复购买。"],
+            ["四、取消订阅、恢复购买与数据保留", "随时管理会员状态，个人健康档案永久留存", "1. 恢复购买：更换设备或重装应用后，您可在「VIP 会员」页右上角点击「恢复购买」找回有效权益。<br>2. 取消与到期：取消订阅或会员到期后，VIP 专属功能将重新上锁，但您已建立的健康档案、康复计划、病历照片与历史记录仍完好保留在账号下。如有订单疑问请致电 400-1666-199。"],
+          ].map(([badge, title, body]) => `
+            <div class="island-card" style="padding:18px;border-radius:20px">
+              <span style="display:inline-block;padding:4px 10px;border-radius:999px;background:rgba(16,84,224,.10);color:var(--blue);font-size:12.5px;font-weight:700">${badge}</span>
+              <div style="font-size:18px;font-weight:800;color:#1E293B;margin-top:10px">${title}</div>
+              <div style="font-size:15px;color:#334155;line-height:1.62;margin-top:8px">${body}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>`,
+
+    "insurance-claim": () => `
+      <div class="page">
+        ${navBar(cap(I.chevL, "返回"), "理赔须知")}
+        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:16px">
+          <div style="padding:18px;border-radius:20px;background:rgba(16,84,224,.07)">
+            <div style="display:flex;align-items:center;gap:8px;color:var(--blue);font-size:20px;font-weight:800">
+              ${I.shieldCheck}<span>支架保险理赔须知</span>
+            </div>
+            <div style="font-size:13px;font-weight:600;color:var(--sec);margin-top:6px">承保机构：中国人民保险（PICC） · 适用哈宝 2400元/年 支架术后管理客户</div>
+            <div style="font-size:15px;font-weight:500;color:#1E293B;line-height:1.55;margin-top:8px">为减轻冠脉支架术后患者院外康复期间的后顾之忧，哈瑞特医疗联合中国人民保险为符合条件的 VIP 会员提供专属再狭窄保障服务。</div>
+          </div>
+          ${[
+            ["一、保障对象与生效范围", "限购买 2400 元/年院外管理包的支架术后客户", "本保障仅面向冠脉支架植入术后、在服务有效期内纳入哈瑞特医疗院外康复管理的 VIP 会员。保障针对本次入组所对应的新植入冠脉支架，既往历史老支架不在本次再狭窄赔付范围内。"],
+            ["二、赔付标准", "最高 2 万元/次再梗介入补助 + 100 元/天住院津贴", "1. 支架内再狭窄介入补助：管理有效期内，若新植入支架发生支架内再狭窄并需再次接受冠脉介入治疗，经医保结算后的个人自费部分由中国人民保险予以报销，单次最高 20,000 元，保障期内不限次数。<br>2. 住院津贴：因上述约定情形住院治疗期间，享 100 元/天住院津贴补助。"],
+            ["三、理赔申请流程与所需材料", "400 专员全程协办，材料齐全快速审核", "如发生约定理赔情形，请及时致电哈宝客服热线 400-1666-199 报案，理赔专员将协助您准备并提交：① 被保险人有效身份证件与收款银行卡；② 首次支架植入出院记录及手术记录；③ 本次再狭窄住院病历、冠脉造影/介入手术报告；④ 医院正式医疗费用发票与医保结算分割单。"],
+            ["四、重要提示与除外说明", "依保单条款核定，非保险销售误导声明", "哈宝提供院外健康管理与理赔材料协办支持，具体保险责任、等待期、免赔细节及除外责任（如未遵医嘱擅自停用抗血小板药物、非约定支架病变等）均以中国人民保险正式保单条款为准。"],
+          ].map(([badge, title, body]) => `
+            <div class="island-card" style="padding:18px;border-radius:20px">
+              <span style="display:inline-block;padding:4px 10px;border-radius:999px;background:rgba(16,84,224,.10);color:var(--blue);font-size:12.5px;font-weight:700">${badge}</span>
+              <div style="font-size:18px;font-weight:800;color:#1E293B;margin-top:10px">${title}</div>
+              <div style="font-size:15px;color:#334155;line-height:1.62;margin-top:8px">${body}</div>
+            </div>
+          `).join("")}
+        </div>
+      </div>`,
+
+    "unregister-verify": () => {
+      const curP = currentDemoPerson();
+      const masked = curP.phone || "138****5678";
+      const code = S.deleteVerifyCode || "";
+      const ready = code.replace(/\D/g, "").length === 6;
+      return `
+      <div class="page">
+        ${navBar(cap(I.chevL, "返回"), "注销账号")}
+        <div class="scroll px20" style="padding-top:12px;padding-bottom:32px;display:flex;flex-direction:column;gap:16px">
+          <div style="padding:18px;border-radius:22px;background:#FEF2F2;border:1.2px solid #FECACA">
+            <div style="display:flex;align-items:center;gap:8px;color:#DC2626;font-size:18px;font-weight:800">
+              ${I.warn}<span>永久注销风险提示</span>
+            </div>
+            <div style="font-size:14.5px;color:#7F1D1D;line-height:1.6;margin-top:8px">
+              注销账号是不可逆操作。确认注销后，当前账号（${esc(masked)}）下的以下数据将被立即清空且无法恢复：
+              <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;font-weight:600">
+                <div>• 个人基本资料、出院记录与复查报告影像</div>
+                <div>• 全部康复计划、今日集章、血压心率、散步与随访记录</div>
+                <div>• 家属守护绑定关系、智能硬件绑定与操作记录</div>
+                <div>• 哈宝医生问诊记录及当前 VIP 会员开通权益</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="island-card" style="padding:18px;border-radius:22px;display:flex;flex-direction:column;gap:12px">
+            <div style="font-size:15px;font-weight:700;color:#1E293B">安全身份验证（绑定手机号 ${esc(masked)}）</div>
+            <div style="display:flex;gap:10px">
+              <input name="delCode" type="tel" maxlength="6" placeholder="请输入 6 位短信验证码" value="${esc(code)}" data-act="syncDeleteCode" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,6);document.getElementById('btn-confirm-del').disabled=this.value.length!==6;document.getElementById('btn-confirm-del').style.background=this.value.length===6?'#EF4444':'#CBD5E1';document.getElementById('btn-confirm-del').style.cursor=this.value.length===6?'pointer':'not-allowed'" style="flex:1;min-width:0;height:50px;padding:0 14px;border-radius:14px;border:1.4px solid #E2E8F0;background:#F8FAFC;font-size:17px;font-weight:600;color:#1E293B;font-family:inherit;box-sizing:border-box" />
+              <button type="button" data-act="sendDeleteCode" style="height:50px;padding:0 16px;border-radius:14px;border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit">${S.deleteVerifyCd > 0 ? "重新获取" : "获取验证码"}</button>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;margin-top:4px">
+            <button type="button" class="cta-ghost" style="flex:1" data-act="back">暂不注销</button>
+            <button id="btn-confirm-del" type="button" data-act="confirmDeleteAccount" ${ready ? "" : "disabled"} style="flex:1;height:54px;border-radius:999px;border:0;background:${ready ? "#EF4444" : "#CBD5E1"};color:#fff;font-size:17px;font-weight:800;cursor:${ready ? "pointer" : "not-allowed"};font-family:inherit">确认永久注销</button>
+          </div>
         </div>
       </div>`;
     },
@@ -14092,8 +14640,9 @@
           ${[
             ["一、收集与使用", "我们如何收集和使用您的信息", "1. 账号注册与身份识别：当您注册或登录哈宝时，我们需要收集您的手机号码及短信验证码，用于创建账号、识别患者本人或守护家属身份。<br>2. 康复档案与日常监测：为向您提供个性化的康复计划、血压心率趋势分析与身体报告管理，您可自主填写姓名、性别、出生日期、身高、体重，以及录入血压、心率、散步记录和随访问卷。<br>3. 病历与报告识别（OCR）：当您使用「拍照上传病历/复查报告」功能时，我们会根据您的主动上传，解析出院诊断、用药医嘱与复查时间，帮您一键生成提醒计划。"],
             ["二、设备权限（iOS & Android 通用）", "系统权限调用遵循「用时方申请」原则", "在您同意本隐私政策时，我们不会提前索取任何系统敏感权限；仅在您实际触发对应功能时，才会向系统发起动态权限申请，且拒绝授权不影响其他功能正常使用：<br>• 相机与相册权限：仅在您拍摄或从相册导入出院记录、检查化验单及在哈宝医生发送图片时调用。<br>• 位置信息与运动权限：仅在您开启「户外散步」记录运动距离、步数与轨迹路线时调用。<br>• 麦克风与语音识别权限：仅在您于「哈宝医生」按住说话语音提问时调用。<br>• 蓝牙与本地网络权限：仅在您扫码绑定或同步哈宝智能血压计、智能手表读数时调用。<br>• 通知推送权限：用于向您及已绑定的守护人/被守护人发送服药、测血压、复查与打卡提醒。"],
-            ["三、存储、加密与家属共享", "数据安全保护与家庭协同规则", "1. 全程加密与脱敏：您的手机号在界面默认脱敏显示（如 138****5678），通信传输全程采用 TLS 加密，核心健康档案在云端加密存储。<br>2. 家属共管授权：仅在您与家人双向确认建立「守护人 / 被守护人」绑定关系后，授权对方查看您的康复计划、血压监测与身体报告进展；您可随时在「个人中心」一键解除守护关系，解除后立即停止数据共享。<br>3. 分享脱敏保护：您生成的今日集章海报、血压周报或散步海报均自动隐藏操作人敏感身份及具体医疗隐私细节，方便安心转发。"],
-            ["四、您的权利", "查询、更正、撤回同意与注销账号", "1. 查阅与更正：您可随时在「个人中心 → 健康档案」查阅、修改您的个人资料与病历照片。<br>2. 撤回权限授权：您可随时在手机系统「设置 → 隐私/应用权限管理」中关闭相机、定位、麦克风、蓝牙或通知权限。<br>3. 注销账号：您可通过「个人中心 → 注销账号」申请永久注销。注销后，我们将立即清空或不可逆匿名化您的个人档案、入组记录、康复计划、操作记录及硬件绑定信息。"],
+            ["三、存储、加密与家属共享", "数据安全保护与家庭协同规则", "1. 境内加密存储与脱敏：您的个人信息存储于中华人民共和国境内服务器，手机号在界面默认脱敏显示（如 138****5678），通信传输全程采用 TLS 加密。<br>2. 家属共管授权：仅在您与家人双向确认建立「守护人 / 被守护人」绑定关系后，授权对方查看您的康复计划、血压监测与身体报告进展；您可随时在「个人中心」一键解除守护关系，解除后立即停止数据共享。<br>3. Apple HealthKit / 运动健康数据特别承诺：经您授权读取或写入的步数、运动与健康指标仅用于本应用内的院外心肺康复评估与展示，绝不用于任何广告营销、用户画像或出售给第三方数据经纪商。"],
+            ["四、您的权利", "查询、更正、撤回同意与注销账号", "1. 清单透明查阅：您可随时在「个人中心 → 隐私管理」查看系统权限状态、个人信息收集清单与第三方信息共享清单。<br>2. 撤回权限授权：您可随时在手机系统「设置 → 隐私/应用权限管理」中关闭相机、定位、麦克风、蓝牙或通知权限。<br>3. 注销账号：所有登录用户均可通过「个人中心 → 注销账号」经短信验证后申请永久注销，我们将立即清空或不可逆匿名化您的全部个人健康档案、计划记录与绑定信息。"],
+            ["五、未成年人保护与联系我们", "运营主体与隐私保护专员联系方式", "哈宝主要面向成年心血管及慢病康复人群；若涉及未满 14 周岁未成年人使用，须在监护人知情同意并陪同下建档。如您对本隐私政策或个人信息保护有任何疑问、投诉或建议，可通过「个人中心 → 联系客服」或拨打客服热线 400-1666-199（08:00–21:00）联系哈瑞特医疗隐私保护团队，我们将在 15 个工作日内核实并回复。"],
           ].map(([badge, title, body]) => `
             <div class="island-card" style="padding:18px;border-radius:20px">
               <span style="display:inline-block;padding:4px 10px;border-radius:999px;background:rgba(16,84,224,.10);color:var(--blue);font-size:12.5px;font-weight:700">${badge}</span>
@@ -14118,8 +14667,8 @@
           ${[
             ["一、服务内容", "哈宝院外康复管理服务范围", "哈宝为心血管及慢病康复人群提供院外日程提醒（服药、测血压、运动、饮食、作息、复查）、体征记录、病历归档、集章鼓励以及 VIP 专属服务（哈宝医生在线咨询、家属多端共管、智能硬件互联、操作记录留痕与支架保险理赔协助）。"],
             ["二、医疗安全提示", "非急诊诊疗声明与紧急呼救准则", "1. 辅助康复属性：哈宝及「哈宝医生」提供的健康建议、报告解读与康复计划旨在协助您执行出院医嘱与日常健康管理，不能替代医院急诊或线下面诊处置。<br>2. 危急症状立即呼救：若您或被守护患者出现剧烈胸痛、胸口压榨感不缓解、严重呼吸困难、大汗淋漓、晕厥、黑便或血压触发危急报警值（如 ≥180/110 mmHg），请立即停止一切活动并拨打 120 急救电话或前往就近医院急诊就医。"],
-            ["三、账号与家庭守护", "实名手机号登录与守护人协同规范", "1. 账号使用：您应使用本人合法拥有的手机号码注册登录，妥善保管短信验证码。<br>2. 家庭守护规范：添加「守护我的人」或「被我守护的人」须征得家人知情同意。代为打卡、代录血压或发起提醒将如实记录在「操作记录」中，便于家庭成员与康复团队协同核对。"],
-            ["四、VIP 会员与权益说明", "服务订阅、共享与退订机制", "1. VIP 随患者档案生效：开通 VIP 会员后，绑定确认的守护家属在看护该患者时可自动共享家属共管、哈宝医生等协同权益，无需重复付费。<br>2. 随时管理：您可在「个人中心 → VIP 会员」查看权益详情与有效期。即使取消订阅或到期，您本机已建立的健康档案、计划与历史记录仍完好保留。"],
+            ["三、账号与家庭守护", "实名手机号登录与守护人协同规范", "1. 账号使用：您应使用本人合法拥有的手机号码注册登录，支持在「个人中心 → 更换手机号」安全换绑，并妥善保管短信验证码。<br>2. 家庭守护规范：添加守护家属须征得家人知情同意。代为打卡、修改计划将如实记录在「操作记录」中，便于家庭成员与康复团队协同核对。"],
+            ["四、VIP 会员与联系我们", "服务订阅、共享、退订与客服渠道", "1. VIP 随患者档案生效：开通 VIP 会员后，绑定确认的守护家属在看护该患者时可自动共享协同权益，无需重复付费。<br>2. 随时管理：您可在「个人中心 → VIP 会员」查看权益详情、恢复购买或取消订阅；如有任何服务疑问或投诉建议，请前往「个人中心 → 联系客服」或致电 400-1666-199。"],
           ].map(([badge, title, body]) => `
             <div class="island-card" style="padding:18px;border-radius:20px">
               <span style="display:inline-block;padding:4px 10px;border-radius:999px;background:rgba(16,84,224,.10);color:var(--blue);font-size:12.5px;font-weight:700">${badge}</span>
@@ -18930,6 +19479,20 @@
         </div>
       </div>`;
     },
+    vipTermsConfirm: () => `
+      <div class="scrim center" data-act="close">
+        <div class="popup" style="max-width:348px;border-radius:26px;padding:24px 22px;text-align:center" onclick="event.stopPropagation()">
+          <h3 style="font-size:21px;margin:0;color:var(--blue)">请阅读并同意会员协议</h3>
+          <p style="font-size:15px;color:var(--sec);line-height:1.5;margin:10px 0 14px">开通哈宝 VIP 前，请先阅读并同意以下会员服务协议：</p>
+          <div style="display:flex;gap:10px;margin-bottom:16px">
+            <button type="button" data-act="openAgreementModal" data-kind="vip" style="flex:1;padding:10px 12px;border-radius:12px;border:0;background:rgba(16,84,224,.08);color:var(--blue);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">《VIP 会员服务协议》</button>
+          </div>
+          <div class="duo" style="gap:12px">
+            <button class="cancel" data-act="close" type="button">取消</button>
+            <button class="ok" data-act="agreeAndAskVip" type="button">同意并继续</button>
+          </div>
+        </div>
+      </div>`,
     loginTermsConfirm: () => `
       <div class="scrim center" data-act="close">
         <div class="popup" style="max-width:348px;border-radius:26px;padding:24px 22px;text-align:center" onclick="event.stopPropagation()">
