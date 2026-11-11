@@ -1427,7 +1427,7 @@
     schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行展示时刻与单日/循环/类别胶囊，下方展示「开始日期 – 结束日期」起止区间；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上更新才进编辑。未完成与已完成全程统一采用蓝白色系（去绿改蓝白）。" },
     vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。展示整体 AI 评估卡与平均血压/平均心率趋势折线图（已移除底栏「进入哈宝医生」按钮）。" },
     report: { code: "FollowUpModuleView", note: "V10.270：综合结论 + 三等分入口（基础报告 / 复查报告 / 问卷随访）。资料增删与问卷提交后展示「AI 正在解析生成解读中…」更新中间态。" },
-    "report-sub": { code: "BodyReportSubReportView", note: "V10.270：顶栏两枚 Tab「AI 解读 / 资料合集」，默认落 AI 解读；资料合集缩略图右上角支持「×」删除单页。资料增删后 AI 解读呈现更新中间态。底栏「新增报告资料」不论有无存量都直接进拍摄页（不再先落资料详情）。拍完提交：基础按类别追加、复查新开一次。复诊打卡形态在主钮下多一颗「返回首页」。" },
+    "report-sub": { code: "BodyReportSubReportView", note: "V10.335：顶栏两枚 Tab「AI 解读 / 资料合集」，打卡复查拍照后直接进资料合集；资料合集缩略图右上角支持「×」删除单页。资料增删后 AI 解读呈现更新中间态。内容模块大白卡底部常驻「更新报告」按钮（仅有资料更新才可点击，否则禁用）。底栏保留「新增报告资料」大主按钮；打卡复查落库后弹出「返回首页并打卡」弹窗（确认自动跳回首页并打卡，取消留在资料合集）。" },
     walk: { code: "WalkView", note: "大标题 + 44 回首页（dismiss cover，不压栈）。地图主卡底浮层：60 圆钮记录/分享 + 60 主胶囊。三态：开始运动 / 返回运动 / 保存并打卡。点「开始运动」、以及首页「进入运动，开始散步」，都先按出院诊断比对绝对禁忌症；命中弹「是否继续运动？」，写明疾病（演示病历含室颤），「暂不运动」留在地图，「继续运动」才开会话。返回运动不再问。保存归属：计划入口完成原任务，自由入口按开始时刻新建「自主散步」，不猜测也不占用存量计划。" },
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
@@ -1876,10 +1876,10 @@
       { screen: "ocr-capture", label: "拍摄复查报告" },
       { act: "shutter", label: "拍一张" },
       { act: "ocrConfirm", label: "确认 → 资料详情" },
-      { act: "ocrSubmit", label: "提交归档并完成当天复查打卡" },
-      { screen: "report-sub", label: "落复查报告页（底栏多一颗「返回首页」）" },
-      { act: "reportHome", label: "返回首页" },
-      { screen: "home", label: "回首页复查卡已完成" },
+      { act: "ocrSubmit", label: "提交归档" },
+      { screen: "report-sub", label: "直接进入资料合集，跳出返回首页并打卡弹窗" },
+      { act: "confirmOk", label: "确认返回首页并打卡" },
+      { screen: "home", label: "自动跳回首页并完成打卡" },
     ]},
     { id: "walk-scheduled", label: "已入组 · 运动打卡 → 散步会话", cold: "demo", steps: [
       { act: "checkin", label: "点运动计划卡" },
@@ -5760,24 +5760,32 @@
       : opMaterialValue(filled);
     S.captureMode = "intake";
     seedDocGroups(0);
-    const doneAppts = fromCheckIn ? completeTodayAppointments() : [];
     logOp(visit ? "上传了复查资料" : "上传了资料", S.archivePlace || (visit ? "复查报告" : "基础报告"), [
       ["资料", material],
-      doneAppts.length ? ["打卡", `${opNames(doneAppts)} 已完成`] : ["计划", "本次未动"],
+      fromCheckIn ? ["打卡", "待确认打卡"] : ["计划", "本次未动"],
     ]);
     S.archivePlace = null;
     markReportMaterialUpdated(visit ? "review" : "baseline");
-    // V10.49：复诊打卡提交不直接回首页，落复查报告页（该页底栏多一颗「返回首页」）
+    // V10.335：打卡复查拍完照之后直接进入复查报告的资料合集界面；不要返回首页按钮了，
+    // 跳出返回首页并打卡弹窗（确认自动跳回首页并打卡，取消留在资料合集）
     if (fromCheckIn) {
       S.apptCapture = false;
       S.reportKind = "visit";
-      S.reportReturnHome = true;
-      S.reportPane = "insight";
-      // 先摘掉资料详情的 push，再把拍摄这层 cover 换成报告页：返回 / 返回首页都回首页
+      S.reportReturnHome = false;
+      S.reportPane = "archive";
+      // 先摘掉资料详情的 push，再把拍摄这层 cover 换成报告页
       while (S.frames.length > 1 && topFrame().how === "push") S.frames.pop();
       present("report-sub", "replace");
+      openOverlay("confirm", {
+        title: "返回首页并打卡",
+        body: "复查资料已保存。是否返回首页并完成今日打卡？",
+        cancel: "取消",
+        ok: "确认",
+        action: "confirmAppointmentCheckIn",
+      });
       return;
     }
+    S.reportPane = "archive";
     dismissCover();
   }
   function laterCapture() {
@@ -11592,6 +11600,15 @@
       sys(d) { markManualVitalsStep(); S.sys = stepOrSeed(S.sys, d, 120, 70, 220); render(); },
       dia(d) { markManualVitalsStep(); S.dia = stepOrSeed(S.dia, d, 78, 40, 140); render(); },
       hr(d) { markManualVitalsStep(); S.hr = stepOrSeed(S.hr, d, 72, 40, 180); render(); },
+      confirmAppointmentCheckIn() {
+        closeOverlay();
+        const doneAppts = completeTodayAppointments();
+        logOp("完成复查打卡", "复查报告", [
+          ["打卡", doneAppts.length ? `${opNames(doneAppts)} 已完成` : "复查计划已完成"],
+        ]);
+        toast("已完成复查打卡并返回首页");
+        dismissCover();
+      },
       confirmOk() {
         const a = S.overlayData.action;
         if (a && map[a]) map[a]();
@@ -13136,11 +13153,11 @@
       const subTitle = isVisitSub ? "复查报告" : "基础报告";
       return `
       <div class="page">
-        ${navBar(cap(I.chevL, "返回", "", S.reportReturnHome ? "reportBack" : "back"), subTitle)}
+        ${navBar(cap(I.chevL, "返回", "", "back"), subTitle)}
         <div class="px20" style="padding-top:12px; flex:1; min-height:0; display:flex">
           <div class="island-card" style="flex:1; min-height:0; display:flex; flex-direction:column; padding:14px 18px">
             ${reportPaneTabs()}
-            <div class="scroll" style="margin-top:14px; padding-bottom:12px">
+            <div class="scroll" style="margin-top:14px; padding-bottom:12px; flex:1; min-height:0">
               ${S.reportPane === "archive" ? reportArchivePane() : (isAnalyzingSub ? `
                 ${reportIntermediateCardHTML(`AI 正在重新生成${subTitle}解读…`, "已检测到资料增删变更，AI 正在比对关键指标与基线档案，约需 2–3 秒…")}
               ` : `
@@ -13148,12 +13165,13 @@
                 ${isVisitSub && S.consultReportSub?.review ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生跨期对照解读】${S.consultReportSub.review}</div>` : ""}
                 ${!isVisitSub && S.consultReportSub?.baseline ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生基线报告解读】${S.consultReportSub.baseline}</div>` : ""}`)}
             </div>
+            <div style="padding-top:10px; margin-top:auto">
+              <button class="cta report-update-dock-btn ${canUpdateSub ? "is-ready" : "is-disabled"}" ${canUpdateSub ? `data-act="updateReport" data-kind="${isVisitSub ? "review" : "baseline"}"` : "disabled"} type="button">${I.cycle}更新报告</button>
+            </div>
           </div>
         </div>
         <div class="px20 col gap10" style="padding-top:12px; padding-bottom:20px">
-          <button class="cta report-update-dock-btn ${canUpdateSub ? "is-ready" : "is-disabled"}" ${canUpdateSub ? `data-act="updateReport" data-kind="${isVisitSub ? "review" : "baseline"}"` : "disabled"} type="button">${I.cycle}更新报告</button>
           <button class="cta" data-act="addArchive" type="button">${I.cam}新增报告资料</button>
-          ${S.reportReturnHome ? `<button class="cta white" data-act="reportHome" type="button">${I.house}返回首页</button>` : ""}
         </div>
       </div>`;
     },
