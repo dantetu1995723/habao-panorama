@@ -1453,7 +1453,7 @@
     "vip-terms": { code: "LegalAgreementDetailSheet(.vipMembership)", note: "《哈宝 VIP 会员服务协议》详情页：明确 ¥2400/年 非自动续费周期、五项核心权益范围、家庭共享规则及退订与本地数据保留规则。VIP 会员页底部协议勾选与个人中心「关于我们」共用。" },
     "insurance-claim": { code: "LegalAgreementDetailSheet(.insuranceClaim)", note: "《支架保险理赔须知》详情页：明确中国人民保险承保范围（新植入支架内再狭窄介入自费最高 2 万元/次全年不限次 + 100 元/天住院津贴）、理赔申请材料清单及除外责任提示。VIP 会员页支架保险卡与个人中心「关于我们」共用。" },
     home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 196–206，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。每张计划卡展示标题、提醒时间（或已完成）及「开始日期 – 结束日期」起止区间。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页；底坞中圆哈宝医生始终常亮可点击进入问诊页（非 VIP 发送消息后在聊天流内弹出 VIP 购买提示对话卡）。打卡不再在卡片上盖家属章；谁打的记在 V0.1 个人中心「操作记录」，V0.0 没有这一页。" },
-    schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行展示时刻与单日/循环/类别胶囊，下方展示「开始日期 – 结束日期」起止区间；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上更新才进编辑。未完成与已完成全程统一采用蓝白色系（去绿改蓝白）。" },
+    schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行展示时刻与单日/循环/类别胶囊，下方循环计划展示「开始日期 – 结束日期」起止区间（与首页保持一致），单日计划展示当天日期；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上更新才进编辑。未完成与已完成全程统一采用蓝白色系（去绿改蓝白）。" },
     vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。展示整体 AI 评估卡与平均血压/平均心率趋势折线图（已移除底栏「进入哈宝医生」按钮）。" },
     report: { code: "FollowUpModuleView", note: "V10.270：综合结论 + 三等分入口（基础报告 / 复查报告 / 问卷随访）。资料增删与问卷提交后展示「AI 正在解析生成解读中…」更新中间态。" },
     "report-sub": { code: "BodyReportSubReportView", note: "V10.339：顶栏两枚 Tab「AI 解读 / 资料合集」，打卡复查拍照后直接进资料合集；资料合集缩略图右上角支持「×」删除单页。资料增删后 AI 解读呈现更新中间态。「刷新报告解读」按钮仅在「AI 解读」界面底部展示（仅有资料更新才可点击，否则禁用；在「资料合集」界面不显示）。底栏保留「新增报告资料」大主按钮；打卡复查落库后弹出「复查资料已保存」弹窗（主按钮「立即打卡」自动跳回首页完成打卡，次按钮「稍后打卡」留在资料合集由用户稍后自行打卡；弹窗关闭后点击左上角返回正常进入身体报告界面，再由身体报告返回首页）。" },
@@ -4405,7 +4405,14 @@
   }
   function taskDateRangeLabel(t) {
     const startYmd = t.onceDate || toYMD(demoDate());
+    const isCycle = t.cycle !== false && t.isRecurring !== false;
+    if (!isCycle) {
+      return yearMonthDayLabel(parseYMD(startYmd));
+    }
     const endYmd = resolvedTaskEndYmd(t);
+    if (startYmd === endYmd) {
+      return yearMonthDayLabel(parseYMD(startYmd));
+    }
     return `${yearMonthDayLabel(parseYMD(startYmd))} – ${yearMonthDayLabel(parseYMD(endYmd))}`;
   }
   function defaultNewPlanStartYmd(orig) {
@@ -12775,7 +12782,7 @@
               <div class="period-h">${I[g.icon] || ""}${g.title}<span class="s12 t-sec">${g.items.length} 项</span></div>
               <div class="col gap10">${g.items.map((t) => actionCard({
                 cat: t.cat, title: t.title, time: `${pad(t.h)}:${pad(t.m)}`,
-                date: yearMonthDayLabel(parseYMD(S.calSelYMD)),
+                date: taskDateRangeLabel(t),
                 done: !!S.completed[t.id], hist, id: t.id, toggle: !hist,
                 cycle: t.cycle !== false,
                 note: t.note || "",
