@@ -1485,7 +1485,7 @@
     "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表，时段内严格按 HH:mm 由早到晚排布。【V10.320 首项规则】「起床」必须是一天计划的绝对第一个条目：推算测血压规范为起床后静坐测量（wake + 10 分钟，如 07:00 起床 → 07:10 起床测血压），同刻排序保底置顶「起床」卡。【V10.315 极简三态对比】仅在已有存量基础日程再次排定时展示（首次排定保持纯净），全链路砍掉「将停用」与停用专区（页面所见即接下来要执行的，关掉/删掉即不再提醒）：① 顶部「对比原基础日程」摘要卡展示「新增 / 已调整 / 保留」三态计数 +「其余 M 项手建与运动计划不受影响，确认后继续保留」；② 各时段与复查卡片标题行右侧实时标注「新增 / 已调整 / 保留」胶囊，「已调整」卡内附琥珀色对比行「原计划：…」（用药自动忽略「服用」前缀匹配同一药品）。右上「确认」按类别+名称整套替换上一版基础日程，手建与运动计划不动；左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "【V10.325 分类界面分为「基础计划」与「其他计划」】分类界面重构为极简两组：① 基础计划：内含「基础康复计划」（副标「按病历排好用药、复查与作息」），与首页底缘「基础康复计划」按钮统一同链；② 其他计划：内含「运动」（体测评估）、「测血压」、「饮食」、「作息」及自建类别。右上「管理」推入管理类别。" },
-    "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶进删除流程：无存量一句确认，有存量给迁移面板 —— 选一个类别承接，或走「连同 N 个计划一起删除」（该路径再要一道二次确认，是本流程唯一不可逆的一步，会连打卡历史一起没）。零类别时空态引导回选择类型页新建。" },
+    "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶弹出居中删除确认弹窗，提醒用户该类别下的存量计划列表（展示时刻、计划名称与循环/单日标签），要删除类别就要一并把该类别下的计划全部删除。零类别时空态引导回选择类型页新建。" },
     "task-add": { code: "AddEditTaskView", note: "V0.0 / V0.1 为「事项」「时间与提醒」两大类折叠；V0.2 重构为**无滚动「三联动态磁贴 + 单屏模块舞台」切换架构**（字段不变）：顶部三联动态磁贴（① 事项内容、② 时刻与提醒、③ 周期与日期）实时回显三大模块核心设定，不切页即可一眼总览；中部单屏舞台一次仅聚焦展示 1 个大模块（支持点按磁贴、点按卡头 `‹ 1/3 ›` 步进或左右滑动手势切换），彻底消除滚动与视觉负担。" },
     "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。V0.2 采用无滚动「三联动态磁贴 + 单屏模块舞台」切换架构：顶部磁贴实时回显事项、时刻与周期摘要，中部单屏切换「事项内容 / 时刻与提醒 / 周期与日期」；「提醒时间」与「打卡时间」1:1 对称同构，「时间段」配备醒目粗体时间范围标注，「起止日期」通栏对齐零截断。修改时间或周期字段保存前弹出「确认更新计划」双卡弹窗；仅改名称/备注/血压等直接原地保存。" },
     "task-view": { code: "AddEditTaskView", note: "查看计划（只读，右上「更新」）。V0.2 采用无滚动「三联动态磁贴 + 单屏模块舞台」切换架构，顶部三枚磁贴一眼总览事项、时刻与周期，中部单屏切换三大模块；「到点提醒」收纳在「时刻与提醒」模块内且在查看态下可直接切换；底部固定操作坞并排展示删除或「取消本次打卡」按钮，无需滚动。" },
@@ -7913,56 +7913,25 @@
         if (!cat) return;
         S.catRemovalId = cat.id;
         S.catDiscardConfirm = false;
-        if (catUsage(cat.id)) {
-          openOverlay("catRemoval");
-        } else {
-          // 无存量：删除无副作用，一句确认即可
-          openOverlay("confirm", {
-            title: `删除「${cat.name}」？`,
-            body: "该类别下暂无计划，删除后不可恢复。",
-            ok: "删除",
-            danger: true,
-            action: "doRemoveEmptyCat",
-          });
-        }
+        openOverlay("catRemoval");
       },
       doRemoveEmptyCat() {
-        S.customCats = S.customCats.filter((x) => x.id !== S.catRemovalId);
+        const id = S.catRemovalId;
+        if (S.cats && id != null) delete S.cats[id];
+        S.customCats = S.customCats.filter((x) => x.id !== id);
         S.catRemovalId = null;
         closeOverlay();
-      },
-      catDiscardAsk() {
-        S.catDiscardConfirm = true;
-        render();
-      },
-      catDiscardBack() {
-        S.catDiscardConfirm = false;
-        render();
       },
       doDiscardCatPlans() {
         const id = S.catRemovalId;
-        // 连同该类别下的计划一起删（真机 RehabPlanStore.deleteTasks(inCustomCategory:)）
+        // 连同该类别下的计划一起全部删除（真机 RehabPlanStore.deleteTasks(inCustomCategory:)）
         for (let i = SEED.length - 1; i >= 0; i -= 1) {
           if (SEED[i].customId === id) SEED.splice(i, 1);
         }
+        if (S.cats && id != null) delete S.cats[id];
         S.customCats = S.customCats.filter((x) => x.id !== id);
         S.catRemovalId = null;
         S.catDiscardConfirm = false;
-        closeOverlay();
-      },
-      pickCatMigrate() {
-        const id = S.catRemovalId;
-        const to = el.dataset.c;
-        const toCustomId = el.dataset.id ? +el.dataset.id : null;
-        // 计划改判到目标类别（真机 migrateCustomCategory）
-        SEED.forEach((t) => {
-          if (t.customId !== id) return;
-          t.cat = to;
-          if (to === "custom") t.customId = toCustomId;
-          else delete t.customId;
-        });
-        S.customCats = S.customCats.filter((x) => x.id !== id);
-        S.catRemovalId = null;
         closeOverlay();
       },
       openCustomDur() {
@@ -18723,23 +18692,25 @@
     </div>`;
   }
 
-  /// 自建类别下的计划数（真机 RehabPlanStore.customCategoryUsage().planCount）
-  function catUsage(id) {
-    return SEED.filter((t) => t.customId === id).length;
+  /// 自建类别下的存量计划列表（真机 RehabPlanStore.tasks(inCustomCategory:)）
+  function catPlans(id) {
+    return SEED
+      .filter((t) => t.customId === id)
+      .slice()
+      .sort((a, b) => {
+        const ha = a.h != null ? a.h : parseHour(a.time || "08:00");
+        const hb = b.h != null ? b.h : parseHour(b.time || "08:00");
+        if (ha !== hb) return ha - hb;
+        const ma = a.m != null ? a.m : parseMinute(a.time || "08:00");
+        const mb = b.m != null ? b.m : parseMinute(b.time || "08:00");
+        if (ma !== mb) return ma - mb;
+        return String(a.title || "").localeCompare(String(b.title || ""), "zh-Hans");
+      });
   }
 
-  /// 可承接的迁移目标：内置日常三类 + 其它自建类别（真机 CustomCategoryRemoval.targets）。
-  /// 服药 / 运动 / 复查不开放 —— 迁进去会让计划在首页入口不可编辑。
-  function catMigrationTargets(excludeId) {
-    const builtins = [
-      { cat: "monitoring", name: "测血压" },
-      { cat: "rest", name: "作息" },
-      { cat: "diet", name: "饮食" },
-    ];
-    const customs = (S.customCats || [])
-      .filter((c) => c.id !== excludeId)
-      .map((c) => ({ cat: "custom", name: c.name, id: c.id }));
-    return builtins.concat(customs);
+  /// 自建类别下的计划数（真机 RehabPlanStore.customCategoryUsage().planCount）
+  function catUsage(id) {
+    return catPlans(id).length;
   }
 
   function typeGroup(title, sub, opts, rows) {
@@ -20217,56 +20188,44 @@
         </div>
       </div>`;
     },
-    // 删除自建类别：先安顿存量计划。有存量给迁移目标列表，
-    // 或走「连同 N 个计划一起删除」（该路径再要一道二次确认）
+    // 删除自建类别弹窗：提醒用户存量计划列表，要删除类别就要一并把计划全部删除（真机 CustomCategoryRemovalSheet）
     catRemoval: () => {
       const c = (S.customCats || []).find((x) => x.id === S.catRemovalId);
       if (!c) return "";
-      const n = catUsage(c.id);
-
-      if (S.catDiscardConfirm) {
-        return `
-      <div class="scrim bottom" data-act="close">
-        <div class="sheet" onclick="event.stopPropagation()">
-          <div class="grab"></div>
-          <div style="padding:0 2px 16px">
-            <h3 class="s20 fb" style="color:var(--appt)">确认删除这些计划？</h3>
-            <div class="s13" style="color:var(--secondary);font-weight:600;margin-top:4px">${n} 个计划及其全部打卡记录会被永久删除，无法恢复</div>
-          </div>
-          <div class="cat-list">
-            <button class="big-danger solid" data-act="doDiscardCatPlans" type="button">永久删除</button>
-            <button class="link-back" data-act="catDiscardBack" type="button">返回选择迁移分类</button>
-          </div>
-          <div class="cat-list" style="flex:0 0 auto;padding-top:14px">
-            <button class="cancel-pill" data-act="close" type="button">取消</button>
-          </div>
-        </div>
-      </div>`;
-      }
+      const plans = catPlans(c.id);
+      const hasPlans = plans.length > 0;
+      const listHTML = hasPlans
+        ? `<div class="cat-del-plan-list">
+            ${plans.map((p) => {
+              const hm = p.time || `${pad(p.h ?? 8)}:${pad(p.m ?? 0)}`;
+              const title = String(p.title || "").trim() || c.name;
+              const cycleLab = p.cycle === false ? "单日计划" : "循环计划";
+              return `<div class="cat-del-plan-row">
+                <span class="cat-del-time">${esc(hm)}</span>
+                <span class="cat-del-title">${esc(title)}</span>
+                <span class="cat-del-cycle">${cycleLab}</span>
+              </div>`;
+            }).join("")}
+          </div>`
+        : `<div class="cat-del-empty">当前类别下暂无存量计划</div>`;
 
       return `
-      <div class="scrim bottom" data-act="close">
-        <div class="sheet" onclick="event.stopPropagation()">
-          <div class="grab"></div>
-          <div style="padding:0 2px 16px">
-            <h3 class="s20 fb t">删除「${c.name}」？</h3>
-            <div class="s13" style="color:var(--secondary);font-weight:600;margin-top:4px">${n} 个计划将转到所选分类</div>
+      <div class="scrim center" data-act="close">
+        <div class="popup" style="max-width:360px;border-radius:28px;padding:24px 22px 20px" onclick="event.stopPropagation()">
+          <h3 style="font-size:22px;font-weight:800;color:var(--blue);margin:0;text-align:center">删除「${esc(c.name)}」？</h3>
+          <p style="font-size:14px;color:var(--secondary);line-height:1.5;margin:8px 0 14px;text-align:center">${hasPlans
+            ? `要删除该类别，将一并删除以下 ${plans.length} 个存量计划，删除后不可恢复：`
+            : "要删除该类别，将一并清空其下存量计划，删除后不可恢复："}</p>
+          <div class="cat-del-box">
+            <div class="cat-del-head">
+              <span>存量计划</span>
+              <em class="${hasPlans ? "has" : ""}">${hasPlans ? `共 ${plans.length} 项` : "0 项"}</em>
+            </div>
+            ${listHTML}
           </div>
-          <div class="cat-list">
-            ${catMigrationTargets(c.id).map((tg) => `
-              <button class="cat-row" data-act="pickCatMigrate" data-c="${tg.cat}"${tg.id ? ` data-id="${tg.id}"` : ""} type="button">
-                ${tg.cat === "custom"
-                  ? `<span class="mig-badge" style="background:${UNIFIED_CUSTOM_COLOR}">${I[UNIFIED_CUSTOM_ICON]}</span>`
-                  : `<span class="mig-badge"><img src="${A.task[tg.cat]}" alt="" /></span>`}
-                <span class="grow ta-l"><b>${tg.name}</b></span>
-                <span class="type-chev">${I.chevR}</span>
-              </button>`).join("")}
-          </div>
-          <div class="cat-list" style="flex:0 0 auto;padding-top:14px">
-            <button class="big-danger" data-act="catDiscardAsk" type="button">${I.trash}连同 ${n} 个计划一起删除</button>
-          </div>
-          <div class="cat-list" style="flex:0 0 auto;padding-top:10px">
-            <button class="cancel-pill" data-act="close" type="button">取消</button>
+          <div class="duo" style="margin-top:16px">
+            <button class="cancel" data-act="close" type="button">取消</button>
+            <button class="danger" data-act="doDiscardCatPlans" type="button">${hasPlans ? "全部删除" : "删除"}</button>
           </div>
         </div>
       </div>`;

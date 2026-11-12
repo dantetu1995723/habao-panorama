@@ -1578,30 +1578,48 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 }
 .cat-hint svg { width: 14px; height: 14px; flex: 0 0 14px; margin-top: 2px; color: rgba(16,84,224,.6); }
 .cat-hint span { font-size: calc(13px * var(--fs)); font-weight: 500; color: var(--secondary); line-height: 1.5; }
-/* 删除迁移面板（真机 CustomCategoryRemovalSheet） */
-.mig-badge {
-  width: 44px; height: 44px; flex: 0 0 44px; border-radius: 11px;
-  background: var(--blue); display: grid; place-items: center; color: #fff;
+/* 删除类别存量计划提醒弹窗（真机 CustomCategoryRemovalSheet） */
+.cat-del-box {
+  display: flex; flex-direction: column; gap: 8px; text-align: left;
 }
-.mig-badge img { width: 30px; height: 30px; object-fit: contain; }
-.mig-badge svg { width: 20px; height: 20px; }
-.big-danger {
-  width: 100%; height: 52px; border: 0; border-radius: 16px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  background: rgba(220,72,72,.10); color: var(--appt);
-  font-size: calc(16px * var(--fs)); font-weight: 600;
+.cat-del-head {
+  display: flex; align-items: center; justify-content: space-between; padding: 0 2px;
 }
-.big-danger svg { width: 15px; height: 15px; }
-.big-danger.solid { background: var(--appt); color: #fff; }
-.cancel-pill {
-  width: 100%; height: 52px; border: 0; border-radius: 16px; cursor: pointer;
-  background: rgba(16,84,224,.08); color: var(--blue);
-  font-size: calc(17px * var(--fs)); font-weight: 700;
+.cat-del-head span {
+  font-size: calc(13px * var(--fs)); font-weight: 700; color: var(--secondary);
 }
-.link-back {
-  width: 100%; border: 0; background: transparent; cursor: pointer;
-  color: var(--blue); font-size: calc(15px * var(--fs)); font-weight: 600;
-  padding: 10px 0;
+.cat-del-head em {
+  font-style: normal; font-size: calc(12px * var(--fs)); font-weight: 700;
+  color: var(--secondary); background: rgba(16,84,224,.06);
+  padding: 3px 9px; border-radius: 999px;
+}
+.cat-del-head em.has {
+  color: var(--appt); background: rgba(220,72,72,.10);
+}
+.cat-del-plan-list {
+  display: flex; flex-direction: column; gap: 8px;
+  max-height: 216px; overflow-y: auto;
+}
+.cat-del-plan-row {
+  display: flex; align-items: center; gap: 10px;
+  min-height: 46px; padding: 0 12px; border-radius: 14px;
+  background: rgba(16,84,224,.06);
+}
+.cat-del-time {
+  font-size: calc(13px * var(--fs)); font-weight: 700; color: var(--blue);
+  background: rgba(16,84,224,.10); padding: 4px 8px; border-radius: 999px; flex-shrink: 0;
+}
+.cat-del-title {
+  font-size: calc(15px * var(--fs)); font-weight: 700; color: var(--blue);
+  flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cat-del-cycle {
+  font-size: calc(12px * var(--fs)); font-weight: 600; color: var(--secondary); flex-shrink: 0;
+}
+.cat-del-empty {
+  height: 50px; border-radius: 14px; background: rgba(16,84,224,.05);
+  display: flex; align-items: center; justify-content: center;
+  font-size: calc(14px * var(--fs)); font-weight: 500; color: var(--secondary);
 }
 .type-row .type-chev svg { width: 14px; height: 14px; }
 
