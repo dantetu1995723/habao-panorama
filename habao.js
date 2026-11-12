@@ -1471,7 +1471,7 @@
     "third-party": { code: "ThirdPartySDKListView", note: "V10.341：第三方信息共享清单。去掉“SDK”生僻术语，每项统一采用「服务名称 + 信息 + 用途」简明清单结构。" },
     about: { code: "AboutHabaoView", note: "V10.341：关于我们页（去重极简版）。Logo 下展示「版本 V0.1.0」，下方白卡采用无副标题干净单行列表（用户服务协议、VIP 会员服务协议、支架保险理赔须知、检查新版本 · 已是最新）。" },
     "unregister-verify": { code: "DeleteAccountVerifyView", note: "V10.341：注销账号安全验证页（3 行短词条版）。红框精简为 3 条一目了然的清空影响要点 + 绑定手机号 6 位验证码校验 + 对称双按钮「取消 / 确认注销」。" },
-    "family-add": { code: "FamilyAddView", note: "VIP 专属「添加家属」独立页：顶部左「返回」+ 居中「添加家属」；下方 24pt 边距展示三字段绑定表单（姓名、关系四选一、11 位手机号）与底部通栏「点击绑定」按钮；已发出的待确认请求以全蓝色三层同构卡片展示在表单下方并支持「撤回绑定申请」；满 5 位上限时提示「已达 5 位家属上限」。" },
+    "family-add": { code: "FamilyAddView", note: "V10.350：VIP 专属「添加家属」独立页：顶部左「返回」+ 居中「添加家属」；下方展示三字段绑定表单（第 1 行 11 位手机号必填、第 2 行关系四选一、第 3 行姓名选填）与底部通栏「点击绑定」按钮；未填姓名时自动按手机号匹配已有账号姓名或以所选关系代称；下方已添加家属列表展示待确认/已绑定状态，满 5 位上限时提示「已达 5 位家属上限」。" },
     family: { code: "FamilyManageView", note: "免费开放的「家属管理」独立页（移除「收家属通知」栏目与代操作待接受/撤回步骤）：本人为家属执行的任何代操作立即生效落库；家属进入首页直接收到居中弹窗通知（文字表述刚才家属做了什么事，点击「知道了」确认），并在首页右上角个人中心、家属管理入口及家属切换胶囊上展示舒适通知红点。页面内嵌与「健康计划」同款的整体计划管理（顶部深蓝家属档案头 + 周/月日历选日期 + 未完成/已完成切换 + 全蓝白色调分时段操作卡）。" },
     vip: { code: "VIPView", note: "V10.349：VIP 会员页（按年一次性购买，不做连续订阅，已开通态不设「取消订阅」按钮）。顶栏右上提供「恢复购买」胶囊按钮；Hero 写哈宝 VIP 与 ¥2400 / 年（已开通展示有效期胶囊）；五项权益中「支架保险理赔服务」内嵌可点击的「查看《理赔须知》 ›」入口；未开通底栏「立即开通」上方配备《VIP 会员服务协议》勾选与协议详情入口；已开通底栏仅保留「查看《VIP 会员服务协议》 ›」入口。" },
     hardware: { code: "HardwareManageView", note: "仅 V0.1（V0.0 个人中心没有这一行）。两张设备模块卡：未绑定写「未绑定」、右端挂「扫码绑定」浅蓝胶囊；已绑定写绿色「已绑定 · 编号」、右端箭头。点未绑定卡进扫码页，点已绑定卡进设备页。副说明按已绑定的名字拼，两台齐了写「两台都已绑定」。绑定留在本机，切回 V0.0 只藏入口。" },
@@ -3690,7 +3690,7 @@
   }
   function ensureDemoPersonExists(name, phoneRaw, fallbackGender, fallbackAge) {
     ensureCareGraph();
-    let found = S.demoPeople.find((p) => p.name === name);
+    let found = S.demoPeople.find((p) => (phoneRaw && p.phoneRaw === phoneRaw) || (name && p.name === name));
     if (!found) {
       const masked = String(phoneRaw || "13900130000").replace(/^(\d{3})\d{4}(\d{4})$/, "$1****$2");
       found = {
@@ -11303,16 +11303,20 @@
         render();
         toast(`已绑定患者${name}，当前正在守护`);
       },
-      // 绑定校验：姓名 / 手机号 / 不能绑自己 / 已绑定 / 最多 5 位（真机 FamilyMemberStore）
+      // 绑定校验：手机号首位必填 / 姓名第三行选填 / 不能绑自己 / 已绑定 / 最多 5 位（真机 FamilyMemberStore）
       bindFam() {
         ensureCareGraph();
-        const name = ($("input[name=fname]")?.value ?? S.famDraftName ?? "").trim();
+        const rawName = ($("input[name=fname]")?.value ?? S.famDraftName ?? "").trim();
         const phone = ($("input[name=fphone]")?.value ?? S.famDraftPhone ?? "").replace(/\D/g, "");
         const rel = S.famRel || "配偶";
         const me = currentDemoPerson();
-        if (!name) { toast("请填写姓名"); return; }
         if (!phone || phone.length !== 11) { toast("请填写手机号"); return; }
-        if (name === me.name || phone === me.phoneRaw) { toast("不能绑定自己的手机号"); return; }
+        if (phone === me.phoneRaw || (rawName && rawName === me.name)) { toast("不能绑定自己的手机号"); return; }
+        const matchedByPhone = (S.demoPeople || []).find((p) => p.phoneRaw === phone);
+        let name = rawName || (matchedByPhone ? matchedByPhone.name : rel);
+        if (!rawName && !matchedByPhone && (S.demoPeople || []).some((p) => p.name === name && p.phoneRaw !== phone)) {
+          name = rel + phone.slice(-4);
+        }
 
         // 清理此前被拒绝或已解绑的同人记录
         S.careBonds = S.careBonds.filter((b) => !(
@@ -11330,7 +11334,7 @@
           toast("最多绑定 5 位家属");
           return;
         }
-        const isNewlyCreated = !(S.demoPeople || []).some((p) => p.name === name);
+        const isNewlyCreated = !(S.demoPeople || []).some((p) => p.phoneRaw === phone || p.name === name);
         const targetP = ensureDemoPersonExists(name, phone, rel === "配偶" && me.gender === "男" && name !== "陈建华" ? "女" : "男", 55);
         // 新绑定的用户默认设为免费用户（未购买 VIP）
         if (isNewlyCreated && targetP.name !== "李建国") {
@@ -11376,7 +11380,7 @@
           includeTargetInSentence: false,
         });
         render();
-        toast(`已向${name}发起绑定，待对方确认`);
+        toast(`已向${targetP.name}发起绑定，待对方确认`);
       },
       acceptFamInvite() {
         const mid = S.overlayData && S.overlayData.memberId;
@@ -15074,8 +15078,8 @@
       const formModuleHTML = canSendMore ? `
         <div style="background:#fff;border-radius:20px;border:1px solid rgba(16,84,224,.10);box-shadow:0 4px 12px rgba(16,84,224,.06);overflow:hidden">
           <div style="display:flex;align-items:center;gap:12px;padding:0 16px;height:48px;border-bottom:0.8px solid rgba(16,84,224,.08)">
-            <span style="width:52px;font-size:15.5px;font-weight:700;color:var(--blue);flex-shrink:0">姓名</span>
-            <input class="field" name="fname" placeholder="请输入家属姓名" value="${esc(S.famDraftName || "")}" style="border:0;background:transparent;box-shadow:none;padding:0;height:44px;font-size:16px;font-weight:600;color:var(--blue);flex:1" />
+            <span style="width:52px;font-size:15.5px;font-weight:700;color:var(--blue);flex-shrink:0">手机号</span>
+            <input class="field" name="fphone" maxlength="11" placeholder="请输入 11 位手机号（必填）" value="${esc(S.famDraftPhone || "")}" style="border:0;background:transparent;box-shadow:none;padding:0;height:44px;font-size:16px;font-weight:600;color:var(--blue);flex:1" />
           </div>
           <div style="display:flex;align-items:center;gap:12px;padding:0 16px;height:50px;border-bottom:0.8px solid rgba(16,84,224,.08)">
             <span style="width:52px;font-size:15.5px;font-weight:700;color:var(--blue);flex-shrink:0">关系</span>
@@ -15087,8 +15091,8 @@
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:12px;padding:0 16px;height:48px">
-            <span style="width:52px;font-size:15.5px;font-weight:700;color:var(--blue);flex-shrink:0">手机号</span>
-            <input class="field" name="fphone" maxlength="11" placeholder="请输入 11 位手机号" value="${esc(S.famDraftPhone || "")}" style="border:0;background:transparent;box-shadow:none;padding:0;height:44px;font-size:16px;font-weight:600;color:var(--blue);flex:1" />
+            <span style="width:52px;font-size:15.5px;font-weight:700;color:var(--blue);flex-shrink:0">姓名</span>
+            <input class="field" name="fname" placeholder="请输入家属姓名（选填）" value="${esc(S.famDraftName || "")}" style="border:0;background:transparent;box-shadow:none;padding:0;height:44px;font-size:16px;font-weight:600;color:var(--blue);flex:1" />
           </div>
           <div style="padding:8px 14px 14px">
             <button class="cta" data-act="bindFam" type="button" style="width:100%;height:46px;border-radius:13px;font-size:17px">点击绑定</button>
@@ -15136,7 +15140,7 @@
           <div style="width:38px;height:38px;border-radius:50%;background:rgba(16,84,224,.08);color:var(--blue);display:grid;place-items:center;flex-shrink:0">${I.personPlus}</div>
           <div style="min-width:0;flex:1">
             <div style="font-size:15px;font-weight:800;color:var(--blue)">尚未添加任何家属</div>
-            <div style="font-size:12.5px;font-weight:500;color:var(--secondary);margin-top:3px;line-height:1.45">在上方填写姓名与手机号发起绑定后，待对方在「家属管理」中确认即可建立绑定</div>
+            <div style="font-size:12.5px;font-weight:500;color:var(--secondary);margin-top:3px;line-height:1.45">在上方填写手机号发起绑定后，待对方在「家属管理」中确认即可建立绑定</div>
           </div>
         </div>
       `;
