@@ -379,7 +379,7 @@
     return `<div class="ai-analyzing-card ${compact ? "compact" : ""}">
       <div class="ai-analyzing-pill">
         <span class="ai-analyzing-spin">${I.sparkle}</span>
-        <span>AI 正在解析生成解读中…</span>
+        <span>哈宝医生正在生成解读中…</span>
       </div>
       <div class="ai-analyzing-title">${esc(title)}</div>
       <div class="ai-analyzing-sub">${esc(subtitle)}</div>
@@ -13529,7 +13529,7 @@
         </div>
         <div class="scroll px20">
           <div class="island-card" style="padding:18px">
-            <div class="flex between center"><div class="s19 fb t">整体AI评估</div><span class="cap" style="${badgeStyles[sum.tone] || badgeStyles.blue}">${sum.badge}</span></div>
+            <div class="flex between center"><div class="s19 fb t">体征综合评估</div><span class="cap" style="${badgeStyles[sum.tone] || badgeStyles.blue}">${sum.badge}</span></div>
             <p class="s16 t mt12" style="line-height:1.45">${sum.text}</p>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
               <div style="padding:12px;border-radius:13px;background:${bpBg}">
@@ -13610,7 +13610,7 @@
             <div class="flex gap10 s19 fb t report-h">${I.doc}综合结论</div>
             ${S.analyzingOverall ? `
               <div class="grow col center" style="margin-top:14px;justify-content:flex-start">
-                ${reportIntermediateCardHTML("正在重新推演身体报告综合结论…", "已收到最新资料/随访数据变更，AI 正在综合各项体征指标与既往档案进行全面重算，请稍候。")}
+                ${reportIntermediateCardHTML("正在生成身体报告综合结论…", "已收到最新资料/随访数据变更，正在综合各项体征指标与既往档案进行全面分析，请稍候。")}
               </div>` : `
               <div class="scroll grow mt12 s21 fm t" style="line-height:1.45">${esc(rep.overall)}${S.consultReportOverall ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生问诊补充结论】${S.consultReportOverall}</div>` : ""}</div>`}
           </div>
@@ -13644,7 +13644,7 @@
             ${reportPaneTabs()}
             <div class="scroll" style="margin-top:14px; padding-bottom:12px; flex:1; min-height:0">
               ${S.reportPane === "archive" ? reportArchivePane() : (isAnalyzingSub ? `
-                ${reportIntermediateCardHTML(`AI 正在重新生成${subTitle}解读…`, "已检测到资料增删变更，AI 正在比对关键指标与基线档案，约需 2–3 秒…")}
+                ${reportIntermediateCardHTML(`哈宝医生正在重新生成${subTitle}解读…`, "已检测到资料增删变更，正在比对关键指标与基线档案，约需 2–3 秒…")}
               ` : `
                 <p class="s21 fm t">${esc(isVisitSub ? rep.visit : rep.baseline)}</p>
                 ${isVisitSub && S.consultReportSub?.review ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生跨期对照解读】${S.consultReportSub.review}</div>` : ""}
@@ -13735,7 +13735,7 @@
         ${showsTimeline ? `
         <div class="scroll px20 grow" style="padding-top:12px; padding-bottom:16px">
           <div class="island-card" style="padding:18px">
-            ${S.analyzingFollowUp ? `<div class="mb16">${reportIntermediateCardHTML("AI 正在生成最新随访评估…", "已收到随访问卷答卷，AI 正在结合客观指标与身心状态进行复评，稍候自动归档。", true)}</div>` : ""}
+            ${S.analyzingFollowUp ? `<div class="mb16">${reportIntermediateCardHTML("哈宝医生正在生成最新随访评估…", "已收到随访问卷答卷，正在结合客观指标与身心状态进行综合评估，稍候自动归档。", true)}</div>` : ""}
             <div class="followup-timeline">
               ${rowsHTML}
             </div>
@@ -13888,7 +13888,7 @@
             <div class="island-card mb16" style="padding:18px">
               <div class="flex between"><div class="flex gap8 s19 fb t"><div class="well" style="width:36px;height:36px">${I.doc}</div>${t}</div>
                 <button class="cap" ${actName === "go" ? `data-go="${extra}"` : `data-act="${actName}" data-kind="${extra}"`} type="button">${b}</button></div>
-              ${isAnalyzing(extra) ? `<div class="mt12">${reportIntermediateCardHTML(`AI 正在重新生成${t}解读…`, "检测到数据变更，AI 正在比对关键指标进行深度重算…", true)}</div>` : `<p class="s16 t mt12">${esc(d)}</p>`}
+              ${isAnalyzing(extra) ? `<div class="mt12">${reportIntermediateCardHTML(`哈宝医生正在重新生成${t}解读…`, "检测到数据变更，哈宝医生正在比对关键指标进行综合评估…", true)}</div>` : `<p class="s16 t mt12">${esc(d)}</p>`}
             </div>`).join("")}
         </div>
       </div>`;
@@ -14311,11 +14311,11 @@
         {
           ico: I.steth,
           title: "哈宝医生",
-          tag: "真人专家 + AI 协同",
-          subtitle: "采用真人医生团队与 AI 智能结合的服务方式，全天候守护您的院外康复",
+          tag: "心内科专家团队协同",
+          subtitle: "由心内科主诊与多学科团队全天候守护，为您提供专业院外康复指导",
           subs: [
-            ["真人医生服务", "心内科主诊与多学科团队 · 个性化康复随访管理", "由心内科主诊医生团队联合哈瑞特医疗院外康复管理团队（专科医生、康复治疗师、健康管理师、营养师等多学科成员）共同参与患者管理，将疾病康复从院内延伸至院外；结合住院数据设定动态化危险因素管控目标（如低密度脂蛋白等），全程开展个性化康复随访、动态临床评估、主动症状管理、精准药物管理与生活方式干预。"],
-            ["AI 智能服务", "全年不限次在线问诊 · 康复计划制定与推送", "提供全年不限次数的在线问诊咨询，支持文字、图文、语音及 AI 电话咨询（400-1666199），覆盖检查报告解读、用药咨询、病情咨询、饮食与心理指导；并结合病历资料、体测评估与日常监测数据，为您智能制定、调整并按时推送每日康复计划。"],
+            ["医生随访服务", "心内科主诊与多学科团队个性化康复随访管理", "由心内科主诊医生团队联合哈瑞特医疗院外康复管理团队（专科医生、康复治疗师、健康管理师、营养师等多学科成员）共同参与患者管理，将疾病康复从院内延伸至院外；结合住院数据设定动态化危险因素管控目标（如低密度脂蛋白等），全程开展个性化康复随访、动态临床评估、主动症状管理、精准药物管理与生活方式干预。"],
+            ["全天候在线问诊", "全年不限次在线问诊与康复计划制定推送", "提供全年不限次数的在线问诊咨询，支持文字、图文与语音咨询，随时解答用药疑问、检查报告解读、病情咨询与饮食运动指导；并结合您的病历资料与日常身体监测指标，为您个性化制定、调整并按时推送每日康复计划。"],
           ],
         },
         {
@@ -14324,7 +14324,7 @@
           tag: "中国人民保险承保",
           subtitle: "术后再狭窄介入自费报销与住院津贴双重保障",
           subs: [
-            ["专属理赔保障", "最高 2万元/次 再梗补助 · 100元/天 住院津贴", "管理期间，若发生支架内（不含老支架）再狭窄需要介入治疗的，自费部分由中国人民保险予以报销，全年不限次数，单次最高可获得2万元再梗补助。住院期间，还可获得100元/天的住院津贴。（注：仅限购买哈瑞特医疗院外管理2400元/年服务包的支架术后客户，详见理赔须知）"],
+            ["专属理赔保障", "最高 2万元/次 再梗补助与 100元/天 住院津贴", "管理期间，若发生支架内（不含老支架）再狭窄需要介入治疗的，自费部分由中国人民保险予以报销，全年不限次数，单次最高可获得2万元再梗补助。住院期间，还可获得100元/天的住院津贴。（注：仅限购买哈瑞特医疗院外管理2400元/年服务包的支架术后客户，详见理赔须知）"],
           ],
         },
         {
@@ -14333,7 +14333,7 @@
           tag: "最多绑定 5 名家属",
           subtitle: "医生、患者、家属三方共管，多端实时同步照护",
           subs: [
-            ["多端协同照护", "病情实时同步 · 代为打卡与到点提醒", "支持绑定最多5名家属参与管理，实时多端同步患者病情，支持代为打卡照护与到点提醒家属，医生、患者、家属三方共管，患者安心，家属放心。"],
+            ["多端协同照护", "病情实时同步，支持代为打卡与到点提醒", "支持绑定最多5名家属参与管理，实时多端同步患者病情，支持代为打卡照护与到点提醒家属，医生、患者、家属三方共管，患者安心，家属放心。"],
           ],
         },
         {
@@ -14342,7 +14342,7 @@
           tag: "智能血压计 + 手表",
           subtitle: "居家测量自动上传，异常指标智能预警与干预",
           subs: [
-            ["远程实时监测", "数据趋势追踪 · 异常指标智能预警", "配备并绑定可穿戴智能监测设备（血压计和手表），患者居家测量后实时上传管理中心，医生和家属均可远程实时监测数据（血压和心率），记录数据变化趋势，智能预警，及时干预异常指标，降低不良事件发生率。"],
+            ["远程实时监测", "数据趋势追踪与异常指标预警", "配备并绑定可穿戴智能监测设备（血压计和手表），患者居家测量后实时上传管理中心，医生和家属均可远程实时监测数据（血压和心率），记录数据变化趋势，及时干预异常指标，降低不良事件发生率。"],
           ],
         },
         {
@@ -14369,7 +14369,7 @@
             <div class="frost"></div>
             <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap">
               <div class="s22 fb">¥2400 <span class="s16" style="font-weight:600;opacity:.85">/ 年</span></div>
-              ${on ? `<span class="s13 fb" style="padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.18);color:rgba(255,255,255,.95)">已开通 · 有效期至 ${vipExpiryText()}</span>` : ""}
+              ${on ? `<span class="s13 fb" style="padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.18);color:rgba(255,255,255,.95)">已开通，有效期至 ${vipExpiryText()}</span>` : ""}
             </div>
           </div>
 
@@ -14632,7 +14632,7 @@
             <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1054E0,#1E7BF6);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0">${I.phone}</div>
             <div style="flex:1;min-width:0">
               <div style="font-size:20px;font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums">400-1666-199</div>
-              <div style="font-size:13px;font-weight:600;color:var(--sec);margin-top:2px">客服热线 · 08:00–20:00</div>
+              <div style="font-size:13px;font-weight:600;color:var(--sec);margin-top:2px">客服热线（服务时间 08:00–20:00）</div>
             </div>
             <button type="button" data-act="callSupportHotline" style="height:38px;padding:0 16px;border-radius:999px;border:0;background:var(--blue);color:#fff;font-size:15px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:5px;flex-shrink:0;font-family:inherit">${I.phone}<span>拨打</span></button>
           </div>
@@ -14812,12 +14812,12 @@
             <div style="display:flex;align-items:center;gap:8px;color:var(--blue);font-size:20px;font-weight:800">
               ${I.crown}<span>哈宝 VIP 会员服务协议</span>
             </div>
-            <div style="font-size:13px;font-weight:600;color:var(--sec);margin-top:6px">生效日期：2026年10月29日 · 适用端：iOS / Android 通用</div>
+            <div style="font-size:13px;font-weight:600;color:var(--sec);margin-top:6px">生效日期：2026年11月11日（适用端：iOS 与 Android 通用）</div>
             <div style="font-size:15px;font-weight:500;color:#1E293B;line-height:1.55;margin-top:8px">感谢您选择哈宝 VIP 院外康复管理会员服务。开通前请仔细阅读本协议关于服务内容、收费标准、非自动续费周期及退订规则的说明。</div>
           </div>
           ${[
-            ["一、收费标准与服务周期", "¥2400 / 年 · 按年一次性开通（不自动扣费）", "哈宝 VIP 会员服务费为人民币 2400 元 / 年，自开通成功之日起算，有效期为 365 天。本服务为固定年包，到期后不会自动扣费续订，您可根据康复需要自主决定是否续期。"],
-            ["二、五项核心会员权益", "哈宝医生 · 支架保险 · 家属共管 · 智能硬件 · 操作记录", "开通有效期内，患者档案享有：① 哈宝医生（心内科与多学科康复团队 + AI 全年不限次在线问诊与 7 天一期康复方案推送）；② 支架保险理赔服务（符合条件的支架术后用户享中国人民保险再狭窄介入自费报销与住院津贴）；③ 最多绑定 5 位守护家属多端协同；④ 智能血压计与手表绑定监测；⑤ 全流程照护操作留痕。"],
+            ["一、收费标准与服务周期", "¥2400 / 年（按年一次性开通，不自动扣费）", "哈宝 VIP 会员服务费为人民币 2400 元 / 年，自开通成功之日起算，有效期为 365 天。本服务为固定年包，到期后不会自动扣费续订，您可根据康复需要自主决定是否续期。"],
+            ["二、五项核心会员权益", "哈宝医生、支架保险、家属共管、智能硬件及操作记录", "开通有效期内，患者档案享有：① 哈宝医生专属服务（心内科与多学科康复团队全年不限次在线问诊与 7 天一期康复方案指导）；② 支架保险理赔服务（符合条件的支架术后用户享中国人民保险再狭窄介入自费报销与住院津贴）；③ 最多绑定 5 位守护家属多端协同；④ 智能血压计与手表绑定监测；⑤ 全流程照护操作留痕。"],
             ["三、家庭共享与权益归属", "随患者康复档案生效，守护家属免重复付费", "VIP 会员权益绑定在开通患者的康复档案上，经双向确认绑定的守护家属在看护该患者时，可直接协同使用家属共管、哈宝医生咨询与操作记录核对，无需单独重复购买。"],
             ["四、取消订阅、恢复购买与数据保留", "随时管理会员状态，个人健康档案永久留存", "1. 恢复购买：更换设备或重装应用后，您可在「VIP 会员」页右上角点击「恢复购买」找回有效权益。<br>2. 取消与到期：取消订阅或会员到期后，VIP 专属功能将重新上锁，但您已建立的健康档案、康复计划、病历照片与历史记录仍完好保留在账号下。如有订单疑问请致电 400-1666-199。"],
           ].map(([badge, title, body]) => `
