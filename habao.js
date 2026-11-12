@@ -20238,11 +20238,18 @@
             ${plans.map((p) => {
               const hm = p.time || `${pad(p.h ?? 8)}:${pad(p.m ?? 0)}`;
               const title = String(p.title || "").trim() || c.name;
-              const cycleLab = p.cycle === false ? "单日计划" : "循环计划";
+              const isCycle = p.cycle !== false && p.isRecurring !== false;
+              const cycleLab = isCycle ? "循环计划" : "单日计划";
+              const rText = scheduleRuleSummary(isCycle, p.rule || "daily", p.weekdays, p.monthDays, p.intervalCount, p.intervalUnit);
+              const timePart = `提醒时间：${rText} ${hm}`;
+              const datePart = `计划日期：${taskDateRangeLabel({ ...p, cycle: isCycle })}`;
               return `<div class="cat-del-plan-row">
-                <span class="cat-del-time">${esc(hm)}</span>
-                <span class="cat-del-title">${esc(title)}</span>
-                <span class="cat-del-cycle">${cycleLab}</span>
+                <div class="cat-del-row-top">
+                  <span class="cat-del-title">${esc(title)}</span>
+                  <span class="cat-del-cycle">${cycleLab}</span>
+                </div>
+                <div class="cat-del-meta primary">${esc(timePart)}</div>
+                <div class="cat-del-meta">${esc(datePart)}</div>
               </div>`;
             }).join("")}
           </div>`
