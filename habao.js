@@ -1481,7 +1481,7 @@
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "V10.289：仅展示前一个拍摄页中已勾选/保留的分组。基础报告或首次上传报告中含出院记录时排在最上方；选传组为空时显示灰色说明文字。首次建日程与新增用药复查的资料详情右上为「解析」，点击后进入「资料解析结果」页；健康档案与身体报告子页的补拍通道右上为「提交」，提交后直接归入共享资料 BASE（不经过资料解析结果页）。" },
     "ocr-parsed": { code: "OCRParseResultView", note: "【V10.309】仅限创建计划步骤（排定 / 更新康复基础日程），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「解析结果」页（标题「解析结果」）。左上角为「< 返回」，右上角为同规格「提交」按钮。默认模拟已识别填好的状态，包含五个可编辑字段：① 疾病信息（必填，多行文本框 context + 右上角「清空」按钮）、② 出院时间（必填，年 / 月 / 日三个并排下拉框）、③ 用药处方（必填，多行文本框 context + 右上角「清空」按钮）、④ 手术名称（选填，多行文本框 context + 右上角「清空」按钮）、⑤ 手术时间（选填，年 / 月 / 日三个并排下拉框）。当三个必填字段非空时右上角「提交」按钮可点击，按修改后的解析结果生成计划并进入「确认计划」页。" },
-    "first-rest": { code: "CreateScheduleFlowView", note: "【V10.342 卡片规格 100% 对齐确认计划 + 恢复按钮常驻与删卡可用门控】首页底缘「基础康复计划」与选择类型「基础康复计划」第一页「当前计划」：① 包含当前生效的所有基础作息以及用户其它所有循环计划，日常条目按全天时段由早到晚（HH:mm）排布（起床置顶），复查计划置底归入红色「复查计划」区块；② 全量卡片（含用药、测血压、复查、运动等）统一采用与「确认计划」100% 同构的草稿操作卡规格——底部操作栏统一为双按钮「编辑 | 删除」，用药卡片副行统一补齐剂量胶囊（如 100 mg / 47.5 mg / 20 mg），所有卡片统一展示可点按编辑的补充备注行（空备注显示「可编辑备注」占位），仅基础作息右上角保留「基础作息」标签；③ 顶部导航栏右上角「恢复」按钮始终常驻显示：未删除卡片时保持禁用状态（置灰不可点），任意删除卡片（基础作息卡或其他循环计划卡）后立即点亮可用，点击一键还原初始卡片列表。" },
+    "first-rest": { code: "CreateScheduleFlowView", note: "【V10.352 分段标题行支持所有被删计划一键点击恢复 + V10.342 卡片规格对齐确认计划 & 恢复按钮常驻】首页底缘「基础康复计划」与选择类型「基础康复计划」第一页「当前计划」：① 包含当前生效的所有基础作息以及用户其它所有循环计划，日常条目按全天时段由早到晚（HH:mm）排布（起床置顶），复查计划置底归入红色「复查计划」区块；② 无论在下方删除了什么类型的计划（基础作息、用药、测血压、运动、饮食、复查等），对应分段标题行（早晨 / 上午 / 午间 / 下午 / 傍晚 / 夜间 / 复查计划）右侧均实时浮现可点击的「＋ 事项名称 HH:mm」胶囊，点击即可就地加回该计划；③ 顶部导航栏右上角「恢复」按钮始终常驻显示：未删除卡片时保持禁用状态（置灰不可点），任意删除卡片后立即点亮可用，点击一键还原初始卡片列表。" },
     "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表，时段内严格按 HH:mm 由早到晚排布。【V10.320 首项规则】「起床」必须是一天计划的绝对第一个条目：推算测血压规范为起床后静坐测量（wake + 10 分钟，如 07:00 起床 → 07:10 起床测血压），同刻排序保底置顶「起床」卡。【V10.315 极简三态对比】仅在已有存量基础日程再次排定时展示（首次排定保持纯净），全链路砍掉「将停用」与停用专区（页面所见即接下来要执行的，关掉/删掉即不再提醒）：① 顶部「对比原基础日程」摘要卡展示「新增 / 已调整 / 保留」三态计数 +「其余 M 项手建与运动计划不受影响，确认后继续保留」；② 各时段与复查卡片标题行右侧实时标注「新增 / 已调整 / 保留」胶囊，「已调整」卡内附琥珀色对比行「原计划：…」（用药自动忽略「服用」前缀匹配同一药品）。右上「确认」按类别+名称整套替换上一版基础日程，手建与运动计划不动；左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
     "select-type": { code: "CreateScheduleFlowView", note: "【V10.325 分类界面分为「基础计划」与「其他计划」】分类界面重构为极简两组：① 基础计划：内含「基础康复计划」（副标「按病历排好用药、复查与作息」），与首页底缘「基础康复计划」按钮统一同链；② 其他计划：内含「运动」（体测评估）、「测血压」、「饮食」、「作息」及自建类别。右上「管理」推入管理类别。" },
@@ -4635,6 +4635,8 @@
           : (appt ? [demoDate().getDate()] : undefined);
         return {
           ...t,
+          on: true,
+          initOn: true,
           h: hh,
           m: mm,
           t: hm,
@@ -4675,13 +4677,14 @@
     S.bps = null;
     S.confirmDrafts = null;
   }
-  /// 【V10.342】右上角「恢复」常驻门控：任意删除卡片（基础作息卡或其他循环计划卡）即可用，否则保持禁用
+  /// 【V10.342 / V10.352】右上角「恢复」常驻门控：任意删除卡片（基础作息卡或其他循环计划卡）即可用，否则保持禁用
   function hasDeletedAnyRestCard(rows, otherItems) {
     const rDeleted = (rows || []).some((r) => Boolean(r.initOn !== false) && r.on === false);
     if (rDeleted) return true;
+    if ((otherItems || []).some((x) => Boolean(x.initOn !== false) && x.on === false)) return true;
     const initIds = (otherItems && otherItems._initIds) || [];
     if (!initIds.length) return false;
-    const curIds = new Set((otherItems || []).map((x) => String(x.id)));
+    const curIds = new Set((otherItems || []).filter((x) => x.on !== false).map((x) => String(x.id)));
     return initIds.some((id) => !curIds.has(String(id)));
   }
   function hasRestSkeletonChanges(rows) {
@@ -4975,7 +4978,7 @@
       const res = mergeBaselineInto(SEED, items, () => nextTaskId());
       [...res.updated, ...res.created].forEach(place);
       if (S.restOtherItems && Array.isArray(S.restOtherItems._initIds)) {
-        const keptIds = new Set(S.restOtherItems.map((x) => String(x.id)));
+        const keptIds = new Set(S.restOtherItems.filter((x) => x.on !== false).map((x) => String(x.id)));
         const yesterday = toYMD(addDays(demoDate(), -1));
         S.restOtherItems._initIds.forEach((id) => {
           if (!keptIds.has(String(id))) {
@@ -7564,15 +7567,32 @@
         const others = ensureRestOtherItemsSynced();
         const rawIdx = (btn && btn.dataset && btn.dataset.i != null) ? +btn.dataset.i : +el.dataset.i;
         if (!Number.isNaN(rawIdx) && others[rawIdx]) {
-          others.splice(rawIdx, 1);
+          others[rawIdx].on = false;
           S.confirmDrafts = null;
           render();
           return;
         }
         const id = (btn && btn.getAttribute && btn.getAttribute("data-id")) || el.dataset.id;
         if (id) {
-          const hit = others.findIndex((x) => String(x.id) === String(id));
-          if (hit >= 0) others.splice(hit, 1);
+          const hit = others.find((x) => String(x.id) === String(id));
+          if (hit) hit.on = false;
+          S.confirmDrafts = null;
+          render();
+        }
+      },
+      restoreRestOtherCard(btn) {
+        const others = ensureRestOtherItemsSynced();
+        const rawIdx = (btn && btn.dataset && btn.dataset.i != null) ? +btn.dataset.i : +el.dataset.i;
+        if (!Number.isNaN(rawIdx) && others[rawIdx]) {
+          others[rawIdx].on = true;
+          S.confirmDrafts = null;
+          render();
+          return;
+        }
+        const id = (btn && btn.getAttribute && btn.getAttribute("data-id")) || el.dataset.id;
+        if (id) {
+          const hit = others.find((x) => String(x.id) === String(id));
+          if (hit) hit.on = true;
           S.confirmDrafts = null;
           render();
         }
@@ -7606,7 +7626,7 @@
         } else if (ret === "first-rest-other") {
           const others = ensureRestOtherItemsSynced();
           if (i != null && others[i]) {
-            others.splice(i, 1);
+            others[i].on = false;
             S.confirmDrafts = null;
           }
         } else if (S.confirmDrafts && i != null && S.confirmDrafts[i]) {
@@ -12905,7 +12925,7 @@
       const activeIndexed = rows
         .map((r, i) => ({ ...r, i, time: r.t, h: parseHour(r.t), m: parseMinute(r.t), isRoutine: true }))
         .filter((r) => r.on !== false);
-      // 【V10.323 / V10.342】当前计划：包含所有基础作息以及用户其它所有循环计划，卡片规格与确认计划 100% 对齐
+      // 【V10.323 / V10.342 / V10.352】当前计划：包含所有基础作息以及用户其它所有循环计划，任意删除计划均在对应分段标题右侧显示「＋ 事项名 时刻」可点击恢复胶囊
       const mappedOther = otherItems.map((t, otherIdx) => {
         const hm = t.t || `${pad(t.h ?? 8)}:${pad(t.m ?? 0)}`;
         return {
@@ -12918,16 +12938,23 @@
           m: parseMinute(hm),
           isRoutine: false,
           isOtherPlan: true,
+          on: t.on !== false,
         };
       });
-      const otherDaily = mappedOther.filter((t) => t.cat !== "appointment");
+      const otherDailyActive = mappedOther.filter((t) => t.cat !== "appointment" && t.on !== false);
+      const otherDailyInactive = mappedOther.filter((t) => t.cat !== "appointment" && t.on === false);
+      const sortAppt = (a, b) => (a.h !== b.h ? a.h - b.h : a.m !== b.m ? a.m - b.m : a.otherIdx - b.otherIdx);
       const apptItems = mappedOther
-        .filter((t) => t.cat === "appointment")
-        .sort((a, b) => (a.h !== b.h ? a.h - b.h : a.m !== b.m ? a.m - b.m : a.otherIdx - b.otherIdx));
-      const allPlanItems = [...activeIndexed, ...otherDaily];
+        .filter((t) => t.cat === "appointment" && t.on !== false)
+        .sort(sortAppt);
+      const apptInactiveItems = mappedOther
+        .filter((t) => t.cat === "appointment" && t.on === false)
+        .sort(sortAppt);
+      const allPlanItems = [...activeIndexed, ...otherDailyActive];
       const inactiveRows = rows
-        .map((r, i) => ({ ...r, i, time: r.t, h: parseHour(r.t), m: parseMinute(r.t) }))
+        .map((r, i) => ({ ...r, i, time: r.t, h: parseHour(r.t), m: parseMinute(r.t), isRoutine: true, isOtherPlan: false }))
         .filter((r) => r.on === false);
+      const allInactiveItems = [...inactiveRows, ...otherDailyInactive];
 
       const renderOtherPlanCard = (r, isAppt) => {
         const defaultMd = isAppt ? [17] : [1];
@@ -12966,26 +12993,25 @@
         });
       };
 
+      const sortPlanEntry = (a, b) => {
+        if (a.h !== b.h) return a.h - b.h;
+        const ma = a.m != null ? a.m : parseMinute(a.time);
+        const mb = b.m != null ? b.m : parseMinute(b.time);
+        if (ma !== mb) return ma - mb;
+        const isWakeA = a.name === "起床" || (a.name && a.name.indexOf("起床") >= 0 && a.name.indexOf("血压") < 0);
+        const isWakeB = b.name === "起床" || (b.name && b.name.indexOf("起床") >= 0 && b.name.indexOf("血压") < 0);
+        if (isWakeA !== isWakeB) return isWakeA ? -1 : 1;
+        return (a.i ?? a.otherIdx ?? 0) - (b.i ?? b.otherIdx ?? 0);
+      };
+
       const periodSections = PERIODS.map((p) => {
         const matchPeriod = (h) => p.title === "夜间" ? (h >= 21 || h < 6) : (h >= p.from && h < p.to);
         const activeItems = allPlanItems
           .filter((x) => matchPeriod(x.h))
-          .sort((a, b) => {
-            if (a.h !== b.h) return a.h - b.h;
-            const ma = a.m != null ? a.m : parseMinute(a.time);
-            const mb = b.m != null ? b.m : parseMinute(b.time);
-            if (ma !== mb) return ma - mb;
-            const isWakeA = a.name === "起床" || (a.name && a.name.indexOf("起床") >= 0);
-            const isWakeB = b.name === "起床" || (b.name && b.name.indexOf("起床") >= 0);
-            if (isWakeA !== isWakeB) return isWakeA ? -1 : 1;
-            return (a.i ?? a.otherIdx ?? 0) - (b.i ?? b.otherIdx ?? 0);
-          });
-        const inactiveItems = inactiveRows
+          .sort(sortPlanEntry);
+        const inactiveItems = allInactiveItems
           .filter((x) => matchPeriod(x.h))
-          .sort((a, b) => {
-            if (a.h !== b.h) return a.h - b.h;
-            return a.m - b.m;
-          });
+          .sort(sortPlanEntry);
         return {
           ...p,
           activeItems,
@@ -12994,7 +13020,7 @@
         };
       }).filter((g) => g.total > 0);
 
-      const hasAnySection = periodSections.length > 0 || apptItems.length > 0;
+      const hasAnySection = periodSections.length > 0 || apptItems.length > 0 || apptInactiveItems.length > 0;
 
       return `
       <div class="page">
@@ -13010,7 +13036,7 @@
                   ${g.inactiveItems.length ? `
                     <div class="confirm-period-add-chips">
                       ${g.inactiveItems.map((r) => `
-                        <button class="routine-head-chip" data-act="restoreRestCard" data-i="${r.i}" type="button">
+                        <button class="routine-head-chip" data-act="${r.isOtherPlan ? "restoreRestOtherCard" : "restoreRestCard"}" data-i="${r.isOtherPlan ? r.otherIdx : r.i}" type="button">
                           ${I.plus}
                           <span class="r-name">${esc(r.name)}</span>
                           <span class="r-time">${esc(r.t)}</span>
@@ -13048,10 +13074,23 @@
                     }).join("")}
                   </div>` : ""}
               </div>`).join("")}
-            ${apptItems.length ? `
+            ${(apptItems.length || apptInactiveItems.length) ? `
               <div class="confirm-period">
-                ${sectionHead(I.cal, "复查计划", apptItems.length, true)}
-                <div class="col gap10">${apptItems.map((a) => renderOtherPlanCard(a, true)).join("")}</div>
+                <div class="confirm-period-head">
+                  <div class="confirm-period-title red">
+                    ${I.cal}复查计划${apptItems.length ? `<span class="count-pill red">${apptItems.length}</span>` : ""}
+                  </div>
+                  ${apptInactiveItems.length ? `
+                    <div class="confirm-period-add-chips">
+                      ${apptInactiveItems.map((a) => `
+                        <button class="routine-head-chip red" data-act="restoreRestOtherCard" data-i="${a.otherIdx}" type="button">
+                          ${I.plus}
+                          <span class="r-name">${esc(a.name)}</span>
+                          <span class="r-time">${esc(a.t)}</span>
+                        </button>`).join("")}
+                    </div>` : ""}
+                </div>
+                ${apptItems.length ? `<div class="col gap10">${apptItems.map((a) => renderOtherPlanCard(a, true)).join("")}</div>` : ""}
               </div>` : ""}` : `
             <div class="routine-empty-box">
               ${I.moonStars}
@@ -15563,7 +15602,7 @@
       cycle: true, rule: "daily", muteFirst: false,
     }));
     const carryList = Array.isArray(otherItems)
-      ? otherItems.map((t) => ({
+      ? otherItems.filter((t) => t.on !== false).map((t) => ({
           ...t,
           h: t.h ?? parseHour(t.t || "08:00"),
           m: t.m ?? parseMinute(t.t || "08:00"),

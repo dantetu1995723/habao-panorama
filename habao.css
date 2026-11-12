@@ -2637,7 +2637,7 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .routine-empty-box svg { width: 18px; height: 18px; flex: 0 0 18px; color: rgba(16,84,224,.68); }
 .confirm-period-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 10px;
@@ -2650,15 +2650,24 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   font-size: calc(14.5px * var(--fs));
   font-weight: 700;
   color: var(--blue);
+  flex-shrink: 0;
+  min-height: 22px;
 }
 .confirm-period-title svg {
   width: 15px;
   height: 15px;
   color: var(--blue);
 }
+.confirm-period-title.red {
+  color: var(--appt);
+}
+.confirm-period-title.red svg {
+  color: var(--appt);
+}
 .confirm-period-add-chips {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 6px;
   flex-wrap: wrap;
 }
@@ -2697,6 +2706,19 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   font-variant-numeric: tabular-nums;
   opacity: .82;
   color: var(--blue);
+}
+.routine-head-chip.red {
+  background: rgba(220,72,72,.08);
+  border-color: rgba(220,72,72,.32);
+  color: var(--appt);
+}
+.routine-head-chip.red:active {
+  background: rgba(220,72,72,.14);
+}
+.routine-head-chip.red svg,
+.routine-head-chip.red .r-name,
+.routine-head-chip.red .r-time {
+  color: var(--appt);
 }
 
 .toast {
