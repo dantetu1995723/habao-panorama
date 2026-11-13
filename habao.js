@@ -1502,6 +1502,19 @@
   /* ===== 改动记录（2026-11-13 起每次迭代同步追加，含日期与具体时间，简明说明改动位置与内容） ===== */
   const CHANGELOG = [
     {
+      ver: "V10.364",
+      date: "2026-11-13",
+      time: "11:13",
+      title: "「当前计划」与「确认计划」卡片移除冗余的「原计划：…」对比脚注",
+      screens: [
+        { id: "first-rest", label: "当前计划" },
+        { id: "confirm-plan", label: "确认计划" },
+      ],
+      items: [
+        "移除「当前计划」与「确认计划」卡片中橙色「原计划：…」对比脚注行，减少视觉啰嗦，卡片更清爽聚焦（确认计划仍保留右上角「新建 / 已调整 / 保留」状态标签）。",
+      ],
+    },
+    {
       ver: "V10.363",
       date: "2026-11-13",
       time: "10:40",
@@ -13140,9 +13153,6 @@
         const rule = r.rule || (isAppt ? "monthly" : "daily");
         const taskForLabel = { ...r, rule, monthDays: md };
         const rawNote = String(r.note || "").trim();
-        const origDiffNote = (r.origTask && !isSameBaselineScheduleJS({ ...r, time: r.t }, r.origTask))
-          ? oldBaselineSummaryJS(r.origTask, { ...r, time: r.t })
-          : null;
         return actionCard({
           cat: r.cat,
           title: r.title,
@@ -13157,7 +13167,7 @@
           dose: r.cat === "medication" ? (r.dose || medDose(r.title, r.note)) : "",
           note: rawNote || "可编辑备注",
           noteEmpty: !rawNote,
-          origNote: origDiffNote,
+          origNote: null,
           editAct: "editRestOtherCard",
           delAct: "delRestOtherCard",
           noteAct: "editRestOtherNote",
@@ -13226,13 +13236,12 @@
                       }
                       const rawNote = String(r.note || "").trim();
                       const cat = r.cat || (["早餐", "午餐", "晚餐"].includes(r.name) ? "diet" : "rest");
-                      const rDiff = routineCardDiffJS(r);
                       return actionCard({
                         cat, title: r.name, time: taskCardTimeLabel(r, r.t), dateLabel: taskDateFieldLabel(r), date: taskDateRangeLabel(r), draft: true, routine: true,
                         cycle: r.cycle !== false, idx: r.i,
                         note: rawNote || "可编辑备注",
                         noteEmpty: !rawNote,
-                        origNote: rDiff.status === "modified" ? rDiff.origNote : null,
+                        origNote: null,
                         editAct: "editRestCard",
                         delAct: "delRestCard",
                         noteAct: "editRestNote",
@@ -13501,7 +13510,7 @@
                   note: rawNote || "可编辑备注",
                   noteEmpty: !rawNote,
                   statusBadge: itemBadge(x.i),
-                  origNote: diff ? diff.origByIdx[x.i] : null,
+                  origNote: null,
                 }) + dupHint(x);
               }).join("")}</div>
             </div>`).join("")}
@@ -13516,7 +13525,7 @@
                 note: rawNote || "可编辑备注",
                 noteEmpty: !rawNote,
                 statusBadge: itemBadge(a.i),
-                origNote: diff ? diff.origByIdx[a.i] : null,
+                origNote: null,
               }) + dupHint(a);
             }).join("")}</div>
           </div>
@@ -20955,7 +20964,7 @@
     copiedVer: null,
     seenKey: "habao_changelog_seen_ver",
   };
-  function clLatestVer() { return CHANGELOG[0]?.ver || "V10.363"; }
+  function clLatestVer() { return CHANGELOG[0]?.ver || "V10.364"; }
   function clHasUnseen() {
     try { return localStorage.getItem(clState.seenKey) !== clLatestVer(); } catch (_) { return false; }
   }
