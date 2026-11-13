@@ -1502,6 +1502,18 @@
   /* ===== 改动记录（2026-11-13 起每次迭代同步追加，含日期与具体时间，简明说明改动位置与内容） ===== */
   const CHANGELOG = [
     {
+      ver: "V10.361",
+      date: "2026-11-13",
+      time: "10:19",
+      title: "「当前计划」分段标题行被删基础作息恢复胶囊内增加「基础作息」标签",
+      screens: [
+        { id: "first-rest", label: "当前计划（分段标题恢复胶囊）" },
+      ],
+      items: [
+        "在「当前计划」各时段标题行右侧的待恢复胶囊中，属于 6 项标准基础作息（起床、早餐、午餐、午休、晚餐、上床睡觉）的胶囊内部右侧新增「基础作息」微胶囊标签，与其它非基础作息计划胶囊一目了然区分。",
+      ],
+    },
+    {
       ver: "V10.360",
       date: "2026-11-13",
       time: "10:14",
@@ -13163,12 +13175,16 @@
                   </div>
                   ${g.inactiveItems.length ? `
                     <div class="confirm-period-add-chips">
-                      ${g.inactiveItems.map((r) => `
+                      ${g.inactiveItems.map((r) => {
+                        const isRoutineChip = !!(r.isRoutine || BASELINE_REST_NAMES.includes(r.name));
+                        return `
                         <button class="routine-head-chip" data-act="${r.isOtherPlan ? "restoreRestOtherCard" : "restoreRestCard"}" data-i="${r.isOtherPlan ? r.otherIdx : r.i}" type="button">
                           ${I.plus}
                           <span class="r-name">${esc(r.name)}</span>
                           <span class="r-time">${esc(r.t)}</span>
-                        </button>`).join("")}
+                          ${isRoutineChip ? `<span class="r-tag">基础作息</span>` : ""}
+                        </button>`;
+                      }).join("")}
                     </div>` : ""}
                 </div>
                 ${g.activeItems.length ? `
@@ -20908,7 +20924,7 @@
     copiedVer: null,
     seenKey: "habao_changelog_seen_ver",
   };
-  function clLatestVer() { return CHANGELOG[0]?.ver || "V10.360"; }
+  function clLatestVer() { return CHANGELOG[0]?.ver || "V10.361"; }
   function clHasUnseen() {
     try { return localStorage.getItem(clState.seenKey) !== clLatestVer(); } catch (_) { return false; }
   }

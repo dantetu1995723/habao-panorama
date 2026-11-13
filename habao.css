@@ -2761,6 +2761,15 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   opacity: .82;
   color: var(--blue);
 }
+.routine-head-chip .r-tag {
+  font-size: calc(9.5px * var(--fs));
+  font-weight: 700;
+  color: var(--blue);
+  background: rgba(16,84,224,.14);
+  padding: 2px 5px;
+  border-radius: 999px;
+  line-height: 1.1;
+}
 .routine-head-chip.red {
   background: rgba(220,72,72,.08);
   border-color: rgba(220,72,72,.32);
