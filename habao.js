@@ -1502,6 +1502,22 @@
   /* ===== 改动记录（2026-11-13 起每次迭代同步追加，含日期与具体时间，简明说明改动位置与内容） ===== */
   const CHANGELOG = [
     {
+      ver: "V10.359",
+      date: "2026-11-13",
+      time: "10:05",
+      title: "基础作息计划详情页增加「基础作息」标签，固定事项名称与事项分类",
+      screens: [
+        { id: "task-view", label: "计划详情（查看计划）" },
+        { id: "task-edit", label: "计划详情（更新计划）" },
+        { id: "first-rest", label: "当前计划（基础作息编辑）" },
+      ],
+      items: [
+        "基础作息计划（起床、早餐、午餐、午休、晚餐、上床睡觉）在详情页「事项内容」模块右上角展示「基础作息」专属蓝色胶囊标签。",
+        "带有「基础作息」标签的计划，事项名称固定不可编辑，保持与查看态一致的只读展示样式。",
+        "事项分类固定选中所属分类（作息或饮食），其余分类按钮一并展示但统一置灰禁用不可选择，保持全界面视觉统一。",
+      ],
+    },
+    {
       ver: "V10.358",
       date: "2026-11-13",
       time: "09:56",
@@ -5417,7 +5433,7 @@
     const disabled = (viewing || locked) && !selected;
     const cls = `opt-chip${compact ? " compact" : ""}${dash ? " dash" : ""}`;
     const data = !disabled && act ? `data-act="${act}" ${extra || ""}` : "";
-    return `<button class="${cls}" style="background:${bg};color:${color}" ${data} type="button">${icon || ""}<span>${label}</span></button>`;
+    return `<button class="${cls}" style="background:${bg};color:${color}" ${data}${disabled ? " disabled" : ""} type="button">${icon || ""}<span>${label}</span></button>`;
   }
   const MONTH_DAY_SPECIAL_NOTE = "29、30、31号在无该日期的月份会自动跳过；「月末」固定为每月最后一天（自动适配大小月及二月28/29日）。";
   function sanitizeMonthDays(rawDays) {
@@ -19296,14 +19312,18 @@
           ${liveTile(2, I.cal, "周期与日期", schedPrimary)}
         </div>`;
 
-      const modHead = (ico, text) => `
+      const modHead = (ico, text, rightHTML = "") => `
         <div class="v02-mod-head">
           <span class="v02-mod-ico" style="background:${accent.muted};color:${accent.fg}">${ico}</span>
           <span class="v02-mod-title" style="color:${accent.fg}">${text}</span>
+          ${rightHTML}
         </div>`;
 
       // 模块一：事项内容（事项名称 + 补充备注 + 今日血压 + 事项分类）
-      const isCatLocked = viewing || (S.lockCategory && mode === "add");
+      const isBaselineRoutineDetail = mode === "add"
+        ? !!(isConfirmEdit && (d.routineSkeleton || BASELINE_REST_NAMES.includes(d.title)))
+        : !!(isRoutineSkeletonTask(t) || isBaselineRestItem(t) || BASELINE_REST_NAMES.includes(t.title));
+      const isCatLocked = viewing || (S.lockCategory && mode === "add") || isBaselineRoutineDetail;
       const catIcoHTML = d.cat === "custom" ? I[UNIFIED_CUSTOM_ICON] : (CAT_ICON[d.cat] ? CAT_ICON[d.cat]() : I.doc);
       const catKindBadge = PROFESSIONAL.has(d.cat) ? "专业康复日程" : "日常健康管理";
       const trimmedNote = String(d.note || "").trim();
@@ -19313,12 +19333,15 @@
       const visibleCatKeys = allowedCats
         ? Object.keys(CAT).filter((c) => allowedCats.includes(c))
         : Object.keys(CAT).filter((c) => !(S.lockProfessional && mode === "add" && PROFESSIONAL.has(c)));
+      const routineBadgeHTML = isBaselineRoutineDetail
+        ? `<span class="diff-badge routine-badge" style="margin-left:auto;${done ? `background:${accent.muted};color:${accent.fg}` : ""}">基础作息</span>`
+        : "";
 
       const contentCard = `
         <div class="v02-editor-card">
-          ${modHead(I.doc, mode !== "add" && rxOn() && S.rx && S.rx[t.id] ? `事项内容<span class="rx-chip" style="margin-left:8px">医嘱</span>` : "事项内容")}
+          ${modHead(I.doc, mode !== "add" && rxOn() && S.rx && S.rx[t.id] ? `事项内容<span class="rx-chip" style="margin-left:8px">医嘱</span>` : "事项内容", routineBadgeHTML)}
           <div class="sec-label" style="margin-top:0">事项名称</div>
-          ${editable
+          ${editable && !isBaselineRoutineDetail
             ? `<input class="voice-box w100" name="taskTitle" style="color:${accent.fg};border:0;font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" ? "42px" : "46px"}" placeholder="填写事项名称" value="${String(d.title || "").replace(/"/g, "&quot;")}" />`
             : `<div class="v02-ro-box" style="background:${accent.muted};color:${accent.fg};font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" ? "42px" : "46px"}">${esc(contentPrimary)}</div>`}
           <div class="sec-label">补充备注</div>
@@ -19327,17 +19350,23 @@
             : `<div class="v02-ro-box note" style="background:${accent.muted};color:${trimmedNote ? accent.fg : "var(--secondary)"};opacity:${trimmedNote ? 1 : 0.78};font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" ? "42px" : "46px"}">${trimmedNote ? esc(trimmedNote) : "暂无补充备注"}</div>`}
           ${vitalsHTML}
           <div class="sec-label">事项分类</div>
-          ${isCatLocked
-            ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
-                <span style="display:inline-flex;opacity:.85">${catIcoHTML}</span>
-                <span style="font-size:calc(15px * var(--fs));font-weight:600">${esc(catLabel)}</span>
-              </div>`
-            : `<div class="grid3 tight">${visibleCatKeys.map((c) =>
-                chip({ selected: c === d.cat, label: CAT[c].chip, icon: CAT_ICON[c](), act: "draftCat", extra: `data-c="${c}"` })).join("")}
+          ${isBaselineRoutineDetail
+            ? `<div class="grid3 tight">${visibleCatKeys.map((c) =>
+                chip({ selected: c === d.cat, label: CAT[c].chip, icon: CAT_ICON[c](), act: "", extra: `data-c="${c}"`, locked: true })).join("")}
                 ${!allowedCats ? (S.customCats || []).map((c) =>
-                  chip({ selected: d.cat === "custom" && d.customId === c.id, label: c.name, icon: I[UNIFIED_CUSTOM_ICON], act: "pickCustomCat", extra: `data-id="${c.id}"` })).join("") : ""}
-                ${!allowedCats ? chip({ selected: false, label: "自定义", icon: I.plus, act: "openCustomCat" }) : ""}
-              </div>`}
+                  chip({ selected: d.cat === "custom" && d.customId === c.id, label: c.name, icon: I[UNIFIED_CUSTOM_ICON], act: "", extra: `data-id="${c.id}"`, locked: true })).join("") : ""}
+              </div>`
+            : (isCatLocked
+              ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
+                  <span style="display:inline-flex;opacity:.85">${catIcoHTML}</span>
+                  <span style="font-size:calc(15px * var(--fs));font-weight:600">${esc(catLabel)}</span>
+                </div>`
+              : `<div class="grid3 tight">${visibleCatKeys.map((c) =>
+                  chip({ selected: c === d.cat, label: CAT[c].chip, icon: CAT_ICON[c](), act: "draftCat", extra: `data-c="${c}"` })).join("")}
+                  ${!allowedCats ? (S.customCats || []).map((c) =>
+                    chip({ selected: d.cat === "custom" && d.customId === c.id, label: c.name, icon: I[UNIFIED_CUSTOM_ICON], act: "pickCustomCat", extra: `data-id="${c.id}"` })).join("") : ""}
+                  ${!allowedCats ? chip({ selected: false, label: "自定义", icon: I.plus, act: "openCustomCat" }) : ""}
+                </div>`)}
         </div>`;
 
       // 模块二：时刻与提醒（1:1 对称「提醒时间 & 打卡时间」+ 醒目「时间段」+「到点提醒」）
@@ -20837,7 +20866,7 @@
     copiedVer: null,
     seenKey: "habao_changelog_seen_ver",
   };
-  function clLatestVer() { return CHANGELOG[0]?.ver || "V10.358"; }
+  function clLatestVer() { return CHANGELOG[0]?.ver || "V10.359"; }
   function clHasUnseen() {
     try { return localStorage.getItem(clState.seenKey) !== clLatestVer(); } catch (_) { return false; }
   }
