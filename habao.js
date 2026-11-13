@@ -4587,12 +4587,7 @@
     return startYmd === endYmd ? "计划日期" : "起始日期";
   }
   function taskCardTimeLabel(t, hmOverride) {
-    const hm = hmOverride || t.time || t.t || `${pad(t.h ?? 8)}:${pad(t.m ?? 0)}`;
-    const isCycle = t.cycle !== false && t.isRecurring !== false;
-    if (!isCycle) return hm;
-    const rule = t.rule || (t.cat === "appointment" ? "monthly" : "daily");
-    const ruleText = scheduleRuleSummary(true, rule, t.weekdays, t.monthDays, t.intervalCount, t.intervalUnit);
-    return `${ruleText} ${hm}`;
+    return hmOverride || t.time || t.t || `${pad(t.h ?? 8)}:${pad(t.m ?? 0)}`;
   }
   function defaultNewPlanStartYmd(orig) {
     const today = toYMD(demoDate());
