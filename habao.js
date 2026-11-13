@@ -4431,6 +4431,21 @@
     }
     return `${yearMonthDayLabel(parseYMD(startYmd))} – ${yearMonthDayLabel(parseYMD(endYmd))}`;
   }
+  function taskDateFieldLabel(t) {
+    const isCycle = t.cycle !== false && t.isRecurring !== false;
+    if (!isCycle) return "计划日期";
+    const startYmd = t.onceDate || toYMD(demoDate());
+    const endYmd = resolvedTaskEndYmd(t);
+    return startYmd === endYmd ? "计划日期" : "起始日期";
+  }
+  function taskCardTimeLabel(t, hmOverride) {
+    const hm = hmOverride || t.time || t.t || `${pad(t.h ?? 8)}:${pad(t.m ?? 0)}`;
+    const isCycle = t.cycle !== false && t.isRecurring !== false;
+    if (!isCycle) return hm;
+    const rule = t.rule || (t.cat === "appointment" ? "monthly" : "daily");
+    const ruleText = scheduleRuleSummary(true, rule, t.weekdays, t.monthDays, t.intervalCount, t.intervalUnit);
+    return `${ruleText} ${hm}`;
+  }
   function defaultNewPlanStartYmd(orig) {
     const today = toYMD(demoDate());
     const origStart = orig?.onceDate || today;
@@ -12821,7 +12836,8 @@
             ${groups.length ? groups.map((g) => `
               <div class="period-h">${I[g.icon] || ""}${g.title}<span class="s12 t-sec">${g.items.length} 项</span></div>
               <div class="col gap10">${g.items.map((t) => actionCard({
-                cat: t.cat, title: t.title, time: `${pad(t.h)}:${pad(t.m)}`,
+                cat: t.cat, title: t.title, time: taskCardTimeLabel(t),
+                dateLabel: taskDateFieldLabel(t),
                 date: taskDateRangeLabel(t),
                 done: !!S.completed[t.id], hist, id: t.id, toggle: !hist,
                 cycle: t.cycle !== false,
@@ -12960,15 +12976,7 @@
         const defaultMd = isAppt ? [17] : [1];
         const md = (r.monthDays && r.monthDays.length) ? r.monthDays : defaultMd;
         const rule = r.rule || (isAppt ? "monthly" : "daily");
-        const prefix = r.cycle === false
-          ? ""
-          : (rule === "weekly"
-              ? `${scheduleRuleSummary(true, "weekly", r.weekdays)} `
-              : rule === "monthly"
-                ? `每月${md.map((d) => d === 0 ? "月末" : `${d}日`).join("、")} `
-                : rule === "custom"
-                  ? `${customRuleDisplayName(r.intervalCount, r.intervalUnit)} `
-                  : "");
+        const taskForLabel = { ...r, rule, monthDays: md };
         const rawNote = String(r.note || "").trim();
         const origDiffNote = (r.origTask && !isSameBaselineScheduleJS({ ...r, time: r.t }, r.origTask))
           ? oldBaselineSummaryJS(r.origTask, { ...r, time: r.t })
@@ -12976,8 +12984,9 @@
         return actionCard({
           cat: r.cat,
           title: r.title,
-          time: `${prefix}${r.t}`,
-          date: taskDateRangeLabel(r),
+          time: taskCardTimeLabel(taskForLabel, r.t),
+          dateLabel: taskDateFieldLabel(taskForLabel),
+          date: taskDateRangeLabel(taskForLabel),
           appt: !!isAppt,
           draft: true,
           routine: false,
@@ -13051,18 +13060,9 @@
                       }
                       const rawNote = String(r.note || "").trim();
                       const cat = r.cat || (["早餐", "午餐", "晚餐"].includes(r.name) ? "diet" : "rest");
-                      const prefix = r.cycle === false
-                        ? ""
-                        : (r.rule === "weekly"
-                            ? `${scheduleRuleSummary(true, "weekly", r.weekdays)} `
-                            : r.rule === "monthly"
-                              ? `每月${((r.monthDays && r.monthDays.length) ? r.monthDays : [1]).map((d) => d === 0 ? "月末" : `${d}日`).join("、")} `
-                              : r.rule === "custom"
-                                ? `${customRuleDisplayName(r.intervalCount, r.intervalUnit)} `
-                                : "");
                       const rDiff = routineCardDiffJS(r);
                       return actionCard({
-                        cat, title: r.name, time: `${prefix}${r.t}`, date: taskDateRangeLabel(r), draft: true, routine: true,
+                        cat, title: r.name, time: taskCardTimeLabel(r, r.t), dateLabel: taskDateFieldLabel(r), date: taskDateRangeLabel(r), draft: true, routine: true,
                         cycle: r.cycle !== false, idx: r.i,
                         note: rawNote || "可编辑备注",
                         noteEmpty: !rawNote,
@@ -13330,7 +13330,7 @@
                   ? (x.note != null ? x.note : confirmMedNote(x.title))
                   : (x.note || "");
                 return actionCard({
-                  cat: x.cat, title: x.title, time: x.time, date: taskDateRangeLabel(x), draft: true, routine: !!x.routineSkeleton, cycle: x.cycle !== false, idx: x.i,
+                  cat: x.cat, title: x.title, time: taskCardTimeLabel(x, x.time), dateLabel: taskDateFieldLabel(x), date: taskDateRangeLabel(x), draft: true, routine: !!x.routineSkeleton, cycle: x.cycle !== false, idx: x.i,
                   dose: x.cat === "medication" ? (x.dose || medDose(x.title, x.note)) : "",
                   note: rawNote || "可编辑备注",
                   noteEmpty: !rawNote,
@@ -13344,17 +13344,9 @@
             <div class="col gap10">${appts.map((a) => {
               const rawNote = a.note || "";
               const md = (a.monthDays && a.monthDays.length) ? a.monthDays : [17];
-              const prefix = a.cycle === false
-                ? ""
-                : (a.rule === "daily"
-                    ? ""
-                    : a.rule === "weekly"
-                      ? `${scheduleRuleSummary(true, "weekly", a.weekdays)} `
-                      : a.rule === "custom"
-                        ? `${customRuleDisplayName(a.intervalCount, a.intervalUnit)} `
-                        : `每月${md.map((d) => d === 0 ? "月末" : `${d}日`).join("、")} `);
+              const apptTask = { ...a, rule: a.rule || "monthly", monthDays: md };
               return actionCard({
-                cat: "appointment", title: a.title, time: `${prefix}${a.time}`, date: taskDateRangeLabel(a), appt: true, draft: true, cycle: a.cycle !== false, idx: a.i,
+                cat: "appointment", title: a.title, time: taskCardTimeLabel(apptTask, a.time), dateLabel: taskDateFieldLabel(apptTask), date: taskDateRangeLabel(apptTask), appt: true, draft: true, cycle: a.cycle !== false, idx: a.i,
                 note: rawNote || "可编辑备注",
                 noteEmpty: !rawNote,
                 statusBadge: itemBadge(a.i),
@@ -13502,7 +13494,7 @@
           ${groups.map((g) => `
             <div class="confirm-period tight">
               ${periodHead(g, g.items.length)}
-              <div class="col gap10">${g.items.map((x) => actionCard({ cat: "exercise", title: x.title, time: x.time, draft: true, cycle: true, idx: x.i })).join("")}</div>
+              <div class="col gap10">${g.items.map((x) => actionCard({ cat: "exercise", title: x.title, time: taskCardTimeLabel({ ...x, cycle: true }, x.time), dateLabel: taskDateFieldLabel({ ...x, cycle: true }), date: taskDateRangeLabel({ ...x, cycle: true }), draft: true, cycle: true, idx: x.i })).join("")}</div>
             </div>`).join("")}
         </div>
         <div class="px20" style="padding-bottom:28px">
@@ -15303,13 +15295,18 @@
             const done = isFamilyTaskCompletedOn(selectedFamName, t.id, selYMD);
             const chip = CAT[kind]?.name || CAT[kind]?.chip || "事项";
             const isCycle = t.cycle !== false;
-            const rulePrefix = isCycle ? (t.rule === "weekly" ? "每周 " : t.rule === "monthly" ? "每月 " : t.rule === "custom" ? `${customRuleDisplayName(t.intervalCount, t.intervalUnit)} ` : "每日 ") : "";
-            const hm = `${rulePrefix}${pad(t.h ?? 8)}:${pad(t.m ?? 0)} - ${pad(((t.h ?? 8) + 1) % 24)}:${pad(t.m ?? 0)}`;
-            const rangeText = taskDateRangeLabel({ ...t, cycle: isCycle });
+            const taskObj = { ...t, cycle: isCycle };
+            const timeText = taskCardTimeLabel(taskObj);
+            const dateLabel = taskDateFieldLabel(taskObj);
+            const rangeText = taskDateRangeLabel(taskObj);
             const notes = t.note ? `<div class="act-notes">${cardNote(I.alignLeft, esc(t.note))}</div>` : "";
+            const isRoutineCard = !!(isRoutineSkeletonTask(t) || BASELINE_REST_NAMES.includes(t.title));
+            const titleHTML = isRoutineCard
+              ? `<div class="act-title-row"><div class="s15 fb t" style="line-height:1.35;word-break:break-word">${esc(t.title || "新计划")}</div><span class="diff-badge routine-badge">基础作息</span></div>`
+              : `<div class="s15 fb t" style="line-height:1.35;word-break:break-word">${esc(t.title || "新计划")}</div>`;
 
             const rightCircle = done
-              ? `<button type="button" data-act="toggleProxyCheckIn" data-id="${t.id}" title="取消打卡" style="width:36px;height:36px;border-radius:50%;border:0;flex:0 0 36px;background:var(--blue);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</button>`
+              ? `<button type="button" data-act="toggleProxyCheckIn" data-id="${t.id}" title="取消打卡" style="width:34px;height:34px;border-radius:50%;border:0;flex:0 0 34px;background:var(--blue);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</button>`
               : `<button type="button" data-act="sendProxyCheckIn" data-id="${t.id}" title="帮${esc(selectedFamName)}代打卡" style="height:34px;padding:0 12px;border-radius:999px;border:1.2px solid rgba(16,84,224,.32);background:rgba(16,84,224,.08);color:var(--blue);display:inline-flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap">
                   <span style="width:12px;height:12px;display:grid;place-items:center">${I.check}</span>
                   <span style="font-size:13px;font-weight:800;line-height:1">代打卡</span>
@@ -15323,20 +15320,19 @@
               : `<button type="button" data-act="askProxyDeleteTask" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.trash}删除</button>`;
 
             return `
-              <div class="act-card">
+              <div class="act-card${notes ? " has-notes" : ""}">
                 <div class="act-card-main">
                   <div class="badge b40"><img src="${A.task[kind] || A.task.monitoring}" alt="" /></div>
                   <div class="grow" style="min-width:0">
-                    <div class="s15 fb t" style="line-height:1.35;word-break:break-word">${esc(t.title || "新计划")}</div>
-                    <div class="act-info">
-                      <span class="tm">${hm}</span>
-                      <span class="act-chip">${isCycle ? "循环" : "单日"}</span>
+                    ${titleHTML}
+                    <div class="act-tags">
                       <span class="act-chip">${esc(chip)}</span>
+                      <span class="act-chip sec">${isCycle ? "循环" : "单日"}</span>
                     </div>
-                    <div class="act-dates">${rangeText}</div>
                   </div>
                   ${rightCircle}
                 </div>
+                ${planCardMetaBoxHTML({ timeText, dateLabel, dateText: rangeText })}
                 ${notes}
                 <div class="act-card-bar${barCls}">
                   <button type="button" data-act="openProxyTaskEditor" data-id="${t.id}" style="color:var(--blue);font-weight:700;white-space:nowrap">${I.eye}查看</button>
@@ -18830,21 +18826,24 @@
 
   const DIFF_BADGE_LABELS = { added: "新建", modified: "已调整", kept: "保留", stopped: "今日起停用" };
 
-  function actionCard({ cat, title, time, date, appt, routine, done, hist, id, toggle, draft, cycle, idx, dose, note, noteEmpty, statusBadge, origNote, deactivated, restoreId, editAct, delAct, noteAct }) {
+  function planCardMetaBoxHTML({ timeText, dateLabel, dateText }) {
+    return `<div class="plan-meta-box">
+      <div class="plan-meta-row">
+        <span class="plan-meta-lbl">${I.clock}<span>时间</span></span>
+        <span class="plan-meta-val tm">${esc(timeText)}</span>
+      </div>
+      <div class="plan-meta-row">
+        <span class="plan-meta-lbl">${I.cal}<span>${esc(dateLabel)}</span></span>
+        <span class="plan-meta-val dt">${esc(dateText)}</span>
+      </div>
+    </div>`;
+  }
+
+  function actionCard({ cat, title, time, date, dateLabel, appt, routine, done, hist, id, toggle, draft, cycle, idx, dose, note, noteEmpty, statusBadge, origNote, deactivated, restoreId, editAct, delAct, noteAct }) {
     const seedTask = id ? SEED.find((x) => x.id === id) : null;
     const isRoutine = !!(routine || (seedTask && isRoutineSkeletonTask(seedTask)));
     const kind = appt || cat === "appointment" ? "appointment" : cat;
-    const cls = [done ? "done" : "", (kind === "appointment" && !done ? "appt" : ""), deactivated ? "stopped" : ""].filter(Boolean).join(" ");
-    const badgeCls = (kind === "appointment" && !done ? "appt" : (done ? "done" : ""));
-    const chip = CAT[kind]?.name || "";
     const isCycle = !!cycle;
-    const editLab = "查看";
-    const editIco = I.eye;
-    const check = toggle
-      ? `<button class="act-check ${done ? "on" : ""}" data-act="checkin" data-id="${id}" type="button">${done ? I.check : ""}</button>`
-      : hist
-        ? `<span class="act-ro ${done ? "done" : ""}">${done ? `<i>${I.check}</i>` : `<i></i><em>未打卡</em>`}</span>`
-        : "";
     const titleAttr = String(title || "").replace(/"/g, "&quot;");
     const timeAttr = String(time || "").replace(/"/g, "&quot;");
     const idxAttr = idx == null ? "" : ` data-i="${idx}"`;
@@ -18852,6 +18851,23 @@
     const draftEditAct = editAct || "editConfirmDraft";
     const draftDelAct = delAct || "delConfirmDraft";
     const draftNoteAct = noteAct || "editNote";
+    const origHTML = origNote
+      ? `<div class="act-note diff-orig">${I.clock || ""}<span>${esc(origNote)}</span></div>`
+      : "";
+    const baseNoteHTML = note
+      ? cardNote(I.alignLeft, note, idx == null ? null : draftNoteAct, idx, noteEmpty)
+      : "";
+    const notes = origHTML + baseNoteHTML;
+    const cls = [done ? "done" : "", (kind === "appointment" && !done ? "appt" : ""), deactivated ? "stopped" : "", notes ? "has-notes" : ""].filter(Boolean).join(" ");
+    const badgeCls = (kind === "appointment" && !done ? "appt" : (done ? "done" : ""));
+    const chip = CAT[kind]?.name || "";
+    const editLab = "查看";
+    const editIco = I.eye;
+    const check = toggle
+      ? `<button class="act-check ${done ? "on" : ""}" data-act="checkin" data-id="${id}" type="button">${done ? I.check : ""}</button>`
+      : hist
+        ? `<span class="act-ro ${done ? "done" : ""}">${done ? `<i>${I.check}</i>` : `<i></i><em>未打卡</em>`}</span>`
+        : "";
     const editBtn = restoreId != null
       ? `<button type="button" data-act="restoreStoppedDraft" data-id="${esc(String(restoreId))}">↩ 保留此项</button>`
       : draft
@@ -18871,29 +18887,24 @@
       }
     }
     const barCls = showDelete && !draft && isCycle ? " triple" : "";
-    const origHTML = origNote
-      ? `<div class="act-note diff-orig">${I.clock || ""}<span>${esc(origNote)}</span></div>`
-      : "";
-    const baseNoteHTML = note
-      ? cardNote(I.alignLeft, note, idx == null ? null : draftNoteAct, idx, noteEmpty)
-      : "";
-    const notes = origHTML + baseNoteHTML;
     const isRoutineCard = !!(isRoutine || (seedTask && isRoutineSkeletonTask(seedTask)) || BASELINE_REST_NAMES.includes(title));
     const badgeLabel = isRoutineCard ? "基础作息" : "";
     const titleHTML = badgeLabel
       ? `<div class="act-title-row"><div class="s15 fb t">${title}</div><span class="diff-badge routine-badge">${badgeLabel}</span></div>`
       : `<div class="s15 fb t">${title}</div>`;
-    const rangeText = date || (seedTask ? taskDateRangeLabel(seedTask) : taskDateRangeLabel({ cycle: isCycle }));
+    const resolvedTask = seedTask || { cycle: isCycle };
+    const rangeText = date || taskDateRangeLabel(resolvedTask);
+    const resolvedDateLabel = dateLabel || taskDateFieldLabel(resolvedTask);
     return `<div class="act-card ${cls}">
       <div class="act-card-main">
         <div class="badge b40 ${badgeCls}"><img src="${A.task[kind]}" alt="" /></div>
         <div class="grow">
           ${titleHTML}
-          <div class="act-info"><span class="tm">${time}</span>${dose ? `<span class="act-chip">${dose}</span>` : ""}<span class="act-chip">${isCycle ? "循环" : "单日"}</span><span class="act-chip">${chip}</span></div>
-          <div class="act-dates">${rangeText}</div>
+          <div class="act-tags">${dose ? `<span class="act-chip">${dose}</span>` : ""}<span class="act-chip">${chip}</span><span class="act-chip sec">${isCycle ? "循环" : "单日"}</span></div>
         </div>
         ${check}
       </div>
+      ${planCardMetaBoxHTML({ timeText: time, dateLabel: resolvedDateLabel, dateText: rangeText })}
       ${notes ? `<div class="act-notes">${notes}</div>` : ""}
       <div class="act-card-bar${barCls}">
         ${editBtn}
@@ -20240,16 +20251,16 @@
               const title = String(p.title || "").trim() || c.name;
               const isCycle = p.cycle !== false && p.isRecurring !== false;
               const cycleLab = isCycle ? "循环计划" : "单日计划";
-              const rText = scheduleRuleSummary(isCycle, p.rule || "daily", p.weekdays, p.monthDays, p.intervalCount, p.intervalUnit);
-              const timePart = `提醒时间：${rText} ${hm}`;
-              const datePart = `计划日期：${taskDateRangeLabel({ ...p, cycle: isCycle })}`;
+              const taskObj = { ...p, cycle: isCycle };
+              const timeText = taskCardTimeLabel(taskObj, hm);
+              const dateLabel = taskDateFieldLabel(taskObj);
+              const dateText = taskDateRangeLabel(taskObj);
               return `<div class="cat-del-plan-row">
                 <div class="cat-del-row-top">
                   <span class="cat-del-title">${esc(title)}</span>
                   <span class="cat-del-cycle">${cycleLab}</span>
                 </div>
-                <div class="cat-del-meta primary">${esc(timePart)}</div>
-                <div class="cat-del-meta">${esc(datePart)}</div>
+                ${planCardMetaBoxHTML({ timeText, dateLabel, dateText })}
               </div>`;
             }).join("")}
           </div>`

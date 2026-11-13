@@ -972,48 +972,75 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 
 .act-card {
   background: #fff; border-radius: 20px; overflow: hidden;
-  box-shadow: 0 2px 5px rgba(0,0,0,.04);
-  border: 0.75px solid rgba(16,84,224,.10);
+  box-shadow: 0 2.5px 7px rgba(0,0,0,.045);
+  border: 0.85px solid rgba(16,84,224,.16);
 }
-.act-card.done { background: #fff; border-color: rgba(16,84,224,.18); border-width: 1px; }
-.act-card.appt { border-color: rgba(16,84,224,.14); }
-.act-card.routine:not(.done) { border-color: rgba(16,84,224,.10); }
-.act-card.routine.done { border-color: rgba(26,166,74,.45); border-width: 1.1px; }
+.act-card.done { background: #fff; border-color: rgba(16,84,224,.24); border-width: 1px; }
+.act-card.appt { border-color: rgba(16,84,224,.18); }
+.act-card.routine:not(.done) { border-color: rgba(16,84,224,.16); }
+.act-card.routine.done { border-color: rgba(26,166,74,.42); border-width: 1.2px; }
 .act-card.routine:not(.done) .act-card-main .t { color: var(--blue); }
 .act-card.routine.done .act-card-main .t { color: var(--green-deep); }
-.act-card-main { display: flex; align-items: center; gap: 12px; padding: 14px 14px 12px; }
-.act-info { display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
-.act-info .tm {
-  font-size: calc(12px * var(--fs)); font-weight: 600;
-  font-variant-numeric: tabular-nums; color: var(--blue);
-}
-.act-card.done .act-info .tm { color: var(--blue); }
-.act-card.appt .act-info .tm { color: var(--blue); }
-.act-card.routine:not(.done) .act-info .tm { color: var(--blue); }
-.act-card.routine.done .act-info .tm { color: rgba(26,166,74,.82); }
-/* 副行前置的完整年月日：与时刻同色、字重略轻（对齐真机 RehabTaskRowView） */
-.act-info .dt {
-  font-size: calc(12px * var(--fs)); font-weight: 500;
-  font-variant-numeric: tabular-nums; color: var(--blue);
-}
-.act-card.done .act-info .dt { color: var(--blue); }
-.act-card.appt .act-info .dt { color: var(--blue); }
-.act-card.routine:not(.done) .act-info .dt { color: var(--blue); }
-.act-card.routine.done .act-info .dt { color: rgba(26,166,74,.78); }
+.act-card-main { display: flex; align-items: center; gap: 12px; padding: 14px 14px 10px; }
+.act-tags { display: flex; align-items: center; gap: 5px; margin-top: 5px; flex-wrap: wrap; }
 .act-chip {
-  font-size: calc(11px * var(--fs)); font-weight: 500; color: var(--secondary);
-  padding: 2px 7px; border-radius: 999px; background: rgba(16,84,224,.08);
+  font-size: calc(11px * var(--fs)); font-weight: 600; color: rgba(16,84,224,.84);
+  padding: 2.5px 7.5px; border-radius: 999px; background: rgba(16,84,224,.085);
+  line-height: 1.2;
 }
-.act-card.appt .act-chip { background: rgba(16,84,224,.08); }
-.act-card.done .act-chip { background: rgba(16,84,224,.08); }
-.act-card.routine:not(.done) .act-chip { background: rgba(16,84,224,.08); color: var(--secondary); }
-.act-card.routine.done .act-chip { background: rgba(26,166,74,.10); color: rgba(26,166,74,.82); }
-.act-dates {
-  margin-top: 4px;
-  font-size: calc(12px * var(--fs)); font-weight: 500;
-  font-variant-numeric: tabular-nums; color: var(--secondary);
+.act-chip.sec {
+  color: var(--secondary);
+  background: #EEF3FA;
 }
-.act-card.done .act-dates { color: var(--secondary); }
+.act-card.appt .act-chip:not(.sec) { background: rgba(16,84,224,.085); }
+.act-card.done .act-chip:not(.sec) { background: rgba(16,84,224,.085); }
+.act-card.routine:not(.done) .act-chip:not(.sec) { background: rgba(16,84,224,.085); color: rgba(16,84,224,.84); }
+.act-card.routine.done .act-chip:not(.sec) { background: rgba(26,166,74,.11); color: rgba(26,166,74,.86); }
+.act-card.routine.done .act-chip.sec { background: rgba(26,166,74,.08); color: rgba(26,166,74,.78); }
+
+/* 通栏结构化信息岛：明确标注「时间」与「起始日期 / 计划日期」 */
+.plan-meta-box {
+  margin: 0 14px 12px;
+  padding: 8.5px 11px;
+  border-radius: 12px;
+  background: rgba(16,84,224,.045);
+  border: 0.6px solid rgba(16,84,224,.075);
+  display: flex; flex-direction: column; gap: 5.5px;
+}
+.act-card.has-notes .plan-meta-box { margin-bottom: 10px; }
+.act-card.stopped .plan-meta-box { opacity: .65; }
+.act-card.routine.done .plan-meta-box {
+  background: rgba(26,166,74,.055);
+  border-color: rgba(26,166,74,.10);
+}
+.plan-meta-row {
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+}
+.plan-meta-lbl {
+  display: inline-flex; align-items: center; gap: 4px;
+  width: 70px; flex: 0 0 70px;
+  font-size: calc(12px * var(--fs)); font-weight: 600;
+  color: var(--secondary); line-height: 1.25;
+}
+.plan-meta-lbl svg {
+  width: 11px; height: 11px; flex: 0 0 11px;
+  color: rgba(16,84,224,.62);
+}
+.act-card.routine.done .plan-meta-lbl svg { color: rgba(26,166,74,.70); }
+.plan-meta-val {
+  flex: 1; min-width: 0;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.plan-meta-val.tm {
+  font-size: calc(13px * var(--fs)); font-weight: 700; color: var(--blue);
+}
+.act-card.routine.done .plan-meta-val.tm { color: var(--green-deep); }
+.plan-meta-val.dt {
+  font-size: calc(12.5px * var(--fs)); font-weight: 500; color: #3D4C6B;
+}
+
 .act-check {
   width: 32px; height: 32px; border-radius: 50%; flex: 0 0 32px;
   border: 1.8px solid rgba(16,84,224,.35); background: #fff;
@@ -1036,19 +1063,33 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .act-ro.done i svg { width: 15px; height: 15px; color: #fff; }
 .act-ro em { font-size: calc(11px * var(--fs)); font-style: normal; color: var(--secondary); }
 .act-card-bar {
-  display: flex;
-  background: rgba(16,84,224,.055);
+  display: flex; align-items: center;
+  background: rgba(16,84,224,.05);
+  border-top: 0.5px solid rgba(16,84,224,.08);
 }
-.act-card.appt .act-card-bar { background: rgba(16,84,224,.055); }
-.act-card.done .act-card-bar { background: rgba(16,84,224,.055); }
-.act-card.routine:not(.done) .act-card-bar { background: rgba(16,84,224,.055); }
-.act-card.routine.done .act-card-bar { background: rgba(26,166,74,.07); }
+.act-card.appt .act-card-bar { background: rgba(16,84,224,.05); }
+.act-card.done .act-card-bar { background: rgba(16,84,224,.05); }
+.act-card.routine:not(.done) .act-card-bar { background: rgba(16,84,224,.05); }
+.act-card.routine.done .act-card-bar {
+  background: rgba(26,166,74,.065);
+  border-top-color: rgba(26,166,74,.10);
+}
 .act-card-bar button {
+  position: relative;
   flex: 1; border: 0; background: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center; gap: 6px;
   padding: 11px 0;
   font-size: calc(13px * var(--fs)); font-weight: 600;
   color: rgba(16,84,224,.88);
+}
+.act-card-bar button + button::before {
+  content: "";
+  position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 1px; height: 16px;
+  background: rgba(16,84,224,.11);
+}
+.act-card.routine.done .act-card-bar button + button::before {
+  background: rgba(26,166,74,.16);
 }
 .act-card.appt .act-card-bar button:not(.del) { color: rgba(16,84,224,.88); }
 .act-card.done .act-card-bar button:not(.del) { color: rgba(16,84,224,.88); }
@@ -1601,9 +1642,15 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   max-height: 240px; overflow-y: auto;
 }
 .cat-del-plan-row {
-  display: flex; flex-direction: column; gap: 4px;
-  padding: 10px 13px; border-radius: 14px;
-  background: rgba(16,84,224,.06);
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px 12px; border-radius: 16px;
+  background: rgba(16,84,224,.055);
+  border: 0.75px solid rgba(16,84,224,.10);
+}
+.cat-del-plan-row .plan-meta-box {
+  margin: 0;
+  background: rgba(255,255,255,.86);
+  border-color: rgba(16,84,224,.08);
 }
 .cat-del-row-top {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
