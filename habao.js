@@ -1502,6 +1502,18 @@
   /* ===== 改动记录（2026-11-13 起每次迭代同步追加，含日期与具体时间，简明说明改动位置与内容） ===== */
   const CHANGELOG = [
     {
+      ver: "V10.369",
+      date: "2026-11-13",
+      time: "12:05",
+      title: "「确认更新计划」弹窗文字改为蓝色高对比度展示",
+      screens: [
+        { id: "task-edit", label: "更新计划" },
+      ],
+      items: [
+        "将「确认更新计划」弹窗内「原开始日期 / 新开始日期」及底部确认提示文字统一调整为主蓝色，提升适老可读性。",
+      ],
+    },
+    {
       ver: "V10.368",
       date: "2026-11-13",
       time: "12:03",
@@ -20027,7 +20039,7 @@
         <div class="popup" onclick="event.stopPropagation()">
           <h3>${S.overlayData.title || "确认"}</h3>
           ${dateBox}
-          <p>${S.overlayData.body || ""}</p>
+          <p${pd ? ' class="plan-date-note"' : ""}>${S.overlayData.body || ""}</p>
           <div class="duo">
             <button class="cancel" data-act="close" type="button">${S.overlayData.cancel || "取消"}</button>
             <button class="${S.overlayData.danger ? "danger" : "ok"}" data-act="confirmOk" type="button">${S.overlayData.ok || "确定"}</button>
