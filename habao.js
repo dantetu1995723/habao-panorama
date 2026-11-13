@@ -1502,6 +1502,17 @@
   /* ===== 改动记录（2026-11-13 起每次迭代同步追加，简明说明改动位置与内容） ===== */
   const CHANGELOG = [
     {
+      ver: "V10.357",
+      date: "2026-11-13",
+      title: "改动记录弹窗新增按日期筛选选项",
+      screens: [
+        { id: "home", label: "首页（李建国的一天）" },
+      ],
+      items: [
+        "改动记录弹窗搜索栏右侧新增日期下拉选项（默认「全部日期」，按实际有记录的日期分组并显示条数），可与关键词搜索组合过滤。",
+      ],
+    },
+    {
       ver: "V10.356",
       date: "2026-11-13",
       title: "交互全景新增「改动记录」功能",
@@ -20798,11 +20809,12 @@
   const clState = {
     open: false,
     q: "",
+    date: "",
     focusVer: null,
     copiedVer: null,
     seenKey: "habao_changelog_seen_ver",
   };
-  function clLatestVer() { return CHANGELOG[0]?.ver || "V10.356"; }
+  function clLatestVer() { return CHANGELOG[0]?.ver || "V10.357"; }
   function clHasUnseen() {
     try { return localStorage.getItem(clState.seenKey) !== clLatestVer(); } catch (_) { return false; }
   }
@@ -20851,6 +20863,7 @@
           </div>
           <div class="cl-toolbar">
             <input class="cl-search" id="cl-search" placeholder="搜索版本号、界面或改动内容…" />
+            <select class="cl-date-select" id="cl-date" aria-label="按日期筛选"></select>
           </div>
           <div class="cl-list" id="cl-list"></div>
           <div class="cl-foot">
@@ -20868,6 +20881,10 @@
         clState.q = e.target.value || "";
         renderChangelogList();
       });
+      $("#cl-date").addEventListener("change", (e) => {
+        clState.date = e.target.value || "";
+        renderChangelogList();
+      });
       $("#cl-list").addEventListener("click", (e) => {
         const jumpBtn = e.target.closest("[data-cl-jump]");
         if (jumpBtn) {
@@ -20881,6 +20898,19 @@
       });
     }
   }
+  function renderChangelogDates() {
+    const sel = $("#cl-date");
+    if (!sel) return;
+    const counts = new Map();
+    CHANGELOG.forEach((it) => counts.set(it.date, (counts.get(it.date) || 0) + 1));
+    const opts = [`<option value="">全部日期 (${CHANGELOG.length}条)</option>`];
+    counts.forEach((cnt, d) => {
+      opts.push(`<option value="${esc(d)}">${esc(d)} (${cnt}条)</option>`);
+    });
+    sel.innerHTML = opts.join("");
+    sel.value = counts.has(clState.date) ? clState.date : "";
+    if (sel.value !== clState.date) clState.date = "";
+  }
   function openChangelog(focusVer = null) {
     ensureChangelogUI();
     clState.open = true;
@@ -20892,6 +20922,7 @@
     if (bd) bd.classList.remove("hidden");
     const inp = $("#cl-search");
     if (inp && inp.value !== clState.q) inp.value = clState.q;
+    renderChangelogDates();
     renderChangelogList();
     if (focusVer) {
       requestAnimationFrame(() => {
@@ -20921,13 +20952,14 @@
     const listEl = $("#cl-list");
     if (!listEl) return;
     const q = (clState.q || "").trim();
-    const items = CHANGELOG.filter((it) => clMatchesQuery(it, q));
+    const d = clState.date || "";
+    const items = CHANGELOG.filter((it) => (!d || it.date === d) && clMatchesQuery(it, q));
     if (!items.length) {
-      listEl.innerHTML = `<div class="cl-empty">未找到匹配「${esc(q)}」的改动记录</div>`;
+      listEl.innerHTML = `<div class="cl-empty">未找到匹配的改动记录</div>`;
       return;
     }
     listEl.innerHTML = items.map((it, idx) => {
-      const isLatest = it.ver === clLatestVer() && idx === 0 && !q;
+      const isLatest = it.ver === clLatestVer() && idx === 0 && !q && !d;
       const isFocused = clState.focusVer === it.ver;
       const isCopied = clState.copiedVer === it.ver;
       return `

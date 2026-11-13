@@ -4971,12 +4971,13 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   padding: 12px 22px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
   background: #0D1423;
 }
 .cl-search {
-  width: 100%;
+  flex: 1 1 240px;
   height: 34px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 9px;
@@ -4987,6 +4988,20 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   outline: none;
 }
 .cl-search:focus { border-color: rgba(143, 176, 255, 0.55); }
+.cl-date-select {
+  flex: 0 0 auto;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+  background: #162035;
+  color: #E8EEF8;
+  padding: 0 10px;
+  font: 12.5px/1 inherit;
+  outline: none;
+  cursor: pointer;
+  color-scheme: dark;
+}
+.cl-date-select:focus { border-color: rgba(143, 176, 255, 0.55); }
 
 .cl-list {
   flex: 1;
