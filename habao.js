@@ -1499,39 +1499,26 @@
     "q-progress": { code: "FollowUpQuestionMatrixView", note: "全屏「答题进度」，导航只左「返回」无右钮。按题库顺序把连续同章节切成一卡（一般情况 15 题 / 生活质量 36 题）。6 列圆号：当前题实蓝白字、已答绿底绿字、未答淡蓝底淡蓝字，当前态优先。点号跳那一题并关页；本页无统计行、无图例，也不自动滚到当前题。" },
   };
 
-  /* ===== 改动记录（2026-11-13 起每次迭代同步追加，便于开发 / UI / 测试对齐） ===== */
+  /* ===== 改动记录（2026-11-13 起每次迭代同步追加，简明说明改动位置与内容） ===== */
   const CHANGELOG = [
     {
-      ver: "V10.355",
+      ver: "V10.356",
       date: "2026-11-13",
-      title: "交互全景新增「改动记录」对齐面板（支持 UI / 开发 / 测试分视角查看与一键跳屏）",
-      summary: "从 2026-11-13 起每次改动同步沉淀结构化变更说明，方便开发、UI、测试在同一界面直接对齐与验证。",
-      tags: ["工作台能力", "三端对齐"],
+      title: "交互全景新增「改动记录」功能",
       screens: [
         { id: "home", label: "首页（李建国的一天）" },
         { id: "schedule", label: "健康计划" },
       ],
-      refs: ["交互全景/habao.js", "交互全景/habao.css", "交互全景/index.html", "产品过程/变更记录.md", "DESIGN_GUIDE.md"],
-      ui: [
-        "左侧栏「真机模拟」下方新增「改动记录」入口按钮并显示最新版本号与条目数徽标；点击左上角版本号副标题也可打开。",
-        "右侧规范栏底部自动提示「本页改动记录」，点击条目可直接定位到对应版本卡片。",
-        "弹窗支持关键词搜索与「全部视角 / UI 对齐 / 开发对齐 / 测试验收」过滤切换。",
-      ],
-      dev: [
-        "变更记录数据源统一维护在 habao.js 的 CHANGELOG 数组（最新条目放首位），后续每次版本发布同步追加即可。",
-        "弹窗挂在工作室外层（document.body），不改动手机视口 DOM；Esc 键优先关闭改动记录弹窗。",
-      ],
-      qa: [
-        "打开左侧「改动记录」弹窗，切换不同视角标签与搜索关键词，确认筛选即时生效且输入框不失焦。",
-        "点击任意「影响界面」胶囊，确认弹窗收起并直接跳转至对应原型页面；点击「复制对齐摘要」确认可复制完整检查清单。",
+      items: [
+        "左侧栏「真机模拟」下方新增「改动记录」按钮（显示最新版本号与条数），点击左上角版本号也可直接打开。",
+        "右侧规范栏底部自动展示当前页面近期改动，点击条目可定位到对应版本。",
+        "弹窗内直接列出每次迭代的涉及界面与具体改动说明，支持关键词搜索、点击界面胶囊直达跳转、以及一键复制记录。",
       ],
     },
     {
       ver: "V10.354",
       date: "2026-11-13",
-      title: "非首页全部计划卡片明确标注「时间 / 起始日期」字段并统筹四层视觉",
-      summary: "除首页外的所有计划卡片统一内嵌 12pt 圆角浅底信息盒，显式标注「时间」与「起始日期 / 计划日期」，消除纯数字无字段名导致的理解障碍。",
-      tags: ["计划卡片", "视觉统筹", "真机 + 全景 + PRD"],
+      title: "非首页全部计划卡片明确标注「时间 / 起始日期」字段并统一卡片样式",
       screens: [
         { id: "schedule", label: "健康计划", mode: "demo" },
         { id: "first-rest", label: "当前计划", mode: "demo" },
@@ -1540,23 +1527,11 @@
         { id: "family", label: "家属管理", mode: "demo" },
         { id: "category-manage", label: "管理类别", mode: "demo" },
       ],
-      refs: [
-        "RehabTask.swift / RehabTaskRowView.swift",
-        "SchedulePanoramaView.swift / FamilyReminderView.swift / CustomCategoryEditorSheet.swift",
-        "PRD V0.0~V0.2《健康计划》《创建测血压饮食作息》",
-      ],
-      ui: [
-        "非首页计划卡统一内嵌 12pt 圆角浅底信息盒（.plan-meta-box），第 1 行固定左标「时间」（循环带频次前缀如「每日 07:30」，单日为「07:30」），第 2 行跨日循环标「起始日期」、单日或同日标「计划日期」，左列等宽对齐。",
-        "卡片四层结构统一：顶行（图标 + 标题 + 可选「基础作息」+ PlanCardMetaChip 胶囊 + 右钮）→ 信息盒 → 脚注区 → 底部 0.5pt 顶线 + 1pt×16pt 竖线分隔操作栏。",
-        "健康计划月视图轮播高度放宽（148/226 → 204/276），防止内嵌信息盒后底部操作栏被裁切；首页 HomeTaskCard 保持不变。",
-      ],
-      dev: [
-        "Swift 新增 PlanCardScheduleMetaBox 与 PlanCardMetaChip 复用组件，日期字段名与文案由 RehabTask.scheduleDateFieldLabel / dateRangeLabel 统一生成。",
-        "全景移除家属端计划卡时间模拟的 +1h 偏差，与患者端时刻完全一致。",
-      ],
-      qa: [
-        "依次核对健康计划、当前计划、确认计划、确认运动计划、家属管理计划卡、删除自建类别「存量计划」弹窗，确认第 1 行标「时间」、第 2 行循环标「起始日期」、单日标「计划日期」。",
-        "在「健康计划」切到月视图轮播，确认卡片底部操作按钮完整露出无裁剪；确认首页时钟卡片外观未受影响。",
+      items: [
+        "除首页外，所有计划卡片统一内嵌浅底信息盒，第 1 行固定标注「时间」（循环计划带频次前缀如「每日 07:30」，单日为「07:30」），第 2 行跨日循环标注「起始日期」、单日标注「计划日期」。",
+        "统一非首页计划卡片四层结构：顶行（图标、标题、标签与右钮）→ 时间日期信息盒 → 脚注区 → 底部操作条（细顶线 + 竖线分隔）。",
+        "健康计划月视图轮播高度适当放宽，避免卡片底部操作按钮被裁切；同步修正家属管理计划卡片时刻模拟多出 1 小时的偏差。",
+        "首页计划卡片样式保持不变。",
       ],
     },
   ];
@@ -20822,13 +20797,12 @@
   /* ===== 改动记录面板逻辑 ===== */
   const clState = {
     open: false,
-    role: "all",
     q: "",
     focusVer: null,
     copiedVer: null,
     seenKey: "habao_changelog_seen_ver",
   };
-  function clLatestVer() { return CHANGELOG[0]?.ver || "V10.355"; }
+  function clLatestVer() { return CHANGELOG[0]?.ver || "V10.356"; }
   function clHasUnseen() {
     try { return localStorage.getItem(clState.seenKey) !== clLatestVer(); } catch (_) { return false; }
   }
@@ -20870,24 +20844,18 @@
         <div class="cl-modal" role="dialog" aria-modal="true" aria-label="改动记录">
           <div class="cl-head">
             <div>
-              <h2>改动记录 · 开发 / UI / 测试对齐 <span class="cl-head-ver">${esc(clLatestVer())}</span></h2>
-              <p>自 2026-11-13 起每次迭代同步沉淀，点击「影响界面」胶囊可直接跳转至对应原型页核对</p>
+              <h2>改动记录 <span class="cl-head-ver">${esc(clLatestVer())}</span></h2>
+              <p>自 2026-11-13 起记录每次迭代改动，点击界面标签可直接跳转核对</p>
             </div>
             <button class="cl-close" id="cl-close" type="button" title="关闭 (Esc)">×</button>
           </div>
           <div class="cl-toolbar">
-            <input class="cl-search" id="cl-search" placeholder="搜索版本号、界面、Swift 文件、文案或检查点…" />
-            <div class="cl-roles" id="cl-roles">
-              <button class="cl-role-btn on" data-cl-role="all" type="button">全部视角</button>
-              <button class="cl-role-btn" data-cl-role="ui" type="button">UI 对齐</button>
-              <button class="cl-role-btn" data-cl-role="dev" type="button">开发对齐</button>
-              <button class="cl-role-btn" data-cl-role="qa" type="button">测试验收</button>
-            </div>
+            <input class="cl-search" id="cl-search" placeholder="搜索版本号、界面或改动内容…" />
           </div>
           <div class="cl-list" id="cl-list"></div>
           <div class="cl-foot">
-            <span>记录范围：2026-11-13（${esc(CHANGELOG[CHANGELOG.length - 1]?.ver || "")}）起全量版本迭代</span>
-            <span>快捷键：Esc 关闭 · 支持一键复制 Markdown 摘要发群对齐</span>
+            <span>记录起点：2026-11-13（${esc(CHANGELOG[CHANGELOG.length - 1]?.ver || "")}）</span>
+            <span>Esc 关闭</span>
           </div>
         </div>
       `;
@@ -20898,15 +20866,6 @@
       $("#cl-close").onclick = closeChangelog;
       $("#cl-search").addEventListener("input", (e) => {
         clState.q = e.target.value || "";
-        renderChangelogList();
-      });
-      $("#cl-roles").addEventListener("click", (e) => {
-        const btn = e.target.closest("[data-cl-role]");
-        if (!btn) return;
-        clState.role = btn.dataset.clRole;
-        $("#cl-roles").querySelectorAll("[data-cl-role]").forEach((b) =>
-          b.classList.toggle("on", b.dataset.clRole === clState.role)
-        );
         renderChangelogList();
       });
       $("#cl-list").addEventListener("click", (e) => {
@@ -20953,13 +20912,8 @@
       item.ver,
       item.date,
       item.title,
-      item.summary,
-      ...(item.tags || []),
-      ...(item.screens || []).map((s) => `${s.id} ${s.label}`),
-      ...(item.refs || []),
-      ...(item.ui || []),
-      ...(item.dev || []),
-      ...(item.qa || []),
+      ...(item.screens || []).map((s) => s.label),
+      ...(item.items || []),
     ].join(" ").toLowerCase();
     return hay.includes(q.toLowerCase());
   }
@@ -20972,11 +20926,6 @@
       listEl.innerHTML = `<div class="cl-empty">未找到匹配「${esc(q)}」的改动记录</div>`;
       return;
     }
-    const role = clState.role;
-    const showUI = role === "all" || role === "ui";
-    const showDev = role === "all" || role === "dev";
-    const showQA = role === "all" || role === "qa";
-    const singleCls = role === "all" ? "" : " single";
     listEl.innerHTML = items.map((it, idx) => {
       const isLatest = it.ver === clLatestVer() && idx === 0 && !q;
       const isFocused = clState.focusVer === it.ver;
@@ -20987,26 +20936,18 @@
             <span class="cl-ver">${esc(it.ver)}</span>
             ${it.ver === clLatestVer() ? `<span class="cl-new-pill">最新</span>` : ""}
             <span class="cl-date">${esc(it.date)}</span>
-            ${(it.tags || []).map((t) => `<span class="cl-tag">${esc(t)}</span>`).join("")}
-            <button class="cl-copy-btn${isCopied ? " copied" : ""}" data-cl-copy="${esc(it.ver)}" type="button">${isCopied ? "已复制 ✓" : "复制对齐摘要"}</button>
+            <button class="cl-copy-btn${isCopied ? " copied" : ""}" data-cl-copy="${esc(it.ver)}" type="button">${isCopied ? "已复制 ✓" : "复制"}</button>
           </div>
           <h3 class="cl-title">${esc(it.title)}</h3>
-          ${it.summary ? `<p class="cl-summary">${esc(it.summary)}</p>` : ""}
           ${(it.screens && it.screens.length) ? `
             <div class="cl-screens">
-              <span class="cl-screens-label">影响界面：</span>
+              <span class="cl-screens-label">涉及界面：</span>
               ${it.screens.map((s) => `<button class="cl-jump" data-cl-jump="${esc(s.id)}" data-cl-mode="${esc(s.mode || "")}" data-cl-label="${esc(s.label)}" type="button">${esc(s.label)} ↗</button>`).join("")}
             </div>
           ` : ""}
-          <div class="cl-grid${singleCls}">
-            ${showUI && it.ui?.length ? `<div class="cl-col ui"><h4><i></i>UI 对齐</h4><ul>${it.ui.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
-            ${showDev && it.dev?.length ? `<div class="cl-col dev"><h4><i></i>开发对齐</h4><ul>${it.dev.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
-            ${showQA && it.qa?.length ? `<div class="cl-col qa"><h4><i></i>测试验收</h4><ul>${it.qa.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
-          </div>
-          ${(it.refs && it.refs.length) ? `
-            <div class="cl-refs">
-              <span class="cl-refs-label">涉及文件/文档：</span>
-              ${it.refs.map((r) => `<span class="cl-ref">${esc(r)}</span>`).join("")}
+          ${(it.items && it.items.length) ? `
+            <div class="cl-points">
+              <ul>${it.items.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>
             </div>
           ` : ""}
         </article>
@@ -21027,12 +20968,8 @@
     if (!it) return;
     const lines = [
       `【${it.ver} · ${it.date}】${it.title}`,
-      it.summary ? `背景：${it.summary}` : "",
-      it.screens?.length ? `影响界面：${it.screens.map((s) => s.label).join("、")}` : "",
-      it.ui?.length ? `UI 对齐：\n${it.ui.map((x) => `- ${x}`).join("\n")}` : "",
-      it.dev?.length ? `开发对齐：\n${it.dev.map((x) => `- ${x}`).join("\n")}` : "",
-      it.qa?.length ? `测试验收：\n${it.qa.map((x) => `- ${x}`).join("\n")}` : "",
-      it.refs?.length ? `涉及文件/文档：${it.refs.join(" | ")}` : "",
+      it.screens?.length ? `涉及界面：${it.screens.map((s) => s.label).join("、")}` : "",
+      ...(it.items || []).map((x) => `- ${x}`),
     ].filter(Boolean).join("\n");
     const done = () => {
       clState.copiedVer = ver;
