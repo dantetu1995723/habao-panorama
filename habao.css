@@ -573,6 +573,15 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   background: rgba(26,166,74,.12); color: var(--green-deep);
 }
 .task-status svg { width: 13px; height: 13px; flex: 0 0 13px; }
+.task-top .home-routine-badge {
+  font-size: calc(12px * var(--fs));
+  padding: 4px 8px;
+  line-height: 1;
+}
+.task-card.done .home-routine-badge {
+  background: rgba(26,166,74,.12);
+  color: var(--green-deep);
+}
 .task-body {
   padding-right: var(--b-trail, 12px);
   min-width: 0;
@@ -779,6 +788,15 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   font-size: calc(22px * var(--fs)); font-weight: 700; color: var(--blue); text-align: center;
 }
 .popup p { font-size: calc(15px * var(--fs)); font-weight: 500; color: var(--secondary); text-align: center; margin: 10px 0 16px; }
+.plan-date-box {
+  margin-top: 14px; padding: 12px 14px; border-radius: 16px;
+  background: rgba(130,142,165,.08);
+  display: flex; flex-direction: column; gap: 8px; text-align: left;
+}
+.plan-date-row { display: flex; align-items: baseline; font-size: calc(15px * var(--fs)); }
+.plan-date-row .lbl { color: var(--secondary); font-size: calc(14px * var(--fs)); font-weight: 500; flex: 0 0 auto; }
+.plan-date-row .val { color: var(--ink); font-weight: 600; }
+.plan-date-row.primary .val { color: var(--blue); font-weight: 700; }
 .duo { display: flex; gap: 12px; margin-top: 16px; }
 .duo button {
   flex: 1; height: 56px; border: 0; border-radius: 16px;

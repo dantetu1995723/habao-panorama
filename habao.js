@@ -1487,7 +1487,7 @@
     "select-type": { code: "CreateScheduleFlowView", note: "【V10.325 分类界面分为「基础计划」与「其他计划」】分类界面重构为极简两组：① 基础计划：内含「基础康复计划」（副标「按病历排好用药、复查与作息」），与首页底缘「基础康复计划」按钮统一同链；② 其他计划：内含「运动」（体测评估）、「测血压」、「饮食」、「作息」及自建类别。右上「管理」推入管理类别。" },
     "category-manage": { code: "CategoryManageView", note: "纯管理页，不放新建（新建仍在选择类型页底部虚框）。被 push 而非 cover，故不自带导航栈，沿用父栈导航栏。每行：徽标 + 名称 + 副标 + 铅笔 + 垃圾桶，无 chevron。副标就是两类分界：有存量写「N 个计划」，没有写「暂无计划」且压淡。铅笔进改名弹层（只改名，无删除按钮，带影响提示）；垃圾桶弹出居中删除确认弹窗，提醒用户该类别下的存量计划列表（展示时刻、计划名称与循环/单日标签），要删除类别就要一并把该类别下的计划全部删除。零类别时空态引导回选择类型页新建。" },
     "task-add": { code: "AddEditTaskView", note: "V0.0 / V0.1 为「事项」「时间与提醒」两大类折叠；V0.2 重构为**无滚动「三联动态磁贴 + 单屏模块舞台」切换架构**（字段不变）：顶部三联动态磁贴（① 事项内容、② 时刻与提醒、③ 周期与日期）实时回显三大模块核心设定，不切页即可一眼总览；中部单屏舞台一次仅聚焦展示 1 个大模块（支持点按磁贴、点按卡头 `‹ 1/3 ›` 步进或左右滑动手势切换），彻底消除滚动与视觉负担。" },
-    "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。V0.2 采用无滚动「三联动态磁贴 + 单屏模块舞台」切换架构：顶部磁贴实时回显事项、时刻与周期摘要，中部单屏切换「事项内容 / 时刻与提醒 / 周期与日期」；「提醒时间」与「打卡时间」1:1 对称同构，「时间段」配备醒目粗体时间范围标注，「起止日期」通栏对齐零截断。修改时间或周期字段保存前弹出精简「确认更新计划」提示弹窗，告知更改内容并让用户确认；仅改名称/备注/血压等直接原地保存。" },
+    "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。V0.2 采用无滚动「三联动态磁贴 + 单屏模块舞台」切换架构：顶部磁贴实时回显事项、时刻与周期摘要，中部单屏切换「事项内容 / 时刻与提醒 / 周期与日期」；「提醒时间」与「打卡时间」1:1 对称同构，「时间段」配备醒目粗体时间范围标注，「起止日期」通栏对齐零截断。修改时间或周期字段保存前弹出「确认更新计划」精简弹窗，仅标注原开始日期与新开始日期并附简明确认提示；仅改名称/备注/血压等直接原地保存。" },
     "task-view": { code: "AddEditTaskView", note: "查看计划（只读，右上「更新」）。V0.2 采用无滚动「三联动态磁贴 + 单屏模块舞台」切换架构，顶部三枚磁贴一眼总览事项、时刻与周期，中部单屏切换三大模块；「到点提醒」收纳在「时刻与提醒」模块内且在查看态下可直接切换；底部固定操作坞并排展示删除或「取消本次打卡」按钮，无需滚动。" },
     "exercise-risk": { code: "BodyTestRunView", note: "Demo Toggle 模拟禁忌症。体测不参与入组。「稍后 / 退出评估 / 暂不创建」关整段评估流，不退回选择类型。" },
     "body-test": { code: "BodyTestRunView", note: "户外原地踏步三分钟。停止或倒计时归零后直进感受问卷，无完成中转页。" },
@@ -1501,6 +1501,18 @@
 
   /* ===== 改动记录（2026-11-13 起每次迭代同步追加，含日期与具体时间，简明说明改动位置与内容） ===== */
   const CHANGELOG = [
+    {
+      ver: "V10.367",
+      date: "2026-11-13",
+      time: "12:02",
+      title: "首页计划卡片同步标注「基础作息」标签",
+      screens: [
+        { id: "home", label: "首页" },
+      ],
+      items: [
+        "首页左侧计划卡顶部状态行中，属于 6 项标准基础作息（起床、早餐、午餐、午休、晚餐、上床睡觉）的卡片在时刻/完成状态胶囊右侧新增「基础作息」胶囊标签，已完成态同步转为绿色底色。",
+      ],
+    },
     {
       ver: "V10.366",
       date: "2026-11-13",
@@ -9080,7 +9092,8 @@
         if (prompt) {
           openOverlay("confirm", {
             title: "确认更新计划",
-            body: `计划时间或周期已更改，${prompt.inlineMessage}确认按新计划更新吗？`,
+            planDates: { oldStart: prompt.currentStartText, newStart: prompt.newStartText },
+            body: "计划设置已更改，确认按新计划更新吗？",
             cancel: "返回",
             ok: "确认",
             action: "commitSaveTask",
@@ -18727,6 +18740,7 @@
   function taskCard(t, focus) {
     const done = !!S.completed[t.id];
     const appt = t.cat === "appointment" && !done;
+    const isRoutine = !!(isRoutineSkeletonTask(t) || isBaselineRestItem(t) || BASELINE_REST_NAMES.includes(t.title));
     const stroke = done ? "#1AA64A" : "rgba(16,84,224,.10)";
     const sw = done ? 1.2 : 0.8;
     return `<div class="task-card hug ${done ? "done" : ""} ${appt ? "appt" : ""} ${focus ? "focus" : ""}" id="task-${t.id}" data-hug="18">
@@ -18739,6 +18753,7 @@
           ${badge(t.cat, done)}
           ${rxOn() && S.rx && S.rx[t.id] ? `<span class="rx-chip">医嘱</span>` : ""}
           <div class="task-status">${done ? `${I.check}<span>已完成</span>` : `${I.clock}<span>${spoken(t.h, t.m)}</span>`}</div>
+          ${isRoutine ? `<span class="diff-badge routine-badge home-routine-badge">基础作息</span>` : ""}
         </div>
         <div class="task-body">
           <h3 class="task-title">${t.title}</h3>
@@ -19989,10 +20004,17 @@
       </div>`;
     },
     confirm: () => {
+      const pd = S.overlayData.planDates;
+      const dateBox = pd ? `
+        <div class="plan-date-box">
+          <div class="plan-date-row"><span class="lbl">原开始日期：</span><span class="val mono">${esc(pd.oldStart)}</span></div>
+          <div class="plan-date-row primary"><span class="lbl">新开始日期：</span><span class="val mono">${esc(pd.newStart)}</span></div>
+        </div>` : "";
       return `
       <div class="scrim center" data-act="close">
         <div class="popup" onclick="event.stopPropagation()">
           <h3>${S.overlayData.title || "确认"}</h3>
+          ${dateBox}
           <p>${S.overlayData.body || ""}</p>
           <div class="duo">
             <button class="cancel" data-act="close" type="button">${S.overlayData.cancel || "取消"}</button>
