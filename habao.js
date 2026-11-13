@@ -1499,11 +1499,25 @@
     "q-progress": { code: "FollowUpQuestionMatrixView", note: "全屏「答题进度」，导航只左「返回」无右钮。按题库顺序把连续同章节切成一卡（一般情况 15 题 / 生活质量 36 题）。6 列圆号：当前题实蓝白字、已答绿底绿字、未答淡蓝底淡蓝字，当前态优先。点号跳那一题并关页；本页无统计行、无图例，也不自动滚到当前题。" },
   };
 
-  /* ===== 改动记录（2026-11-13 起每次迭代同步追加，简明说明改动位置与内容） ===== */
+  /* ===== 改动记录（2026-11-13 起每次迭代同步追加，含日期与具体时间，简明说明改动位置与内容） ===== */
   const CHANGELOG = [
+    {
+      ver: "V10.358",
+      date: "2026-11-13",
+      time: "09:56",
+      title: "改动记录补充具体时间，并新增「时间段」筛选选项",
+      screens: [
+        { id: "home", label: "首页（李建国的一天）" },
+      ],
+      items: [
+        "每条改动记录卡片与右侧「本页近期改动」均补充展示具体时间（HH:mm）。",
+        "顶部筛选栏在日期选项旁新增「时间段」下拉选项（全部时段 / 凌晨 00:00–06:00 / 上午 06:00–12:00 / 下午 12:00–18:00 / 晚上 18:00–24:00），支持与日期、关键词组合筛选。",
+      ],
+    },
     {
       ver: "V10.357",
       date: "2026-11-13",
+      time: "09:54",
       title: "改动记录弹窗新增按日期筛选选项",
       screens: [
         { id: "home", label: "首页（李建国的一天）" },
@@ -1515,6 +1529,7 @@
     {
       ver: "V10.356",
       date: "2026-11-13",
+      time: "09:51",
       title: "交互全景新增「改动记录」功能",
       screens: [
         { id: "home", label: "首页（李建国的一天）" },
@@ -1529,6 +1544,7 @@
     {
       ver: "V10.354",
       date: "2026-11-13",
+      time: "09:21",
       title: "非首页全部计划卡片明确标注「时间 / 起始日期」字段并统一卡片样式",
       screens: [
         { id: "schedule", label: "健康计划", mode: "demo" },
@@ -6108,7 +6124,7 @@
         </div>
         ${relChanges.slice(0, 3).map((c) => `
           <button class="spec-cl-item" type="button" data-cl-open="${esc(c.ver)}">
-            <div class="spec-cl-meta"><strong>${esc(c.ver)}</strong><span>${esc(c.date)}</span></div>
+            <div class="spec-cl-meta"><strong>${esc(c.ver)}</strong><span>${esc(c.date)}${c.time ? ` ${esc(c.time)}` : ""}</span></div>
             <div class="spec-cl-title">${esc(c.title)}</div>
           </button>
         `).join("")}
@@ -20806,20 +20822,34 @@
   });
 
   /* ===== 改动记录面板逻辑 ===== */
+  const CL_PERIODS = [
+    { id: "dawn", label: "凌晨 00:00–06:00", from: 0, to: 6 },
+    { id: "morning", label: "上午 06:00–12:00", from: 6, to: 12 },
+    { id: "afternoon", label: "下午 12:00–18:00", from: 12, to: 18 },
+    { id: "evening", label: "晚上 18:00–24:00", from: 18, to: 24 },
+  ];
   const clState = {
     open: false,
     q: "",
     date: "",
+    period: "",
     focusVer: null,
     copiedVer: null,
     seenKey: "habao_changelog_seen_ver",
   };
-  function clLatestVer() { return CHANGELOG[0]?.ver || "V10.357"; }
+  function clLatestVer() { return CHANGELOG[0]?.ver || "V10.358"; }
   function clHasUnseen() {
     try { return localStorage.getItem(clState.seenKey) !== clLatestVer(); } catch (_) { return false; }
   }
   function clMarkSeen() {
     try { localStorage.setItem(clState.seenKey, clLatestVer()); } catch (_) {}
+  }
+  function clMatchPeriod(timeStr, periodId) {
+    if (!periodId) return true;
+    const p = CL_PERIODS.find((x) => x.id === periodId);
+    if (!p || !timeStr) return false;
+    const hour = parseInt(String(timeStr).split(":")[0], 10);
+    return !Number.isNaN(hour) && hour >= p.from && hour < p.to;
   }
   function ensureChangelogUI() {
     const simRow = $(".sim-row");
@@ -20864,6 +20894,7 @@
           <div class="cl-toolbar">
             <input class="cl-search" id="cl-search" placeholder="搜索版本号、界面或改动内容…" />
             <select class="cl-date-select" id="cl-date" aria-label="按日期筛选"></select>
+            <select class="cl-date-select" id="cl-period" aria-label="按时间段筛选"></select>
           </div>
           <div class="cl-list" id="cl-list"></div>
           <div class="cl-foot">
@@ -20883,6 +20914,11 @@
       });
       $("#cl-date").addEventListener("change", (e) => {
         clState.date = e.target.value || "";
+        renderChangelogPeriods();
+        renderChangelogList();
+      });
+      $("#cl-period").addEventListener("change", (e) => {
+        clState.period = e.target.value || "";
         renderChangelogList();
       });
       $("#cl-list").addEventListener("click", (e) => {
@@ -20911,6 +20947,19 @@
     sel.value = counts.has(clState.date) ? clState.date : "";
     if (sel.value !== clState.date) clState.date = "";
   }
+  function renderChangelogPeriods() {
+    const sel = $("#cl-period");
+    if (!sel) return;
+    const base = clState.date ? CHANGELOG.filter((it) => it.date === clState.date) : CHANGELOG;
+    const opts = [`<option value="">全部时段 (${base.length}条)</option>`];
+    CL_PERIODS.forEach((p) => {
+      const cnt = base.filter((it) => clMatchPeriod(it.time, p.id)).length;
+      opts.push(`<option value="${esc(p.id)}">${esc(p.label)} (${cnt}条)</option>`);
+    });
+    sel.innerHTML = opts.join("");
+    sel.value = CL_PERIODS.some((p) => p.id === clState.period) ? clState.period : "";
+    if (sel.value !== clState.period) clState.period = "";
+  }
   function openChangelog(focusVer = null) {
     ensureChangelogUI();
     clState.open = true;
@@ -20923,6 +20972,7 @@
     const inp = $("#cl-search");
     if (inp && inp.value !== clState.q) inp.value = clState.q;
     renderChangelogDates();
+    renderChangelogPeriods();
     renderChangelogList();
     if (focusVer) {
       requestAnimationFrame(() => {
@@ -20942,6 +20992,7 @@
     const hay = [
       item.ver,
       item.date,
+      item.time || "",
       item.title,
       ...(item.screens || []).map((s) => s.label),
       ...(item.items || []),
@@ -20953,13 +21004,14 @@
     if (!listEl) return;
     const q = (clState.q || "").trim();
     const d = clState.date || "";
-    const items = CHANGELOG.filter((it) => (!d || it.date === d) && clMatchesQuery(it, q));
+    const p = clState.period || "";
+    const items = CHANGELOG.filter((it) => (!d || it.date === d) && clMatchPeriod(it.time, p) && clMatchesQuery(it, q));
     if (!items.length) {
       listEl.innerHTML = `<div class="cl-empty">未找到匹配的改动记录</div>`;
       return;
     }
     listEl.innerHTML = items.map((it, idx) => {
-      const isLatest = it.ver === clLatestVer() && idx === 0 && !q && !d;
+      const isLatest = it.ver === clLatestVer() && idx === 0 && !q && !d && !p;
       const isFocused = clState.focusVer === it.ver;
       const isCopied = clState.copiedVer === it.ver;
       return `
@@ -20967,7 +21019,7 @@
           <div class="cl-card-top">
             <span class="cl-ver">${esc(it.ver)}</span>
             ${it.ver === clLatestVer() ? `<span class="cl-new-pill">最新</span>` : ""}
-            <span class="cl-date">${esc(it.date)}</span>
+            <span class="cl-date">${esc(it.date)}${it.time ? ` ${esc(it.time)}` : ""}</span>
             <button class="cl-copy-btn${isCopied ? " copied" : ""}" data-cl-copy="${esc(it.ver)}" type="button">${isCopied ? "已复制 ✓" : "复制"}</button>
           </div>
           <h3 class="cl-title">${esc(it.title)}</h3>
@@ -20999,7 +21051,7 @@
     const it = CHANGELOG.find((x) => x.ver === ver);
     if (!it) return;
     const lines = [
-      `【${it.ver} · ${it.date}】${it.title}`,
+      `【${it.ver} · ${it.date}${it.time ? ` ${it.time}` : ""}】${it.title}`,
       it.screens?.length ? `涉及界面：${it.screens.map((s) => s.label).join("、")}` : "",
       ...(it.items || []).map((x) => `- ${x}`),
     ].filter(Boolean).join("\n");
