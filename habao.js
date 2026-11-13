@@ -1499,6 +1499,68 @@
     "q-progress": { code: "FollowUpQuestionMatrixView", note: "全屏「答题进度」，导航只左「返回」无右钮。按题库顺序把连续同章节切成一卡（一般情况 15 题 / 生活质量 36 题）。6 列圆号：当前题实蓝白字、已答绿底绿字、未答淡蓝底淡蓝字，当前态优先。点号跳那一题并关页；本页无统计行、无图例，也不自动滚到当前题。" },
   };
 
+  /* ===== 改动记录（2026-11-13 起每次迭代同步追加，便于开发 / UI / 测试对齐） ===== */
+  const CHANGELOG = [
+    {
+      ver: "V10.355",
+      date: "2026-11-13",
+      title: "交互全景新增「改动记录」对齐面板（支持 UI / 开发 / 测试分视角查看与一键跳屏）",
+      summary: "从 2026-11-13 起每次改动同步沉淀结构化变更说明，方便开发、UI、测试在同一界面直接对齐与验证。",
+      tags: ["工作台能力", "三端对齐"],
+      screens: [
+        { id: "home", label: "首页（李建国的一天）" },
+        { id: "schedule", label: "健康计划" },
+      ],
+      refs: ["交互全景/habao.js", "交互全景/habao.css", "交互全景/index.html", "产品过程/变更记录.md", "DESIGN_GUIDE.md"],
+      ui: [
+        "左侧栏「真机模拟」下方新增「改动记录」入口按钮并显示最新版本号与条目数徽标；点击左上角版本号副标题也可打开。",
+        "右侧规范栏底部自动提示「本页改动记录」，点击条目可直接定位到对应版本卡片。",
+        "弹窗支持关键词搜索与「全部视角 / UI 对齐 / 开发对齐 / 测试验收」过滤切换。",
+      ],
+      dev: [
+        "变更记录数据源统一维护在 habao.js 的 CHANGELOG 数组（最新条目放首位），后续每次版本发布同步追加即可。",
+        "弹窗挂在工作室外层（document.body），不改动手机视口 DOM；Esc 键优先关闭改动记录弹窗。",
+      ],
+      qa: [
+        "打开左侧「改动记录」弹窗，切换不同视角标签与搜索关键词，确认筛选即时生效且输入框不失焦。",
+        "点击任意「影响界面」胶囊，确认弹窗收起并直接跳转至对应原型页面；点击「复制对齐摘要」确认可复制完整检查清单。",
+      ],
+    },
+    {
+      ver: "V10.354",
+      date: "2026-11-13",
+      title: "非首页全部计划卡片明确标注「时间 / 起始日期」字段并统筹四层视觉",
+      summary: "除首页外的所有计划卡片统一内嵌 12pt 圆角浅底信息盒，显式标注「时间」与「起始日期 / 计划日期」，消除纯数字无字段名导致的理解障碍。",
+      tags: ["计划卡片", "视觉统筹", "真机 + 全景 + PRD"],
+      screens: [
+        { id: "schedule", label: "健康计划", mode: "demo" },
+        { id: "first-rest", label: "当前计划", mode: "demo" },
+        { id: "confirm-plan", label: "确认计划", mode: "demo" },
+        { id: "confirm-exercise", label: "确认运动计划", mode: "demo" },
+        { id: "family", label: "家属管理", mode: "demo" },
+        { id: "category-manage", label: "管理类别", mode: "demo" },
+      ],
+      refs: [
+        "RehabTask.swift / RehabTaskRowView.swift",
+        "SchedulePanoramaView.swift / FamilyReminderView.swift / CustomCategoryEditorSheet.swift",
+        "PRD V0.0~V0.2《健康计划》《创建测血压饮食作息》",
+      ],
+      ui: [
+        "非首页计划卡统一内嵌 12pt 圆角浅底信息盒（.plan-meta-box），第 1 行固定左标「时间」（循环带频次前缀如「每日 07:30」，单日为「07:30」），第 2 行跨日循环标「起始日期」、单日或同日标「计划日期」，左列等宽对齐。",
+        "卡片四层结构统一：顶行（图标 + 标题 + 可选「基础作息」+ PlanCardMetaChip 胶囊 + 右钮）→ 信息盒 → 脚注区 → 底部 0.5pt 顶线 + 1pt×16pt 竖线分隔操作栏。",
+        "健康计划月视图轮播高度放宽（148/226 → 204/276），防止内嵌信息盒后底部操作栏被裁切；首页 HomeTaskCard 保持不变。",
+      ],
+      dev: [
+        "Swift 新增 PlanCardScheduleMetaBox 与 PlanCardMetaChip 复用组件，日期字段名与文案由 RehabTask.scheduleDateFieldLabel / dateRangeLabel 统一生成。",
+        "全景移除家属端计划卡时间模拟的 +1h 偏差，与患者端时刻完全一致。",
+      ],
+      qa: [
+        "依次核对健康计划、当前计划、确认计划、确认运动计划、家属管理计划卡、删除自建类别「存量计划」弹窗，确认第 1 行标「时间」、第 2 行循环标「起始日期」、单日标「计划日期」。",
+        "在「健康计划」切到月视图轮播，确认卡片底部操作按钮完整露出无裁剪；确认首页时钟卡片外观未受影响。",
+      ],
+    },
+  ];
+
   const S = {
     screen: "home",
     frames: [{ id: "home", how: "root" }],
@@ -6011,6 +6073,7 @@
   }
 
   function renderNav() {
+    ensureChangelogUI();
     const simBtn = $("#mode-sim");
     if (simBtn) {
       simBtn.classList.toggle("on", !!S.sim?.on);
@@ -6034,6 +6097,12 @@
     return S.screen === it.id;
   }
 
+  function screenChangelogItems(screenId) {
+    return CHANGELOG.filter((item) =>
+      (item.screens || []).some((s) => s.id === screenId || (screenId === "body-test" && s.id === "body-test-sit"))
+    );
+  }
+
   function renderSpec() {
     // 真机模拟：结算屏幕变化后再画面板；目录浏览模式原路不变
     if (S.sim?.on) { simTick(); $("#spec").innerHTML = renderSimPanel(); return; }
@@ -6044,6 +6113,21 @@
     const how = S.overlay ? "sheet" : topFrame().how;
     const crumb = S.frames.map((f) => `${f.id} ${HOW_LAB[f.how] || f.how}`).join(" → ")
       + (S.overlay ? ` → ${S.overlay} 贴底` : "");
+    const relChanges = screenChangelogItems(S.screen);
+    const relHTML = relChanges.length ? `
+      <div class="spec-cl-box">
+        <div class="spec-cl-head">
+          <h3>本页近期改动 (${relChanges.length})</h3>
+          <button class="spec-cl-all" type="button" data-cl-open="">查看全部 ›</button>
+        </div>
+        ${relChanges.slice(0, 3).map((c) => `
+          <button class="spec-cl-item" type="button" data-cl-open="${esc(c.ver)}">
+            <div class="spec-cl-meta"><strong>${esc(c.ver)}</strong><span>${esc(c.date)}</span></div>
+            <div class="spec-cl-title">${esc(c.title)}</div>
+          </button>
+        `).join("")}
+      </div>
+    ` : "";
     $("#spec").innerHTML = `
       <div class="tag">${S.enrolled ? "已入组" : "未入组"}</div>
       <div class="tag">${shownRole() === "patient" ? "本人" : "家属"}</div>
@@ -6059,6 +6143,7 @@
         <li>左侧树按呈现方式分类，点任意屏会重建宿主栈</li>
         <li>顶部三态：未登录 / 未入组 / 已入组 Demo</li>
       </ul>
+      ${relHTML}
     `;
   }
 
@@ -20734,9 +20819,268 @@
     }
   });
 
+  /* ===== 改动记录面板逻辑 ===== */
+  const clState = {
+    open: false,
+    role: "all",
+    q: "",
+    focusVer: null,
+    copiedVer: null,
+    seenKey: "habao_changelog_seen_ver",
+  };
+  function clLatestVer() { return CHANGELOG[0]?.ver || "V10.355"; }
+  function clHasUnseen() {
+    try { return localStorage.getItem(clState.seenKey) !== clLatestVer(); } catch (_) { return false; }
+  }
+  function clMarkSeen() {
+    try { localStorage.setItem(clState.seenKey, clLatestVer()); } catch (_) {}
+  }
+  function ensureChangelogUI() {
+    const simRow = $(".sim-row");
+    if (simRow && !$("#open-changelog")) {
+      const row = document.createElement("div");
+      row.className = "cl-entry-row";
+      row.innerHTML = `
+        <button id="open-changelog" class="cl-entry-btn" type="button">
+          ${I.list}
+          <span>改动记录</span>
+          <span class="cl-entry-badge"><i class="cl-dot" id="cl-dot"></i><span id="cl-badge-txt">${esc(clLatestVer())} · ${CHANGELOG.length}条</span></span>
+        </button>
+      `;
+      simRow.insertAdjacentElement("afterend", row);
+      $("#open-changelog").onclick = () => openChangelog(null);
+    }
+    const dot = $("#cl-dot");
+    if (dot) dot.style.display = clHasUnseen() ? "inline-block" : "none";
+    const badgeTxt = $("#cl-badge-txt");
+    if (badgeTxt) badgeTxt.textContent = `${clLatestVer()} · ${CHANGELOG.length}条`;
+
+    const brandVer = $(".studio-brand p");
+    if (brandVer && !brandVer.dataset.clBound) {
+      brandVer.dataset.clBound = "1";
+      brandVer.title = "点击查看每次改动记录";
+      brandVer.onclick = () => openChangelog(null);
+    }
+
+    if (!$("#cl-backdrop")) {
+      const bd = document.createElement("div");
+      bd.id = "cl-backdrop";
+      bd.className = "cl-backdrop hidden";
+      bd.innerHTML = `
+        <div class="cl-modal" role="dialog" aria-modal="true" aria-label="改动记录">
+          <div class="cl-head">
+            <div>
+              <h2>改动记录 · 开发 / UI / 测试对齐 <span class="cl-head-ver">${esc(clLatestVer())}</span></h2>
+              <p>自 2026-11-13 起每次迭代同步沉淀，点击「影响界面」胶囊可直接跳转至对应原型页核对</p>
+            </div>
+            <button class="cl-close" id="cl-close" type="button" title="关闭 (Esc)">×</button>
+          </div>
+          <div class="cl-toolbar">
+            <input class="cl-search" id="cl-search" placeholder="搜索版本号、界面、Swift 文件、文案或检查点…" />
+            <div class="cl-roles" id="cl-roles">
+              <button class="cl-role-btn on" data-cl-role="all" type="button">全部视角</button>
+              <button class="cl-role-btn" data-cl-role="ui" type="button">UI 对齐</button>
+              <button class="cl-role-btn" data-cl-role="dev" type="button">开发对齐</button>
+              <button class="cl-role-btn" data-cl-role="qa" type="button">测试验收</button>
+            </div>
+          </div>
+          <div class="cl-list" id="cl-list"></div>
+          <div class="cl-foot">
+            <span>记录范围：2026-11-13（${esc(CHANGELOG[CHANGELOG.length - 1]?.ver || "")}）起全量版本迭代</span>
+            <span>快捷键：Esc 关闭 · 支持一键复制 Markdown 摘要发群对齐</span>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(bd);
+      bd.addEventListener("click", (e) => {
+        if (e.target === bd) closeChangelog();
+      });
+      $("#cl-close").onclick = closeChangelog;
+      $("#cl-search").addEventListener("input", (e) => {
+        clState.q = e.target.value || "";
+        renderChangelogList();
+      });
+      $("#cl-roles").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-cl-role]");
+        if (!btn) return;
+        clState.role = btn.dataset.clRole;
+        $("#cl-roles").querySelectorAll("[data-cl-role]").forEach((b) =>
+          b.classList.toggle("on", b.dataset.clRole === clState.role)
+        );
+        renderChangelogList();
+      });
+      $("#cl-list").addEventListener("click", (e) => {
+        const jumpBtn = e.target.closest("[data-cl-jump]");
+        if (jumpBtn) {
+          jumpFromChangelog(jumpBtn.dataset.clJump, jumpBtn.dataset.clMode, jumpBtn.dataset.clLabel);
+          return;
+        }
+        const copyBtn = e.target.closest("[data-cl-copy]");
+        if (copyBtn) {
+          copyChangelogItem(copyBtn.dataset.clCopy);
+        }
+      });
+    }
+  }
+  function openChangelog(focusVer = null) {
+    ensureChangelogUI();
+    clState.open = true;
+    clState.focusVer = focusVer || null;
+    clMarkSeen();
+    const dot = $("#cl-dot");
+    if (dot) dot.style.display = "none";
+    const bd = $("#cl-backdrop");
+    if (bd) bd.classList.remove("hidden");
+    const inp = $("#cl-search");
+    if (inp && inp.value !== clState.q) inp.value = clState.q;
+    renderChangelogList();
+    if (focusVer) {
+      requestAnimationFrame(() => {
+        const card = $(`.cl-card[data-ver="${focusVer}"]`);
+        if (card) card.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }
+  function closeChangelog() {
+    clState.open = false;
+    clState.focusVer = null;
+    const bd = $("#cl-backdrop");
+    if (bd) bd.classList.add("hidden");
+  }
+  function clMatchesQuery(item, q) {
+    if (!q) return true;
+    const hay = [
+      item.ver,
+      item.date,
+      item.title,
+      item.summary,
+      ...(item.tags || []),
+      ...(item.screens || []).map((s) => `${s.id} ${s.label}`),
+      ...(item.refs || []),
+      ...(item.ui || []),
+      ...(item.dev || []),
+      ...(item.qa || []),
+    ].join(" ").toLowerCase();
+    return hay.includes(q.toLowerCase());
+  }
+  function renderChangelogList() {
+    const listEl = $("#cl-list");
+    if (!listEl) return;
+    const q = (clState.q || "").trim();
+    const items = CHANGELOG.filter((it) => clMatchesQuery(it, q));
+    if (!items.length) {
+      listEl.innerHTML = `<div class="cl-empty">未找到匹配「${esc(q)}」的改动记录</div>`;
+      return;
+    }
+    const role = clState.role;
+    const showUI = role === "all" || role === "ui";
+    const showDev = role === "all" || role === "dev";
+    const showQA = role === "all" || role === "qa";
+    const singleCls = role === "all" ? "" : " single";
+    listEl.innerHTML = items.map((it, idx) => {
+      const isLatest = it.ver === clLatestVer() && idx === 0 && !q;
+      const isFocused = clState.focusVer === it.ver;
+      const isCopied = clState.copiedVer === it.ver;
+      return `
+        <article class="cl-card${isLatest ? " latest" : ""}${isFocused ? " focused" : ""}" data-ver="${esc(it.ver)}">
+          <div class="cl-card-top">
+            <span class="cl-ver">${esc(it.ver)}</span>
+            ${it.ver === clLatestVer() ? `<span class="cl-new-pill">最新</span>` : ""}
+            <span class="cl-date">${esc(it.date)}</span>
+            ${(it.tags || []).map((t) => `<span class="cl-tag">${esc(t)}</span>`).join("")}
+            <button class="cl-copy-btn${isCopied ? " copied" : ""}" data-cl-copy="${esc(it.ver)}" type="button">${isCopied ? "已复制 ✓" : "复制对齐摘要"}</button>
+          </div>
+          <h3 class="cl-title">${esc(it.title)}</h3>
+          ${it.summary ? `<p class="cl-summary">${esc(it.summary)}</p>` : ""}
+          ${(it.screens && it.screens.length) ? `
+            <div class="cl-screens">
+              <span class="cl-screens-label">影响界面：</span>
+              ${it.screens.map((s) => `<button class="cl-jump" data-cl-jump="${esc(s.id)}" data-cl-mode="${esc(s.mode || "")}" data-cl-label="${esc(s.label)}" type="button">${esc(s.label)} ↗</button>`).join("")}
+            </div>
+          ` : ""}
+          <div class="cl-grid${singleCls}">
+            ${showUI && it.ui?.length ? `<div class="cl-col ui"><h4><i></i>UI 对齐</h4><ul>${it.ui.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
+            ${showDev && it.dev?.length ? `<div class="cl-col dev"><h4><i></i>开发对齐</h4><ul>${it.dev.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
+            ${showQA && it.qa?.length ? `<div class="cl-col qa"><h4><i></i>测试验收</h4><ul>${it.qa.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
+          </div>
+          ${(it.refs && it.refs.length) ? `
+            <div class="cl-refs">
+              <span class="cl-refs-label">涉及文件/文档：</span>
+              ${it.refs.map((r) => `<span class="cl-ref">${esc(r)}</span>`).join("")}
+            </div>
+          ` : ""}
+        </article>
+      `;
+    }).join("");
+  }
+  function jumpFromChangelog(screenId, mode, label) {
+    closeChangelog();
+    if (S.sim?.on) exitSim();
+    if (mode === "demo" && (!S.loggedIn || !S.enrolled)) setMode("demo");
+    else if (mode === "new" && (!S.loggedIn || S.enrolled)) setMode("new");
+    else if (mode === "login" && S.loggedIn) setMode("login");
+    jump(screenId);
+    toast(`已跳转至「${label || screenId}」`);
+  }
+  function copyChangelogItem(ver) {
+    const it = CHANGELOG.find((x) => x.ver === ver);
+    if (!it) return;
+    const lines = [
+      `【${it.ver} · ${it.date}】${it.title}`,
+      it.summary ? `背景：${it.summary}` : "",
+      it.screens?.length ? `影响界面：${it.screens.map((s) => s.label).join("、")}` : "",
+      it.ui?.length ? `UI 对齐：\n${it.ui.map((x) => `- ${x}`).join("\n")}` : "",
+      it.dev?.length ? `开发对齐：\n${it.dev.map((x) => `- ${x}`).join("\n")}` : "",
+      it.qa?.length ? `测试验收：\n${it.qa.map((x) => `- ${x}`).join("\n")}` : "",
+      it.refs?.length ? `涉及文件/文档：${it.refs.join(" | ")}` : "",
+    ].filter(Boolean).join("\n");
+    const done = () => {
+      clState.copiedVer = ver;
+      renderChangelogList();
+      setTimeout(() => {
+        if (clState.copiedVer === ver) {
+          clState.copiedVer = null;
+          renderChangelogList();
+        }
+      }, 1800);
+    };
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(lines).then(done).catch(() => fallbackCopy(lines, done));
+    } else {
+      fallbackCopy(lines, done);
+    }
+  }
+  function fallbackCopy(text, cb) {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); cb(); } catch (_) {}
+    ta.remove();
+  }
+
   window.addEventListener("resize", scalePhone);
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if (S.overlay) closeOverlay(); else back(); } });
+  document.addEventListener("click", (e) => {
+    const openEl = e.target.closest("[data-cl-open]");
+    if (openEl) {
+      e.preventDefault();
+      openChangelog(openEl.dataset.clOpen || null);
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      if (clState.open) closeChangelog();
+      else if (S.overlay) closeOverlay();
+      else back();
+    }
+  });
 
   ensureCareGraph();
+  ensureChangelogUI();
   render();
+  if (new URLSearchParams(location.search).get("changelog") === "1") {
+    openChangelog(null);
+  }
 })();
