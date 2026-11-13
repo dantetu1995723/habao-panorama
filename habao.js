@@ -1502,6 +1502,21 @@
   /* ===== 改动记录（2026-11-13 起每次迭代同步追加，含日期与具体时间，简明说明改动位置与内容） ===== */
   const CHANGELOG = [
     {
+      ver: "V10.362",
+      date: "2026-11-13",
+      time: "10:24",
+      title: "交互全景新增「查看 PRD」同步通道，并移除 V0.2 版本",
+      screens: [
+        { id: "home", label: "首页（李建国的一天）" },
+        { id: "schedule", label: "健康计划" },
+      ],
+      items: [
+        "左侧栏「改动记录」旁新增「查看 PRD」入口，右侧规范栏新增「查看本页 PRD ›」快捷直达当前界面对应文档。",
+        "内置 PRD 阅读弹窗支持 V0.1 / V0.0 / 总纲版本切换、目录检索、全文关键词搜索与文内文档链接跳转，并随每次提交自动同步最新 PRD。",
+        "移除 PRD V0.2 版本及开发菜单中的 V0.2 选项，统一保留 V0.0 与 V0.1 两个版本。",
+      ],
+    },
+    {
       ver: "V10.361",
       date: "2026-11-13",
       time: "10:19",
@@ -6190,6 +6205,10 @@
         <li>顶部三态：未登录 / 未入组 / 已入组 Demo</li>
       </ul>
       ${relHTML}
+      <button class="spec-prd-btn" type="button" data-prd-open="${esc(screenPrdRel(S.screen))}">
+        <span>查看本页 PRD</span>
+        <span>›</span>
+      </button>
     `;
   }
 
@@ -19768,7 +19787,7 @@
           <button class="dbg-row danger" data-act="debugRegenerate" type="button">${I.undo}<span>重新生成</span></button>
           <button class="dbg-row" data-act="debugTestLogin" type="button">${I.person}<span>测试登录步骤</span></button>
           <div class="dbg-sep"></div>
-          ${["0.0", "0.1", "0.2"].map((v) => `
+          ${["0.0", "0.1"].map((v) => `
             <button class="dbg-row" data-act="debugGen" data-gen="${v}" type="button">
               ${S.gen === v ? I.check : `<span style="width:19px;height:19px;flex:0 0 19px"></span>`}
               <span>设计版本 V${v}<em>${S.gen === v ? "当前" : ""}</em></span>
@@ -20949,9 +20968,15 @@
           <span>改动记录</span>
           <span class="cl-entry-badge"><i class="cl-dot" id="cl-dot"></i><span id="cl-badge-txt">${esc(clLatestVer())} · ${CHANGELOG.length}条</span></span>
         </button>
+        <button id="open-prd" class="prd-entry-btn" type="button" title="查看产品需求文档 (PRD)">
+          ${I.doc}
+          <span>查看 PRD</span>
+          <span class="prd-entry-badge">V0.1 · V0.0</span>
+        </button>
       `;
       simRow.insertAdjacentElement("afterend", row);
       $("#open-changelog").onclick = () => openChangelog(null);
+      $("#open-prd").onclick = () => openPrd(null);
     }
     const dot = $("#cl-dot");
     if (dot) dot.style.display = clHasUnseen() ? "inline-block" : "none";
@@ -21169,17 +21194,352 @@
     ta.remove();
   }
 
+  /* ===== PRD 文档查看通道 ===== */
+  const SCREEN_PRD_MAP = {
+    home: "03-界面/首页.md",
+    "onboard-login": "03-界面/首次进入.md",
+    "onboard-profile": "03-界面/首次进入.md",
+    schedule: "03-界面/健康计划.md",
+    vitals: "03-界面/血压监测.md",
+    "vitals-detail": "03-界面/血压监测.md",
+    report: "03-界面/身体报告.md",
+    "report-sub": "03-界面/身体报告.md",
+    walk: "03-界面/运动.md",
+    "walk-session": "03-界面/运动.md",
+    "walk-records": "03-界面/运动.md",
+    consult: "03-界面/哈宝医生.md",
+    "consult-history": "03-界面/哈宝医生.md",
+    stamps: "03-界面/今日集章.md",
+    profile: "03-界面/个人中心.md",
+    "health-record": "03-界面/个人中心.md",
+    "patient-edit": "03-界面/个人中心.md",
+    "change-phone": "03-界面/个人中心.md",
+    support: "03-界面/个人中心.md",
+    "privacy-center": "03-界面/个人中心.md",
+    permissions: "03-界面/个人中心.md",
+    "info-collected": "03-界面/个人中心.md",
+    "third-party": "03-界面/个人中心.md",
+    about: "03-界面/个人中心.md",
+    privacy: "03-界面/个人中心.md",
+    "service-terms": "03-界面/个人中心.md",
+    "vip-terms": "03-界面/VIP.md",
+    "insurance-claim": "03-界面/VIP.md",
+    "unregister-verify": "03-界面/个人中心.md",
+    vip: "03-界面/VIP.md",
+    "family-add": "03-界面/家属管理.md",
+    family: "03-界面/家属管理.md",
+    notify: "03-界面/打卡通知.md",
+    hardware: "03-界面/硬件管理.md",
+    "hardware-scan": "03-界面/硬件管理.md",
+    activity: "03-界面/操作记录.md",
+    questionnaire: "03-界面/随访问卷.md",
+    "q-progress": "03-界面/随访问卷.md",
+    followup: "03-界面/随访问卷.md",
+    "followup-detail": "03-界面/随访问卷.md",
+    analysis: "03-界面/身体报告.md",
+    "first-rest": "02-创建计划/首次创建计划.md",
+    "select-type": "02-创建计划/创建计划.md",
+    "ocr-capture": "02-创建计划/创建用药与复诊.md",
+    "ocr-group": "02-创建计划/创建用药与复诊.md",
+    "ocr-detail": "02-创建计划/创建用药与复诊.md",
+    "ocr-parsed": "02-创建计划/创建用药与复诊.md",
+    "confirm-plan": "02-创建计划/首次创建计划.md",
+    "exercise-risk": "02-创建计划/创建运动计划.md",
+    "body-test": "02-创建计划/创建运动计划.md",
+    borg: "02-创建计划/创建运动计划.md",
+    "confirm-exercise": "02-创建计划/创建运动计划.md",
+    "risk-result": "02-创建计划/创建运动计划.md",
+    "task-add": "02-创建计划/创建测血压饮食作息.md",
+    "task-edit": "02-创建计划/创建测血压饮食作息.md",
+    "task-view": "02-创建计划/创建测血压饮食作息.md",
+    "category-manage": "02-创建计划/创建测血压饮食作息.md",
+  };
+  function screenPrdRel(screenId) {
+    return SCREEN_PRD_MAP[screenId] || "03-界面/首页.md";
+  }
+  const prdState = {
+    open: false,
+    ver: "V0.1",
+    docId: null,
+    q: "",
+  };
+  function prdData() {
+    return window.HABAO_PRD || { generatedAt: "", versions: ["V0.1", "V0.0", "总纲"], docs: [] };
+  }
+  function ensurePrdUI() {
+    if ($("#prd-backdrop")) return;
+    const data = prdData();
+    const bd = document.createElement("div");
+    bd.id = "prd-backdrop";
+    bd.className = "prd-backdrop hidden";
+    bd.innerHTML = `
+      <div class="prd-modal" role="dialog" aria-modal="true" aria-label="产品需求文档">
+        <div class="prd-head">
+          <div class="prd-head-left">
+            <h2>产品需求文档 (PRD)</h2>
+            <div class="prd-vers" id="prd-vers">
+              ${(data.versions || []).map((v) => `<button class="prd-ver-btn" data-prd-ver="${esc(v)}" type="button">${esc(v)}</button>`).join("")}
+            </div>
+            ${data.generatedAt ? `<span class="prd-sync-tag">同步于 ${esc(data.generatedAt)}</span>` : ""}
+          </div>
+          <button class="cl-close" id="prd-close" type="button" title="关闭 (Esc)">×</button>
+        </div>
+        <div class="prd-body">
+          <aside class="prd-toc">
+            <div class="prd-toc-search-wrap">
+              <input class="prd-toc-search" id="prd-search" placeholder="搜索 PRD 标题或正文…" />
+            </div>
+            <div class="prd-toc-list" id="prd-toc-list"></div>
+          </aside>
+          <section class="prd-content" id="prd-content">
+            <div class="prd-doc-path" id="prd-doc-path"></div>
+            <article class="prd-md" id="prd-md"></article>
+          </section>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(bd);
+    bd.addEventListener("click", (e) => { if (e.target === bd) closePrd(); });
+    $("#prd-close").onclick = closePrd;
+    $("#prd-vers").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-prd-ver]");
+      if (!btn) return;
+      const nextVer = btn.dataset.prdVer;
+      if (nextVer === prdState.ver) return;
+      const curDoc = prdData().docs.find((d) => d.id === prdState.docId);
+      const rel = curDoc && curDoc.id.includes("/") ? curDoc.id.slice(curDoc.id.indexOf("/") + 1) : null;
+      prdState.ver = nextVer;
+      const sameRel = rel ? prdData().docs.find((d) => d.ver === nextVer && d.id === `${nextVer}/${rel}`) : null;
+      const firstOfVer = prdData().docs.find((d) => d.ver === nextVer);
+      prdState.docId = (sameRel || firstOfVer)?.id || null;
+      renderPrdModal();
+    });
+    $("#prd-search").addEventListener("input", (e) => {
+      prdState.q = e.target.value || "";
+      renderPrdToc();
+    });
+    $("#prd-toc-list").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-prd-doc]");
+      if (!btn) return;
+      prdState.docId = btn.dataset.prdDoc;
+      renderPrdToc();
+      renderPrdDoc();
+    });
+    $("#prd-md").addEventListener("click", (e) => {
+      const lnk = e.target.closest("[data-prd-link]");
+      if (!lnk) return;
+      const targetId = lnk.dataset.prdLink;
+      const targetDoc = prdData().docs.find((d) => d.id === targetId);
+      if (targetDoc) {
+        prdState.ver = targetDoc.ver;
+        prdState.docId = targetDoc.id;
+        renderPrdModal();
+      }
+    });
+  }
+  function openPrd(relOrId = null) {
+    ensurePrdUI();
+    const docs = prdData().docs || [];
+    if (!docs.length) {
+      toast("未加载到 PRD 数据，请运行同步脚本");
+      return;
+    }
+    prdState.open = true;
+    const preferVer = S.gen === "0.0" ? "V0.0" : "V0.1";
+    let target = null;
+    if (relOrId) {
+      target = docs.find((d) => d.id === relOrId)
+        || docs.find((d) => d.id === `${prdState.ver}/${relOrId}`)
+        || docs.find((d) => d.id === `${preferVer}/${relOrId}`)
+        || docs.find((d) => d.id === `V0.1/${relOrId}`)
+        || docs.find((d) => d.id === `V0.0/${relOrId}`);
+    }
+    if (!target && prdState.docId) {
+      target = docs.find((d) => d.id === prdState.docId);
+    }
+    if (!target) {
+      target = docs.find((d) => d.ver === preferVer) || docs[0];
+    }
+    prdState.ver = target.ver;
+    prdState.docId = target.id;
+    $("#prd-backdrop").classList.remove("hidden");
+    renderPrdModal();
+  }
+  function closePrd() {
+    prdState.open = false;
+    const bd = $("#prd-backdrop");
+    if (bd) bd.classList.add("hidden");
+  }
+  function renderPrdModal() {
+    $("#prd-vers").querySelectorAll("[data-prd-ver]").forEach((b) => {
+      b.classList.toggle("on", b.dataset.prdVer === prdState.ver);
+    });
+    renderPrdToc();
+    renderPrdDoc();
+  }
+  function renderPrdToc() {
+    const listEl = $("#prd-toc-list");
+    if (!listEl) return;
+    const q = (prdState.q || "").trim().toLowerCase();
+    const docs = prdData().docs.filter((d) => {
+      if (q) return `${d.title} ${d.path} ${d.content}`.toLowerCase().includes(q);
+      return d.ver === prdState.ver;
+    });
+    if (!docs.length) {
+      listEl.innerHTML = `<div class="cl-empty" style="padding:20px 8px">未找到匹配文档</div>`;
+      return;
+    }
+    const groups = new Map();
+    docs.forEach((d) => {
+      const gKey = q ? `${d.ver} · ${d.group}` : d.group;
+      if (!groups.has(gKey)) groups.set(gKey, []);
+      groups.get(gKey).push(d);
+    });
+    let html = "";
+    groups.forEach((arr, gName) => {
+      html += `<div class="prd-toc-group"><h4>${esc(gName)}</h4>${arr.map((d) =>
+        `<button class="prd-toc-item${d.id === prdState.docId ? " active" : ""}" data-prd-doc="${esc(d.id)}" type="button">${esc(d.title)}</button>`
+      ).join("")}</div>`;
+    });
+    listEl.innerHTML = html;
+  }
+  function renderPrdDoc() {
+    const doc = prdData().docs.find((d) => d.id === prdState.docId);
+    const pathEl = $("#prd-doc-path");
+    const mdEl = $("#prd-md");
+    if (!doc) {
+      if (pathEl) pathEl.textContent = "";
+      if (mdEl) mdEl.innerHTML = "<p>请选择左侧文档。</p>";
+      return;
+    }
+    pathEl.textContent = doc.path;
+    mdEl.innerHTML = renderMarkdown(doc.content, doc.id);
+    const contentEl = $("#prd-content");
+    if (contentEl) contentEl.scrollTop = 0;
+  }
+  function resolvePrdLink(href, baseDocId) {
+    if (!href || /^https?:\/\//i.test(href) || href.startsWith("#")) return null;
+    const clean = href.split("#")[0];
+    if (!clean.endsWith(".md")) return null;
+    const baseParts = String(baseDocId || "").split("/").slice(0, -1);
+    const segs = clean.split("/");
+    const stack = [...baseParts];
+    segs.forEach((s) => {
+      if (!s || s === ".") return;
+      if (s === "..") stack.pop();
+      else stack.push(s);
+    });
+    const joined = stack.join("/");
+    const docs = prdData().docs || [];
+    return docs.find((d) => d.id === joined)?.id
+      || docs.find((d) => d.id.endsWith(`/${clean}`))?.id
+      || null;
+  }
+  function prdInline(raw, baseDocId) {
+    let s = esc(raw);
+    s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+    s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => {
+      const targetId = resolvePrdLink(href, baseDocId);
+      if (targetId) return `<button class="prd-md-link" data-prd-link="${esc(targetId)}" type="button">${label}</button>`;
+      if (/^https?:\/\//i.test(href)) return `<a href="${esc(href)}" target="_blank" rel="noopener">${label}</a>`;
+      return label;
+    });
+    return s;
+  }
+  function renderMarkdown(md, baseDocId) {
+    const lines = String(md || "").replace(/\r\n/g, "\n").split("\n");
+    const out = [];
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i];
+      if (!line.trim()) { i += 1; continue; }
+      if (/^```/.test(line.trim())) {
+        const buf = [];
+        i += 1;
+        while (i < lines.length && !/^```/.test(lines[i].trim())) {
+          buf.push(esc(lines[i]));
+          i += 1;
+        }
+        i += 1;
+        out.push(`<pre><code>${buf.join("\n")}</code></pre>`);
+        continue;
+      }
+      if (/^---+$/.test(line.trim())) { out.push("<hr />"); i += 1; continue; }
+      const hm = line.match(/^(#{1,4})\s+(.+)$/);
+      if (hm) {
+        const lvl = hm[1].length;
+        out.push(`<h${lvl}>${prdInline(hm[2], baseDocId)}</h${lvl}>`);
+        i += 1;
+        continue;
+      }
+      if (/^>\s?/.test(line)) {
+        const bq = [];
+        while (i < lines.length && /^>\s?/.test(lines[i])) {
+          bq.push(prdInline(lines[i].replace(/^>\s?/, ""), baseDocId));
+          i += 1;
+        }
+        out.push(`<blockquote>${bq.join("<br />")}</blockquote>`);
+        continue;
+      }
+      if (line.trim().startsWith("|") && i + 1 < lines.length && /^\|?[\s:-]+\|/.test(lines[i + 1].trim())) {
+        const parseRow = (r) => r.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => prdInline(c.trim(), baseDocId));
+        const headers = parseRow(line);
+        i += 2;
+        const rows = [];
+        while (i < lines.length && lines[i].trim().startsWith("|")) {
+          rows.push(parseRow(lines[i]));
+          i += 1;
+        }
+        out.push(`<div class="prd-table-wrap"><table><thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`);
+        continue;
+      }
+      if (/^\s*[-*]\s+/.test(line)) {
+        const items = [];
+        while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) {
+          items.push(`<li>${prdInline(lines[i].replace(/^\s*[-*]\s+/, ""), baseDocId)}</li>`);
+          i += 1;
+        }
+        out.push(`<ul>${items.join("")}</ul>`);
+        continue;
+      }
+      if (/^\s*\d+\.\s+/.test(line)) {
+        const items = [];
+        while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) {
+          items.push(`<li>${prdInline(lines[i].replace(/^\s*\d+\.\s+/, ""), baseDocId)}</li>`);
+          i += 1;
+        }
+        out.push(`<ol>${items.join("")}</ol>`);
+        continue;
+      }
+      const pLines = [];
+      while (i < lines.length && lines[i].trim() && !/^(#{1,4}\s|>\s?|```|---+$|\s*[-*]\s+|\s*\d+\.\s+|\|)/.test(lines[i])) {
+        pLines.push(prdInline(lines[i], baseDocId));
+        i += 1;
+      }
+      if (pLines.length) out.push(`<p>${pLines.join("<br />")}</p>`);
+    }
+    return out.join("\n");
+  }
+
   window.addEventListener("resize", scalePhone);
   document.addEventListener("click", (e) => {
     const openEl = e.target.closest("[data-cl-open]");
     if (openEl) {
       e.preventDefault();
       openChangelog(openEl.dataset.clOpen || null);
+      return;
+    }
+    const prdEl = e.target.closest("[data-prd-open]");
+    if (prdEl) {
+      e.preventDefault();
+      openPrd(prdEl.dataset.prdOpen || null);
     }
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-      if (clState.open) closeChangelog();
+      if (prdState.open) closePrd();
+      else if (clState.open) closeChangelog();
       else if (S.overlay) closeOverlay();
       else back();
     }
@@ -21190,5 +21550,7 @@
   render();
   if (new URLSearchParams(location.search).get("changelog") === "1") {
     openChangelog(null);
+  } else if (new URLSearchParams(location.search).get("prd") === "1") {
+    openPrd(null);
   }
 })();
