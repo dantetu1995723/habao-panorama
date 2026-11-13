@@ -1502,6 +1502,22 @@
   /* ===== 改动记录（2026-11-13 起每次迭代同步追加，含日期与具体时间，简明说明改动位置与内容） ===== */
   const CHANGELOG = [
     {
+      ver: "V10.360",
+      date: "2026-11-13",
+      time: "10:14",
+      title: "基础作息计划详情页「时间段」「周期与日期」全字段同步固定并置灰禁用其余选项",
+      screens: [
+        { id: "task-view", label: "计划详情（查看计划）" },
+        { id: "task-edit", label: "计划详情（更新计划）" },
+        { id: "first-rest", label: "当前计划（基础作息编辑）" },
+      ],
+      items: [
+        "基础作息计划详情页的「时刻与提醒」「周期与日期」模块标题行右侧同步展示「基础作息」胶囊标签。",
+        "「时间段」展示全部 4 列时段选项，高亮选中所属时段，其余时段按钮置灰禁用不可选择（仍可调整该时段内的具体提醒时间）。",
+        "「周期与日期」内全部字段同步固定：计划类型（单日/循环）、持续时长（一年/自定义天）、循环规则（每日/每周/每月/自定义）均完整展示选项并高亮当前选中项，其余选项置灰禁用不可选择；开始/结束/执行日期行统一锁定不可修改。",
+      ],
+    },
+    {
       ver: "V10.359",
       date: "2026-11-13",
       time: "10:05",
@@ -19372,12 +19388,12 @@
       // 模块二：时刻与提醒（1:1 对称「提醒时间 & 打卡时间」+ 醒目「时间段」+「到点提醒」）
       const periodChip = (b) => {
         const sel = b.id === d.block;
-        const lkd = viewing || lockTime;
+        const lkd = viewing || lockTime || isBaselineRoutineDetail;
         const bg = sel ? accent.fg : lkd ? "rgba(130,142,165,.10)" : accent.muted;
         const fg = sel ? "#fff" : lkd ? "rgba(130,142,165,.55)" : accent.fg;
         const subFg = sel ? "rgba(255,255,255,.95)" : lkd ? "rgba(130,142,165,.50)" : accent.fg;
         const dis = lkd && !sel;
-        return `<button class="v02-period-chip" style="background:${bg};color:${fg}" ${!dis && editable && !lockTime ? `data-act="draftBlock" data-b="${b.id}"` : "disabled"} type="button">
+        return `<button class="v02-period-chip" style="background:${bg};color:${fg}" ${!dis && editable && !lockTime && !isBaselineRoutineDetail ? `data-act="draftBlock" data-b="${b.id}"` : "disabled"} type="button">
           <span class="p-name">${b.title}</span>
           <span class="p-range" style="color:${subFg};opacity:${sel ? 1 : 0.88}">${b.range}</span>
         </button>`;
@@ -19411,7 +19427,7 @@
 
       const timeAndRemindCard = `
         <div class="v02-editor-card">
-          ${modHead(I.bell, "时刻与提醒")}
+          ${modHead(I.bell, "时刻与提醒", routineBadgeHTML)}
           <div class="v02-twin-times">
             <button class="v02-time-box" style="background:${accent.muted};color:${accent.fg}" ${editable ? 'data-act="editDraftTime"' : "disabled"} type="button">
               <div class="v02-time-top">
@@ -19433,13 +19449,15 @@
             </div>
           </div>
           <div class="sec-label">时间段</div>
-          ${(viewing || lockTime)
-            ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
-                <span style="display:inline-flex;opacity:.85">${I.clock}</span>
-                <span style="font-size:calc(15px * var(--fs));font-weight:700">${blkObj.title}</span>
-                <span style="font-size:calc(14px * var(--fs));font-weight:600;font-variant-numeric:tabular-nums;opacity:.85">${blkObj.range}</span>
-              </div>`
-            : `<div class="v02-grid4 tight">${BLOCKS.map(periodChip).join("")}</div>`}
+          ${isBaselineRoutineDetail
+            ? `<div class="v02-grid4 tight">${BLOCKS.map(periodChip).join("")}</div>`
+            : ((viewing || lockTime)
+              ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
+                  <span style="display:inline-flex;opacity:.85">${I.clock}</span>
+                  <span style="font-size:calc(15px * var(--fs));font-weight:700">${blkObj.title}</span>
+                  <span style="font-size:calc(14px * var(--fs));font-weight:600;font-variant-numeric:tabular-nums;opacity:.85">${blkObj.range}</span>
+                </div>`
+              : `<div class="v02-grid4 tight">${BLOCKS.map(periodChip).join("")}</div>`)}
           ${v02SwitchRows.length ? `
             <div class="sec-label">到点提醒</div>
             <div class="v02-remind-box" style="background:${accent.muted}">${v02SwitchRows.join("")}</div>` : lockedRemindStatusHTML}
@@ -19447,8 +19465,8 @@
 
       // 模块三：周期与日期（计划类型 + 执行日期/起止日期 + 持续时长 + 循环规则）
       const alignedDateRow = (label, ymd, act, locked) => {
-        const on = editable && !locked;
-        const valColor = viewing ? accent.fg : (locked ? `${accent.fg}BF` : accent.fg);
+        const on = editable && !locked && !isBaselineRoutineDetail;
+        const valColor = viewing ? accent.fg : ((locked || isBaselineRoutineDetail) ? `${accent.fg}BF` : accent.fg);
         const padStyle = viewing ? "11px 16px" : (d.cycle && d.rule === "monthly" ? "9px 16px" : (mode === "edit" && showOcc ? "11px 16px" : "13px 16px"));
         return `<button class="v02-date-row" style="padding:${padStyle}" ${on ? `data-act="${act}"` : "disabled"} type="button">
           <span class="lab">${label}</span>
@@ -19518,48 +19536,72 @@
         return customRuleDisplayName(d.intervalCount, d.intervalUnit);
       })();
 
-      const planTypeHTML = (viewing || lockRec)
-        ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
-            <span style="display:inline-flex;opacity:.85">${d.cycle ? I.cycle : I.cal}</span>
-            <span style="font-size:calc(15px * var(--fs));font-weight:700">${d.cycle ? "循环计划" : "单日计划"}</span>
+      const planTypeHTML = isBaselineRoutineDetail
+        ? `<div class="flex gap8">
+            ${chip({ selected: !d.cycle, label: "单日计划", icon: I.cal, act: "", extra: 'data-v="0"', locked: true })}
+            ${chip({ selected: d.cycle, label: "循环计划", icon: I.cycle, act: "", extra: 'data-v="1"', locked: true })}
           </div>`
-        : `<div class="flex gap8">
-            ${chip({ selected: !d.cycle, label: "单日计划", icon: I.cal, act: "draftCycle", extra: 'data-v="0"', locked: lockRec })}
-            ${chip({ selected: d.cycle, label: "循环计划", icon: I.cycle, act: "draftCycle", extra: 'data-v="1"', locked: lockRec })}
-          </div>`;
+        : ((viewing || lockRec)
+          ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
+              <span style="display:inline-flex;opacity:.85">${d.cycle ? I.cycle : I.cal}</span>
+              <span style="font-size:calc(15px * var(--fs));font-weight:700">${d.cycle ? "循环计划" : "单日计划"}</span>
+            </div>`
+          : `<div class="flex gap8">
+              ${chip({ selected: !d.cycle, label: "单日计划", icon: I.cal, act: "draftCycle", extra: 'data-v="0"', locked: lockRec })}
+              ${chip({ selected: d.cycle, label: "循环计划", icon: I.cycle, act: "draftCycle", extra: 'data-v="1"', locked: lockRec })}
+            </div>`);
 
-      const durationHTML = viewing
-        ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
-            <span style="display:inline-flex;opacity:.85">${I.clock}</span>
-            <span style="font-size:calc(15px * var(--fs));font-weight:700;font-variant-numeric:tabular-nums">${esc(viewDurationSummary)}</span>
-          </div>`
-        : `<div class="v02-grid4">${durationOpts(d.rule, d.intervalUnit).map(([id, lab]) =>
-            chip({ selected: d.duration === id, label: lab, act: "draftDur", extra: `data-d="${id}"`, compact: true })).join("")}
-            <label class="opt-chip compact v02-flex-days-chip${isCustomDurSelected ? " on" : ""}" style="background:${isCustomDurSelected ? accent.fg : accent.muted};color:${isCustomDurSelected ? "#fff" : accent.fg};border-color:${isCustomDurSelected ? "transparent" : `${accent.fg}60`}">
-              <input id="flex-dur-days" class="v02-flex-days-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="${totalDurationDays}" aria-label="灵活持续天数" />
+      const durationHTML = isBaselineRoutineDetail
+        ? `<div class="v02-grid4">${durationOpts(d.rule, d.intervalUnit).map(([id, lab]) =>
+            chip({ selected: d.duration === id, label: lab, act: "", extra: `data-d="${id}"`, compact: true, locked: true })).join("")}
+            <label class="opt-chip compact v02-flex-days-chip${isCustomDurSelected ? " on" : ""}" style="background:${isCustomDurSelected ? accent.fg : "rgba(130,142,165,.10)"};color:${isCustomDurSelected ? "#fff" : "rgba(130,142,165,.50)"};border-color:${isCustomDurSelected ? "transparent" : "rgba(130,142,165,.24)"}">
+              <input id="flex-dur-days" class="v02-flex-days-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="${totalDurationDays}" aria-label="灵活持续天数" disabled readonly />
               <span class="v02-flex-days-unit">天</span>
             </label>
-          </div>`;
-
-      const recurrenceHTML = viewing
-        ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
-            <span style="display:inline-flex;opacity:.85">${I.cycle}</span>
-            <span style="font-size:calc(15px * var(--fs));font-weight:700">${esc(viewRecurrenceSummary)}</span>
           </div>`
-        : `<div class="v02-grid4">${[["daily", "每日"], ["weekly", "每周"], ["monthly", "每月"]].map(([r, lab]) =>
-            chip({ selected: d.rule === r, label: lab, act: "draftRule", extra: `data-r="${r}"`, compact: true })).join("")}
-            ${chip({ selected: d.rule === "custom", label: d.rule === "custom" ? customRuleDisplayName(d.intervalCount, d.intervalUnit) : "自定义", act: "openCustomRule", compact: true })}
+        : (viewing
+          ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
+              <span style="display:inline-flex;opacity:.85">${I.clock}</span>
+              <span style="font-size:calc(15px * var(--fs));font-weight:700;font-variant-numeric:tabular-nums">${esc(viewDurationSummary)}</span>
+            </div>`
+          : `<div class="v02-grid4">${durationOpts(d.rule, d.intervalUnit).map(([id, lab]) =>
+              chip({ selected: d.duration === id, label: lab, act: "draftDur", extra: `data-d="${id}"`, compact: true })).join("")}
+              <label class="opt-chip compact v02-flex-days-chip${isCustomDurSelected ? " on" : ""}" style="background:${isCustomDurSelected ? accent.fg : accent.muted};color:${isCustomDurSelected ? "#fff" : accent.fg};border-color:${isCustomDurSelected ? "transparent" : `${accent.fg}60`}">
+                <input id="flex-dur-days" class="v02-flex-days-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" value="${totalDurationDays}" aria-label="灵活持续天数" />
+                <span class="v02-flex-days-unit">天</span>
+              </label>
+            </div>`);
+
+      const recurrenceHTML = isBaselineRoutineDetail
+        ? `<div class="v02-grid4">${[["daily", "每日"], ["weekly", "每周"], ["monthly", "每月"]].map(([r, lab]) =>
+            chip({ selected: d.rule === r, label: lab, act: "", extra: `data-r="${r}"`, compact: true, locked: true })).join("")}
+            ${chip({ selected: d.rule === "custom", label: d.rule === "custom" ? customRuleDisplayName(d.intervalCount, d.intervalUnit) : "自定义", act: "", compact: true, locked: true })}
           </div>
           ${d.rule === "weekly" ? `<div class="flex gap6 mt10">${weekdays.map(([n, lab]) =>
-            chip({ selected: (d.weekdays || []).includes(n), label: lab, act: "draftWeek", extra: `data-w="${n}"`, compact: true })).join("")}</div>` : ""}
+            chip({ selected: (d.weekdays || []).includes(n), label: lab, act: "", extra: `data-w="${n}"`, compact: true, locked: true })).join("")}</div>` : ""}
           ${d.rule === "monthly" ? `<div class="month-day-grid mt8">${Array.from({ length: 31 }, (_, i) => i + 1).map((day) =>
-            chip({ selected: (d.monthDays || []).includes(day), label: String(day), act: "draftMonthDay", extra: `data-d="${day}"`, compact: true })).join("")}
-            ${chip({ selected: (d.monthDays || []).includes(0), label: "月末", act: "draftMonthDay", extra: 'data-d="0"', compact: true })}</div>
-            <div class="month-day-hint">${monthDayDynamicNote(d.monthDays || [])}</div>` : ""}`;
+            chip({ selected: (d.monthDays || []).includes(day), label: String(day), act: "", extra: `data-d="${day}"`, compact: true, locked: true })).join("")}
+            ${chip({ selected: (d.monthDays || []).includes(0), label: "月末", act: "", extra: 'data-d="0"', compact: true, locked: true })}</div>
+            <div class="month-day-hint">${monthDayDynamicNote(d.monthDays || [])}</div>` : ""}`
+        : (viewing
+          ? `<div class="v02-active-chip" style="background:${accent.muted};color:${accent.fg}">
+              <span style="display:inline-flex;opacity:.85">${I.cycle}</span>
+              <span style="font-size:calc(15px * var(--fs));font-weight:700">${esc(viewRecurrenceSummary)}</span>
+            </div>`
+          : `<div class="v02-grid4">${[["daily", "每日"], ["weekly", "每周"], ["monthly", "每月"]].map(([r, lab]) =>
+              chip({ selected: d.rule === r, label: lab, act: "draftRule", extra: `data-r="${r}"`, compact: true })).join("")}
+              ${chip({ selected: d.rule === "custom", label: d.rule === "custom" ? customRuleDisplayName(d.intervalCount, d.intervalUnit) : "自定义", act: "openCustomRule", compact: true })}
+            </div>
+            ${d.rule === "weekly" ? `<div class="flex gap6 mt10">${weekdays.map(([n, lab]) =>
+              chip({ selected: (d.weekdays || []).includes(n), label: lab, act: "draftWeek", extra: `data-w="${n}"`, compact: true })).join("")}</div>` : ""}
+            ${d.rule === "monthly" ? `<div class="month-day-grid mt8">${Array.from({ length: 31 }, (_, i) => i + 1).map((day) =>
+              chip({ selected: (d.monthDays || []).includes(day), label: String(day), act: "draftMonthDay", extra: `data-d="${day}"`, compact: true })).join("")}
+              ${chip({ selected: (d.monthDays || []).includes(0), label: "月末", act: "draftMonthDay", extra: 'data-d="0"', compact: true })}</div>
+              <div class="month-day-hint">${monthDayDynamicNote(d.monthDays || [])}</div>` : ""}`);
 
       const scheduleCard = `
         <div class="v02-editor-card">
-          ${modHead(I.cal, "周期与日期")}
+          ${modHead(I.cal, "周期与日期", routineBadgeHTML)}
           <div class="sec-label" style="margin-top:0">计划类型</div>
           ${planTypeHTML}
           <div class="sec-label">${d.cycle ? "起止日期" : "执行日期"}</div>
@@ -20866,7 +20908,7 @@
     copiedVer: null,
     seenKey: "habao_changelog_seen_ver",
   };
-  function clLatestVer() { return CHANGELOG[0]?.ver || "V10.359"; }
+  function clLatestVer() { return CHANGELOG[0]?.ver || "V10.360"; }
   function clHasUnseen() {
     try { return localStorage.getItem(clState.seenKey) !== clLatestVer(); } catch (_) { return false; }
   }
