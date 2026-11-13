@@ -1502,6 +1502,18 @@
   /* ===== 改动记录（2026-11-13 起每次迭代同步追加，含日期与具体时间，简明说明改动位置与内容） ===== */
   const CHANGELOG = [
     {
+      ver: "V10.363",
+      date: "2026-11-13",
+      time: "10:40",
+      title: "「当前计划」分段标题行恢复胶囊内的基础作息微标签精简为「基础」",
+      screens: [
+        { id: "first-rest", label: "当前计划（分段标题恢复胶囊）" },
+      ],
+      items: [
+        "「当前计划」各时段标题行右侧待恢复胶囊内的「基础作息」微标签精简为「基础」（如「＋ 起床 07:00 基础」），列表卡片与详情页仍保留完整「基础作息」标签。",
+      ],
+    },
+    {
       ver: "V10.362",
       date: "2026-11-13",
       time: "10:24",
@@ -13201,7 +13213,7 @@
                           ${I.plus}
                           <span class="r-name">${esc(r.name)}</span>
                           <span class="r-time">${esc(r.t)}</span>
-                          ${isRoutineChip ? `<span class="r-tag">基础作息</span>` : ""}
+                          ${isRoutineChip ? `<span class="r-tag">基础</span>` : ""}
                         </button>`;
                       }).join("")}
                     </div>` : ""}
@@ -20943,7 +20955,7 @@
     copiedVer: null,
     seenKey: "habao_changelog_seen_ver",
   };
-  function clLatestVer() { return CHANGELOG[0]?.ver || "V10.361"; }
+  function clLatestVer() { return CHANGELOG[0]?.ver || "V10.363"; }
   function clHasUnseen() {
     try { return localStorage.getItem(clState.seenKey) !== clLatestVer(); } catch (_) { return false; }
   }
