@@ -5754,3 +5754,60 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   gap: 10px;
   background: linear-gradient(to top, rgba(244, 247, 252, 0.98) 80%, rgba(244, 247, 252, 0));
 }
+
+/* ===== 手机屏幕内可见细滚动条 + 鼠标拖拽上下滑动 ===== */
+.phone-screen .scroll,
+.phone-screen .lane-scroll,
+.phone-screen .v02-stage-page,
+.phone-screen .case-list,
+.phone-screen .s4-lane-body,
+.phone-screen .rx-pin-list,
+.phone-screen .cat-list {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(16, 84, 224, .24) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+.phone-screen .scroll::-webkit-scrollbar,
+.phone-screen .lane-scroll::-webkit-scrollbar,
+.phone-screen .v02-stage-page::-webkit-scrollbar,
+.phone-screen .case-list::-webkit-scrollbar,
+.phone-screen .s4-lane-body::-webkit-scrollbar,
+.phone-screen .rx-pin-list::-webkit-scrollbar,
+.phone-screen .cat-list::-webkit-scrollbar {
+  display: block;
+  width: 4px;
+  height: 4px;
+}
+.phone-screen .scroll::-webkit-scrollbar-track,
+.phone-screen .lane-scroll::-webkit-scrollbar-track,
+.phone-screen .v02-stage-page::-webkit-scrollbar-track,
+.phone-screen .case-list::-webkit-scrollbar-track,
+.phone-screen .s4-lane-body::-webkit-scrollbar-track,
+.phone-screen .rx-pin-list::-webkit-scrollbar-track,
+.phone-screen .cat-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.phone-screen .scroll::-webkit-scrollbar-thumb,
+.phone-screen .lane-scroll::-webkit-scrollbar-thumb,
+.phone-screen .v02-stage-page::-webkit-scrollbar-thumb,
+.phone-screen .case-list::-webkit-scrollbar-thumb,
+.phone-screen .s4-lane-body::-webkit-scrollbar-thumb,
+.phone-screen .rx-pin-list::-webkit-scrollbar-thumb,
+.phone-screen .cat-list::-webkit-scrollbar-thumb {
+  background: rgba(16, 84, 224, .24);
+  border-radius: 999px;
+}
+.phone-screen .scroll::-webkit-scrollbar-thumb:hover,
+.phone-screen .lane-scroll::-webkit-scrollbar-thumb:hover,
+.phone-screen .v02-stage-page::-webkit-scrollbar-thumb:hover,
+.phone-screen .case-list::-webkit-scrollbar-thumb:hover,
+.phone-screen .s4-lane-body::-webkit-scrollbar-thumb:hover,
+.phone-screen .rx-pin-list::-webkit-scrollbar-thumb:hover,
+.phone-screen .cat-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 84, 224, .45);
+}
+.phone-screen.is-drag-scrolling,
+.phone-screen.is-drag-scrolling * {
+  user-select: none !important;
+  cursor: grabbing !important;
+}

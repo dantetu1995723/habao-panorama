@@ -1637,6 +1637,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.386",
+      date: "2026-11-16",
+      time: "15:35",
+      title: "交互全景手机屏幕内新增可见细滚动条并支持鼠标按住上下拖拽滑动",
+      screens: [
+        { id: "today", label: "手机模拟画布（全页面通用）" },
+      ],
+      items: [
+        "在手机屏幕内所有可纵向滚动区域显示 4px 浅蓝色半透明细滚动条，直观呈现可滚动状态与当前位置。",
+        "新增桌面端鼠标左键按住上下拖拽滑动能力（自动适配画布缩放比例），拖拽超过 6px 后松手不误触卡片或按钮点击，并避开表盘、时间滚轮、输入框等自带手势控件。",
+      ],
+    },
+    {
       ver: "V10.385",
       date: "2026-11-16",
       time: "14:05",
@@ -22094,8 +22107,90 @@
     }
   });
 
+  function initPhoneDragScroll() {
+    const screen = $(".phone-screen");
+    if (!screen || screen.dataset.dragScrollReady) return;
+    screen.dataset.dragScrollReady = "1";
+
+    const SKIP_SEL = "input, textarea, select, option, [contenteditable='true'], .dial-svg, .clock-dial, .scrub, .time-col, [data-hold], .hold-fill, #fan, .fan-stage, [data-no-drag-scroll]";
+    let active = null;
+    let suppressClickUntil = 0;
+
+    function findScrollable(startEl) {
+      let el = startEl;
+      while (el && el !== screen) {
+        if (el.nodeType === 1) {
+          const st = getComputedStyle(el);
+          const oy = st.overflowY;
+          if ((oy === "auto" || oy === "scroll") && el.scrollHeight > el.clientHeight + 2) {
+            return el;
+          }
+        }
+        el = el.parentElement;
+      }
+      return null;
+    }
+
+    function phoneScale() {
+      const wrap = $("#phone-wrap");
+      if (!wrap) return 1;
+      const w = wrap.offsetWidth || 454;
+      const r = wrap.getBoundingClientRect();
+      return r.width > 0 ? r.width / w : 1;
+    }
+
+    screen.addEventListener("pointerdown", (e) => {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      if (e.target.closest(SKIP_SEL)) return;
+      const scroller = findScrollable(e.target);
+      if (!scroller) return;
+      active = {
+        scroller,
+        startX: e.clientX,
+        startY: e.clientY,
+        startTop: scroller.scrollTop,
+        scale: phoneScale(),
+        moved: false,
+      };
+    });
+
+    window.addEventListener("pointermove", (e) => {
+      if (!active) return;
+      const dx = e.clientX - active.startX;
+      const dy = e.clientY - active.startY;
+      if (!active.moved) {
+        if (Math.abs(dy) < 6 && Math.abs(dx) < 6) return;
+        // 横向滑动优先让给日历/模块轻扫，不抢占纵向滚动
+        if (Math.abs(dx) > Math.abs(dy)) {
+          active = null;
+          return;
+        }
+        active.moved = true;
+        screen.classList.add("is-drag-scrolling");
+      }
+      active.scroller.scrollTop = active.startTop - dy / active.scale;
+    });
+
+    function endDrag() {
+      if (!active) return;
+      if (active.moved) suppressClickUntil = Date.now() + 80;
+      active = null;
+      screen.classList.remove("is-drag-scrolling");
+    }
+
+    window.addEventListener("pointerup", endDrag);
+    window.addEventListener("pointercancel", endDrag);
+    screen.addEventListener("click", (e) => {
+      if (Date.now() < suppressClickUntil) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+  }
+
   ensureCareGraph();
   ensureChangelogUI();
+  initPhoneDragScroll();
   render();
   if (new URLSearchParams(location.search).get("changelog") === "1") {
     openChangelog(null);
