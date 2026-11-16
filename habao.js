@@ -1490,7 +1490,7 @@
     "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。V0.2 采用无滚动「三联动态磁贴 + 单屏模块舞台」切换架构：顶部磁贴实时回显事项、时刻与周期摘要，中部单屏切换「事项内容 / 时刻与提醒 / 周期与日期」；「提醒时间」与「打卡时间」1:1 对称同构，「时间段」配备醒目粗体时间范围标注，「起止日期」通栏对齐零截断。修改时间或周期字段保存前弹出「确认更新计划」精简弹窗，简单描述更改让用户确认；仅改名称/备注/血压等直接原地保存。" },
     "task-view": { code: "AddEditTaskView", note: "查看计划（只读，右上「更新」）。V0.2 采用无滚动「三联动态磁贴 + 单屏模块舞台」切换架构，顶部三枚磁贴一眼总览事项、时刻与周期，中部单屏切换三大模块；「到点提醒」收纳在「时刻与提醒」模块内且在查看态下可直接切换；底部固定操作坞并排展示删除或「取消本次打卡」按钮，无需滚动。" },
     "exercise-risk": { code: "BodyTestRunView", note: "Demo Toggle 模拟禁忌症。体测不参与入组。「稍后 / 退出评估 / 暂不创建」关整段评估流，不退回选择类型。" },
-    "body-test": { code: "BodyTestRunView", note: "户外原地踏步三分钟。停止或倒计时归零后直进感受问卷，无完成中转页。" },
+    "body-test": { code: "BodyTestRunView", note: "原地踏步三分钟。选定体测模式后直接进入本页并叠加「体测指南弹窗 → 3-2-1 倒计时」，倒计时结束开始运行；停止或倒计时归零后直进感受问卷，无完成中转页。" },
     "body-test-sit": { code: "BodyTestRunView", note: "室内 1 分钟坐立。次数大号读数 + 倒计时 + 同龄参考。停止后问卷顶部两栏「测试时长 / 完成次数」。" },
     borg: { code: "BorgQuestionnaireView", note: "体测停止后直进，顶部读本次 BodyTestRecord。户外三栏「步行时间 / 步行距离 / 平均步频」；室内坐立两栏「测试时长 / 完成次数」（不要写成步行）。时长「N 秒 / N 分钟」，步频带「步/分」。左树可先点「坐立体测」再进本页预览坐立摘要。未选说话能力时点生成会提示。" },
     followup: { code: "ReviewFollowUpPage", note: "V10.306：问卷随访时间树（对齐真机 ReviewFollowUpPage.swift）。顶栏「返回」+「问卷随访」+ 右上 Demo 状态切换胶囊（填写一半 / 已填两次 / 未填写）。内容区单张白底岛卡（.island-card）内嵌时间树（.followup-timeline），圆点与左上顶边平齐、竖线圆心贯通：① 填写中草稿（空心蓝圈，上次填写时间 + 已答 N/51 题）；② 历史记录节点（实心蓝圈，日期 + 随访小结），各行均可点击打开「随访详情」页（FollowUpDetailView）查看答题明细；③ 无记录无草稿时正中大区空态（图标圆章 + 适老说明）；底部悬浮操作坞：有草稿时展示纵向双钮（主钮「继续填写问卷」+ 次钮白底蓝描边「重新开始随访」，点击弹窗确认清空草稿），无草稿时单枚主钮（「再次填写问卷」/「填写随访问卷」）。" },
@@ -1501,6 +1501,19 @@
 
   /* ===== 改动记录（2026-11-13 起每次迭代同步追加，含日期与具体时间，简明说明改动位置与内容） ===== */
   const CHANGELOG = [
+    {
+      ver: "V10.373",
+      date: "2026-11-16",
+      time: "10:00",
+      title: "体测指南与倒计时弹窗改为在「体测运行页」上方展示",
+      screens: [
+        { id: "body-test", label: "散步体测" },
+        { id: "body-test-sit", label: "坐立体测" },
+      ],
+      items: [
+        "在运动前风险提示页点击「踏步体测」或「坐立体测」后，先切换至对应的「散步体测 / 坐立体测」界面，再在其上方弹出「体测指南」与「3-2-1 倒计时」弹窗，与真机端交互流程保持完全一致。",
+      ],
+    },
     {
       ver: "V10.372",
       date: "2026-11-16",
@@ -12257,22 +12270,31 @@
         S.contraByPerson[target] = S.contra;
         render();
       },
-      // 体测前导：指南弹窗 → 3-2-1 倒计时 → 运行页（真机 BodyTestRunView）
+      // 体测前导：切至体测运行页 → 指南弹窗 → 3-2-1 倒计时 → 开始运行（真机 BodyTestRunView）
       openGuide() {
         if (S.contra) return;
         S.testMode = el.dataset.m === "sit" ? "sit" : "walking";
         const p = TEST_PARAMS[S.testMode];
         S.testCadence = p.start; S.testElapsed = 0; S.testReps = 0;
         S.testTotal = p.total;
+        S.testRunning = false;
+        go("body-test", "replace");
         openOverlay("testGuide");
       },
-      // 3-2-1 自动倒数后进运行页（真机 BodyTestRunView 倒计时卡）
+      // 3-2-1 自动倒数后直接开始运行（真机 BodyTestRunView 倒计时卡）
       beginCountdown() {
         openOverlay("testCountdown", { n: 3 });
         stopCountdown();
         countdownTimer = setInterval(() => {
           const n = (S.overlayData.n ?? 3) - 1;
-          if (n <= 0) { stopCountdown(); S.testRunning = true; closeOverlay(); go("body-test", "replace"); return; }
+          if (n <= 0) {
+            stopCountdown();
+            S.testRunning = true;
+            closeOverlay();
+            if (S.screen !== "body-test") go("body-test", "replace");
+            else render();
+            return;
+          }
           S.overlayData.n = n;
           render();
         }, 800);
@@ -12288,7 +12310,12 @@
         S.testCadence = Math.max(p.min, S.testCadence - p.step);
         render();
       },
-      startTest() { closeOverlay(); S.testRunning = true; go("body-test", "replace"); },
+      startTest() {
+        closeOverlay();
+        S.testRunning = true;
+        if (S.screen !== "body-test") go("body-test", "replace");
+        else render();
+      },
       finishTest() { S.testRunning = false; captureBodyTest(); go("borg", "push"); },
       setTalk() { S.talk = el.dataset.v; render(); },
       setSym() {
