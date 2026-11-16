@@ -716,21 +716,29 @@
 
   function ensureParsedResult(forceReset = false) {
     if (!S.parsedResult || forceReset) {
-      const defaultMeds = MEDS.map((m) => `${m.name} ${m.dose} ${m.freq} ${m.usage}`).join("\n");
       S.parsedResult = {
         disease: DISEASE_INFO.join("、"),
         dischargeYMD: "2026-09-17",
-        medication: defaultMeds,
+        medications: MEDS.map((m) => ({
+          name: m.name || "",
+          dose: m.dose || "",
+          freq: m.freq || "",
+          usage: m.usage || "",
+        })),
         surgeryName: "冠脉造影 + PCI术",
         surgeryYMD: "2026-09-08",
       };
+    }
+    if (!Array.isArray(S.parsedResult.medications)) {
+      S.parsedResult.medications = [];
     }
     return S.parsedResult;
   }
 
   function canGeneratePlanFromParsed() {
     const p = ensureParsedResult(false);
-    return Boolean((p.disease || "").trim() && (p.dischargeYMD || "").trim() && (p.medication || "").trim());
+    const hasMed = (p.medications || []).some((m) => String(m.name || "").trim());
+    return Boolean((p.disease || "").trim() && (p.dischargeYMD || "").trim() && hasMed);
   }
 
   function parseMedicationLineToItem(line) {
@@ -771,11 +779,18 @@
       .filter(Boolean);
     S.diseaseInfo = diseaseLabelsList.length ? diseaseLabelsList : [String(p.disease || "").trim()];
 
-    const medLines = String(p.medication || "")
-      .split(/[\n；;]+/)
-      .map((s) => s.trim())
-      .filter(Boolean);
-    S.meds = medLines.map(parseMedicationLineToItem);
+    const medRows = (p.medications || [])
+      .map((m) => ({
+        name: String(m.name || "").trim(),
+        dose: String(m.dose || "").trim(),
+        freq: String(m.freq || "").trim() || "每日 1 次",
+        usage: String(m.usage || "").trim() || "口服",
+      }))
+      .filter((m) => m.name);
+    S.meds = medRows.map((m) => {
+      const time = routineAnchorsFromRows().medTimeFor(`${m.freq} ${m.usage}`);
+      return { name: m.name, dose: m.dose, freq: m.freq, usage: m.usage, time, src: m.name };
+    });
 
     const hasHTN = S.diseaseInfo.some((d) => d.indexOf("高血压") >= 0);
     S.bps = hasHTN ? parsedBloodPressureRows().map((r) => ({ title: r.name, time: r.t, src: r.name })) : [];
@@ -909,6 +924,21 @@
   // 打字只落草稿 + 更新候选行、**不整体重绘**（否则输入框当场丢焦点）；
   // 点这一块的「确认」才回写（真机：改动先落草稿，不再收起键盘即生效）。
   document.addEventListener("input", (event) => {
+    if (event.target instanceof HTMLInputElement && event.target.dataset.medIdx !== undefined) {
+      const p = ensureParsedResult(false);
+      const idx = parseInt(event.target.dataset.medIdx, 10);
+      const key = event.target.dataset.medKey;
+      if (Number.isInteger(idx) && p.medications[idx] && key) {
+        p.medications[idx][key] = event.target.value;
+      }
+      const ready = canGeneratePlanFromParsed();
+      const topBtn = document.getElementById("ocr-parsed-top-btn");
+      if (topBtn) {
+        topBtn.className = `nav-text ${ready ? "blue" : "dim"}`;
+        topBtn.disabled = !ready;
+      }
+      return;
+    }
     if (event.target instanceof HTMLTextAreaElement && event.target.dataset.parsedField) {
       const p = ensureParsedResult(false);
       const field = event.target.dataset.parsedField;
@@ -1603,7 +1633,7 @@
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.275：首次建日程与新增用药复查统一走「拍照 → 资料详情 → 解析」独立通道流程，进入时从空白拍摄起（不预载资料 BASE 存量）。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "V10.289：仅展示前一个拍摄页中已勾选/保留的分组。基础报告或首次上传报告中含出院记录时排在最上方；选传组为空时显示灰色说明文字。首次建日程与新增用药复查的资料详情右上为「解析」，点击后进入「资料解析结果」页；健康档案与身体报告子页的补拍通道右上为「提交」，提交后直接归入共享资料 BASE（不经过资料解析结果页）。" },
-    "ocr-parsed": { code: "OCRParseResultView", note: "【V10.309】仅限创建计划步骤（排定 / 更新康复基础日程），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「解析结果」页（标题「解析结果」）。左上角为「< 返回」，右上角为同规格「提交」按钮。默认模拟已识别填好的状态，包含五个可编辑字段：① 疾病信息（必填，多行文本框 context + 右上角「清空」按钮）、② 出院时间（必填，年 / 月 / 日三个并排下拉框）、③ 用药处方（必填，多行文本框 context + 右上角「清空」按钮）、④ 手术名称（选填，多行文本框 context + 右上角「清空」按钮）、⑤ 手术时间（选填，年 / 月 / 日三个并排下拉框）。当三个必填字段非空时右上角「提交」按钮可点击，按修改后的解析结果生成计划并进入「确认计划」页。" },
+    "ocr-parsed": { code: "OCRParseResultView", note: "【V10.388】仅限创建计划步骤（排定 / 更新康复基础日程），在「资料详情」点击「解析」之后、进入「确认计划」之前新增的可编辑「解析结果」页（标题「解析结果」）。左上角为「< 返回」，右上角为同规格「提交」按钮。默认模拟已识别填好的状态，包含五个可编辑字段：① 疾病信息（必填，多行文本框 + 清空）、② 用药处方（必填，逐行分字段「药名 / 剂量 / 频次 / 用法」填空卡片 + 每行删除 + 底部「+ 添加用药」+ 右上角「清空」）、③ 出院时间（必填，年 / 月 / 日三下拉框）、④ 手术名称（选填，多行文本框 + 清空）、⑤ 手术时间（选填，年 / 月 / 日三下拉框）。当三个必填字段非空时右上角「提交」亮起可点，点击进入「确认计划」页。" },
     "first-rest": { code: "CreateScheduleFlowView", note: "【V10.352 分段标题行支持所有被删计划一键点击恢复 + V10.342 卡片规格对齐确认计划 & 恢复按钮常驻】首页底缘「基础康复计划」与选择类型「基础康复计划」第一页「当前计划」：① 包含当前生效的所有基础作息以及用户其它所有循环计划，日常条目按全天时段由早到晚（HH:mm）排布（起床置顶），复查计划置底归入红色「复查计划」区块；② 无论在下方删除了什么类型的计划（基础作息、用药、测血压、运动、饮食、复查等），对应分段标题行（早晨 / 上午 / 午间 / 下午 / 傍晚 / 夜间 / 复查计划）右侧均实时浮现可点击的「＋ 事项名称 HH:mm」胶囊，点击即可就地加回该计划；③ 顶部导航栏右上角「恢复」按钮始终常驻显示：未删除卡片时保持禁用状态（置灰不可点），任意删除卡片后立即点亮可用，点击一键还原初始卡片列表。" },
     "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表，时段内严格按 HH:mm 由早到晚排布。【V10.320 首项规则】「起床」必须是一天计划的绝对第一个条目：推算测血压规范为起床后静坐测量（wake + 10 分钟，如 07:00 起床 → 07:10 起床测血压），同刻排序保底置顶「起床」卡。【V10.315 极简三态对比】仅在已有存量基础日程再次排定时展示（首次排定保持纯净），全链路砍掉「将停用」与停用专区（页面所见即接下来要执行的，关掉/删掉即不再提醒）：① 顶部「对比原基础日程」摘要卡展示「新增 / 已调整 / 保留」三态计数 +「其余 M 项手建与运动计划不受影响，确认后继续保留」；② 各时段与复查卡片标题行右侧实时标注「新增 / 已调整 / 保留」胶囊，「已调整」卡内附琥珀色对比行「原计划：…」（用药自动忽略「服用」前缀匹配同一药品）。右上「确认」按类别+名称整套替换上一版基础日程，手建与运动计划不动；左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
@@ -1636,6 +1666,19 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.388",
+      date: "2026-11-16",
+      time: "15:44",
+      title: "「解析结果」页「用药处方」改为逐行分字段填空并支持增删",
+      screens: [
+        { id: "ocr-parsed", label: "解析结果（用药处方）" },
+      ],
+      items: [
+        "将「用药处方」由整段多行文本改为结构化逐行填空，每行包含「药名」「剂量」「频次」「用法」四个独立输入框，方便中老年用户逐项核对修改。",
+        "每行右侧新增「−」删除按钮，卡片底部新增「+ 添加用药」虚线按钮支持随时新增空白用药行，右上角保留「清空」按钮；至少保留一项非空药名方可提交。",
+      ],
+    },
     {
       ver: "V10.387",
       date: "2026-11-16",
@@ -9073,6 +9116,24 @@
           render();
         }
       },
+      addParsedMed() {
+        const p = ensureParsedResult(false);
+        p.medications.push({ name: "", dose: "", freq: "", usage: "" });
+        render();
+      },
+      delParsedMed() {
+        const idx = parseInt(el.dataset.idx, 10);
+        const p = ensureParsedResult(false);
+        if (Number.isInteger(idx) && idx >= 0 && idx < p.medications.length) {
+          p.medications.splice(idx, 1);
+          render();
+        }
+      },
+      clearParsedMeds() {
+        const p = ensureParsedResult(false);
+        p.medications = [];
+        render();
+      },
       ocrSubmit() {
         if (!canSubmitCapture()) { toast(submitBlockedHint()); return; }
         toast("已保存资料");
@@ -13870,7 +13931,8 @@
       const months = Array.from({ length: 12 }, (_, i) => i + 1);
       const days = Array.from({ length: maxD }, (_, i) => i + 1);
       const hasDisease = Boolean((p.disease || "").length);
-      const hasMed = Boolean((p.medication || "").length);
+      const medRows = p.medications || [];
+      const hasMed = medRows.length > 0;
       const hasSurg = Boolean((p.surgeryName || "").length);
       return `
       <div class="page">
@@ -13895,9 +13957,26 @@
             <div class="parsed-field-head">
               <span class="parsed-field-title">用药处方</span>
               <span class="parsed-badge req">必填</span>
-              <button class="parsed-clear-btn ${hasMed ? "" : "dim"}" data-act="clearParsedField" data-field="medication" ${hasMed ? "" : "disabled"} type="button">清空</button>
+              <button class="parsed-clear-btn ${hasMed ? "" : "dim"}" data-act="clearParsedMeds" ${hasMed ? "" : "disabled"} type="button">清空</button>
             </div>
-            <textarea class="parsed-context-input" data-parsed-field="medication" rows="4" placeholder="请输入用药处方（每行一种药，如：阿司匹林肠溶片 100mg 每日1次 早餐后）">${esc(p.medication || "")}</textarea>
+            ${medRows.length ? `
+              <div class="parsed-med-list">
+                ${medRows.map((m, idx) => `
+                  <div class="parsed-med-row">
+                    <div class="parsed-med-top">
+                      <input type="text" class="parsed-med-input name" data-med-idx="${idx}" data-med-key="name" value="${escAttr(m.name || "")}" placeholder="药名（如：阿司匹林肠溶片）" />
+                      <button class="parsed-med-del" data-act="delParsedMed" data-idx="${idx}" type="button" aria-label="删除该用药">−</button>
+                    </div>
+                    <div class="parsed-med-subgrid">
+                      <input type="text" class="parsed-med-input" data-med-idx="${idx}" data-med-key="dose" value="${escAttr(m.dose || "")}" placeholder="剂量" />
+                      <input type="text" class="parsed-med-input" data-med-idx="${idx}" data-med-key="freq" value="${escAttr(m.freq || "")}" placeholder="频次" />
+                      <input type="text" class="parsed-med-input" data-med-idx="${idx}" data-med-key="usage" value="${escAttr(m.usage || "")}" placeholder="用法" />
+                    </div>
+                  </div>
+                `).join("")}
+              </div>
+            ` : `<div class="parsed-med-empty">暂无用药，请点击下方「添加用药」</div>`}
+            <button class="parsed-med-add" data-act="addParsedMed" type="button">+ 添加用药</button>
           </div>
 
           <div class="parsed-field-card">
