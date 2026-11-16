@@ -1684,6 +1684,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.399",
+      date: "2026-11-16",
+      time: "17:15",
+      title: "基础报告与复查报告进入拍摄时改为每次默认仅勾选第一个分组",
+      screens: [
+        { id: "ocr-capture", label: "上传资料（组轨道）" },
+      ],
+      items: [
+        "进入基础报告或复查报告拍摄页面时，底部组轨道与选组弹窗默认仅勾选第一个分组（基础报告默认「出院记录」，复查报告默认「第一次复查」），其余分组可通过「+ 新建组」按需自由勾选。",
+      ],
+    },
+    {
       ver: "V10.398",
       date: "2026-11-16",
       time: "16:55",
@@ -3143,48 +3155,15 @@
     return out;
   }
   function seedDocGroups(pages = 0) {
-    if (isVisitCapture()) {
-      const targetMax = Math.max(3, configuredVisitMaxOrd());
-      const filledOrds = [...visitBaseFilledOrds()];
-      const maxFilled = filledOrds.length ? Math.max(...filledOrds) : 0;
-      const focusOrd = Math.min(targetMax, maxFilled + 1);
-      S.docGroups = [];
-      for (let ord = 1; ord <= targetMax; ord++) {
-        S.docGroups.push({ id: ord, cat: "reviewReport", ord, pages: ord === focusOrd ? pages : 0 });
-      }
-      S.docSeq = targetMax;
-      S.activeGroup = focusOrd;
-      S.pendingCat = "reviewReport";
-      S.pendingCats = ["dischargeRecord"];
-      S.pendingVisitOrds = Array.from({ length: targetMax }, (_, i) => i + 1);
-      S.pendingVisitMaxOrd = targetMax;
-    } else if (S.captureMode === "archive") {
-      const customCats = [...(ARCHIVE_DEMO.baseline.customCats || [])];
-      const allCats = [
-        ...DOC_CATS.map((c) => ({ cat: c.id, customTitle: null })),
-        ...customCats.map((name) => ({ cat: `custom:${name}`, customTitle: name })),
-      ];
-      S.docGroups = allCats.map((item, idx) => ({
-        id: idx + 1,
-        cat: item.cat,
-        customTitle: item.customTitle,
-        pages: idx === 0 ? pages : 0,
-      }));
-      S.docSeq = allCats.length;
-      S.activeGroup = 1;
-      S.pendingCat = S.docGroups[0]?.cat || "dischargeRecord";
-      S.pendingCats = allCats.map((x) => x.cat);
-      S.pendingVisitOrds = [1];
-      S.pendingVisitMaxOrd = Math.max(3, configuredVisitMaxOrd());
-    } else {
-      S.docSeq = 1;
-      S.docGroups = [{ id: 1, cat: "dischargeRecord", pages }];
-      S.activeGroup = 1;
-      S.pendingCat = S.docGroups[0].cat;
-      S.pendingCats = ["dischargeRecord"];
-      S.pendingVisitOrds = [1];
-      S.pendingVisitMaxOrd = Math.max(3, configuredVisitMaxOrd());
-    }
+    S.docSeq = 1;
+    S.docGroups = isVisitCapture()
+      ? [{ id: 1, cat: "reviewReport", ord: 1, pages }]
+      : [{ id: 1, cat: "dischargeRecord", pages }];
+    S.activeGroup = 1;
+    S.pendingCat = S.docGroups[0].cat;
+    S.pendingCats = ["dischargeRecord"];
+    S.pendingVisitOrds = [1];
+    S.pendingVisitMaxOrd = Math.max(3, configuredVisitMaxOrd());
     S.sessionCustomCats = S.captureMode === "archive" ? [...(ARCHIVE_DEMO.baseline.customCats || [])] : [];
     S.addingCustomCat = false;
     S.editingCustomCat = null;
