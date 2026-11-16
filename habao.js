@@ -396,31 +396,14 @@
     </div>`;
   }
 
-  function archiveExtendRowHTML(key) {
-    const isBaseline = key === "baseline";
-    const title = isBaseline ? "自定义类别" : "更多复查批次";
-    const tag = isBaseline ? "按需添加" : "按需扩展";
-    const note = isBaseline
-      ? "若有其他检查资料，点击下方按钮进入后可自由新建。"
-      : "复查次数不限，点击下方按钮进入后可按需顺延添加。";
-    return `
-    <div class="hr-group hr-group-extend">
-      <div class="hr-extend-head">
-        <span class="s16 fsb t">${title}</span>
-        <span class="hr-extend-tag">${tag}</span>
-      </div>
-      <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">${note}</p>
-    </div>`;
-  }
-
-  // V10.269 / V10.389：资料合集页——与健康档案同源（按每次上传资料累计更新，仅展示已上传有照片的分组），
+  // V10.269 / V10.390：资料合集页——与健康档案同源（按每次上传资料累计更新，仅展示已上传有照片的分组），
   // 点缩略图开全屏预览，点缩略图右上角「×」删除该页；补拍走底栏，直接进拍摄页
   function reportArchivePane() {
     const key = S.reportKind === "visit" ? "review" : "baseline";
     const src = ARCHIVE_DEMO[key];
-    const groups = key === "baseline"
-      ? baselineBaseDisplayGroups()
-      : visitBaseDisplayGroups();
+    const groups = S.reportArchiveEmpty
+      ? []
+      : (key === "baseline" ? baselineBaseDisplayGroups() : visitBaseDisplayGroups());
     if (!groups.length) {
       return `<div style="text-align:left">
         <div class="s19 fsb" style="color:var(--blue);opacity:.88">${src.empty}</div>
@@ -448,8 +431,7 @@
               </div>`).join("")}
           </div>
         </div>`;
-      }).join("")}
-      ${archiveExtendRowHTML(key)}`;
+      }).join("")}`;
   }
 
   function confirmMonitorNote(title) {
@@ -1670,6 +1652,20 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.390",
+      date: "2026-11-16",
+      time: "16:02",
+      title: "移除资料合集底部扩展指引行，两个资料合集导航栏右上角新增「有数据 / 空状态」测试切换按钮",
+      screens: [
+        { id: "report-sub", label: "基础报告 / 复查报告（资料合集）" },
+        { id: "health-record", label: "健康档案" },
+      ],
+      items: [
+        "移除基础报告/复查报告「资料合集」及「健康档案」列表底部的「自定义类别 / 更多复查批次」扩展指引行，界面更简洁。",
+        "在「基础报告」与「复查报告」的「资料合集」导航栏右上角新增「⇄ 有数据 / 空状态」测试切换胶囊按钮，方便一键预览空状态与有数据情况下的页面表现。",
+      ],
+    },
     {
       ver: "V10.389",
       date: "2026-11-16",
@@ -6558,6 +6554,7 @@
       fromCheckIn ? ["打卡", "待确认打卡"] : ["计划", "本次未动"],
     ]);
     S.archivePlace = null;
+    S.reportArchiveEmpty = false;
     markReportMaterialUpdated(visit ? "review" : "baseline");
     // V10.339：打卡复查拍完照之后直接进入复查报告的资料合集界面；
     // 跳出「复查资料已保存」确认弹窗（主按钮「立即打卡」自动回首页完成打卡，次按钮「稍后打卡」留在资料合集）
@@ -12651,6 +12648,22 @@
         S.archivePlace = "身体报告";
         startArchive("capture");
       },
+      toggleReportArchiveDemo() {
+        const key = S.reportKind === "visit" ? "review" : "baseline";
+        const curGroups = key === "baseline" ? baselineBaseDisplayGroups() : visitBaseDisplayGroups();
+        const hasData = !S.reportArchiveEmpty && curGroups.length > 0;
+        if (hasData) {
+          S.reportArchiveEmpty = true;
+        } else {
+          S.reportArchiveEmpty = false;
+          if (!curGroups.length) {
+            const preset = key === "baseline" ? ARCHIVE_DEMO0.baseline : ARCHIVE_DEMO0.review;
+            ARCHIVE_DEMO[key].groups = preset.map((g) => ({ ...g }));
+            syncCurrentPersonArchiveSnapshot();
+          }
+        }
+        render();
+      },
       contra() {
         S.contra = !S.contra;
         if (!S.contraByPerson) S.contraByPerson = {};
@@ -14443,9 +14456,14 @@
       const hasPendingSub = isVisitSub ? !!S.pendingReviewUpdate : !!S.pendingBaselineUpdate;
       const canUpdateSub = hasPendingSub && !isAnalyzingSub;
       const subTitle = isVisitSub ? "复查报告" : "基础报告";
+      const curArchiveGroups = isVisitSub ? visitBaseDisplayGroups() : baselineBaseDisplayGroups();
+      const archiveHasData = !S.reportArchiveEmpty && curArchiveGroups.length > 0;
+      const rightToggle = S.reportPane === "archive"
+        ? `<button class="cap" data-act="toggleReportArchiveDemo" type="button" style="${archiveHasData ? "" : "color:#c2410c;background:rgba(242,153,74,0.16);"}">⇄ ${archiveHasData ? "有数据" : "空状态"}</button>`
+        : "";
       return `
       <div class="page">
-        ${navBar(cap(I.chevL, "返回", "", "back"), subTitle)}
+        ${navBar(cap(I.chevL, "返回", "", "back"), subTitle, rightToggle)}
         <div class="px20" style="padding-top:12px; flex:1; min-height:0; display:flex">
           <div class="island-card" style="flex:1; min-height:0; display:flex; flex-direction:column; padding:14px 18px">
             ${reportPaneTabs()}
@@ -15836,8 +15854,7 @@
                   <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">暂未上传${g.title}报告，可点击下方按钮补充上传。</p>` : `
                   <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">暂未上传${g.title}，可点击下方按钮补充上传。</p>`}
                 </div>`;
-              }).join("")}
-              ${archiveExtendRowHTML(key)}` : `<p class="s15 fm t-sec">${src.empty}</p>`}
+              }).join("")}` : `<p class="s15 fm t-sec">${src.empty}</p>`}
               <button class="cta hr-upload" style="margin-top:16px" data-act="pickArchive" data-kind="${btnKind}" type="button">${I.cam}${btnLabel}</button>
             ` : ""}
           </div>
