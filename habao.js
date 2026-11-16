@@ -1684,6 +1684,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.400",
+      date: "2026-11-16",
+      time: "17:36",
+      title: "选组弹窗点击「确认」即固定保存自定义类别与复查次数配置",
+      screens: [
+        { id: "ocr-capture", label: "上传资料（选择类别 / 选择复查次数）" },
+      ],
+      items: [
+        "在「选择复查次数」或「选择类别」弹窗内增减或改名后点击「确认」，立即固定保存拍照通道的配置项；即使随后点击「稍后」退出再重新进入拍摄，已删除或新增的配置状态也会保持一致（且不影响外侧已上传的资料合集）。",
+      ],
+    },
+    {
       ver: "V10.399",
       date: "2026-11-16",
       time: "17:15",
@@ -3099,13 +3111,15 @@
     return set;
   }
   function configuredVisitMaxOrd() {
+    if (ARCHIVE_DEMO.review.maxOrd !== undefined) {
+      return Math.max(3, ARCHIVE_DEMO.review.maxOrd);
+    }
     const raw = ARCHIVE_DEMO.review.groups || [];
     const filledMax = raw.reduce((m, g, idx) => {
       if (g.pages > 0) return Math.max(m, g.ord || parseVisitOrd(g.title, idx + 1));
       return m;
     }, 0);
-    const configured = ARCHIVE_DEMO.review.maxOrd !== undefined ? ARCHIVE_DEMO.review.maxOrd : 3;
-    return Math.max(3, configured, filledMax);
+    return Math.max(3, filledMax);
   }
   function nextDefaultVisitOrd() {
     const filled = visitBaseFilledOrds();
@@ -9525,6 +9539,8 @@
           } else if (!S.docGroups.some((g) => g.id === S.activeGroup)) {
             S.activeGroup = S.docGroups[S.docGroups.length - 1]?.id || 0;
           }
+          ARCHIVE_DEMO.review.maxOrd = Math.max(3, S.pendingVisitMaxOrd || configuredVisitMaxOrd());
+          syncCurrentPersonArchiveSnapshot();
           closeOverlay();
           return;
         }
@@ -9557,6 +9573,10 @@
           } else if (!S.docGroups.some((g) => g.id === S.activeGroup)) {
             const ordered = orderedDocGroups();
             S.activeGroup = ordered[ordered.length - 1]?.id || 0;
+          }
+          if (S.captureMode === "archive") {
+            ARCHIVE_DEMO.baseline.customCats = [...(S.sessionCustomCats || [])];
+            syncCurrentPersonArchiveSnapshot();
           }
         }
         closeOverlay();
