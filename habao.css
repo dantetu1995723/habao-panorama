@@ -80,14 +80,27 @@ body {
 .mode-row button.on { background: #1054E0; color: #fff; }
 
 .studio-stage {
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  padding: 20px 16px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(143, 176, 255, .28) transparent;
   background:
     radial-gradient(900px 500px at 20% 0%, rgba(30,190,214,.08), transparent 50%),
     radial-gradient(700px 400px at 90% 100%, rgba(240,100,74,.06), transparent 50%),
     #0B1220;
   position: relative;
 }
-.phone-wrap { transform-origin: center center; }
+.studio-stage::-webkit-scrollbar { width: 8px; height: 8px; }
+.studio-stage::-webkit-scrollbar-track { background: transparent; }
+.studio-stage::-webkit-scrollbar-thumb {
+  background: rgba(143, 176, 255, .26);
+  border-radius: 999px;
+}
+.studio-stage::-webkit-scrollbar-thumb:hover { background: rgba(143, 176, 255, .48); }
+.phone-wrap { transform-origin: top center; margin: auto; flex-shrink: 0; }
 .phone {
   width: 454px; height: 956px;
   background: #000;

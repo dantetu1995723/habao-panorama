@@ -1637,6 +1637,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.387",
+      date: "2026-11-16",
+      time: "15:40",
+      title: "中间手机展示区增加滚动条，支持上下滑动查看完整手机界面",
+      screens: [
+        { id: "today", label: "全景中间展示区（画布）" },
+      ],
+      items: [
+        "修复中间手机展示区未开启滚动且被父容器裁切底部的问题，现支持通过滚动条上下滑动查看完整手机界面（从顶部状态栏到底部导航栏）。",
+        "取消按窗口高度强制缩小手机模型的限制，改为仅在窗口过窄时按宽度自适应，确保手机内容清晰可读。",
+      ],
+    },
+    {
       ver: "V10.386",
       date: "2026-11-16",
       time: "15:35",
@@ -6564,9 +6577,9 @@
 
   function scalePhone() {
     const wrap = $("#phone-wrap");
-    const availH = window.innerHeight - 24;
-    const availW = Math.max(320, window.innerWidth - 620);
-    const s = Math.min(1, availH / 956, availW / 454);
+    const stage = $(".studio-stage");
+    const availW = Math.max(320, (stage ? stage.clientWidth - 32 : window.innerWidth - 620));
+    const s = Math.min(1, availW / 454);
     wrap.style.transform = `scale(${s})`;
   }
 
