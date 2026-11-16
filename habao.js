@@ -1684,6 +1684,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.401",
+      date: "2026-11-16",
+      time: "17:40",
+      title: "修复「确认计划」右上角「确认」按钮点击无响应的问题",
+      screens: [
+        { id: "confirm-plan", label: "确认计划" },
+      ],
+      items: [
+        "修复确认计划提交草稿时调用未定义日期辅助方法导致报错、右上角「确认」按钮点击无反应的问题，恢复正常确认落库与页面跳转。",
+      ],
+    },
+    {
       ver: "V10.400",
       date: "2026-11-16",
       time: "17:36",
@@ -5784,7 +5796,7 @@
       [...res.updated, ...res.created].forEach(place);
       if (S.restOtherItems && Array.isArray(S.restOtherItems._initIds)) {
         const keptIds = new Set(S.restOtherItems.filter((x) => x.on !== false).map((x) => String(x.id)));
-        const yesterday = toYMD(addDays(demoDate(), -1));
+        const yesterday = addDaysYMD(toYMD(demoDate()), -1);
         S.restOtherItems._initIds.forEach((id) => {
           if (!keptIds.has(String(id))) {
             const hit = SEED.find((t) => String(t.id) === String(id) && !isBaselineTask(t));
