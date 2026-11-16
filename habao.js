@@ -411,7 +411,14 @@
       </div>`;
     }
     const total = groups.reduce((s, g) => s + g.pages, 0);
+    const missingTitles = key === "review" ? groups.filter((g) => g.pages <= 0).map((g) => g.title) : [];
+    const missingBanner = missingTitles.length
+      ? `<div style="display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:12px;background:rgba(242,153,74,.14);color:#c2410c;font-size:13.5px;font-weight:600;line-height:1.4;margin-top:4px">
+          <span>⚠️</span><span>${missingTitles.join("、")}暂无资料，可点击下方按钮补充上传</span>
+        </div>`
+      : "";
     return `${total > 0 ? `<div class="s15 fsb" style="color:var(--blue);opacity:.72">共 ${total} 张</div>` : ""}
+      ${missingBanner}
       ${groups.map((g) => {
         const gi = src.groups.findIndex((x) => x.title === g.title);
         return `
@@ -420,6 +427,7 @@
             <span class="s16 fsb t">${g.title}</span>
             ${g.pages > 0 ? `<span class="s13 fm t-sec mono">${g.pages} 张</span>` : ""}
           </div>
+          ${g.pages > 0 ? `
           <div class="hr-grid">
             ${Array.from({ length: g.pages }, (_, i) => `
               <div class="hr-thumb-cell">
@@ -429,7 +437,8 @@
                 </button>
                 <button class="hr-thumb-del" data-act="delHrPage" data-k="${key}" data-gi="${gi}" data-pi="${i}" type="button" aria-label="删除${g.title}第${i + 1}页">×</button>
               </div>`).join("")}
-          </div>
+          </div>` : `
+          <p class="s14 fm" style="margin:6px 0 4px;line-height:1.5;color:#c2410c">暂未上传${g.title}资料，可点击下方按钮补充上传。</p>`}
         </div>`;
       }).join("")}`;
   }
@@ -1681,6 +1690,21 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.394",
+      date: "2026-11-16",
+      time: "16:33",
+      title: "取消复查选次锁定限制，改为在外侧「资料合集」直接提示前面或中间空次缺失资料",
+      screens: [
+        { id: "report-sub", label: "复查报告（资料合集）" },
+        { id: "ocr-capture", label: "上传资料（选择复查次数）" },
+        { id: "health-record", label: "健康档案" },
+      ],
+      items: [
+        "取消拍照选次弹窗的锁定概念与跳号提交拦截，恢复自由勾选已配置的复查次数（仍保留默认 3 次不可删与进入拍摄默认预选「1…已有存量次 + 紧邻下一次」）。",
+        "若外侧「资料合集 / 健康档案」存在前面或中间空的复查次序（如仅上传了第二次，或上传了第一次与第三次而缺第二次），在资料合集顶部与对应空次分组下直接醒目提示缺少资料，引导补充上传。",
+      ],
+    },
     {
       ver: "V10.393",
       date: "2026-11-16",
@@ -3039,30 +3063,6 @@
     }
     return maxOrd + 1;
   }
-  function visitContiguousFilledMax() {
-    const base = visitBaseFilledOrds();
-    const track = new Set((S.docGroups || []).filter((g) => g.pages > 0).map((g) => g.ord || 1));
-    let ord = 1;
-    while (base.has(ord) || track.has(ord)) {
-      ord += 1;
-    }
-    return ord - 1;
-  }
-  function maxUnlockedVisitOrd() {
-    return visitContiguousFilledMax() + 1;
-  }
-  function firstMissingVisitOrdGap() {
-    if (!isVisitCapture()) return null;
-    const track = new Set((S.docGroups || []).filter((g) => g.pages > 0).map((g) => g.ord || 1));
-    if (!track.size) return null;
-    const base = visitBaseFilledOrds();
-    const combined = new Set([...base, ...track]);
-    const maxOrd = Math.max(...combined);
-    for (let ord = 1; ord <= maxOrd; ord++) {
-      if (!combined.has(ord)) return ord;
-    }
-    return null;
-  }
   function baselineBaseDisplayGroups() {
     const raw = (ARCHIVE_DEMO.baseline.groups || []).filter((g) => g.pages > 0);
     const customCats = ARCHIVE_DEMO.baseline.customCats || [];
@@ -3081,21 +3081,31 @@
   function visitBaseDisplayGroups() {
     const raw = ARCHIVE_DEMO.review.groups || [];
     const filled = raw.filter((g) => g.pages > 0);
+    if (!filled.length) return [];
     const byOrd = new Map();
+    let maxFilledOrd = 0;
     filled.forEach((g, idx) => {
       const ord = g.ord || parseVisitOrd(g.title, idx + 1);
       g.ord = ord;
       g.title = `${cnOrdinal(ord)}次复查`;
       byOrd.set(ord, g);
+      if (ord > maxFilledOrd) maxFilledOrd = ord;
     });
-    return [...byOrd.entries()]
-      .sort((a, b) => a[0] - b[0])
-      .map(([, g]) => g);
+    const out = [];
+    for (let ord = 1; ord <= maxFilledOrd; ord++) {
+      if (byOrd.has(ord)) {
+        out.push(byOrd.get(ord));
+      } else {
+        out.push({ ord, title: `${cnOrdinal(ord)}次复查`, pages: 0 });
+      }
+    }
+    return out;
   }
   function seedDocGroups(pages = 0) {
     if (isVisitCapture()) {
-      const baseMax = visitContiguousFilledMax();
-      const targetMax = Math.max(1, baseMax + 1);
+      const filledOrds = [...visitBaseFilledOrds()];
+      const maxFilled = filledOrds.length ? Math.max(...filledOrds) : 0;
+      const targetMax = Math.max(1, maxFilled + 1);
       S.docGroups = [];
       for (let ord = 1; ord <= targetMax; ord++) {
         S.docGroups.push({ id: ord, cat: "reviewReport", ord, pages: ord === targetMax ? pages : 0 });
@@ -9207,11 +9217,6 @@
           toast(submitBlockedHint());
           return;
         }
-        const missingOrd = firstMissingVisitOrdGap();
-        if (missingOrd) {
-          toast(`请先上传${cnOrdinal(missingOrd)}次复查资料，不可跳过中间复查次序`);
-          return;
-        }
         go("ocr-detail", "push");
       },
       ocrParse() {
@@ -9279,11 +9284,6 @@
       },
       ocrSubmit() {
         if (!canSubmitCapture()) { toast(submitBlockedHint()); return; }
-        const missingOrd = firstMissingVisitOrdGap();
-        if (missingOrd) {
-          toast(`请先上传${cnOrdinal(missingOrd)}次复查资料，不可跳过中间复查次序`);
-          return;
-        }
         toast("已保存资料");
         finishArchive();
       },
@@ -9293,9 +9293,8 @@
         S.addingCustomCat = false;
         S.editingCustomCat = null;
         if (isVisitCapture()) {
-          const maxUnlocked = maxUnlockedVisitOrd();
-          S.pendingVisitOrds = [...new Set(S.docGroups.map((g) => g.ord || 1))].filter((ord) => ord <= maxUnlocked);
-          S.pendingVisitMaxOrd = Math.max(3, S.pendingVisitMaxOrd || configuredVisitMaxOrd(), maxUnlocked, ...S.docGroups.map((g) => g.ord || 1));
+          S.pendingVisitOrds = [...new Set(S.docGroups.map((g) => g.ord || 1))];
+          S.pendingVisitMaxOrd = Math.max(3, S.pendingVisitMaxOrd || configuredVisitMaxOrd(), ...S.docGroups.map((g) => g.ord || 1));
         } else {
           S.pendingCat = S.docGroups[0]?.cat || "dischargeRecord";
           const currentCats = [...new Set(S.docGroups.map((g) => g.cat))];
@@ -9312,7 +9311,7 @@
       pickDocCat() {
         if (isVisitCapture()) {
           const ord = +el.dataset.ord;
-          if (!ord || ord > maxUnlockedVisitOrd()) return;
+          if (!ord) return;
           if (!Array.isArray(S.pendingVisitOrds)) S.pendingVisitOrds = [];
           if (S.pendingVisitOrds.includes(ord)) {
             S.pendingVisitOrds = S.pendingVisitOrds.filter((x) => x !== ord);
@@ -9342,7 +9341,7 @@
         const nextOrd = Math.max(3, S.pendingVisitMaxOrd || configuredVisitMaxOrd()) + 1;
         S.pendingVisitMaxOrd = nextOrd;
         if (!Array.isArray(S.pendingVisitOrds)) S.pendingVisitOrds = [];
-        if (nextOrd <= maxUnlockedVisitOrd() && !S.pendingVisitOrds.includes(nextOrd)) {
+        if (!S.pendingVisitOrds.includes(nextOrd)) {
           S.pendingVisitOrds = [...S.pendingVisitOrds, nextOrd];
         }
         render();
@@ -12763,19 +12762,12 @@
         if (!src || gi < 0 || !src.groups[gi]) return;
         src.groups[gi].pages -= 1;
         if (src.groups[gi].pages <= 0) {
-          src.groups.splice(gi, 1);
           if (k === "review") {
             src.groups.forEach((g, idx) => {
               if (!g.ord) g.ord = parseVisitOrd(g.title, idx + 1);
             });
-            src.groups.sort((a, b) => (a.ord || 1) - (b.ord || 1));
-            src.groups.forEach((g, idx) => {
-              const newOrd = idx + 1;
-              g.ord = newOrd;
-              g.title = `${cnOrdinal(newOrd)}次复查`;
-            });
-            ARCHIVE_DEMO.review.maxOrd = Math.max(3, src.groups.length);
           }
+          src.groups.splice(gi, 1);
         }
         syncCurrentPersonArchiveSnapshot();
         markReportMaterialUpdated(k === "visit" || k === "review" ? "review" : "baseline");
@@ -16013,7 +16005,7 @@
                         <button class="hr-thumb-del" data-act="delHrPage" data-k="${key}" data-gi="${gi}" data-pi="${i}" type="button" aria-label="删除${g.title}第${i + 1}页">×</button>
                       </div>`).join("")}
                   </div>` : key === "review" ? `
-                  <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">暂未上传${g.title}报告，可点击下方按钮补充上传。</p>` : `
+                  <p class="s14 fm" style="margin:6px 0 4px;line-height:1.5;color:#c2410c">暂未上传${g.title}资料，可点击下方按钮补充上传。</p>` : `
                   <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">暂未上传${g.title}，可点击下方按钮补充上传。</p>`}
                 </div>`;
               }).join("")}` : `<p class="s15 fm t-sec">${src.empty}</p>`}
@@ -21364,8 +21356,7 @@
     catPick: () => {
       if (isVisitCapture()) {
         const selected = S.pendingVisitOrds || [];
-        const maxUnlocked = maxUnlockedVisitOrd();
-        const totalCount = Math.max(3, S.pendingVisitMaxOrd || configuredVisitMaxOrd(), maxUnlocked);
+        const totalCount = Math.max(3, S.pendingVisitMaxOrd || configuredVisitMaxOrd());
         const nextTitle = `${cnOrdinal(totalCount + 1)}次复查`;
         return `
         <div class="scrim bottom" data-act="close">
@@ -21379,22 +21370,16 @@
             <div class="cat-list">
               ${Array.from({ length: totalCount }, (_, idx) => {
                 const ord = idx + 1;
-                const locked = ord > maxUnlocked;
-                const on = !locked && selected.includes(ord);
+                const on = selected.includes(ord);
                 return `
-                <div class="cat-row ${on ? "on" : ""}" style="display:flex;align-items:center;gap:10px;${locked ? "opacity:.68;" : ""}">
-                  <button class="flex grow center" style="background:none;border:0;padding:0;gap:12px;text-align:left;color:inherit;font:inherit;cursor:${locked ? "default" : "pointer"}" ${locked ? "disabled" : `data-act="pickDocCat" data-ord="${ord}"`} type="button">
-                    <span class="cat-ico" style="${locked ? "background:rgba(15,23,42,.06);color:var(--secondary)" : ""}">${I.doc}</span>
-                    <div class="grow ta-l" style="display:flex;flex-direction:column;gap:2px">
-                      <b style="${locked ? "color:var(--secondary)" : ""}">${cnOrdinal(ord)}次复查</b>
-                      ${locked ? `<span class="s12 fm t-sec">需先上传${cnOrdinal(ord - 1)}次复查</span>` : ""}
-                    </div>
+                <div class="cat-row ${on ? "on" : ""}" style="display:flex;align-items:center;gap:10px">
+                  <button class="flex grow center" style="background:none;border:0;padding:0;gap:12px;text-align:left;color:inherit;font:inherit;cursor:pointer" data-act="pickDocCat" data-ord="${ord}" type="button">
+                    <span class="cat-ico">${I.doc}</span>
+                    <span class="grow ta-l"><b>${cnOrdinal(ord)}次复查</b></span>
                   </button>
                   ${ord > 3 ? `<button class="cap red" style="padding:4px 10px;font-size:12px" data-act="delVisitOrdInPicker" data-ord="${ord}" type="button">删除</button>` : ""}
-                  <button style="background:none;border:0;padding:2px;cursor:${locked ? "default" : "pointer"}" ${locked ? "disabled" : `data-act="pickDocCat" data-ord="${ord}"`} type="button">
-                    ${locked
-                      ? `<span class="s12 t-sec" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px">🔒</span>`
-                      : (on ? `<span class="cat-check">${I.check}</span>` : `<span style="display:inline-block;width:20px;height:20px;border-radius:50%;border:1.8px solid rgba(100,116,139,.35)"></span>`)}
+                  <button style="background:none;border:0;padding:2px;cursor:pointer" data-act="pickDocCat" data-ord="${ord}" type="button">
+                    ${on ? `<span class="cat-check">${I.check}</span>` : `<span style="display:inline-block;width:20px;height:20px;border-radius:50%;border:1.8px solid rgba(100,116,139,.35)"></span>`}
                   </button>
                 </div>`;
               }).join("")}
