@@ -413,7 +413,7 @@
     </div>`;
   }
 
-  // V10.269：资料合集页——与健康档案同源（基础报告列入组存量，复查报告按次归档），
+  // V10.269 / V10.389：资料合集页——与健康档案同源（按每次上传资料累计更新，仅展示已上传有照片的分组），
   // 点缩略图开全屏预览，点缩略图右上角「×」删除该页；补拍走底栏，直接进拍摄页
   function reportArchivePane() {
     const key = S.reportKind === "visit" ? "review" : "baseline";
@@ -421,6 +421,12 @@
     const groups = key === "baseline"
       ? baselineBaseDisplayGroups()
       : visitBaseDisplayGroups();
+    if (!groups.length) {
+      return `<div style="text-align:left">
+        <div class="s19 fsb" style="color:var(--blue);opacity:.88">${src.empty}</div>
+        <p class="s15 fm t-sec" style="margin:8px 0 0">点下方「新增报告资料」拍照上传。</p>
+      </div>`;
+    }
     const total = groups.reduce((s, g) => s + g.pages, 0);
     return `${total > 0 ? `<div class="s15 fsb" style="color:var(--blue);opacity:.72">共 ${total} 张</div>` : ""}
       ${groups.map((g) => {
@@ -431,7 +437,6 @@
             <span class="s16 fsb t">${g.title}</span>
             ${g.pages > 0 ? `<span class="s13 fm t-sec mono">${g.pages} 张</span>` : ""}
           </div>
-          ${g.pages > 0 ? `
           <div class="hr-grid">
             ${Array.from({ length: g.pages }, (_, i) => `
               <div class="hr-thumb-cell">
@@ -441,8 +446,7 @@
                 </button>
                 <button class="hr-thumb-del" data-act="delHrPage" data-k="${key}" data-gi="${gi}" data-pi="${i}" type="button" aria-label="删除${g.title}第${i + 1}页">×</button>
               </div>`).join("")}
-          </div>` : `
-          <p class="s14 fm t-sec" style="margin:6px 0 4px;line-height:1.5">${key === "review" ? `暂未上传${g.title}报告，可点击下方按钮补充上传。` : `暂未上传${g.title}，可点击下方按钮补充上传。`}</p>`}
+          </div>
         </div>`;
       }).join("")}
       ${archiveExtendRowHTML(key)}`;
@@ -1667,6 +1671,22 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.389",
+      date: "2026-11-16",
+      time: "15:55",
+      title: "身体报告基础/复查拍照组分类与外侧资料合集解耦（累计更新），复查默认配置改为 3 次且不可删",
+      screens: [
+        { id: "report-sub", label: "基础报告 / 复查报告（资料合集）" },
+        { id: "ocr-capture", label: "上传资料（选择类别 / 选择复查次数）" },
+        { id: "health-record", label: "健康档案" },
+      ],
+      items: [
+        "外侧「资料合集」与「健康档案」不再预先同步展示拍照通道中的全部未上传空分类，改为根据每次上传提交的资料累计（accumulate）更新，空态展示「还没有基础/复查报告」提示。",
+        "拍照流程中新增、改名或删除自定义类别及复查次数仅作用于当前上传通道配置，不再即时改动或误删外侧「资料合集」中已存档的历史资料。",
+        "复查报告默认配置项由 8 次调整为 3 次（第一次复查 ~ 第三次复查），默认配置次数不提供删除按钮、不可删除，仅后续点击「+ 新增复查」添加的第四次及以后复查可删除。",
+      ],
+    },
+    {
       ver: "V10.388",
       date: "2026-11-16",
       time: "15:44",
@@ -2411,7 +2431,7 @@
     ARCHIVE_DEMO.baseline.customCats = [...(ARCHIVE_DEMO0.customCats || [])];
     ARCHIVE_DEMO.review.groups.length = 0;
     ARCHIVE_DEMO0.review.forEach((g) => ARCHIVE_DEMO.review.groups.push({ ...g }));
-    ARCHIVE_DEMO.review.maxOrd = ARCHIVE_DEMO0.reviewMaxOrd || 2;
+    ARCHIVE_DEMO.review.maxOrd = ARCHIVE_DEMO0.reviewMaxOrd || 3;
     taskSeq = 0;
     ensureCareGraph();
   }
@@ -2942,8 +2962,8 @@
       if (g.pages > 0) return Math.max(m, g.ord || parseVisitOrd(g.title, idx + 1));
       return m;
     }, 0);
-    const configured = ARCHIVE_DEMO.review.maxOrd !== undefined ? ARCHIVE_DEMO.review.maxOrd : 8;
-    return Math.max(1, configured, filledMax);
+    const configured = ARCHIVE_DEMO.review.maxOrd !== undefined ? ARCHIVE_DEMO.review.maxOrd : 3;
+    return Math.max(3, configured, filledMax);
   }
   function nextDefaultVisitOrd() {
     const filled = visitBaseFilledOrds();
@@ -2955,23 +2975,18 @@
     return maxOrd + 1;
   }
   function baselineBaseDisplayGroups() {
-    const raw = ARCHIVE_DEMO.baseline.groups || [];
+    const raw = (ARCHIVE_DEMO.baseline.groups || []).filter((g) => g.pages > 0);
     const customCats = ARCHIVE_DEMO.baseline.customCats || [];
-    const byTitle = new Map();
-    raw.forEach((g) => {
-      if (g.pages > 0) byTitle.set(g.title, g);
-    });
-    const fixedTitles = DOC_CATS.map((c) => c.t);
-    const allTitles = [...fixedTitles];
-    customCats.forEach((name) => {
-      if (name && !allTitles.includes(name)) allTitles.push(name);
-    });
-    raw.forEach((g) => {
-      if (g.pages > 0 && g.title && !allTitles.includes(g.title)) allTitles.push(g.title);
-    });
-    return allTitles.map((t) => {
-      if (byTitle.has(t)) return byTitle.get(t);
-      return { title: t, pages: 0 };
+    const fixedOrder = new Map(DOC_CATS.map((c, idx) => [c.t, idx]));
+    return [...raw].sort((a, b) => {
+      const aFixed = fixedOrder.has(a.title) ? fixedOrder.get(a.title) : null;
+      const bFixed = fixedOrder.has(b.title) ? fixedOrder.get(b.title) : null;
+      if (aFixed !== null && bFixed !== null) return aFixed - bFixed;
+      if (aFixed !== null) return -1;
+      if (bFixed !== null) return 1;
+      const aIdx = customCats.indexOf(a.title);
+      const bIdx = customCats.indexOf(b.title);
+      return (aIdx >= 0 ? aIdx : 99) - (bIdx >= 0 ? bIdx : 99);
     });
   }
   function visitBaseDisplayGroups() {
@@ -2984,16 +2999,9 @@
       g.title = `${cnOrdinal(ord)}次复查`;
       byOrd.set(ord, g);
     });
-    const maxOrd = configuredVisitMaxOrd();
-    const out = [];
-    for (let ord = 1; ord <= maxOrd; ord++) {
-      if (byOrd.has(ord)) {
-        out.push(byOrd.get(ord));
-      } else {
-        out.push({ ord, title: `${cnOrdinal(ord)}次复查`, pages: 0 });
-      }
-    }
-    return out;
+    return [...byOrd.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([, g]) => g);
   }
   function seedDocGroups(pages = 0) {
     S.docSeq = 1;
@@ -3004,7 +3012,8 @@
     S.pendingCat = S.docGroups[0].cat;
     S.pendingCats = ["dischargeRecord"];
     S.pendingVisitOrds = [1];
-    S.pendingVisitMaxOrd = configuredVisitMaxOrd();
+    S.pendingVisitMaxOrd = Math.max(3, configuredVisitMaxOrd());
+    S.sessionCustomCats = S.captureMode === "archive" ? [...(ARCHIVE_DEMO.baseline.customCats || [])] : [];
     S.addingCustomCat = false;
     S.editingCustomCat = null;
     S.catPickerMode = "newGroup";
@@ -3032,7 +3041,7 @@
       return [...all].sort((a, b) => (a.ord || 1) - (b.ord || 1));
     }
     const catOrder = new Map(DOC_CATS.map((c, idx) => [c.id, idx]));
-    const customList = ARCHIVE_DEMO.baseline.customCats || [];
+    const customList = S.sessionCustomCats || ARCHIVE_DEMO.baseline.customCats || [];
     return [...all].sort((a, b) => {
       const aFixed = catOrder.has(a.cat) ? catOrder.get(a.cat) : null;
       const bFixed = catOrder.has(b.cat) ? catOrder.get(b.cat) : null;
@@ -4058,7 +4067,7 @@
           { title: "第一次复查", pages: 2 },
           { title: "第二次复查", pages: 1 },
         ],
-        archiveReviewMaxOrd: 8,
+        archiveReviewMaxOrd: 3,
         ops: [
           { id: "pr_preset_2", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "打卡了", place: "家属管理", at: baseHour - 900000, how: "晨起测血压与心率", notifiedNames: [] },
           { id: "op_zgl_1", role: "patient", actor: "张桂兰", targetName: "张桂兰", action: "打卡了", place: "首页", at: baseHour - 1800000, how: "服用苯磺酸氨氯地平片", notifiedNames: [] },
@@ -4122,7 +4131,7 @@
         archiveReview: [
           { title: "第一次复查", pages: 1 },
         ],
-        archiveReviewMaxOrd: 8,
+        archiveReviewMaxOrd: 3,
         ops: [
           { id: "op_wf_0", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "打卡了", place: "家属管理", at: baseHour - 600000, how: "晨起温水", notifiedNames: [] },
           { id: "op_wf_1", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "修改了计划", place: "家属管理", at: baseHour - 2400000, how: "晚间散步", notifiedNames: [] },
@@ -4155,7 +4164,7 @@
         },
         archiveBaseline: [],
         archiveReview: [],
-        archiveReviewMaxOrd: 8,
+        archiveReviewMaxOrd: 3,
         ops: [],
       };
     }
@@ -4190,7 +4199,7 @@
         { title: "第一次复查", pages: 2 },
         { title: "第二次复查", pages: 1 },
       ],
-      archiveReviewMaxOrd: 8,
+      archiveReviewMaxOrd: 3,
       ops: [
         { id: "op_ljg_0", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "打卡了", place: "家属管理", at: baseHour - 600000, how: "晨起温水", notifiedNames: [] },
         { id: "pr_preset_2", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "打卡了", place: "家属管理", at: baseHour - 900000, how: "晨起测血压与心率", notifiedNames: [] },
@@ -4272,7 +4281,7 @@
       S.personStoreMap[prevKey].archiveBaseline = (ARCHIVE_DEMO.baseline.groups || []).map((g) => ({ ...g }));
       S.personStoreMap[prevKey].archiveCustomCats = [...(ARCHIVE_DEMO.baseline.customCats || [])];
       S.personStoreMap[prevKey].archiveReview = (ARCHIVE_DEMO.review.groups || []).map((g) => ({ ...g }));
-      S.personStoreMap[prevKey].archiveReviewMaxOrd = ARCHIVE_DEMO.review.maxOrd || 8;
+      S.personStoreMap[prevKey].archiveReviewMaxOrd = ARCHIVE_DEMO.review.maxOrd || 3;
       if ((S.ops && S.ops.length) || S.opCleared) {
         S.personStoreMap[prevKey].ops = (S.ops || []).map((o) => ({ ...o }));
       }
@@ -4293,7 +4302,7 @@
     ARCHIVE_DEMO.baseline.customCats = [...(bucket.archiveCustomCats || [])];
     ARCHIVE_DEMO.review.groups = (bucket.archiveReview || []).map((g) => ({ ...g }));
     const maxStoredRev = (ARCHIVE_DEMO.review.groups || []).reduce((m, g, i) => Math.max(m, g.ord || parseVisitOrd(g.title, i + 1)), 1);
-    ARCHIVE_DEMO.review.maxOrd = Math.max(1, bucket.archiveReviewMaxOrd || 8, maxStoredRev);
+    ARCHIVE_DEMO.review.maxOrd = Math.max(3, bucket.archiveReviewMaxOrd || 3, maxStoredRev);
     S.ops = (bucket.ops || []).map((o) => ({ ...o }));
     S.notifySelf = bucket.notifySelf !== undefined ? bucket.notifySelf : true;
     S.notifyFamily = bucket.notifyFamily !== undefined
@@ -6494,7 +6503,7 @@
       S.personStoreMap[S.boundPersonKey].archiveBaseline = (ARCHIVE_DEMO.baseline.groups || []).map((g) => ({ ...g }));
       S.personStoreMap[S.boundPersonKey].archiveCustomCats = [...(ARCHIVE_DEMO.baseline.customCats || [])];
       S.personStoreMap[S.boundPersonKey].archiveReview = (ARCHIVE_DEMO.review.groups || []).map((g) => ({ ...g }));
-      S.personStoreMap[S.boundPersonKey].archiveReviewMaxOrd = ARCHIVE_DEMO.review.maxOrd || 8;
+      S.personStoreMap[S.boundPersonKey].archiveReviewMaxOrd = ARCHIVE_DEMO.review.maxOrd || 3;
     }
   }
   function finishArchive() {
@@ -6502,9 +6511,10 @@
     const fromCheckIn = visit && S.apptCapture;
     const filled = S.docGroups.filter((g) => g.pages > 0);
     // 资料 BASE 互通（健康档案 / 基础报告 / 复查报告三处同源）：
-    // 复查报告按批次新增「第N次复查」，基础报告按类别名合并追加，并同步写入人物档案快照
+    // 外侧资料合集根据每次上传累计（accumulate）更新，提交时才写入对应分组或复查批次
     const addedVisits = [];
     if (visit) {
+      ARCHIVE_DEMO.review.maxOrd = Math.max(3, S.pendingVisitMaxOrd || 3, ...filled.map((g, idx) => g.ord || (idx + 1)));
       filled.forEach((g, idx) => {
         const ord = g.ord || (idx + 1);
         const ordTitle = `${cnOrdinal(ord)}次复查`;
@@ -6516,13 +6526,14 @@
         } else {
           ARCHIVE_DEMO.review.groups.push({ ord, title: ordTitle, pages: g.pages });
         }
-        if (ord > (ARCHIVE_DEMO.review.maxOrd || 1)) {
+        if (ord > (ARCHIVE_DEMO.review.maxOrd || 3)) {
           ARCHIVE_DEMO.review.maxOrd = ord;
         }
         addedVisits.push(`${ordTitle} ${g.pages} 页`);
       });
       ARCHIVE_DEMO.review.groups.sort((a, b) => (a.ord || parseVisitOrd(a.title, 1)) - (b.ord || parseVisitOrd(b.title, 1)));
     } else {
+      ARCHIVE_DEMO.baseline.customCats = [...(S.sessionCustomCats || ARCHIVE_DEMO.baseline.customCats || [])];
       filled.forEach((g) => {
         const catTitle = groupDisplayName(g);
         if (String(g.cat).startsWith("custom:") && !(ARCHIVE_DEMO.baseline.customCats || []).includes(catTitle)) {
@@ -9146,7 +9157,7 @@
         S.editingCustomCat = null;
         if (isVisitCapture()) {
           S.pendingVisitOrds = [...new Set(S.docGroups.map((g) => g.ord || 1))];
-          S.pendingVisitMaxOrd = Math.max(configuredVisitMaxOrd(), ...S.docGroups.map((g) => g.ord || 1));
+          S.pendingVisitMaxOrd = Math.max(3, S.pendingVisitMaxOrd || configuredVisitMaxOrd(), ...S.docGroups.map((g) => g.ord || 1));
         } else {
           S.pendingCat = S.docGroups[0]?.cat || "dischargeRecord";
           const currentCats = [...new Set(S.docGroups.map((g) => g.cat))];
@@ -9154,6 +9165,9 @@
             currentCats.unshift("dischargeRecord");
           }
           S.pendingCats = currentCats;
+          if (!Array.isArray(S.sessionCustomCats)) {
+            S.sessionCustomCats = S.captureMode === "archive" ? [...(ARCHIVE_DEMO.baseline.customCats || [])] : [];
+          }
         }
         openOverlay("catPick");
       },
@@ -9187,39 +9201,25 @@
         render();
       },
       addVisitOrdInPicker() {
-        const nextOrd = Math.max(1, S.pendingVisitMaxOrd || configuredVisitMaxOrd()) + 1;
+        const nextOrd = Math.max(3, S.pendingVisitMaxOrd || configuredVisitMaxOrd()) + 1;
         S.pendingVisitMaxOrd = nextOrd;
-        ARCHIVE_DEMO.review.maxOrd = nextOrd;
         if (!Array.isArray(S.pendingVisitOrds)) S.pendingVisitOrds = [];
         if (!S.pendingVisitOrds.includes(nextOrd)) {
           S.pendingVisitOrds = [...S.pendingVisitOrds, nextOrd];
         }
-        syncCurrentPersonArchiveSnapshot();
         render();
       },
       delVisitOrdInPicker() {
         const deletedOrd = +el.dataset.ord;
-        const curMax = Math.max(1, S.pendingVisitMaxOrd || configuredVisitMaxOrd());
-        if (!deletedOrd || curMax <= 1) return;
-        ARCHIVE_DEMO.review.groups = (ARCHIVE_DEMO.review.groups || [])
-          .filter((g, i) => (g.ord || parseVisitOrd(g.title, i + 1)) !== deletedOrd)
-          .map((g, i) => {
-            const ord = g.ord || parseVisitOrd(g.title, i + 1);
-            if (ord > deletedOrd) {
-              const nextOrd = ord - 1;
-              return { ...g, ord: nextOrd, title: `${cnOrdinal(nextOrd)}次复查` };
-            }
-            return g;
-          });
+        const curMax = Math.max(3, S.pendingVisitMaxOrd || configuredVisitMaxOrd());
+        if (!deletedOrd || deletedOrd <= 3 || curMax <= 3) return;
         S.docGroups = (S.docGroups || [])
           .filter((g) => (g.ord || 1) !== deletedOrd)
           .map((g) => ((g.ord || 1) > deletedOrd ? { ...g, ord: (g.ord || 1) - 1 } : g));
         S.pendingVisitOrds = (S.pendingVisitOrds || [])
           .filter((ord) => ord !== deletedOrd)
           .map((ord) => (ord > deletedOrd ? ord - 1 : ord));
-        S.pendingVisitMaxOrd = Math.max(1, curMax - 1);
-        ARCHIVE_DEMO.review.maxOrd = S.pendingVisitMaxOrd;
-        syncCurrentPersonArchiveSnapshot();
+        S.pendingVisitMaxOrd = Math.max(3, curMax - 1);
         render();
       },
       startAddCustomCat() {
@@ -9237,16 +9237,15 @@
           render();
           return;
         }
-        if (!Array.isArray(ARCHIVE_DEMO.baseline.customCats)) ARCHIVE_DEMO.baseline.customCats = [];
-        if (!ARCHIVE_DEMO.baseline.customCats.includes(raw)) {
-          ARCHIVE_DEMO.baseline.customCats.push(raw);
+        if (!Array.isArray(S.sessionCustomCats)) S.sessionCustomCats = [];
+        if (!S.sessionCustomCats.includes(raw)) {
+          S.sessionCustomCats.push(raw);
         }
         const customKey = `custom:${raw}`;
         if (!Array.isArray(S.pendingCats)) S.pendingCats = [];
         if (!S.pendingCats.includes(customKey)) {
           S.pendingCats = [...S.pendingCats, customKey];
         }
-        syncCurrentPersonArchiveSnapshot();
         render();
       },
       startRenameCustomCat() {
@@ -9267,16 +9266,13 @@
           render();
           return;
         }
-        const list = ARCHIVE_DEMO.baseline.customCats || [];
+        const list = S.sessionCustomCats || [];
         if (list.includes(newName)) {
           toast("该自定义类别已存在");
           render();
           return;
         }
-        ARCHIVE_DEMO.baseline.customCats = list.map((x) => (x === oldName ? newName : x));
-        (ARCHIVE_DEMO.baseline.groups || []).forEach((g) => {
-          if (g.title === oldName) g.title = newName;
-        });
+        S.sessionCustomCats = list.map((x) => (x === oldName ? newName : x));
         const oldKey = `custom:${oldName}`;
         const newKey = `custom:${newName}`;
         (S.docGroups || []).forEach((g) => {
@@ -9288,7 +9284,6 @@
         if (Array.isArray(S.pendingCats)) {
           S.pendingCats = S.pendingCats.map((k) => (k === oldKey ? newKey : k));
         }
-        syncCurrentPersonArchiveSnapshot();
         render();
       },
       cancelCustomCatInput() {
@@ -9299,14 +9294,12 @@
       delCustomCatInPicker() {
         const name = el.dataset.name;
         if (!name) return;
-        ARCHIVE_DEMO.baseline.customCats = (ARCHIVE_DEMO.baseline.customCats || []).filter((x) => x !== name);
-        ARCHIVE_DEMO.baseline.groups = (ARCHIVE_DEMO.baseline.groups || []).filter((g) => g.title !== name);
+        S.sessionCustomCats = (S.sessionCustomCats || []).filter((x) => x !== name);
         const customKey = `custom:${name}`;
         S.docGroups = (S.docGroups || []).filter((g) => g.cat !== customKey && g.customTitle !== name);
         if (Array.isArray(S.pendingCats)) {
           S.pendingCats = S.pendingCats.filter((k) => k !== customKey);
         }
-        syncCurrentPersonArchiveSnapshot();
         render();
       },
       confirmDocCat() {
@@ -9314,8 +9307,8 @@
           const raw = (document.getElementById("custom-cat-new-input")?.value || "").trim();
           S.addingCustomCat = false;
           if (raw && !DOC_CATS.some((c) => c.t === raw)) {
-            if (!Array.isArray(ARCHIVE_DEMO.baseline.customCats)) ARCHIVE_DEMO.baseline.customCats = [];
-            if (!ARCHIVE_DEMO.baseline.customCats.includes(raw)) ARCHIVE_DEMO.baseline.customCats.push(raw);
+            if (!Array.isArray(S.sessionCustomCats)) S.sessionCustomCats = [];
+            if (!S.sessionCustomCats.includes(raw)) S.sessionCustomCats.push(raw);
             const customKey = `custom:${raw}`;
             if (!Array.isArray(S.pendingCats)) S.pendingCats = [];
             if (!S.pendingCats.includes(customKey)) S.pendingCats.push(customKey);
@@ -9326,10 +9319,9 @@
           const newName = (document.getElementById("custom-cat-edit-input")?.value || "").trim();
           S.editingCustomCat = null;
           if (oldName && newName && oldName !== newName && !DOC_CATS.some((c) => c.t === newName)) {
-            const list = ARCHIVE_DEMO.baseline.customCats || [];
+            const list = S.sessionCustomCats || [];
             if (!list.includes(newName)) {
-              ARCHIVE_DEMO.baseline.customCats = list.map((x) => (x === oldName ? newName : x));
-              (ARCHIVE_DEMO.baseline.groups || []).forEach((g) => { if (g.title === oldName) g.title = newName; });
+              S.sessionCustomCats = list.map((x) => (x === oldName ? newName : x));
               const oldKey = `custom:${oldName}`;
               const newKey = `custom:${newName}`;
               (S.docGroups || []).forEach((g) => {
@@ -9357,7 +9349,6 @@
           } else if (!S.docGroups.some((g) => g.id === S.activeGroup)) {
             S.activeGroup = S.docGroups[S.docGroups.length - 1]?.id || 0;
           }
-          syncCurrentPersonArchiveSnapshot();
           closeOverlay();
           return;
         }
@@ -9371,7 +9362,7 @@
           }
           const allAllowedKeys = [
             ...DOC_CATS.map((c) => c.id),
-            ...(ARCHIVE_DEMO.baseline.customCats || []).map((name) => `custom:${name}`),
+            ...(S.sessionCustomCats || []).map((name) => `custom:${name}`),
           ];
           const selected = allAllowedKeys.filter((id) => pendingSet.has(id));
           S.docGroups = S.docGroups.filter((g) => selected.includes(g.cat));
@@ -9391,7 +9382,6 @@
             const ordered = orderedDocGroups();
             S.activeGroup = ordered[ordered.length - 1]?.id || 0;
           }
-          syncCurrentPersonArchiveSnapshot();
         }
         closeOverlay();
       },
@@ -11653,7 +11643,7 @@
         S.rxArchive = [];
         ARCHIVE_DEMO.baseline.groups.length = 0;
         ARCHIVE_DEMO.review.groups.length = 0;
-        ARCHIVE_DEMO.review.maxOrd = 8;
+        ARCHIVE_DEMO.review.maxOrd = 3;
         syncCurrentPersonArchiveSnapshot();
         closeOverlay();
         go("home", "root");
@@ -20397,7 +20387,7 @@
       { title: "出院记录", pages: 2 },
       { title: "化验单", pages: 1 },
     ] },
-    review: { title: "复查报告", empty: "还没有复查报告", maxOrd: 8, groups: [
+    review: { title: "复查报告", empty: "还没有复查报告", maxOrd: 3, groups: [
       { title: "第一次复查", pages: 2 },
       { title: "第二次复查", pages: 1 },
     ] },
@@ -20407,7 +20397,7 @@
     baseline: ARCHIVE_DEMO.baseline.groups.map((g) => ({ ...g })),
     customCats: [...(ARCHIVE_DEMO.baseline.customCats || [])],
     review: ARCHIVE_DEMO.review.groups.map((g) => ({ ...g })),
-    reviewMaxOrd: ARCHIVE_DEMO.review.maxOrd || 8,
+    reviewMaxOrd: ARCHIVE_DEMO.review.maxOrd || 3,
   };
 
   /// 集章选中日的完成集合：今日取真实打卡态，过去日按 Demo 采样（日历格与页面共用，保证两处一致）
@@ -21195,7 +21185,7 @@
     catPick: () => {
       if (isVisitCapture()) {
         const selected = S.pendingVisitOrds || [];
-        const totalCount = Math.max(1, S.pendingVisitMaxOrd || configuredVisitMaxOrd());
+        const totalCount = Math.max(3, S.pendingVisitMaxOrd || configuredVisitMaxOrd());
         const nextTitle = `${cnOrdinal(totalCount + 1)}次复查`;
         return `
         <div class="scrim bottom" data-act="close">
@@ -21216,7 +21206,7 @@
                     <span class="cat-ico">${I.doc}</span>
                     <span class="grow ta-l"><b>${cnOrdinal(ord)}次复查</b></span>
                   </button>
-                  ${totalCount > 1 ? `<button class="cap red" style="padding:4px 10px;font-size:12px" data-act="delVisitOrdInPicker" data-ord="${ord}" type="button">删除</button>` : ""}
+                  ${ord > 3 ? `<button class="cap red" style="padding:4px 10px;font-size:12px" data-act="delVisitOrdInPicker" data-ord="${ord}" type="button">删除</button>` : ""}
                   <button style="background:none;border:0;padding:2px;cursor:pointer" data-act="pickDocCat" data-ord="${ord}" type="button">
                     ${on ? `<span class="cat-check">${I.check}</span>` : `<span style="display:inline-block;width:20px;height:20px;border-radius:50%;border:1.8px solid rgba(100,116,139,.35)"></span>`}
                   </button>
@@ -21231,7 +21221,7 @@
       }
       const multi = S.catPickerMode !== "change";
       const selectedCats = multi ? (S.pendingCats || []) : [S.pendingCat];
-      const customCats = ARCHIVE_DEMO.baseline.customCats || [];
+      const customCats = S.sessionCustomCats || [];
       return `
       <div class="scrim bottom" data-act="close">
         <div class="sheet large" onclick="event.stopPropagation()">
@@ -21527,7 +21517,7 @@
       S.ops = [];
       ARCHIVE_DEMO.baseline.groups.length = 0;
       ARCHIVE_DEMO.review.groups.length = 0;
-      ARCHIVE_DEMO.review.maxOrd = 8;
+      ARCHIVE_DEMO.review.maxOrd = 3;
       syncCurrentPersonArchiveSnapshot();
       if (S.personStoreMap) Object.values(S.personStoreMap).forEach((b) => { b.ops = []; });
       S.privacyAccepted = true;
