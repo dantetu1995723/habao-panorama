@@ -1469,7 +1469,7 @@
     ]},
     { g: "同 Cover 替换", items: [
       { id: "ocr-capture", t: "上传资料", code: "IntakeCaptureView", how: "replace" },
-      { id: "exercise-risk", t: "运动前风险提示", code: "BodyTestRunView", how: "replace" },
+      { id: "exercise-risk", t: "体能测试前安全确认", code: "BodyTestRunView", how: "replace" },
       { id: "body-test", t: "踏步体测", code: "BodyTestRunView", how: "replace" },
       { id: "task-edit", t: "更新计划", code: "AddEditTaskView", how: "replace" },
     ]},
@@ -1556,6 +1556,19 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.384",
+      date: "2026-11-16",
+      time: "13:58",
+      title: "「运动前风险提示」升级为「体能测试前安全确认」完整文案与使用确认勾选",
+      screens: [
+        { id: "exercise-risk", label: "体能测试前安全确认" },
+      ],
+      items: [
+        "页面标题与内容按最新医疗安全规范重构为「体能测试前安全确认」，包含适用范围说明、四类不适宜测试的临床情况、测试中紧急停止与拨打 120 提示。",
+        "新增「使用确认」勾选框，需勾选确认已获医生许可且无上述情况后方可点击「确认并继续」进入三分钟步行测试；未勾选或不符合时可点击「不符合或不清楚，暂不测试」退出。",
+      ],
+    },
     {
       ver: "V10.383",
       date: "2026-11-16",
@@ -2098,6 +2111,7 @@
     addTitle: "早晨临时计划",
     lockedBlock: 1,
     contra: false,
+    safetyConfirmed: false,
     borg: 5,
     talk: "",
     symptoms: [],
@@ -2311,8 +2325,8 @@
     ]},
     { id: "ex-normal", label: "已入组 · 运动评估（低风险）", cold: "demo", steps: [
       { act: "typeEx", label: "选择类型 → 运动" },
-      { screen: "exercise-risk", label: "运动前风险提示" },
-      { act: "openGuide", label: "选模式（户外踏步 / 室内坐立）" },
+      { screen: "exercise-risk", label: "体能测试前安全确认" },
+      { act: "openGuide", label: "确认并继续 → 三分钟步行测试" },
       { act: "beginCountdown", label: "指南卡「立即开始」" },
       { screen: "body-test", label: "3-2-1 倒数 → 体测运行" },
       { act: "cadenceUp", label: "调步频", optional: true },
@@ -12469,6 +12483,10 @@
         S.contraByPerson[target] = S.contra;
         render();
       },
+      toggleSafetyConfirm() {
+        S.safetyConfirmed = !S.safetyConfirmed;
+        render();
+      },
       // 体测前导：切至体测运行页 → 指南弹窗 → 3-2-1 倒计时 → 开始运行（真机 BodyTestRunView）
       openGuide() {
         if (S.contra) return;
@@ -13844,26 +13862,44 @@
 
     "exercise-risk": () => S.contra ? `
       <div class="page">
-        ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "运动前风险提示")}
+        ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "体能测试前安全确认")}
         ${renderContraView({ context: "plan", hits: ["室颤", "心衰Ⅲ级及以上"], primaryAct: "later", showDemoToggle: true })}
       </div>` : `
       <div class="page">
-        ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "运动前风险提示")}
-        <div class="scroll px24" style="padding-top:12px">
-          <p class="s14 t-sec ta-c">运动测试存在一定风险，请先阅读以下须知</p>
-          ${[
-            ["近 30 天出现以下情况，请勿评估", "不稳定心绞痛、静息胸痛、心衰加重、严重心律失常、晕厥"],
-            ["医嘱明确可进行有氧运动", "近 3 个月内有就医记录，且医生建议有氧运动的，建议评估。"],
-            ["日常能连续步行 10 分钟以上", "平时可独立完成的，建议进行评估。"],
-            ["选择安全平整的场地", "户外选空旷无遮挡处，室内备一把稳固座椅，避免摔倒或数据不准。"],
-          ].map((x, i) => `
-            <div class="flex gap12 mt16">
-              <div style="width:30px;height:30px;border-radius:50%;background:#1054E0;color:#fff;display:grid;place-items:center" class="s14 fb">${i + 1}</div>
-              <div><div class="s16 fb t">${x[0]}</div><div class="s13 t-sec mt8">${x[1]}</div></div>
-            </div>`).join("")}
-          <button class="cta mt16" data-act="openGuide" data-m="walking" type="button">${I.walk}三分钟步行测试</button>
-          <button class="cta-line mt12" data-act="later" type="button">退出评估</button>
-          <label class="flex gap8 mt16 t-amber s14 pointer"><input type="checkbox" ${S.contra ? "checked" : ""} data-act="contra" /> 演示：模拟命中绝对禁忌症</label>
+        ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "体能测试前安全确认")}
+        <div class="scroll px24" style="padding-top:10px;padding-bottom:12px">
+          <p class="s13 t-sec" style="line-height:1.55">本功能仅适用于病情稳定、经医生确认可进行相应居家体能测试的患者。系统无法识别全部运动禁忌，测试结果不能替代医生评估，也不能证明运动没有风险。</p>
+          <div class="safety-card mt12">
+            <div class="s14 fb t">如有以下任一情况，请勿自行测试，应先咨询医生：</div>
+            <div class="safety-list">
+              ${[
+                "近期新发或加重的胸痛、胸闷、休息时气促、夜间憋醒、明显水肿、心慌、头晕或晕厥。",
+                "已知严重心律失常、较重心衰、活动性心肌炎 / 心包炎 / 心内膜炎、严重心脏瓣膜病、主动脉夹层或近期血栓 / 肺栓塞，且尚未获得本次测试许可。",
+                "近期住院或接受心脏手术、器械植入，尚未获得本次测试许可；或医生要求限制、暂停运动。",
+                "当日血压或血糖异常、发热感染，或无法安全独立行走、坐下和站起。",
+              ].map((txt) => `
+                <div class="safety-item">
+                  <span class="safety-dot"></span>
+                  <span>${txt}</span>
+                </div>`).join("")}
+            </div>
+            <div class="safety-divider"></div>
+            <p class="s13 t-sec" style="line-height:1.55">
+              <strong class="t">如不清楚自身情况或是否获得测试许可，请暂不测试，先咨询医生。</strong>测试中出现胸痛、明显气促、头晕、心慌或站立不稳，请立即停止；出现疑似心梗、严重呼吸困难或晕厥时，立即拨打120并联系身边照护者。
+            </p>
+          </div>
+          <div class="mt16">
+            <div class="s15 fb t mb8">使用确认</div>
+            <button class="safety-confirm-box${S.safetyConfirmed ? " on" : ""}" data-act="toggleSafetyConfirm" type="button">
+              <span class="safety-check">${S.safetyConfirmed ? "✓" : ""}</span>
+              <span class="s13 t" style="line-height:1.5">我确认已获得医生对本次测试的许可，且目前无上述不适或未评估情况；我理解功能局限，并会在出现不适时立即停止。</span>
+            </button>
+          </div>
+        </div>
+        <div class="safety-foot">
+          <button class="cta" data-act="openGuide" data-m="walking" type="button" ${S.safetyConfirmed ? "" : "disabled"}>确认并继续</button>
+          <button class="cta-line" data-act="later" type="button">不符合或不清楚，暂不测试</button>
+          <label class="flex gap8 t-amber s12 pointer"><input type="checkbox" ${S.contra ? "checked" : ""} data-act="contra" /> 演示：模拟命中绝对禁忌症</label>
         </div>
       </div>`,
 
