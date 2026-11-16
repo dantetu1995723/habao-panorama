@@ -1548,6 +1548,20 @@
   /* ===== 改动记录（2026-11-13 起每次迭代同步追加，含日期与具体时间，简明说明改动位置与内容） ===== */
   const CHANGELOG = [
     {
+      ver: "V10.380",
+      date: "2026-11-16",
+      time: "11:20",
+      title: "感受问卷判定规则纳入「测试中能否正常说话」",
+      screens: [
+        { id: "borg", label: "感受问卷" },
+        { id: "risk-result", label: "评估结果（异常）" },
+      ],
+      items: [
+        "将「难以说话」纳入高风险判定条件：Borg > 7、出现严重不适症状或选择「难以说话」均判定为评估异常（不能生成运动计划）。",
+        "异常评估结果页同步展示「测试中难以说话」异常项标签；导航栏右上角演示切换胶囊同步联动说话能力状态。",
+      ],
+    },
+    {
       ver: "V10.379",
       date: "2026-11-16",
       time: "11:15",
@@ -12463,19 +12477,20 @@
         render();
       },
       borgDemo() {
-        const canGenNow = S.borg <= 7 && !S.symptoms.some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x));
+        const canGenNow = S.borg <= 7 && !S.symptoms.some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x)) && S.talk !== "难以说话";
         if (canGenNow) {
           S.borg = 9;
         } else {
           if (S.borg > 7) S.borg = 5;
           if (S.symptoms.some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x))) S.symptoms = ["无不适"];
+          if (S.talk === "难以说话") S.talk = "能正常说话";
         }
         if (!S.talk) S.talk = "能正常说话";
         render();
       },
       borgOk() {
         if (!S.talk) { toast("请选择测试中能否正常说话"); return; }
-        const high = S.borg > 7 || S.symptoms.some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x));
+        const high = S.borg > 7 || S.symptoms.some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x)) || S.talk === "难以说话";
         go(high ? "risk-result" : "confirm-exercise", "push");
       },
       sys(d) { markManualVitalsStep(); S.sys = stepOrSeed(S.sys, d, 120, 70, 220); render(); },
@@ -13870,7 +13885,7 @@
     },
 
     borg: () => {
-      const canGenerate = S.borg <= 7 && !S.symptoms.some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x));
+      const canGenerate = S.borg <= 7 && !S.symptoms.some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x)) && S.talk !== "难以说话";
       const rightToggle = `<button class="cap" data-act="borgDemo" type="button" style="${canGenerate ? "" : "color:#c2410c;background:rgba(242,153,74,0.16);"}">⇄ ${canGenerate ? "能生成计划" : "不能生成计划"}</button>`;
       return `
       <div class="page">
@@ -13921,6 +13936,7 @@
       ["胸痛", "胸闷", "气促", "头晕", "心悸"].forEach((sym) => {
         if (S.symptoms.includes(sym)) issues.push(`测试中出现${sym}`);
       });
+      if (S.talk === "难以说话") issues.push("测试中难以说话");
       const safeIssues = issues.length ? issues : ["运动耐量评估未达标"];
       const advice = [
         ["暂停生成运动计划", "本次体测后出现劳累度偏高或身体不适，继续运动可能增加心血管负担，请先休息观察。"],
