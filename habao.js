@@ -1684,6 +1684,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.397",
+      date: "2026-11-16",
+      time: "16:48",
+      title: "复查报告存在前面或中间空缺时，「AI 解读」提示上传完整资料后再生成报告并禁用刷新",
+      screens: [
+        { id: "report-sub", label: "复查报告（AI 解读）" },
+      ],
+      items: [
+        "当复查报告存在前面或中间空次缺失（如缺少第一次或第二次复查）时，切换至「AI 解读」直接提示「复查资料尚不完整，暂无法生成报告：检测到第X次复查缺少资料，请上传完整的复查报告后再生成解读。」，并禁用底部「刷新报告解读」按钮，补全后恢复正常。",
+      ],
+    },
+    {
       ver: "V10.396",
       date: "2026-11-16",
       time: "16:45",
@@ -14622,9 +14634,10 @@
       const isVisitSub = S.reportKind === "visit";
       const isAnalyzingSub = isVisitSub ? S.analyzingReview : S.analyzingBaseline;
       const hasPendingSub = isVisitSub ? !!S.pendingReviewUpdate : !!S.pendingBaselineUpdate;
-      const canUpdateSub = hasPendingSub && !isAnalyzingSub;
       const subTitle = isVisitSub ? "复查报告" : "基础报告";
       const curArchiveGroups = isVisitSub ? visitBaseDisplayGroups() : baselineBaseDisplayGroups();
+      const missingReviewTitles = isVisitSub ? curArchiveGroups.filter((g) => g.pages <= 0).map((g) => g.title) : [];
+      const canUpdateSub = hasPendingSub && !isAnalyzingSub && !missingReviewTitles.length;
       const archiveHasData = !S.reportArchiveEmpty && curArchiveGroups.length > 0;
       const rightToggle = S.reportPane === "archive"
         ? `<button class="cap" data-act="toggleReportArchiveDemo" type="button" style="${archiveHasData ? "" : "color:#c2410c;background:rgba(242,153,74,0.16);"}">⇄ ${archiveHasData ? "有数据" : "空状态"}</button>`
@@ -14638,10 +14651,17 @@
             <div class="scroll" style="margin-top:14px; padding-bottom:12px; flex:1; min-height:0">
               ${S.reportPane === "archive" ? reportArchivePane() : (isAnalyzingSub ? `
                 ${reportIntermediateCardHTML(`哈宝医生正在重新生成${subTitle}解读…`, "已检测到资料增删变更，正在比对关键指标与基线档案，约需 2–3 秒…")}
+              ` : (missingReviewTitles.length ? `
+                <div style="padding:16px;border-radius:16px;background:rgba(242,153,74,.12)">
+                  <div style="display:flex;align-items:center;gap:8px;color:#c2410c;font-size:18px;font-weight:700;margin-bottom:10px">
+                    <span>⚠️</span><span>复查资料尚不完整，暂无法生成报告</span>
+                  </div>
+                  <p class="s16 fm t-sec" style="margin:0;line-height:1.55">检测到${missingReviewTitles.join("、")}缺少资料，请上传完整的复查报告后再生成解读。</p>
+                </div>
               ` : `
                 <p class="s21 fm t">${esc(isVisitSub ? rep.visit : rep.baseline)}</p>
                 ${isVisitSub && S.consultReportSub?.review ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生跨期对照解读】${S.consultReportSub.review}</div>` : ""}
-                ${!isVisitSub && S.consultReportSub?.baseline ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生基线报告解读】${S.consultReportSub.baseline}</div>` : ""}`)}
+                ${!isVisitSub && S.consultReportSub?.baseline ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生基线报告解读】${S.consultReportSub.baseline}</div>` : ""}`))}
             </div>
             ${S.reportPane === "insight" ? `
             <div style="padding-top:10px; margin-top:auto">
