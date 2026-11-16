@@ -1538,7 +1538,7 @@
     "exercise-risk": { code: "BodyTestRunView", note: "Demo Toggle 模拟禁忌症。体测不参与入组。「稍后 / 退出评估 / 暂不创建」关整段评估流，不退回选择类型。" },
     "body-test": { code: "BodyTestRunView", note: "原地踏步三分钟。选定体测模式后直接进入本页并叠加「体测指南弹窗 → 3-2-1 倒计时」，倒计时结束开始运行；停止或倒计时归零后直进感受问卷，无完成中转页。" },
     "body-test-sit": { code: "BodyTestRunView", note: "室内 1 分钟坐立。次数大号读数 + 倒计时 + 同龄参考。停止后问卷顶部两栏「测试时长 / 完成次数」。" },
-    borg: { code: "BorgQuestionnaireView", note: "体测停止后直进，顶部读本次 BodyTestRecord。户外三栏「步行时间 / 步行距离 / 平均步频」；室内坐立两栏「测试时长 / 完成次数」。页内不提前展示评估结论，底部按钮统一为「提交」，提交后由后端判断：正常则进入确认运动计划页，发现异常则进入「评估发现异常，暂不生成运动计划」提示页。" },
+    borg: { code: "BorgQuestionnaireView", note: "体测停止后直进，顶部读本次 BodyTestRecord。户外三栏「步行时间 / 步行距离 / 平均步频」；室内坐立两栏「测试时长 / 完成次数」。页内不提前展示评估结论，底部按钮统一为「提交结果」，上方附「演示结果：能生成计划 / 不能生成计划」切换条方便一键演示两种分支；提交后由后端判断：正常则进入确认运动计划页，发现异常则进入「评估发现异常，暂不生成运动计划」提示页。" },
     followup: { code: "ReviewFollowUpPage", note: "V10.306：问卷随访时间树（对齐真机 ReviewFollowUpPage.swift）。顶栏「返回」+「问卷随访」+ 右上 Demo 状态切换胶囊（填写一半 / 已填两次 / 未填写）。内容区单张白底岛卡（.island-card）内嵌时间树（.followup-timeline），圆点与左上顶边平齐、竖线圆心贯通：① 填写中草稿（空心蓝圈，上次填写时间 + 已答 N/51 题）；② 历史记录节点（实心蓝圈，日期 + 随访小结），各行均可点击打开「随访详情」页（FollowUpDetailView）查看答题明细；③ 无记录无草稿时正中大区空态（图标圆章 + 适老说明）；底部悬浮操作坞：有草稿时展示纵向双钮（主钮「继续填写问卷」+ 次钮白底蓝描边「重新开始随访」，点击弹窗确认清空草稿），无草稿时单枚主钮（「再次填写问卷」/「填写随访问卷」）。" },
     "followup-detail": { code: "FollowUpDetailView", note: "随访详情页：逐题展示问卷题目所属分类、题目标题及作答结果（只读展示）。" },
     questionnaire: { code: "FollowUpQuestionBank", note: "51 题一题一屏。必答门禁：未作答「下一步」置灰，第 1 题「上一步」置灰。单选后不自动跳下一题。提交后出结果页，再 dismiss 回问卷随访，不把随访再压一层。右上「题号」进答题进度。" },
@@ -1547,6 +1547,21 @@
 
   /* ===== 改动记录（2026-11-13 起每次迭代同步追加，含日期与具体时间，简明说明改动位置与内容） ===== */
   const CHANGELOG = [
+    {
+      ver: "V10.378",
+      date: "2026-11-16",
+      time: "11:10",
+      title: "感受问卷按钮改为「提交结果」，新增「演示结果：能生成计划 / 不能生成计划」切换按钮",
+      screens: [
+        { id: "borg", label: "感受问卷" },
+        { id: "confirm-exercise", label: "确认运动计划" },
+        { id: "risk-result", label: "评估结果（异常）" },
+      ],
+      items: [
+        "感受问卷底部主按钮文案由「提交」调整为「提交结果」。",
+        "在「提交结果」按钮上方新增紧凑分段切换条「演示结果：能生成计划 / 不能生成计划」，方便一键切换并演示两种评估分支界面。",
+      ],
+    },
     {
       ver: "V10.377",
       date: "2026-11-16",
@@ -12435,6 +12450,18 @@
         }
         render();
       },
+      borgDemo() {
+        const canGen = el.dataset.v === "pass";
+        if (canGen) {
+          if (S.borg > 7) S.borg = 5;
+          if (S.symptoms.some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x))) S.symptoms = ["无不适"];
+        } else {
+          const hasSevere = S.symptoms.some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x));
+          if (S.borg <= 7 && !hasSevere) S.borg = 9;
+        }
+        if (!S.talk) S.talk = "能正常说话";
+        render();
+      },
       borgOk() {
         if (!S.talk) { toast("请选择测试中能否正常说话"); return; }
         const high = S.borg > 7 || S.symptoms.some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x));
@@ -13832,6 +13859,7 @@
     },
 
     borg: () => {
+      const canGenerate = S.borg <= 7 && !S.symptoms.some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x));
       return `
       <div class="page">
         ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "感受问卷")}
@@ -13847,7 +13875,14 @@
           <div class="sec-label">测试中能否正常说话</div>
           ${["能正常说话", "只能说短句", "难以说话"].map((s) =>
             `<button class="q-opt ${S.talk === s ? "on" : ""}" data-act="setTalk" data-v="${s}" type="button">${s}</button>`).join("")}
-          <button class="cta mt16" style="${S.talk ? "" : "opacity:0.45;"}" data-act="borgOk" type="button">提交</button>
+          <div style="display:flex;justify-content:center;margin-top:14px">
+            <div class="walk-contra-demo">
+              <span class="walk-contra-demo-lbl">演示结果</span>
+              <button class="walk-contra-opt ${canGenerate ? "on" : ""}" data-act="borgDemo" data-v="pass" type="button">能生成计划</button>
+              <button class="walk-contra-opt ${!canGenerate ? "on hit" : ""}" data-act="borgDemo" data-v="fail" type="button">不能生成计划</button>
+            </div>
+          </div>
+          <button class="cta mt12" style="${S.talk ? "" : "opacity:0.45;"}" data-act="borgOk" type="button">提交结果</button>
         </div>
       </div>`;
     },
