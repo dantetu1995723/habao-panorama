@@ -1684,6 +1684,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.396",
+      date: "2026-11-16",
+      time: "16:45",
+      title: "复查拍照轨道改为默认单独勾选「已有最大存量 + 1」次",
+      screens: [
+        { id: "ocr-capture", label: "上传资料（复查组轨道）" },
+      ],
+      items: [
+        "进入复查报告拍摄页面时，底部组轨道不再把历史存量次序一并列出，改为默认单独勾选「已有最大存量 + 1」次（如空态默认单独选第一次复查，已有第一次存量时默认单独选第二次复查，已有第一、二次时默认单独选第三次复查），如需补拍往期可通过「+ 新建组」自由勾选。",
+      ],
+    },
+    {
       ver: "V10.395",
       date: "2026-11-16",
       time: "16:38",
@@ -3110,17 +3122,14 @@
     if (isVisitCapture()) {
       const filledOrds = [...visitBaseFilledOrds()];
       const maxFilled = filledOrds.length ? Math.max(...filledOrds) : 0;
-      const targetMax = Math.max(1, maxFilled + 1);
-      S.docGroups = [];
-      for (let ord = 1; ord <= targetMax; ord++) {
-        S.docGroups.push({ id: ord, cat: "reviewReport", ord, pages: ord === targetMax ? pages : 0 });
-      }
-      S.docSeq = targetMax;
-      S.activeGroup = targetMax;
+      const targetOrd = Math.max(1, maxFilled + 1);
+      S.docGroups = [{ id: 1, cat: "reviewReport", ord: targetOrd, pages }];
+      S.docSeq = 1;
+      S.activeGroup = 1;
       S.pendingCat = "reviewReport";
       S.pendingCats = ["dischargeRecord"];
-      S.pendingVisitOrds = Array.from({ length: targetMax }, (_, i) => i + 1);
-      S.pendingVisitMaxOrd = Math.max(3, configuredVisitMaxOrd(), targetMax);
+      S.pendingVisitOrds = [targetOrd];
+      S.pendingVisitMaxOrd = Math.max(3, configuredVisitMaxOrd(), targetOrd);
     } else {
       S.docSeq = 1;
       S.docGroups = [{ id: 1, cat: "dischargeRecord", pages }];
