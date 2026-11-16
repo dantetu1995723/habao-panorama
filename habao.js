@@ -1538,7 +1538,7 @@
     "exercise-risk": { code: "BodyTestRunView", note: "Demo Toggle 模拟禁忌症。体测不参与入组。「稍后 / 退出评估 / 暂不创建」关整段评估流，不退回选择类型。" },
     "body-test": { code: "BodyTestRunView", note: "原地踏步三分钟。选定体测模式后直接进入本页并叠加「体测指南弹窗 → 3-2-1 倒计时」，倒计时结束开始运行；停止或倒计时归零后直进感受问卷，无完成中转页。" },
     "body-test-sit": { code: "BodyTestRunView", note: "室内 1 分钟坐立。次数大号读数 + 倒计时 + 同龄参考。停止后问卷顶部两栏「测试时长 / 完成次数」。" },
-    borg: { code: "BorgQuestionnaireView", note: "体测停止后直进，顶部读本次 BodyTestRecord。户外三栏「步行时间 / 步行距离 / 平均步频」；室内坐立两栏「测试时长 / 完成次数」。页内不提前展示评估结论，底部按钮统一为「提交结果」，导航栏右上角提供「⇄ 能生成计划 / 不能生成计划」一键切换胶囊方便演示两种分支；提交后由后端判断：正常则进入确认运动计划页，发现异常则进入「评估发现异常，暂不生成运动计划」提示页。" },
+    borg: { code: "BorgQuestionnaireView", note: "体测停止后直进，顶部读本次 BodyTestRecord（户外三栏 / 室内坐立两栏）。下方精简为单一「本次测试的感受（单选）」7 档描述选项（从非常非常轻松到非常非常费力），不再展示多维滑动条与反应/说话多题。底部统一为「提交结果」，导航栏右上角提供「⇄ 能生成计划 / 不能生成计划」胶囊一键切换演示状态；提交后交由 AI 综合体测数据与主观感受判定是否生成运动计划。" },
     followup: { code: "ReviewFollowUpPage", note: "V10.306：问卷随访时间树（对齐真机 ReviewFollowUpPage.swift）。顶栏「返回」+「问卷随访」+ 右上 Demo 状态切换胶囊（填写一半 / 已填两次 / 未填写）。内容区单张白底岛卡（.island-card）内嵌时间树（.followup-timeline），圆点与左上顶边平齐、竖线圆心贯通：① 填写中草稿（空心蓝圈，上次填写时间 + 已答 N/51 题）；② 历史记录节点（实心蓝圈，日期 + 随访小结），各行均可点击打开「随访详情」页（FollowUpDetailView）查看答题明细；③ 无记录无草稿时正中大区空态（图标圆章 + 适老说明）；底部悬浮操作坞：有草稿时展示纵向双钮（主钮「继续填写问卷」+ 次钮白底蓝描边「重新开始随访」，点击弹窗确认清空草稿），无草稿时单枚主钮（「再次填写问卷」/「填写随访问卷」）。" },
     "followup-detail": { code: "FollowUpDetailView", note: "随访详情页：逐题展示问卷题目所属分类、题目标题及作答结果（只读展示）。" },
     questionnaire: { code: "FollowUpQuestionBank", note: "51 题一题一屏。必答门禁：未作答「下一步」置灰，第 1 题「上一步」置灰。单选后不自动跳下一题。提交后出结果页，再 dismiss 回问卷随访，不把随访再压一层。右上「题号」进答题进度。" },
@@ -1546,7 +1546,32 @@
   };
 
   /* ===== 改动记录（2026-11-13 起每次迭代同步追加，含日期与具体时间，简明说明改动位置与内容） ===== */
+  const FEELING_OPTIONS = [
+    { id: "veryVeryLight", title: "非常非常轻松", detail: "几乎感觉不到运动。呼吸完全正常，心率几乎没有变化。", ok: true },
+    { id: "veryLight", title: "很轻松", detail: "几乎不需要费力。呼吸仍然很顺畅，心率没有明显上升。", ok: true },
+    { id: "light", title: "轻松", detail: "感觉稍有些费力，呼吸加快但不急促，心率轻微增加。", ok: true },
+    { id: "somewhatHard", title: "有点费力（有点累）", detail: "呼吸开始稍微加速，心率有明显增加。开始感觉有点累。", ok: true },
+    { id: "hard", title: "费力", detail: "呼吸急促，心率明显升高。开始感到有些疲劳，但可以继续。", ok: true },
+    { id: "veryHard", title: "很费力", detail: "呼吸非常急促，心率很高。明显感到疲劳，但仍然能够勉强继续。", ok: false },
+    { id: "veryVeryHard", title: "非常非常费力", detail: "呼吸急促且可能带有喘息，心率接近最大值，无法再继续。", ok: false },
+  ];
+
   const CHANGELOG = [
+    {
+      ver: "V10.381",
+      date: "2026-11-16",
+      time: "11:30",
+      title: "感受问卷重构为「本次测试的感受（单选）」7 档单选，并改为由 AI 综合判定是否生成运动计划",
+      screens: [
+        { id: "borg", label: "感受问卷" },
+        { id: "confirm-exercise", label: "确认运动计划" },
+        { id: "risk-result", label: "评估结果（异常）" },
+      ],
+      items: [
+        "感受问卷移除原 Borg 1–10 滑动条、测试中身体反应多选及能否正常说话单选，精简为「本次测试的感受（单选）」7 档描述选项。",
+        "提交结果后不再由前端写死公式判断，改为交由后端 AI 结合体测数据与主观感受综合判定是否生成运动计划，同步更新 PRD 文档。",
+      ],
+    },
     {
       ver: "V10.380",
       date: "2026-11-16",
@@ -12466,32 +12491,28 @@
         else render();
       },
       finishTest() { S.testRunning = false; captureBodyTest(); go("borg", "push"); },
-      setTalk() { S.talk = el.dataset.v; render(); },
-      setSym() {
-        const v = el.dataset.v;
-        if (v === "无不适") { S.symptoms = ["无不适"]; }
-        else {
-          S.symptoms = S.symptoms.filter((x) => x !== "无不适");
-          S.symptoms = S.symptoms.includes(v) ? S.symptoms.filter((x) => x !== v) : [...S.symptoms, v];
-        }
+      setFeeling() {
+        S.feeling = el.dataset.v;
+        S.feelingOverride = null;
         render();
       },
       borgDemo() {
-        const canGenNow = S.borg <= 7 && !S.symptoms.some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x)) && S.talk !== "难以说话";
-        if (canGenNow) {
-          S.borg = 9;
+        const curOpt = FEELING_OPTIONS.find((x) => x.id === (S.feeling || "veryVeryLight")) || FEELING_OPTIONS[0];
+        const canGenNow = S.feelingOverride !== null && S.feelingOverride !== undefined ? S.feelingOverride : curOpt.ok;
+        const nextCanGen = !canGenNow;
+        S.feelingOverride = nextCanGen;
+        if (nextCanGen) {
+          if (!S.feeling || !curOpt.ok) S.feeling = "light";
         } else {
-          if (S.borg > 7) S.borg = 5;
-          if (S.symptoms.some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x))) S.symptoms = ["无不适"];
-          if (S.talk === "难以说话") S.talk = "能正常说话";
+          if (!S.feeling || curOpt.ok) S.feeling = "veryHard";
         }
-        if (!S.talk) S.talk = "能正常说话";
         render();
       },
       borgOk() {
-        if (!S.talk) { toast("请选择测试中能否正常说话"); return; }
-        const high = S.borg > 7 || S.symptoms.some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x)) || S.talk === "难以说话";
-        go(high ? "risk-result" : "confirm-exercise", "push");
+        const fid = S.feeling || "veryVeryLight";
+        const opt = FEELING_OPTIONS.find((x) => x.id === fid) || FEELING_OPTIONS[0];
+        const canGen = S.feelingOverride !== null && S.feelingOverride !== undefined ? S.feelingOverride : opt.ok;
+        go(canGen ? "confirm-exercise" : "risk-result", "push");
       },
       sys(d) { markManualVitalsStep(); S.sys = stepOrSeed(S.sys, d, 120, 70, 220); render(); },
       dia(d) { markManualVitalsStep(); S.dia = stepOrSeed(S.dia, d, 78, 40, 140); render(); },
@@ -13885,24 +13906,31 @@
     },
 
     borg: () => {
-      const canGenerate = S.borg <= 7 && !S.symptoms.some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x)) && S.talk !== "难以说话";
+      const fid = S.feeling || "veryVeryLight";
+      const curOpt = FEELING_OPTIONS.find((x) => x.id === fid) || FEELING_OPTIONS[0];
+      const canGenerate = S.feelingOverride !== null && S.feelingOverride !== undefined ? S.feelingOverride : curOpt.ok;
       const rightToggle = `<button class="cap" data-act="borgDemo" type="button" style="${canGenerate ? "" : "color:#c2410c;background:rgba(242,153,74,0.16);"}">⇄ ${canGenerate ? "能生成计划" : "不能生成计划"}</button>`;
       return `
       <div class="page">
         ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "感受问卷", rightToggle)}
-        <div class="scroll px24" style="padding-top:12px">
+        <div class="scroll px20" style="padding-top:12px">
           ${borgSummaryIsland()}
-          <div class="sec-label">整体用力程度</div>
-          <div class="s38 fh t ta-c">${S.borg}</div>
-          <input class="w100" type="range" min="1" max="10" value="${S.borg}" oninput="window.__borg(this.value)" />
-          <div class="flex between s12 t-sec"><span>1 · 不费力</span><span>10 · 尽力</span></div>
-          <div class="sec-label">测试中身体反应　<span class="fm">选填</span></div>
-          ${["无不适", "胸痛", "胸闷", "气促", "头晕", "心悸", "其他"].map((s) =>
-            `<button class="q-opt ${S.symptoms.includes(s) ? "on" : ""}" data-act="setSym" data-v="${s}" type="button">${s}</button>`).join("")}
-          <div class="sec-label">测试中能否正常说话</div>
-          ${["能正常说话", "只能说短句", "难以说话"].map((s) =>
-            `<button class="q-opt ${S.talk === s ? "on" : ""}" data-act="setTalk" data-v="${s}" type="button">${s}</button>`).join("")}
-          <button class="cta mt16" style="${S.talk ? "" : "opacity:0.45;"}" data-act="borgOk" type="button">提交结果</button>
+          <div style="display:flex;align-items:baseline;gap:6px;margin-top:14px">
+            <span class="s18 fb t">本次测试的感受</span>
+            <span class="s13 t-sec">（单选）</span>
+          </div>
+          <div class="feeling-list">
+            ${FEELING_OPTIONS.map((o) => {
+              const on = fid === o.id;
+              return `<button class="feeling-opt ${on ? "on" : ""}" data-act="setFeeling" data-v="${o.id}" type="button">
+                <div class="feeling-opt-txt"><strong>${o.title}：</strong>${o.detail}</div>
+                <span class="feeling-radio">${on ? "✓" : ""}</span>
+              </button>`;
+            }).join("")}
+          </div>
+        </div>
+        <div class="px20" style="padding:10px 20px 24px">
+          <button class="cta" data-act="borgOk" type="button">提交结果</button>
         </div>
       </div>`;
     },
@@ -13931,13 +13959,12 @@
     },
 
     "risk-result": () => {
-      const issues = [];
-      if (S.borg > 7) issues.push(`整体用力程度过高（Borg ${S.borg}/10）`);
-      ["胸痛", "胸闷", "气促", "头晕", "心悸"].forEach((sym) => {
-        if (S.symptoms.includes(sym)) issues.push(`测试中出现${sym}`);
-      });
-      if (S.talk === "难以说话") issues.push("测试中难以说话");
-      const safeIssues = issues.length ? issues : ["运动耐量评估未达标"];
+      const fid = S.feeling || "veryHard";
+      const curOpt = FEELING_OPTIONS.find((x) => x.id === fid);
+      const safeIssues = [
+        ...(curOpt ? [`测试感受：${curOpt.title}`] : []),
+        "AI 综合评估：当前运动耐量暂不适合开展运动计划",
+      ];
       const advice = [
         ["暂停生成运动计划", "本次体测后出现劳累度偏高或身体不适，继续运动可能增加心血管负担，请先休息观察。"],
         ["关注症状并及时就医", "如胸痛、胸闷、气促、头晕或心悸等症状持续或加重，请及时联系医生或前往医院就诊。"],

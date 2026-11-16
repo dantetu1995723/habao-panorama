@@ -5622,3 +5622,59 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   color: #fff;
 }
 
+
+.feeling-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+.feeling-opt {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.035);
+  border: 1px solid transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+.feeling-opt.on {
+  background: rgba(16, 84, 224, 0.13);
+  border-color: rgba(16, 84, 224, 0.36);
+}
+.feeling-opt-txt {
+  font-size: 14px;
+  line-height: 1.45;
+  color: #4b5563;
+}
+.feeling-opt-txt strong {
+  color: #111827;
+  font-weight: 700;
+}
+.feeling-opt.on .feeling-opt-txt {
+  color: rgba(16, 84, 224, 0.88);
+}
+.feeling-opt.on .feeling-opt-txt strong {
+  color: #1054e0;
+}
+.feeling-radio {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(107, 114, 128, 0.38);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+.feeling-opt.on .feeling-radio {
+  background: #1054e0;
+  border-color: #1054e0;
+}
