@@ -411,14 +411,7 @@
       </div>`;
     }
     const total = groups.reduce((s, g) => s + g.pages, 0);
-    const missingTitles = key === "review" ? groups.filter((g) => g.pages <= 0).map((g) => g.title) : [];
-    const missingBanner = missingTitles.length
-      ? `<div style="display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:12px;background:rgba(242,153,74,.14);color:#c2410c;font-size:13.5px;font-weight:600;line-height:1.4;margin-top:4px">
-          <span>⚠️</span><span>${missingTitles.join("、")}暂无资料，可点击下方按钮补充上传</span>
-        </div>`
-      : "";
     return `${total > 0 ? `<div class="s15 fsb" style="color:var(--blue);opacity:.72">共 ${total} 张</div>` : ""}
-      ${missingBanner}
       ${groups.map((g) => {
         const gi = src.groups.findIndex((x) => x.title === g.title);
         return `
@@ -1690,6 +1683,18 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.395",
+      date: "2026-11-16",
+      time: "16:38",
+      title: "移除复查资料合集顶部重复的缺漏汇总提示条，保留对应空次分组下的直出提示",
+      screens: [
+        { id: "report-sub", label: "复查报告（资料合集）" },
+      ],
+      items: [
+        "移除「复查报告 → 资料合集」顶部「第X次复查暂无资料」汇总横幅，避免与下方对应空次分组内的缺失提示重复。",
+      ],
+    },
     {
       ver: "V10.394",
       date: "2026-11-16",
