@@ -568,15 +568,67 @@
   function openContraOrBegin(taskId) {
     const hits = contraindicationHits();
     if (!hits.length) { beginWalk(taskId); return; }
-    S.pendingWalk = { taskId };
+    S.walkContraHits = hits;
     if (S.screen !== "walk") go("walk", "cover");
-    openOverlay("confirm", {
-      title: "是否继续运动？",
-      body: contraPrompt(hits),
-      cancel: "暂不运动",
-      ok: "继续运动",
-      action: "confirmWalkDespiteContra",
-    });
+    go("walk-contra", "cover");
+  }
+  function renderContraView({ context = "plan", personName = "", hits = [], primaryAct = "later", showDemoToggle = false } = {}) {
+    const safeHits = hits && hits.length ? hits : ["室颤", "心衰Ⅲ级及以上"];
+    const subtitle = context === "walk"
+      ? "依据已上传的病历资料，当前存在不适合开展有氧运动的医学指征，建议暂不进行散步运动。"
+      : context === "proxy"
+        ? `依据已上传的病历资料，${esc(personName || "家属")}存在不适合开展有氧运动的医学指征，暂无法创建运动计划。`
+        : "依据已上传的病历资料，当前存在不适合开展有氧运动的医学指征，暂无法创建运动计划。";
+    const btnTitle = context === "walk" ? "我知道了，暂不运动" : "暂不创建运动计划";
+    const advice = context === "walk"
+      ? [
+          ["暂停本次散步", "存在上述指征时开展运动可能增加心血管事件风险，请先安心静养。"],
+          ["遵医嘱与复查", "如需恢复户外散步或调整运动强度，请先咨询主治医生或康复师。"],
+          ["日常服药与监测照常", "服药、测血压等其他健康计划不受影响，可正常打卡记录。"],
+        ]
+      : [
+          ["暂停有氧运动", "存在上述指征时开展有氧运动可能增加心血管事件风险，请勿强行运动。"],
+          ["遵医嘱与复查", "如需制定或调整运动方案，请先咨询主治医生或康复师进行专业评估。"],
+          ["日常服药与监测照常", "本次不创建运动计划，服药、血压监测及作息安排均可正常使用。"],
+        ];
+    return `
+      <div class="contra-wrap">
+        <div class="contra-scroll">
+          <div class="contra-hero">
+            <div class="contra-badge">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>
+            </div>
+            <h2 class="contra-title">检测到绝对运动禁忌症</h2>
+            <p class="contra-sub">${subtitle}</p>
+          </div>
+          <div class="contra-card red">
+            <div class="contra-card-head">
+              <span>命中的禁忌指征</span>
+              <span class="contra-count">共 ${safeHits.length} 项</span>
+            </div>
+            <div class="contra-tags">
+              ${safeHits.map((h) => `<span class="contra-tag"><span class="contra-tag-dot"></span>${esc(h)}</span>`).join("")}
+            </div>
+          </div>
+          <div class="contra-card amber">
+            <div class="contra-card-head"><span>安全建议与说明</span></div>
+            <div class="contra-advice-list">
+              ${advice.map((a, idx) => `
+                <div class="contra-advice-row">
+                  <div class="contra-advice-ico">${idx + 1}</div>
+                  <div>
+                    <div class="contra-advice-title">${a[0]}</div>
+                    <div class="contra-advice-desc">${a[1]}</div>
+                  </div>
+                </div>`).join("")}
+            </div>
+          </div>
+        </div>
+        <div class="contra-foot">
+          <button class="cta contra-btn" data-act="${primaryAct}" type="button">${btnTitle}</button>
+          ${showDemoToggle ? `<label class="flex gap8 t-amber s13 pointer"><input type="checkbox" ${S.contra ? "checked" : ""} data-act="contra" /> 演示：模拟命中绝对禁忌症</label>` : ""}
+        </div>
+      </div>`;
   }
   /// 依据里的诊断原文：取第一枚含「高血压」的标签
   function htnLabel() {
@@ -1399,6 +1451,7 @@
       { id: "questionnaire", t: "随访问卷", code: "FollowUpQuestionnaireFlowView", how: "cover" },
       { id: "q-progress", t: "答题进度", code: "FollowUpQuestionMatrixView", how: "cover" },
       { id: "walk-session", t: "户外散步", code: "OutdoorWalkSessionView", how: "cover" },
+      { id: "walk-contra", t: "运动安全提示", code: "AbsoluteContraindicationView", how: "cover" },
       { id: "walk-records", t: "散步记录", code: "WalkRecordsSheet", how: "cover" },
       { id: "consult-history", t: "历史记录", code: "ConsultHistoryView", how: "cover" },
       { id: "health-record", t: "健康档案", code: "HealthRecordView", how: "cover" },
@@ -1457,7 +1510,8 @@
     vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。展示整体 AI 评估卡与平均血压/平均心率趋势折线图（已移除底栏「进入哈宝医生」按钮）。" },
     report: { code: "FollowUpModuleView", note: "V10.270：综合结论 + 三等分入口（基础报告 / 复查报告 / 问卷随访）。资料增删与问卷提交后展示「AI 正在解析生成解读中…」更新中间态。" },
     "report-sub": { code: "BodyReportSubReportView", note: "V10.339：顶栏两枚 Tab「AI 解读 / 资料合集」，打卡复查拍照后直接进资料合集；资料合集缩略图右上角支持「×」删除单页。资料增删后 AI 解读呈现更新中间态。「刷新报告解读」按钮仅在「AI 解读」界面底部展示（仅有资料更新才可点击，否则禁用；在「资料合集」界面不显示）。底栏保留「新增报告资料」大主按钮；打卡复查落库后弹出「复查资料已保存」弹窗（主按钮「立即打卡」自动跳回首页完成打卡，次按钮「稍后打卡」留在资料合集由用户稍后自行打卡；弹窗关闭后点击左上角返回正常进入身体报告界面，再由身体报告返回首页）。" },
-    walk: { code: "WalkView", note: "大标题 + 44 回首页（dismiss cover，不压栈）。地图主卡底浮层：60 圆钮记录/分享 + 60 主胶囊。三态：开始运动 / 返回运动 / 保存并打卡。点「开始运动」、以及首页「进入运动，开始散步」，都先按出院诊断比对绝对禁忌症；命中弹「是否继续运动？」，写明疾病（演示病历含室颤），「暂不运动」留在地图，「继续运动」才开会话。返回运动不再问。保存归属：计划入口完成原任务，自由入口按开始时刻新建「自主散步」，不猜测也不占用存量计划。" },
+    walk: { code: "WalkView", note: "大标题 + 44 回首页（dismiss cover，不压栈）。地图主卡底浮层：60 圆钮记录/分享 + 60 主胶囊。三态：开始运动 / 返回运动 / 保存并打卡。点「开始运动」、以及首页「进入运动，开始散步」，都先按出院诊断比对绝对禁忌症；未命中直接进入散步会话，命中则打开通用「运动安全提示（绝对禁忌症）」界面，不再弹出确认弹窗；返回运动不再问。保存归属：计划入口完成原任务，自由入口按开始时刻新建「自主散步」，不猜测也不占用存量计划。" },
+    "walk-contra": { code: "AbsoluteContraindicationView", note: "通用绝对运动禁忌症提示界面（散步/运动前风险提示/家属代提醒共用）：顶部警示盾牌徽标 + 高对比度「检测到绝对运动禁忌症」标题与场景副标题 +「命中的禁忌指征」白卡（红底胶囊列出病历命中项）+「安全建议与说明」白卡（3 条清晰建议）+ 底部「我知道了，暂不运动」主按钮。" },
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。V0.1 + VIP 且采纳过方案时，标题下方多一张「方案章卡」：7 个日格（🌸 满日 / ◐ 部分 / ○ 空或未到 / 休 = 当天没排方案计划，算满日；今天蓝描边，点日格换日）、右上「本期已集 X/Y 章」、鼓励语（再集满 N 天拿金章 / 银章，只奖不罚）与「本期计划 ›」展开清单（调整 / 新增 / 保留 + 医嘱标）。其它状态：待采纳「📮 去采纳」、本期结束待交反馈（七格定格 + 期章 + 蓝色「交反馈」开期末反馈弹窗）、已交反馈下一期待采纳（「下一期方案已送达 去看看 ›」）。章卡下一行「我的期章」横排期章（金 ≥6 满日 / 银 4–5 / 铜 ≤3 且打过卡），点开看该期小结。海报日期下加「第 N 期康复方案 · 第 D 天 · 满日 X/7」（已结束带期章）。只有方案里的计划计入章卡，家属代打卡同样点亮，海报不带操作人。V0.0 / V0.2 / 未开通 VIP 只显示日章。" },
@@ -1501,6 +1555,22 @@
 
   /* ===== 改动记录（2026-11-13 起每次迭代同步追加，含日期与具体时间，简明说明改动位置与内容） ===== */
   const CHANGELOG = [
+    {
+      ver: "V10.374",
+      date: "2026-11-16",
+      time: "10:45",
+      title: "重新设计通用绝对禁忌症界面，散步开始运动命中后统一使用该界面",
+      screens: [
+        { id: "exercise-risk", label: "运动前风险提示" },
+        { id: "walk-contra", label: "运动安全提示（散步禁忌）" },
+        { id: "walk", label: "散散步，散散心" },
+        { id: "proxy-exercise-invite", label: "运动计划（家属代提醒）" },
+      ],
+      items: [
+        "重新设计通用绝对运动禁忌症界面：采用高对比度深色标题与正文，拆分为「命中的禁忌指征」白卡（带项数与红色胶囊标签）与「安全建议与说明」白卡（3 条清晰建议），信息层级与文字可读性显著提升。",
+        "散步界面点击「开始运动」（及首页「进入运动，开始散步」）若命中绝对禁忌症，改为直接进入该通用绝对禁忌症提示界面，移除原「是否继续运动？」弹窗；未命中则正常进入散步。",
+      ],
+    },
     {
       ver: "V10.373",
       date: "2026-11-16",
@@ -1930,6 +2000,7 @@
     qDone: false,
     walkTaskId: null,
     walkStartedAt: null,
+    walkContraHits: [],
     customCats: [],
     customSeq: 1,
     customDraft: { name: "", icon: "pills", color: "blue" },
@@ -2172,8 +2243,7 @@
     ]},
     { id: "walk-scheduled", label: "已入组 · 运动打卡 → 散步会话", cold: "demo", steps: [
       { act: "checkin", label: "点运动计划卡" },
-      { act: "exerciseGo", label: "进入运动，开始散步" },
-      { act: "confirmOk", label: "出院诊断命中绝对禁忌症 → 确认继续" },
+      { act: "exerciseGo", label: "进入运动，开始散步（未命中禁忌症直接开始，命中则进入通用绝对禁忌症提示页）" },
       { screen: "walk-session", label: "户外散步会话" },
       { act: "walkPause", label: "暂停（结束钮在暂停态）" },
       { act: "toggleMusic", label: "音乐", optional: true },
@@ -2183,8 +2253,7 @@
       { screen: "home", label: "回首页自动打卡动画" },
     ]},
     { id: "walk-free", label: "已入组 · 自由散步", cold: "demo", steps: [
-      { act: "walkStart", label: "底坞「运动」→ 开始" },
-      { act: "confirmOk", label: "有绝对禁忌症时确认继续" },
+      { act: "walkStart", label: "底坞「运动」→ 开始（未命中禁忌症直接开始，命中则进入通用绝对禁忌症提示页）" },
       { screen: "walk-session", label: "散步会话" },
       { act: "walkPause", label: "暂停（结束钮在暂停态）" },
       { act: "walkEnd", label: "长按结束" },
@@ -13162,15 +13231,7 @@
       return S.contra ? `
       <div class="page">
         ${navBar(`<button class="cap" data-act="back" type="button">${I.chevL}返回</button>`, "运动计划", "")}
-        <div class="px24 col center grow" style="padding-top:24px;padding-bottom:24px">
-          <div style="width:104px;height:104px;border-radius:50%;background:rgba(242,153,74,.16);display:grid;place-items:center;color:#F2994A;font-size:42px;font-weight:800">!</div>
-          <h2 class="s21 fb t-amber mt16 ta-c">检测到绝对禁忌症，无法创建运动计划</h2>
-          <p class="s14 fm t-sec ta-c mt12" style="line-height:1.6">依据之前上传的病历资料，${esc(famName)}存在绝对运动禁忌症，不适合开展有氧运动，直接拒绝创建运动计划。</p>
-          <div class="flex gap8 mt16"><span class="cap red">室颤</span><span class="cap red">心衰Ⅲ级及以上</span></div>
-          <div class="grow"></div>
-          <button class="cta amber" style="width:100%" data-act="later" type="button">暂不创建运动计划</button>
-          <label class="flex gap8 mt16 t-amber s14 pointer"><input type="checkbox" ${S.contra ? "checked" : ""} data-act="contra" /> 演示：模拟命中绝对禁忌症</label>
-        </div>
+        ${renderContraView({ context: "proxy", personName: famName, hits: ["室颤", "心衰Ⅲ级及以上"], primaryAct: "later", showDemoToggle: true })}
       </div>` : `
       <div class="page">
         ${navBar(`<button class="cap" data-act="back" type="button">${I.chevL}返回</button>`, "运动计划", "")}
@@ -13646,15 +13707,7 @@
     "exercise-risk": () => S.contra ? `
       <div class="page">
         ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "运动前风险提示")}
-        <div class="px24 col center grow" style="padding-top:24px;padding-bottom:24px">
-          <div style="width:104px;height:104px;border-radius:50%;background:rgba(242,153,74,.16);display:grid;place-items:center;color:#F2994A;font-size:42px;font-weight:800">!</div>
-          <h2 class="s21 fb t-amber mt16 ta-c">检测到绝对禁忌症，无法创建运动计划</h2>
-          <p class="s14 fm t-sec ta-c mt12" style="line-height:1.6">依据之前上传的病历资料，当前存在绝对运动禁忌症，不适合开展有氧运动，直接拒绝创建运动计划。</p>
-          <div class="flex gap8 mt16"><span class="cap red">室颤</span><span class="cap red">心衰Ⅲ级及以上</span></div>
-          <div class="grow"></div>
-          <button class="cta amber" style="width:100%" data-act="later" type="button">暂不创建运动计划</button>
-          <label class="flex gap8 mt16 t-amber s14 pointer"><input type="checkbox" ${S.contra ? "checked" : ""} data-act="contra" /> 演示：模拟命中绝对禁忌症</label>
-        </div>
+        ${renderContraView({ context: "plan", hits: ["室颤", "心衰Ⅲ级及以上"], primaryAct: "later", showDemoToggle: true })}
       </div>` : `
       <div class="page">
         ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "运动前风险提示")}
@@ -14252,6 +14305,15 @@
     },
 
     "walk-session": () => walkSessionHTML(),
+
+    "walk-contra": () => {
+      const hits = (S.walkContraHits && S.walkContraHits.length) ? S.walkContraHits : contraindicationHits();
+      return `
+      <div class="page">
+        ${navBar(`<button class="cap" data-act="back" type="button">${I.chevL}返回</button>`, "运动安全提示")}
+        ${renderContraView({ context: "walk", hits: hits.length ? hits : ["室颤"], primaryAct: "back", showDemoToggle: false })}
+      </div>`;
+    },
 
     "walk-records": () => {
       const f = S.walkFilter;
