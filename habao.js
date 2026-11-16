@@ -1481,7 +1481,7 @@
       { id: "confirm-plan", t: "确认计划", code: "InfoWithScreeningHost", how: "push" },
       { id: "borg", t: "感受问卷", code: "BorgQuestionnaireView", how: "push" },
       { id: "confirm-exercise", t: "确认运动计划", code: "ExerciseScheduleConfirmView", how: "push" },
-      { id: "risk-result", t: "评级结果", code: "IntakeResultView", how: "push" },
+      { id: "risk-result", t: "评估结果（异常）", code: "IntakeResultView", how: "push" },
       { id: "vitals-detail", t: "指标明细", code: "VitalsMeasurementDetailView", how: "push" },
       { id: "category-manage", t: "管理类别", code: "CategoryManageView", how: "push" },
       { id: "followup", t: "问卷随访", code: "ReviewFollowUpPage", how: "push" },
@@ -1538,7 +1538,7 @@
     "exercise-risk": { code: "BodyTestRunView", note: "Demo Toggle 模拟禁忌症。体测不参与入组。「稍后 / 退出评估 / 暂不创建」关整段评估流，不退回选择类型。" },
     "body-test": { code: "BodyTestRunView", note: "原地踏步三分钟。选定体测模式后直接进入本页并叠加「体测指南弹窗 → 3-2-1 倒计时」，倒计时结束开始运行；停止或倒计时归零后直进感受问卷，无完成中转页。" },
     "body-test-sit": { code: "BodyTestRunView", note: "室内 1 分钟坐立。次数大号读数 + 倒计时 + 同龄参考。停止后问卷顶部两栏「测试时长 / 完成次数」。" },
-    borg: { code: "BorgQuestionnaireView", note: "体测停止后直进，顶部读本次 BodyTestRecord。户外三栏「步行时间 / 步行距离 / 平均步频」；室内坐立两栏「测试时长 / 完成次数」（不要写成步行）。时长「N 秒 / N 分钟」，步频带「步/分」。左树可先点「坐立体测」再进本页预览坐立摘要。未选说话能力时点生成会提示。" },
+    borg: { code: "BorgQuestionnaireView", note: "体测停止后直进，顶部读本次 BodyTestRecord。户外三栏「步行时间 / 步行距离 / 平均步频」；室内坐立两栏「测试时长 / 完成次数」。页内不提前展示评估结论，底部按钮统一为「提交」，提交后由后端判断：正常则进入确认运动计划页，发现异常则进入「评估发现异常，暂不生成运动计划」提示页。" },
     followup: { code: "ReviewFollowUpPage", note: "V10.306：问卷随访时间树（对齐真机 ReviewFollowUpPage.swift）。顶栏「返回」+「问卷随访」+ 右上 Demo 状态切换胶囊（填写一半 / 已填两次 / 未填写）。内容区单张白底岛卡（.island-card）内嵌时间树（.followup-timeline），圆点与左上顶边平齐、竖线圆心贯通：① 填写中草稿（空心蓝圈，上次填写时间 + 已答 N/51 题）；② 历史记录节点（实心蓝圈，日期 + 随访小结），各行均可点击打开「随访详情」页（FollowUpDetailView）查看答题明细；③ 无记录无草稿时正中大区空态（图标圆章 + 适老说明）；底部悬浮操作坞：有草稿时展示纵向双钮（主钮「继续填写问卷」+ 次钮白底蓝描边「重新开始随访」，点击弹窗确认清空草稿），无草稿时单枚主钮（「再次填写问卷」/「填写随访问卷」）。" },
     "followup-detail": { code: "FollowUpDetailView", note: "随访详情页：逐题展示问卷题目所属分类、题目标题及作答结果（只读展示）。" },
     questionnaire: { code: "FollowUpQuestionBank", note: "51 题一题一屏。必答门禁：未作答「下一步」置灰，第 1 题「上一步」置灰。单选后不自动跳下一题。提交后出结果页，再 dismiss 回问卷随访，不把随访再压一层。右上「题号」进答题进度。" },
@@ -1547,6 +1547,21 @@
 
   /* ===== 改动记录（2026-11-13 起每次迭代同步追加，含日期与具体时间，简明说明改动位置与内容） ===== */
   const CHANGELOG = [
+    {
+      ver: "V10.377",
+      date: "2026-11-16",
+      time: "11:06",
+      title: "感受问卷底部统一改为「提交」，提交后按后端评估分流至确认计划或异常提示页",
+      screens: [
+        { id: "borg", label: "感受问卷" },
+        { id: "confirm-exercise", label: "确认运动计划" },
+        { id: "risk-result", label: "评估结果（异常）" },
+      ],
+      items: [
+        "感受问卷页面移除底部的实时评估结论提示行，底部主按钮统一改为「提交」（未选择「测试中能否正常说话」时置灰禁用）。",
+        "点击「提交」后由后端判断评估结果：正常通过时进入「确认计划」生成运动计划；发现异常时进入结构化「评估发现异常，暂不生成运动计划」界面，展示具体异常项与安全建议。",
+      ],
+    },
     {
       ver: "V10.376",
       date: "2026-11-16",
@@ -2225,7 +2240,7 @@
       { act: "finishTest", label: "长按结束" },
       { screen: "borg", label: "感受问卷" },
       { act: "borgOk", state: (s) => s.borg > 7, label: "Borg > 7 或严重不适" },
-      { screen: "risk-result", label: "评级结果：建议人工评估" },
+      { screen: "risk-result", label: "评估结果：发现异常，暂不生成运动计划" },
     ]},
     { id: "ex-contra", label: "已入组 · 分支：命中禁忌症", cold: "demo", steps: [
       { act: "typeEx", label: "选择类型 → 运动" },
@@ -13817,7 +13832,6 @@
     },
 
     borg: () => {
-      const high = S.borg > 7 || S.symptoms.some((x) => ["胸痛", "胸闷", "气促", "头晕", "心悸"].includes(x));
       return `
       <div class="page">
         ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "感受问卷")}
@@ -13833,8 +13847,7 @@
           <div class="sec-label">测试中能否正常说话</div>
           ${["能正常说话", "只能说短句", "难以说话"].map((s) =>
             `<button class="q-opt ${S.talk === s ? "on" : ""}" data-act="setTalk" data-v="${s}" type="button">${s}</button>`).join("")}
-          <div class="s14 ${high ? "t-amber" : "t-green"} mt8">${high ? "评估暂不合适，将不生成运动计划" : "评估合适，将为你生成运动计划"}</div>
-          <button class="cta ${high ? "amber" : ""} mt12" data-act="borgOk" type="button">${high ? "完成评估" : "生成运动计划"}</button>
+          <button class="cta mt16" style="${S.talk ? "" : "opacity:0.45;"}" data-act="borgOk" type="button">提交</button>
         </div>
       </div>`;
     },
@@ -13862,13 +13875,59 @@
       </div>`;
     },
 
-    "risk-result": () => `
-      <div class="page px24 col center" style="padding-top:90px">
-        <div style="width:104px;height:104px;border-radius:50%;background:rgba(242,153,74,.16);display:grid;place-items:center;color:#F2994A;font-size:42px">!</div>
-        <h2 class="s22 fb t-amber mt16">体测或量表未达标</h2>
-        <p class="s15 t-sec ta-c mt12">体测或劳累度量表评估未达标，当前存在运动风险，暂不生成运动计划。</p>
-        <button class="cta amber mt16" data-act="later" type="button">暂不创建运动计划</button>
-      </div>`,
+    "risk-result": () => {
+      const issues = [];
+      if (S.borg > 7) issues.push(`整体用力程度过高（Borg ${S.borg}/10）`);
+      ["胸痛", "胸闷", "气促", "头晕", "心悸"].forEach((sym) => {
+        if (S.symptoms.includes(sym)) issues.push(`测试中出现${sym}`);
+      });
+      const safeIssues = issues.length ? issues : ["运动耐量评估未达标"];
+      const advice = [
+        ["暂停生成运动计划", "本次体测后出现劳累度偏高或身体不适，继续运动可能增加心血管负担，请先休息观察。"],
+        ["关注症状并及时就医", "如胸痛、胸闷、气促、头晕或心悸等症状持续或加重，请及时联系医生或前往医院就诊。"],
+        ["日常服药与监测照常", "服药、测血压及作息等其他健康计划不受影响，可继续按时打卡记录。"],
+      ];
+      return `
+      <div class="page">
+        ${navBar("", "评估结果")}
+        <div class="contra-wrap">
+          <div class="contra-scroll">
+            <div class="contra-hero">
+              <div class="contra-badge">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>
+              </div>
+              <h2 class="contra-title">评估发现异常，暂不生成运动计划</h2>
+              <p class="contra-sub">根据本次体测与感受问卷评估结果，当前存在运动风险信号，暂不建议为您生成运动计划。</p>
+            </div>
+            <div class="contra-card red">
+              <div class="contra-card-head">
+                <span>发现的异常情况</span>
+                <span class="contra-count">共 ${safeIssues.length} 项</span>
+              </div>
+              <div class="contra-tags">
+                ${safeIssues.map((h) => `<span class="contra-tag"><span class="contra-tag-dot"></span>${esc(h)}</span>`).join("")}
+              </div>
+            </div>
+            <div class="contra-card amber">
+              <div class="contra-card-head"><span>安全建议与说明</span></div>
+              <div class="contra-advice-list">
+                ${advice.map((a, idx) => `
+                  <div class="contra-advice-row">
+                    <div class="contra-advice-ico">${idx + 1}</div>
+                    <div>
+                      <div class="contra-advice-title">${a[0]}</div>
+                      <div class="contra-advice-desc">${a[1]}</div>
+                    </div>
+                  </div>`).join("")}
+              </div>
+            </div>
+          </div>
+          <div class="contra-foot">
+            <button class="cta contra-btn" data-act="later" type="button">我知道了，暂不生成</button>
+          </div>
+        </div>
+      </div>`;
+    },
 
     vitals: () => {
       const wk = vitalsWeekData();
