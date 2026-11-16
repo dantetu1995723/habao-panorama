@@ -7378,7 +7378,7 @@
       },
       // 底坞「运动」圆钮 = 自由运动：不带计划归属，结束后新建「自主散步」
       walkStart() { openContraOrBegin(null); },
-      setWalkContra(el) {
+      setWalkContra() {
         S.walkContraDemo = el.dataset.val === "1";
         render();
       },
