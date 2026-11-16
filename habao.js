@@ -533,6 +533,7 @@
   }
   /// 与真机 AbsoluteContraindication.list 同一份（年龄单独按岁数判断）
   const ABSOLUTE_CONTRA = [
+    "三度房室传导阻滞或以上", "活动性心肌炎", "心内膜炎", "起搏器手术", "NYHA心功能Ⅲ级及以上",
     "心肌炎", "心包炎", "夹层动脉瘤", "肥厚型心肌病", "甲亢", "肺部感染",
     "Ⅱ–Ⅲ度房室传导阻滞", "心源性休克", "室壁瘤", "贫血", "糖尿病酮症酸中毒",
     "慢性肾衰竭Ⅲ期及以上", "肺动脉高压", "室颤", "室速", "频发室早", "慢阻肺",
@@ -571,6 +572,81 @@
     S.walkContraHits = hits.length ? hits : ["室颤", "心衰Ⅲ级及以上"];
     if (S.screen !== "walk") go("walk", "cover");
     go("walk-contra", "cover");
+  }
+  function renderBodyTestBlockedScreen(reason) {
+    const isUnder90 = reason === "underNinetySeconds";
+    const bt = S.bodyTest || { duration: isUnder90 ? 45 : 120, distance: isUnder90 ? 37 : 99, cadence: 90 };
+    const dur = Number(bt.duration || (isUnder90 ? 45 : 120));
+    const mmss = `${Math.floor(dur / 60)}:${pad(dur % 60)}`;
+    const dist = bt.distance || Math.round(dur * 0.825);
+    const cad = bt.cadence || 90;
+    const navTitle = isUnder90 ? "步行时间不足" : "体测提前终止";
+    const headline = isUnder90 ? "步行时间不足 90 秒，暂不生成运动计划" : "体测提前终止，暂不生成运动计划";
+    const subtitle = isUnder90
+      ? "本次体测有效步行时长未达到 90 秒最低评估要求，暂无法为您安全制定运动计划。"
+      : "您已在测试过程中提前终止运动，未能完成完整 3 分钟评估。为保障安全，本次暂不生成运动计划。";
+    const tag = isUnder90 ? "有效步行不足 90 秒" : "提前终止（未满 3 分钟）";
+    const advice = isUnder90 ? [
+      ["先休息观察身体状态", "若因气促、乏力、心慌或头晕导致未能坚持 90 秒，请立即坐下休息并密切观察症状。"],
+      ["状态平稳后再行重测", "如仅因临时被打断或误触停止且身体无任何不适，可稍后在精力充沛、环境安全时重新完成完整 3 分钟测试。"],
+      ["日常服药与监测照常", "服药、测血压及作息等其他健康计划不受影响，可继续按时打卡记录。"],
+    ] : [
+      ["立即停止并静坐休息", "提前终止通常提示当前运动负荷偏高或身体出现不适，请保持静坐、平稳呼吸，切勿勉强继续。"],
+      ["不适持续请及时就医", "如出现胸痛、明显气促、心慌、头晕或站立不稳等症状且休息后未缓解，请及时联系医生或拨打 120。"],
+      ["日常服药与监测照常", "暂不生成运动计划不影响您的用药、测血压与作息打卡，待医生评估平稳后再重新测试。"],
+    ];
+    return `
+      <div class="page">
+        ${navBar("", navTitle)}
+        <div class="contra-wrap">
+          <div class="contra-scroll">
+            <div class="contra-hero">
+              <div class="contra-badge">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>
+              </div>
+              <h2 class="contra-title">${headline}</h2>
+              <p class="contra-sub">${subtitle}</p>
+            </div>
+            <div class="contra-card red">
+              <div class="contra-card-head">
+                <span>本次体测记录</span>
+                <span class="contra-count">${tag}</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 8px;border-radius:12px;background:rgba(240,90,110,.06);text-align:center">
+                <div>
+                  <div class="s17 fh mono" style="color:#b91c1c">${mmss}</div>
+                  <div class="s11 t-sec mt2">实际步行时间</div>
+                </div>
+                <div>
+                  <div class="s17 fh mono" style="color:#b91c1c">${dist} m</div>
+                  <div class="s11 t-sec mt2">步行距离</div>
+                </div>
+                <div>
+                  <div class="s17 fh mono" style="color:#b91c1c">${cad} 步/分</div>
+                  <div class="s11 t-sec mt2">平均步频</div>
+                </div>
+              </div>
+            </div>
+            <div class="contra-card amber">
+              <div class="contra-card-head"><span>安全建议与说明</span></div>
+              <div class="contra-advice-list">
+                ${advice.map((a, idx) => `
+                  <div class="contra-advice-row">
+                    <div class="contra-advice-ico">${idx + 1}</div>
+                    <div>
+                      <div class="contra-advice-title">${a[0]}</div>
+                      <div class="contra-advice-desc">${a[1]}</div>
+                    </div>
+                  </div>`).join("")}
+              </div>
+            </div>
+          </div>
+          <div class="contra-foot">
+            <button class="cta contra-btn" data-act="later" type="button">我知道了，暂不生成</button>
+            ${isUnder90 ? `<button class="cta-line mt8" data-act="restartBodyTest" type="button" style="height:44px">重新开始体测</button>` : ""}
+          </div>
+        </div>
+      </div>`;
   }
   function renderContraView({ context = "plan", personName = "", hits = [], primaryAct = "later", showDemoToggle = false } = {}) {
     const safeHits = hits && hits.length ? hits : ["室颤", "心衰Ⅲ级及以上"];
@@ -1480,6 +1556,8 @@
       { id: "confirm-plan", t: "确认计划", code: "InfoWithScreeningHost", how: "push" },
       { id: "borg", t: "感受问卷", code: "BorgQuestionnaireView", how: "push" },
       { id: "confirm-exercise", t: "确认运动计划", code: "ExerciseScheduleConfirmView", how: "push" },
+      { id: "test-early-stop", t: "体测提前终止", code: "BodyTestBlockedView", how: "push" },
+      { id: "test-under-90", t: "步行不足 90 秒", code: "BodyTestBlockedView", how: "push" },
       { id: "risk-result", t: "评估结果（异常）", code: "IntakeResultView", how: "push" },
       { id: "vitals-detail", t: "指标明细", code: "VitalsMeasurementDetailView", how: "push" },
       { id: "category-manage", t: "管理类别", code: "CategoryManageView", how: "push" },
@@ -1534,8 +1612,10 @@
     "task-add": { code: "AddEditTaskView", note: "V0.0 / V0.1 为「事项」「时间与提醒」两大类折叠；V0.2 重构为**无滚动「三联动态磁贴 + 单屏模块舞台」切换架构**（字段不变）：顶部三联动态磁贴（① 事项内容、② 时刻与提醒、③ 周期与日期）实时回显三大模块核心设定，不切页即可一眼总览；中部单屏舞台一次仅聚焦展示 1 个大模块（支持点按磁贴、点按卡头 `‹ 1/3 ›` 步进或左右滑动手势切换），彻底消除滚动与视觉负担。" },
     "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。V0.2 采用无滚动「三联动态磁贴 + 单屏模块舞台」切换架构：顶部磁贴实时回显事项、时刻与周期摘要，中部单屏切换「事项内容 / 时刻与提醒 / 周期与日期」；「提醒时间」与「打卡时间」1:1 对称同构，「时间段」配备醒目粗体时间范围标注，「起止日期」通栏对齐零截断。修改时间或周期字段保存前弹出「确认更新计划」精简弹窗，简单描述更改让用户确认；仅改名称/备注/血压等直接原地保存。" },
     "task-view": { code: "AddEditTaskView", note: "查看计划（只读，右上「更新」）。V0.2 采用无滚动「三联动态磁贴 + 单屏模块舞台」切换架构，顶部三枚磁贴一眼总览事项、时刻与周期，中部单屏切换三大模块；「到点提醒」收纳在「时刻与提醒」模块内且在查看态下可直接切换；底部固定操作坞并排展示删除或「取消本次打卡」按钮，无需滚动。" },
-    "exercise-risk": { code: "BodyTestRunView", note: "Demo Toggle 模拟禁忌症。体测不参与入组。「稍后 / 退出评估 / 暂不创建」关整段评估流，不退回选择类型。" },
-    "body-test": { code: "BodyTestRunView", note: "原地踏步三分钟。选定体测模式后直接进入本页并叠加「体测指南弹窗 → 3-2-1 倒计时」，倒计时结束开始运行；停止或倒计时归零后直进感受问卷，无完成中转页。" },
+    "exercise-risk": { code: "BodyTestRunView", note: "体能测试前安全确认。若病历命中三度房室传导阻滞或以上、活动性心肌炎/心包炎/心内膜炎、NYHA心功能Ⅲ级及以上、起搏器手术等绝对运动禁忌症，直接展示通用绝对运动禁忌症界面（不进入体测、不生成运动计划）。「稍后 / 退出评估 / 我知道了，暂不运动」关整段评估流。" },
+    "body-test": { code: "BodyTestRunView", note: "原地踏步三分钟。选定体测模式后进入本页并叠加「体测指南弹窗 → 3-2-1 倒计时」，倒计时结束开始运行。长按停止或倒计时归零后按步行时长分流：① <90 秒 → 专属「步行时间不足 90 秒，暂不生成运动计划」页；② 90–179 秒提前终止 → 专属「体测提前终止，暂不生成运动计划」页；③ 走满 3 分钟（180 秒）→ 进入感受问卷。导航栏右上提供快捷演示按钮方便切换三种体测结果。" },
+    "test-early-stop": { code: "BodyTestBlockedView(.earlyTermination)", note: "不能生成运动计划三种体测情况之一（情况 1：提前终止运动）。步行 ≥90 秒但未走满 3 分钟即手动长按停止时进入，展示「体测提前终止，暂不生成运动计划」、本次实际步行数据、3 条针对性安全建议与「我知道了，暂不生成」主按钮，不进感受问卷。" },
+    "test-under-90": { code: "BodyTestBlockedView(.underNinetySeconds)", note: "不能生成运动计划三种体测情况之一（情况 2：走路不到 90 秒）。有效步行时长不足 90 秒时进入，展示「步行时间不足 90 秒，暂不生成运动计划」、本次实际步行数据、3 条休息与重测建议，底部提供「我知道了，暂不生成」主按钮及「重新开始体测」次按钮，不进感受问卷。" },
     "body-test-sit": { code: "BodyTestRunView", note: "室内 1 分钟坐立。次数大号读数 + 倒计时 + 同龄参考。停止后问卷顶部两栏「测试时长 / 完成次数」。" },
     borg: { code: "BorgQuestionnaireView", note: "体测停止后直进，顶部读本次 BodyTestRecord（户外三栏 / 室内坐立两栏）。下方精简为单一「本次测试的感受（单选）」7 档描述选项（从非常非常轻松到非常非常费力），不再展示多维滑动条与反应/说话多题。底部统一为「提交结果」，导航栏右上角提供「⇄ 能生成计划 / 不能生成计划」胶囊一键切换演示状态；提交后交由 AI 综合体测数据与主观感受判定是否生成运动计划。" },
     followup: { code: "ReviewFollowUpPage", note: "V10.306：问卷随访时间树（对齐真机 ReviewFollowUpPage.swift）。顶栏「返回」+「问卷随访」+ 右上 Demo 状态切换胶囊（填写一半 / 已填两次 / 未填写）。内容区单张白底岛卡（.island-card）内嵌时间树（.followup-timeline），圆点与左上顶边平齐、竖线圆心贯通：① 填写中草稿（空心蓝圈，上次填写时间 + 已答 N/51 题）；② 历史记录节点（实心蓝圈，日期 + 随访小结），各行均可点击打开「随访详情」页（FollowUpDetailView）查看答题明细；③ 无记录无草稿时正中大区空态（图标圆章 + 适老说明）；底部悬浮操作坞：有草稿时展示纵向双钮（主钮「继续填写问卷」+ 次钮白底蓝描边「重新开始随访」，点击弹窗确认清空草稿），无草稿时单枚主钮（「再次填写问卷」/「填写随访问卷」）。" },
@@ -1556,6 +1636,24 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.385",
+      date: "2026-11-16",
+      time: "14:05",
+      title: "统筹不能生成运动计划的三种体测拦截情况，各设独立专属文案界面",
+      screens: [
+        { id: "exercise-risk", label: "体能测试前安全确认（绝对禁忌症）" },
+        { id: "body-test", label: "踏步体测" },
+        { id: "test-early-stop", label: "体测提前终止" },
+        { id: "test-under-90", label: "步行不足 90 秒" },
+      ],
+      items: [
+        "情况 1（提前终止运动）：体测未走满 3 分钟手动停止（≥90 秒）时，直接进入「体测提前终止，暂不生成运动计划」独立界面，展示实际步行数据与立即静坐休息/就医/照常用药建议，不进感受问卷。",
+        "情况 2（走路不到 90 秒）：有效步行时间不足 90 秒时，直接进入「步行时间不足 90 秒，暂不生成运动计划」独立界面，提示最低评估时长要求与休息观察/重测建议，并提供「我知道了，暂不生成」与「重新开始体测」操作。",
+        "情况 3（以下症状不能运动）：绝对禁忌症清单与演示命中同步更新为「三度房室传导阻滞或以上」「活动性心肌炎、心包炎、心内膜炎」「NYHA心功能Ⅲ级及以上」「起搏器手术」，体测前直接拦截并展示专用提示界面。",
+        "在踏步体测运行页导航栏右上角新增快捷演示入口，可一键预览「步行不足 90 秒」「提前终止（≥90 秒）」「走满 3 分钟」三条分支。",
+      ],
+    },
     {
       ver: "V10.384",
       date: "2026-11-16",
@@ -12533,7 +12631,47 @@
         if (S.screen !== "body-test") go("body-test", "replace");
         else render();
       },
-      finishTest() { S.testRunning = false; captureBodyTest(); go("borg", "push"); },
+      finishTest() {
+        S.testRunning = false;
+        const elapsed = Number(S.testElapsed || 0);
+        if (S.testMode !== "sit" && elapsed < 90) {
+          S.testElapsed = Math.max(12, elapsed);
+          captureBodyTest();
+          go("test-under-90", "push");
+          return;
+        }
+        const total = S.testMode === "sit" ? 60 : 180;
+        if (elapsed < total) {
+          captureBodyTest();
+          go("test-early-stop", "push");
+          return;
+        }
+        captureBodyTest();
+        go("borg", "push");
+      },
+      demoBodyTest() {
+        const mode = el.dataset.v;
+        S.testRunning = false;
+        if (mode === "under90") {
+          S.testElapsed = 45;
+          captureBodyTest();
+          go("test-under-90", "push");
+        } else if (mode === "early") {
+          S.testElapsed = 120;
+          captureBodyTest();
+          go("test-early-stop", "push");
+        } else {
+          S.testElapsed = S.testMode === "sit" ? 60 : 180;
+          captureBodyTest();
+          go("borg", "push");
+        }
+      },
+      restartBodyTest() {
+        S.testElapsed = 0;
+        S.testRunning = false;
+        go("body-test", "replace");
+        openOverlay("test-guide", { m: S.testMode || "walking" });
+      },
       setFeeling() {
         S.feeling = el.dataset.v;
         S.feelingOverride = null;
@@ -13387,7 +13525,7 @@
       return S.contra ? `
       <div class="page">
         ${navBar(`<button class="cap" data-act="back" type="button">${I.chevL}返回</button>`, "运动计划", "")}
-        ${renderContraView({ context: "proxy", personName: famName, hits: ["室颤", "心衰Ⅲ级及以上"], primaryAct: "later", showDemoToggle: true })}
+        ${renderContraView({ context: "proxy", personName: famName, hits: ["三度房室传导阻滞或以上", "活动性心肌炎、心包炎、心内膜炎", "NYHA心功能Ⅲ级及以上", "起搏器手术"], primaryAct: "later", showDemoToggle: true })}
       </div>` : `
       <div class="page">
         ${navBar(`<button class="cap" data-act="back" type="button">${I.chevL}返回</button>`, "运动计划", "")}
@@ -13863,7 +14001,7 @@
     "exercise-risk": () => S.contra ? `
       <div class="page">
         ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "体能测试前安全确认")}
-        ${renderContraView({ context: "plan", hits: ["室颤", "心衰Ⅲ级及以上"], primaryAct: "later", showDemoToggle: true })}
+        ${renderContraView({ context: "plan", hits: ["三度房室传导阻滞或以上", "活动性心肌炎、心包炎、心内膜炎", "NYHA心功能Ⅲ级及以上", "起搏器手术"], primaryAct: "later", showDemoToggle: true })}
       </div>` : `
       <div class="page">
         ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "体能测试前安全确认")}
@@ -13916,9 +14054,14 @@
       const remaining = Math.max(0, total - S.testElapsed);
       const mmss = (s) => `${Math.floor(s / 60)}:${pad(s % 60)}`;
       const warn = sit ? "如果您起坐时需要他人扶助，请勿独自进行评估" : "如果您因为任何原因不能独立行走，请勿进行评估";
+      const demoRight = `<div class="flex gap4">
+        <button class="cap" data-act="demoBodyTest" data-v="under90" type="button" style="font-size:10.5px;padding:4px 7px;color:#c2410c;background:rgba(242,153,74,0.16)">&lt;90s</button>
+        <button class="cap" data-act="demoBodyTest" data-v="early" type="button" style="font-size:10.5px;padding:4px 7px;color:#c2410c;background:rgba(242,153,74,0.16)">提前停</button>
+        <button class="cap" data-act="demoBodyTest" data-v="full" type="button" style="font-size:10.5px;padding:4px 7px">走满3分</button>
+      </div>`;
       return `
       <div class="page">
-        ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, sit ? "坐立体测" : "散步体测")}
+        ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, sit ? "坐立体测" : "散步体测", demoRight)}
         <div class="px24 grow col">
           <div class="s13 fb mt8" style="color:#F05A6E">
             <span class="flex gap6">${I.warn}<span>测试中如有不适，请立即长按停止</span></span>
@@ -14071,6 +14214,10 @@
         </div>
       </div>`;
     },
+
+    "test-early-stop": () => renderBodyTestBlockedScreen("earlyTermination"),
+
+    "test-under-90": () => renderBodyTestBlockedScreen("underNinetySeconds"),
 
     vitals: () => {
       const wk = vitalsWeekData();
