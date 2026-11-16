@@ -1557,6 +1557,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.383",
+      date: "2026-11-16",
+      time: "11:50",
+      title: "运动前风险提示页主按钮文案简化为「三分钟步行测试」",
+      screens: [
+        { id: "exercise-risk", label: "运动前风险提示" },
+      ],
+      items: [
+        "将运动前风险提示页主按钮文案由「踏步体测 / 原地踏步三分钟，评估耐量」简化为「三分钟步行测试」。",
+      ],
+    },
+    {
       ver: "V10.382",
       date: "2026-11-16",
       time: "11:40",
@@ -13849,7 +13861,7 @@
               <div style="width:30px;height:30px;border-radius:50%;background:#1054E0;color:#fff;display:grid;place-items:center" class="s14 fb">${i + 1}</div>
               <div><div class="s16 fb t">${x[0]}</div><div class="s13 t-sec mt8">${x[1]}</div></div>
             </div>`).join("")}
-          <button class="cta mt16" data-act="openGuide" data-m="walking" type="button">${I.walk}踏步体测<br><span class="s13 fb" style="opacity:.8">原地踏步三分钟，评估耐量</span></button>
+          <button class="cta mt16" data-act="openGuide" data-m="walking" type="button">${I.walk}三分钟步行测试</button>
           <button class="cta-line mt12" data-act="later" type="button">退出评估</button>
           <label class="flex gap8 mt16 t-amber s14 pointer"><input type="checkbox" ${S.contra ? "checked" : ""} data-act="contra" /> 演示：模拟命中绝对禁忌症</label>
         </div>
