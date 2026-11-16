@@ -5583,4 +5583,42 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   color: #fff;
   box-shadow: 0 6px 16px rgba(194, 65, 12, 0.24);
 }
+.walk-contra-demo {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.10);
+  white-space: nowrap;
+}
+.walk-contra-demo-lbl {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #374151;
+}
+.walk-contra-opt {
+  border: 0;
+  background: transparent;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #4B5563;
+  cursor: pointer;
+}
+.walk-contra-opt.on {
+  background: #1054E0;
+  color: #fff;
+}
+.walk-contra-opt.on.hit {
+  background: #C2410C;
+  color: #fff;
+}
 

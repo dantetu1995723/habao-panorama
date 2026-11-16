@@ -566,9 +566,9 @@
     go("walk-session", "cover");
   }
   function openContraOrBegin(taskId) {
+    if (!S.walkContraDemo) { beginWalk(taskId); return; }
     const hits = contraindicationHits();
-    if (!hits.length) { beginWalk(taskId); return; }
-    S.walkContraHits = hits;
+    S.walkContraHits = hits.length ? hits : ["室颤", "心衰Ⅲ级及以上"];
     if (S.screen !== "walk") go("walk", "cover");
     go("walk-contra", "cover");
   }
@@ -1548,6 +1548,19 @@
   /* ===== 改动记录（2026-11-13 起每次迭代同步追加，含日期与具体时间，简明说明改动位置与内容） ===== */
   const CHANGELOG = [
     {
+      ver: "V10.376",
+      date: "2026-11-16",
+      time: "10:55",
+      title: "散步界面新增「演示禁忌症（未命中 / 命中）」切换按钮",
+      screens: [
+        { id: "walk", label: "散散步，散散心" },
+        { id: "walk-contra", label: "运动安全提示（散步禁忌）" },
+      ],
+      items: [
+        "在散步界面地图顶部新增紧凑分段切换条「演示禁忌症：未命中 / 命中」（默认「未命中」），点击「开始运动」时分别演示正常进入散步会话或进入通用绝对禁忌症提示界面。",
+      ],
+    },
+    {
       ver: "V10.375",
       date: "2026-11-16",
       time: "10:52",
@@ -2007,6 +2020,7 @@
     walkTaskId: null,
     walkStartedAt: null,
     walkContraHits: [],
+    walkContraDemo: false,
     customCats: [],
     customSeq: 1,
     customDraft: { name: "", icon: "pills", color: "blue" },
@@ -7364,6 +7378,10 @@
       },
       // 底坞「运动」圆钮 = 自由运动：不带计划归属，结束后新建「自主散步」
       walkStart() { openContraOrBegin(null); },
+      setWalkContra(el) {
+        S.walkContraDemo = el.dataset.val === "1";
+        render();
+      },
       walkResume() { go("walk-session", "cover"); },
       walkReturn() {
         if (topFrame().id === "walk-session") back();
@@ -14300,6 +14318,12 @@
           <button class="circle-btn lg" data-act="goHome" type="button">${I.house}</button>
         </div>
         <div class="map walk-map">
+          ${!S.walking && !S.walkSaved ? `
+            <div class="walk-contra-demo">
+              <span class="walk-contra-demo-lbl">演示禁忌症</span>
+              <button class="walk-contra-opt ${!S.walkContraDemo ? "on" : ""}" data-act="setWalkContra" data-val="0" type="button">未命中</button>
+              <button class="walk-contra-opt ${S.walkContraDemo ? "on hit" : ""}" data-act="setWalkContra" data-val="1" type="button">命中</button>
+            </div>` : ""}
           ${mapArt({ route: S.walking || S.walkSaved })}
           <div class="walk-dock">
             <button class="walk-side" data-go="walk-records" type="button">${I.hist}<span>记录</span></button>
