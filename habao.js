@@ -1470,8 +1470,7 @@
     { g: "同 Cover 替换", items: [
       { id: "ocr-capture", t: "上传资料", code: "IntakeCaptureView", how: "replace" },
       { id: "exercise-risk", t: "运动前风险提示", code: "BodyTestRunView", how: "replace" },
-      { id: "body-test", t: "散步体测", code: "BodyTestRunView", how: "replace" },
-      { id: "body-test-sit", t: "坐立体测", code: "BodyTestRunView", how: "replace" },
+      { id: "body-test", t: "踏步体测", code: "BodyTestRunView", how: "replace" },
       { id: "task-edit", t: "更新计划", code: "AddEditTaskView", how: "replace" },
     ]},
     { g: "栈内 Push · 创建与报告", items: [
@@ -1557,6 +1556,20 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.382",
+      date: "2026-11-16",
+      time: "11:40",
+      title: "V0.0 与 V0.1 版本移除「坐立体测」，统一保留「踏步体测」",
+      screens: [
+        { id: "exercise-risk", label: "运动前风险提示" },
+        { id: "body-test", label: "踏步体测" },
+      ],
+      items: [
+        "运动前风险提示页移除「坐立体测」入口按钮，V0.0 与 V0.1 版本统一仅保留「踏步体测」。",
+        "交互全景左树移除「坐立体测」节点，同步更新 PRD 文档口径。",
+      ],
+    },
     {
       ver: "V10.381",
       date: "2026-11-16",
@@ -11023,7 +11036,7 @@
           m: 0,
           cycle: true,
           rule: "daily",
-          note: "请完成 3 分钟踏步或 1 分钟坐立体测，评估后自行创建运动计划",
+          note: "请完成 3 分钟踏步体测，评估后自行创建运动计划",
         };
         sendProxyRequestFor({
           senderName: me.name,
@@ -13837,7 +13850,6 @@
               <div><div class="s16 fb t">${x[0]}</div><div class="s13 t-sec mt8">${x[1]}</div></div>
             </div>`).join("")}
           <button class="cta mt16" data-act="openGuide" data-m="walking" type="button">${I.walk}踏步体测<br><span class="s13 fb" style="opacity:.8">原地踏步三分钟，评估耐量</span></button>
-          <button class="cta mt12" data-act="openGuide" data-m="sit" type="button">坐立体测<br><span class="s13 fb" style="opacity:.8">1 分钟坐立，居家可测</span></button>
           <button class="cta-line mt12" data-act="later" type="button">退出评估</button>
           <label class="flex gap8 mt16 t-amber s14 pointer"><input type="checkbox" ${S.contra ? "checked" : ""} data-act="contra" /> 演示：模拟命中绝对禁忌症</label>
         </div>
