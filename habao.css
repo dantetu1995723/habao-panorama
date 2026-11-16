@@ -4588,6 +4588,60 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   padding: 0 10px;
   font-size: 15px;
   font-weight: 600;
+}
+
+/* V10.393：解析结果页手术名称多选胶囊 + 其他可填写 */
+.parsed-surgery-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.parsed-surgery-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(16, 84, 224, 0.18);
+  background: #F4F8FF;
+  color: #18243E;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.parsed-surgery-chip.on {
+  background: #1054E0;
+  border-color: #1054E0;
+  color: #FFFFFF;
+}
+.parsed-surgery-chip .chip-mark {
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.85;
+}
+.parsed-surgery-other-wrap {
+  margin-top: 10px;
+}
+.parsed-surgery-other-input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(16, 84, 224, 0.22);
+  background: #F4F8FF;
+  padding: 0 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #18243E;
+  -webkit-text-fill-color: #18243E;
+  outline: none;
+}
+.parsed-surgery-other-input:focus {
+  border-color: var(--blue);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(16, 84, 224, 0.1);
+}
   color: #18243E;
   font-family: inherit;
   outline: none;
