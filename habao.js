@@ -1653,6 +1653,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.392",
+      date: "2026-11-16",
+      time: "16:22",
+      title: "复查拍照轨道默认同步预选「已有存量次序 + 紧邻下一次」",
+      screens: [
+        { id: "ocr-capture", label: "上传资料（复查组轨道）" },
+      ],
+      items: [
+        "进入复查报告拍摄页面时，底部组轨道默认按连续存量自动预建并选中「1…已有存量次 + 紧邻下一次」（例如已有第一次复查存量时，默认同时列出第一次复查与第二次复查，并将焦点置于最新的第二次复查），方便直接续拍或补拍。",
+      ],
+    },
+    {
       ver: "V10.391",
       date: "2026-11-16",
       time: "16:10",
@@ -3040,16 +3052,28 @@
       .map(([, g]) => g);
   }
   function seedDocGroups(pages = 0) {
-    S.docSeq = 1;
-    const seedOrd = isVisitCapture() ? nextDefaultVisitOrd() : 1;
-    S.docGroups = isVisitCapture()
-      ? [{ id: 1, cat: "reviewReport", ord: seedOrd, pages }]
-      : [{ id: 1, cat: "dischargeRecord", pages }];
-    S.activeGroup = 1;
-    S.pendingCat = S.docGroups[0].cat;
-    S.pendingCats = ["dischargeRecord"];
-    S.pendingVisitOrds = [seedOrd];
-    S.pendingVisitMaxOrd = Math.max(3, configuredVisitMaxOrd(), seedOrd);
+    if (isVisitCapture()) {
+      const baseMax = visitContiguousFilledMax();
+      const targetMax = Math.max(1, baseMax + 1);
+      S.docGroups = [];
+      for (let ord = 1; ord <= targetMax; ord++) {
+        S.docGroups.push({ id: ord, cat: "reviewReport", ord, pages: ord === targetMax ? pages : 0 });
+      }
+      S.docSeq = targetMax;
+      S.activeGroup = targetMax;
+      S.pendingCat = "reviewReport";
+      S.pendingCats = ["dischargeRecord"];
+      S.pendingVisitOrds = Array.from({ length: targetMax }, (_, i) => i + 1);
+      S.pendingVisitMaxOrd = Math.max(3, configuredVisitMaxOrd(), targetMax);
+    } else {
+      S.docSeq = 1;
+      S.docGroups = [{ id: 1, cat: "dischargeRecord", pages }];
+      S.activeGroup = 1;
+      S.pendingCat = S.docGroups[0].cat;
+      S.pendingCats = ["dischargeRecord"];
+      S.pendingVisitOrds = [1];
+      S.pendingVisitMaxOrd = Math.max(3, configuredVisitMaxOrd());
+    }
     S.sessionCustomCats = S.captureMode === "archive" ? [...(ARCHIVE_DEMO.baseline.customCats || [])] : [];
     S.addingCustomCat = false;
     S.editingCustomCat = null;
