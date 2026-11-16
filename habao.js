@@ -1653,6 +1653,22 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.391",
+      date: "2026-11-16",
+      time: "16:10",
+      title: "统筹复查报告上传防空次逻辑：逐次解锁 + 提交连续性校验 + 外侧删空自动前移重编",
+      screens: [
+        { id: "ocr-capture", label: "上传资料（选择复查次数）" },
+        { id: "report-sub", label: "复查报告（资料合集）" },
+        { id: "health-record", label: "健康档案" },
+      ],
+      items: [
+        "拍照选次弹窗改为逐次连续解锁：仅「已有资料次数 + 紧邻下一次」可直接勾选，未解锁的后续复查置灰锁定并提示「需先上传第 X 次复查」，防止第一次未传就跳过传第二次/第三次。",
+        "进入复查拍摄默认自动定位到紧邻下一次复查（空态为第一次复查，已有第 1、2 次时为第三次复查）；点击「确认 / 提交」前若发现已拍批次之间存在空次，拦截提示补齐后再提交。",
+        "外侧「资料合集 / 健康档案」将中间某次复查照片全部删除后，后续复查批次自动顺延前移重编序号，确保复查次数始终连续无空次。",
+      ],
+    },
+    {
       ver: "V10.390",
       date: "2026-11-16",
       time: "16:02",
@@ -2970,6 +2986,30 @@
     }
     return maxOrd + 1;
   }
+  function visitContiguousFilledMax() {
+    const base = visitBaseFilledOrds();
+    const track = new Set((S.docGroups || []).filter((g) => g.pages > 0).map((g) => g.ord || 1));
+    let ord = 1;
+    while (base.has(ord) || track.has(ord)) {
+      ord += 1;
+    }
+    return ord - 1;
+  }
+  function maxUnlockedVisitOrd() {
+    return visitContiguousFilledMax() + 1;
+  }
+  function firstMissingVisitOrdGap() {
+    if (!isVisitCapture()) return null;
+    const track = new Set((S.docGroups || []).filter((g) => g.pages > 0).map((g) => g.ord || 1));
+    if (!track.size) return null;
+    const base = visitBaseFilledOrds();
+    const combined = new Set([...base, ...track]);
+    const maxOrd = Math.max(...combined);
+    for (let ord = 1; ord <= maxOrd; ord++) {
+      if (!combined.has(ord)) return ord;
+    }
+    return null;
+  }
   function baselineBaseDisplayGroups() {
     const raw = (ARCHIVE_DEMO.baseline.groups || []).filter((g) => g.pages > 0);
     const customCats = ARCHIVE_DEMO.baseline.customCats || [];
@@ -3001,14 +3041,15 @@
   }
   function seedDocGroups(pages = 0) {
     S.docSeq = 1;
+    const seedOrd = isVisitCapture() ? nextDefaultVisitOrd() : 1;
     S.docGroups = isVisitCapture()
-      ? [{ id: 1, cat: "reviewReport", ord: 1, pages }]
+      ? [{ id: 1, cat: "reviewReport", ord: seedOrd, pages }]
       : [{ id: 1, cat: "dischargeRecord", pages }];
     S.activeGroup = 1;
     S.pendingCat = S.docGroups[0].cat;
     S.pendingCats = ["dischargeRecord"];
-    S.pendingVisitOrds = [1];
-    S.pendingVisitMaxOrd = Math.max(3, configuredVisitMaxOrd());
+    S.pendingVisitOrds = [seedOrd];
+    S.pendingVisitMaxOrd = Math.max(3, configuredVisitMaxOrd(), seedOrd);
     S.sessionCustomCats = S.captureMode === "archive" ? [...(ARCHIVE_DEMO.baseline.customCats || [])] : [];
     S.addingCustomCat = false;
     S.editingCustomCat = null;
@@ -9101,6 +9142,11 @@
           toast(submitBlockedHint());
           return;
         }
+        const missingOrd = firstMissingVisitOrdGap();
+        if (missingOrd) {
+          toast(`请先上传${cnOrdinal(missingOrd)}次复查资料，不可跳过中间复查次序`);
+          return;
+        }
         go("ocr-detail", "push");
       },
       ocrParse() {
@@ -9144,6 +9190,11 @@
       },
       ocrSubmit() {
         if (!canSubmitCapture()) { toast(submitBlockedHint()); return; }
+        const missingOrd = firstMissingVisitOrdGap();
+        if (missingOrd) {
+          toast(`请先上传${cnOrdinal(missingOrd)}次复查资料，不可跳过中间复查次序`);
+          return;
+        }
         toast("已保存资料");
         finishArchive();
       },
@@ -9153,8 +9204,9 @@
         S.addingCustomCat = false;
         S.editingCustomCat = null;
         if (isVisitCapture()) {
-          S.pendingVisitOrds = [...new Set(S.docGroups.map((g) => g.ord || 1))];
-          S.pendingVisitMaxOrd = Math.max(3, S.pendingVisitMaxOrd || configuredVisitMaxOrd(), ...S.docGroups.map((g) => g.ord || 1));
+          const maxUnlocked = maxUnlockedVisitOrd();
+          S.pendingVisitOrds = [...new Set(S.docGroups.map((g) => g.ord || 1))].filter((ord) => ord <= maxUnlocked);
+          S.pendingVisitMaxOrd = Math.max(3, S.pendingVisitMaxOrd || configuredVisitMaxOrd(), maxUnlocked, ...S.docGroups.map((g) => g.ord || 1));
         } else {
           S.pendingCat = S.docGroups[0]?.cat || "dischargeRecord";
           const currentCats = [...new Set(S.docGroups.map((g) => g.cat))];
@@ -9171,7 +9223,7 @@
       pickDocCat() {
         if (isVisitCapture()) {
           const ord = +el.dataset.ord;
-          if (!ord) return;
+          if (!ord || ord > maxUnlockedVisitOrd()) return;
           if (!Array.isArray(S.pendingVisitOrds)) S.pendingVisitOrds = [];
           if (S.pendingVisitOrds.includes(ord)) {
             S.pendingVisitOrds = S.pendingVisitOrds.filter((x) => x !== ord);
@@ -9201,7 +9253,7 @@
         const nextOrd = Math.max(3, S.pendingVisitMaxOrd || configuredVisitMaxOrd()) + 1;
         S.pendingVisitMaxOrd = nextOrd;
         if (!Array.isArray(S.pendingVisitOrds)) S.pendingVisitOrds = [];
-        if (!S.pendingVisitOrds.includes(nextOrd)) {
+        if (nextOrd <= maxUnlockedVisitOrd() && !S.pendingVisitOrds.includes(nextOrd)) {
           S.pendingVisitOrds = [...S.pendingVisitOrds, nextOrd];
         }
         render();
@@ -12622,12 +12674,19 @@
         if (!src || gi < 0 || !src.groups[gi]) return;
         src.groups[gi].pages -= 1;
         if (src.groups[gi].pages <= 0) {
+          src.groups.splice(gi, 1);
           if (k === "review") {
             src.groups.forEach((g, idx) => {
               if (!g.ord) g.ord = parseVisitOrd(g.title, idx + 1);
             });
+            src.groups.sort((a, b) => (a.ord || 1) - (b.ord || 1));
+            src.groups.forEach((g, idx) => {
+              const newOrd = idx + 1;
+              g.ord = newOrd;
+              g.title = `${cnOrdinal(newOrd)}次复查`;
+            });
+            ARCHIVE_DEMO.review.maxOrd = Math.max(3, src.groups.length);
           }
-          src.groups.splice(gi, 1);
         }
         syncCurrentPersonArchiveSnapshot();
         markReportMaterialUpdated(k === "visit" || k === "review" ? "review" : "baseline");
@@ -21202,7 +21261,8 @@
     catPick: () => {
       if (isVisitCapture()) {
         const selected = S.pendingVisitOrds || [];
-        const totalCount = Math.max(3, S.pendingVisitMaxOrd || configuredVisitMaxOrd());
+        const maxUnlocked = maxUnlockedVisitOrd();
+        const totalCount = Math.max(3, S.pendingVisitMaxOrd || configuredVisitMaxOrd(), maxUnlocked);
         const nextTitle = `${cnOrdinal(totalCount + 1)}次复查`;
         return `
         <div class="scrim bottom" data-act="close">
@@ -21216,16 +21276,22 @@
             <div class="cat-list">
               ${Array.from({ length: totalCount }, (_, idx) => {
                 const ord = idx + 1;
-                const on = selected.includes(ord);
+                const locked = ord > maxUnlocked;
+                const on = !locked && selected.includes(ord);
                 return `
-                <div class="cat-row ${on ? "on" : ""}" style="display:flex;align-items:center;gap:10px">
-                  <button class="flex grow center" style="background:none;border:0;padding:0;gap:12px;text-align:left;color:inherit;font:inherit;cursor:pointer" data-act="pickDocCat" data-ord="${ord}" type="button">
-                    <span class="cat-ico">${I.doc}</span>
-                    <span class="grow ta-l"><b>${cnOrdinal(ord)}次复查</b></span>
+                <div class="cat-row ${on ? "on" : ""}" style="display:flex;align-items:center;gap:10px;${locked ? "opacity:.68;" : ""}">
+                  <button class="flex grow center" style="background:none;border:0;padding:0;gap:12px;text-align:left;color:inherit;font:inherit;cursor:${locked ? "default" : "pointer"}" ${locked ? "disabled" : `data-act="pickDocCat" data-ord="${ord}"`} type="button">
+                    <span class="cat-ico" style="${locked ? "background:rgba(15,23,42,.06);color:var(--secondary)" : ""}">${I.doc}</span>
+                    <div class="grow ta-l" style="display:flex;flex-direction:column;gap:2px">
+                      <b style="${locked ? "color:var(--secondary)" : ""}">${cnOrdinal(ord)}次复查</b>
+                      ${locked ? `<span class="s12 fm t-sec">需先上传${cnOrdinal(ord - 1)}次复查</span>` : ""}
+                    </div>
                   </button>
                   ${ord > 3 ? `<button class="cap red" style="padding:4px 10px;font-size:12px" data-act="delVisitOrdInPicker" data-ord="${ord}" type="button">删除</button>` : ""}
-                  <button style="background:none;border:0;padding:2px;cursor:pointer" data-act="pickDocCat" data-ord="${ord}" type="button">
-                    ${on ? `<span class="cat-check">${I.check}</span>` : `<span style="display:inline-block;width:20px;height:20px;border-radius:50%;border:1.8px solid rgba(100,116,139,.35)"></span>`}
+                  <button style="background:none;border:0;padding:2px;cursor:${locked ? "default" : "pointer"}" ${locked ? "disabled" : `data-act="pickDocCat" data-ord="${ord}"`} type="button">
+                    ${locked
+                      ? `<span class="s12 t-sec" style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px">🔒</span>`
+                      : (on ? `<span class="cat-check">${I.check}</span>` : `<span style="display:inline-block;width:20px;height:20px;border-radius:50%;border:1.8px solid rgba(100,116,139,.35)"></span>`)}
                   </button>
                 </div>`;
               }).join("")}
