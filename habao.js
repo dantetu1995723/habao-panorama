@@ -1689,6 +1689,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.409",
+      date: "2026-11-17",
+      time: "10:41",
+      title: "「血压监测」移除顶部孤立「最近7天」横条，评估卡标题改为「最近7天评估」并精简文案",
+      screens: [
+        { id: "vitals", label: "血压监测" },
+      ],
+      items: [
+        "移除「血压监测」页面顶部孤立的「最近7天」单独一行，将时间跨度直接融入评估卡标题「最近7天评估」。",
+        "精简评估正文与底部提示文案（「血压均达标，心率均达标，血压平稳，心率平稳。」「每日零点刷新 · 仅供参考，不替代医生诊断」），整体更简洁直观。",
+      ],
+    },
+    {
       ver: "V10.408",
       date: "2026-11-17",
       time: "10:38",
@@ -14650,12 +14663,9 @@
       return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "血压监测", `<button class="cap" data-go="vitals-detail" type="button">${I.list}明细</button>`)}
-        <div class="flex center px20 s17 fb t" style="padding:8px 20px 12px">
-          <span>最近7天</span>
-        </div>
-        <div class="scroll px20">
+        <div class="scroll px20" style="padding-top:8px">
           <div class="island-card" style="padding:18px">
-            <div class="flex between center"><div class="s19 fb t">体征综合评估</div><span class="cap" style="${badgeStyles[sum.tone] || badgeStyles.blue}">${sum.badge}</span></div>
+            <div class="flex between center"><div class="s19 fb t">最近7天评估</div><span class="cap" style="${badgeStyles[sum.tone] || badgeStyles.blue}">${sum.badge}</span></div>
             <p class="s16 t mt12" style="line-height:1.45">${sum.text}</p>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
               <div style="padding:12px;border-radius:13px;background:${bpBg}">
@@ -14675,8 +14685,7 @@
                 <div class="s13 fb" style="margin-top:6px;color:#F05A6E;opacity:.85">${sum.hrStat}</div>
               </div>
             </div>
-            <p class="s12 t-sec mt12">综合评估每天零点刷新</p>
-            <p class="s12 t-sec mt4">仅依据当前记录提供康复参考，不替代医生诊断</p>
+            <p class="s12 t-sec mt12">每日零点刷新 · 仅供参考，不替代医生诊断</p>
           </div>
           <div class="island-card mt12" style="padding:18px">
             <div class="flex between" style="align-items:baseline">
@@ -16961,7 +16970,7 @@
         tone: "blue",
         bpStat: "暂无记录",
         hrStat: "暂无记录",
-        text: "完成血压或心率记录后，将结合当前统计区间生成评估。",
+        text: "最近7天暂无记录，测量血压或心率后将自动生成评估。",
       };
     }
     const expectedDays = 7;
@@ -17032,29 +17041,29 @@
 
     const parts = [];
     if (unmeasuredDays >= 3) {
-      parts.push(`区间内有 ${unmeasuredDays} 天未测量（仅记录 ${measuredDays} 天）`);
+      parts.push(`近7天有 ${unmeasuredDays} 天未测（仅记 ${measuredDays} 天）`);
     } else if (unmeasuredDays > 0) {
-      parts.push(`区间内有 ${unmeasuredDays} 天未测量`);
+      parts.push(`近7天有 ${unmeasuredDays} 天未测`);
     }
 
     if (bpAlerts > 0) {
-      parts.push(`有 ${bpAlerts} 次血压触及报警线`);
+      parts.push(`${bpAlerts} 次血压触及报警线`);
     } else if (bpOutside === 0) {
-      parts.push(unmeasuredDays > 0 ? "已测血压均在康复目标内" : "血压记录均在康复目标内");
+      parts.push(unmeasuredDays > 0 ? "已测血压均达标" : "血压均达标");
     } else {
-      parts.push(`有 ${bpOutside} 次血压超出康复目标 ${VITAL.bpTargetText(age)}`);
+      parts.push(`${bpOutside} 次血压超目标（${VITAL.bpTargetText(age)}）`);
     }
 
     if (hrAlerts > 0) {
-      parts.push(`有 ${hrAlerts} 次心率触及报警线`);
+      parts.push(`${hrAlerts} 次心率触及报警线`);
     } else if (hrOutside === 0) {
-      parts.push(unmeasuredDays > 0 ? "已测静息心率均在目标内" : "静息心率均在目标内");
+      parts.push(unmeasuredDays > 0 ? "已测心率均达标" : "心率均达标");
     } else {
-      parts.push(`有 ${hrOutside} 次心率超出目标 55–60`);
+      parts.push(`${hrOutside} 次心率超目标（55–60）`);
     }
 
     if (unmeasuredDays >= 3 || total < 4) {
-      parts.push("建议坚持每日规律测量以形成完整趋势");
+      parts.push("建议坚持每日测量");
     } else {
       const mid = Math.floor(total / 2);
       const early = wk.slice(0, mid);
@@ -17062,15 +17071,15 @@
       const avgOf = (arr, k) => Math.round(arr.reduce((s, d) => s + d[k], 0) / arr.length);
       const bpDelta = avgOf(recent, "sys") - avgOf(early, "sys");
       const hrDelta = avgOf(recent, "hr") - avgOf(early, "hr");
-      if (bpVolatile) parts.push("近期血压波动较大");
-      else if (bpDelta >= 5) parts.push("近期血压较前段略有上升");
-      else if (bpDelta <= -5) parts.push("近期血压较前段有所回落");
-      else parts.push("血压趋势较平稳");
+      if (bpVolatile) parts.push("血压波动较大");
+      else if (bpDelta >= 5) parts.push("血压略有上升");
+      else if (bpDelta <= -5) parts.push("血压有所回落");
+      else parts.push("血压平稳");
 
-      if (hrVolatile) parts.push("近期心率波动较大");
-      else if (hrDelta >= 4) parts.push("心率较前段略有上升");
-      else if (hrDelta <= -4) parts.push("心率较前段有所回落");
-      else parts.push("心率趋势较平稳");
+      if (hrVolatile) parts.push("心率波动较大");
+      else if (hrDelta >= 4) parts.push("心率略有上升");
+      else if (hrDelta <= -4) parts.push("心率有所回落");
+      else parts.push("心率平稳");
     }
 
     return { badge, tone, bpStat, hrStat, text: `${parts.join("，")}。` };
