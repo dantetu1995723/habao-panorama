@@ -1689,6 +1689,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.411",
+      date: "2026-11-17",
+      time: "11:16",
+      title: "「血压监测」新增测试态切换栏，支持一键预览正常 / 解析中 / 缺数据 / 无数据 / 告警状态",
+      screens: [
+        { id: "vitals", label: "血压监测" },
+      ],
+      items: [
+        "在「血压监测」内容区顶部新增「测试态」切换胶囊栏（正常 / 解析中 / 缺数据 / 无数据 / 告警），方便直接验证各类边界表现。",
+        "「解析中」状态在评估卡内展示「正在生成最近7天评估…」加载中间态；「缺数据」仅保留 3 天测量点并在 7 天 x日 横坐标上跨点连线；「无数据」展示等待记录与趋势图空态占位；「告警」演示触及报警线的高亮告警态。",
+      ],
+    },
+    {
       ver: "V10.410",
       date: "2026-11-17",
       time: "11:02",
@@ -2430,6 +2443,7 @@
     screen: "home",
     frames: [{ id: "home", how: "root" }],
     enrolled: true,
+    vitalsTestMode: "normal",
     loggedIn: true,
     privacyAccepted: true,
     loginTermsChecked: true,
@@ -8661,6 +8675,7 @@
       pickScope() { S.scheduleScope = el.dataset.s; closeOverlay(); },
       calPrev() { S.calOffset -= 1; render(); },
       calNext() { S.calOffset += 1; render(); },
+      setVitalsTestMode() { S.vitalsTestMode = el.dataset.mode || "normal"; render(); },
       stampPrev() { S.stampCalOffset -= 1; render(); },
       stampNext() { S.stampCalOffset += 1; render(); },
       // 集章日历选日：回写选中日并关弹窗（真机 StampCalendarPopup）
@@ -14678,45 +14693,65 @@
       };
       const bpColor = sum.bpStat === "触及告警" ? "#F05A6E" : "#1054E0";
       const bpBg = sum.bpStat === "触及告警" ? "rgba(240,90,110,.06)" : "rgba(16,84,224,.06)";
+      const mode = S.vitalsTestMode || "normal";
+      const isAnalyzing = mode === "analyzing";
+      const modes = [
+        ["normal", "正常"],
+        ["analyzing", "解析中"],
+        ["sparse", "缺数据"],
+        ["empty", "无数据"],
+        ["alert", "告警"],
+      ];
+      const testBar = `<div class="flex center gap6 mb12" style="flex-wrap:wrap;justify-content:flex-start">
+        <span class="s12 fb t-sec">测试态</span>
+        ${modes.map(([m, label]) => `<button type="button" data-act="setVitalsTestMode" data-mode="${m}" class="s12 fb" style="border:0;cursor:pointer;padding:4px 9px;border-radius:99px;${mode === m ? "background:#1054E0;color:#fff" : "background:rgba(16,84,224,.08);color:rgba(16,84,224,.75)"}">${label}</button>`).join("")}
+      </div>`;
       return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "血压监测", `<button class="cap" data-go="vitals-detail" type="button">${I.list}明细</button>`)}
         <div class="scroll px20" style="padding-top:8px">
+          ${testBar}
           <div class="island-card" style="padding:18px">
             <div class="flex between" style="align-items:flex-start">
               <div>
                 <div class="s19 fb t">最近7天评估</div>
                 <div class="s13 fb t-sec mono mt2">${vitalsDateRangeLabel()}</div>
               </div>
-              <span class="cap" style="${badgeStyles[sum.tone] || badgeStyles.blue}">${sum.badge}</span>
+              <span class="cap" style="${isAnalyzing ? badgeStyles.blue : (badgeStyles[sum.tone] || badgeStyles.blue)}">${isAnalyzing ? "解析中" : sum.badge}</span>
             </div>
-            <p class="s16 t mt12" style="line-height:1.45">${sum.text}</p>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
-              <div style="padding:12px;border-radius:13px;background:${bpBg}">
-                <div class="s13 fb t-sec">平均血压</div>
-                <div style="margin-top:6px;display:flex;align-items:baseline;gap:3px">
-                  <span class="s20 fb mono" style="color:${bpColor}">${avg.sys}/${avg.dia}</span>
-                  <span class="s12 fb" style="color:${bpColor};opacity:.7">mmHg</span>
+            ${isAnalyzing ? `
+              <div class="mt12">${reportIntermediateCardHTML("正在生成最近7天评估…", "已同步最新血压与心率记录，正在分析达标情况与7天变化趋势，请稍候…", true)}</div>
+            ` : `
+              <p class="s16 t mt12" style="line-height:1.45">${sum.text}</p>
+              ${wk.length ? `
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+                  <div style="padding:12px;border-radius:13px;background:${bpBg}">
+                    <div class="s13 fb t-sec">平均血压</div>
+                    <div style="margin-top:6px;display:flex;align-items:baseline;gap:3px">
+                      <span class="s20 fb mono" style="color:${bpColor}">${avg.sys}/${avg.dia}</span>
+                      <span class="s12 fb" style="color:${bpColor};opacity:.7">mmHg</span>
+                    </div>
+                    <div class="s13 fb" style="margin-top:6px;color:${bpColor};opacity:.85">${sum.bpStat}</div>
+                  </div>
+                  <div style="padding:12px;border-radius:13px;background:rgba(240,90,110,.06)">
+                    <div class="s13 fb t-sec">平均心率</div>
+                    <div style="margin-top:6px;display:flex;align-items:baseline;gap:3px">
+                      <span class="s20 fb mono" style="color:#F05A6E">${avg.hr}</span>
+                      <span class="s12 fb" style="color:#F05A6E;opacity:.7">bpm</span>
+                    </div>
+                    <div class="s13 fb" style="margin-top:6px;color:#F05A6E;opacity:.85">${sum.hrStat}</div>
+                  </div>
                 </div>
-                <div class="s13 fb" style="margin-top:6px;color:${bpColor};opacity:.85">${sum.bpStat}</div>
-              </div>
-              <div style="padding:12px;border-radius:13px;background:rgba(240,90,110,.06)">
-                <div class="s13 fb t-sec">平均心率</div>
-                <div style="margin-top:6px;display:flex;align-items:baseline;gap:3px">
-                  <span class="s20 fb mono" style="color:#F05A6E">${avg.hr}</span>
-                  <span class="s12 fb" style="color:#F05A6E;opacity:.7">bpm</span>
-                </div>
-                <div class="s13 fb" style="margin-top:6px;color:#F05A6E;opacity:.85">${sum.hrStat}</div>
-              </div>
-            </div>
+              ` : ""}
+            `}
             <p class="s12 t-sec mt12">每日零点刷新 · 仅供参考，不替代医生诊断</p>
           </div>
           <div class="island-card mt12" style="padding:18px">
             <div class="flex between" style="align-items:baseline">
               <div class="s20 fb t">${I.heartSq}血压趋势</div>
-              <div class="s15 fb t mono">${vitalsWeekAvg().sys}/${vitalsWeekAvg().dia} <span class="s11 t-sec">mmHg</span></div>
+              ${wk.length ? `<div class="s15 fb t mono">${avg.sys}/${avg.dia} <span class="s11 t-sec">mmHg</span></div>` : ""}
             </div>
-            ${(() => {
+            ${wk.length ? (() => {
               const xLabs = vitalsWindowDates().map((d) => `${d.getDate()}日`);
               const byIdx = new Map(wk.map((d, idx) => [d.dayIdx ?? idx, d]));
               const sysVals = xLabs.map((_, i) => byIdx.get(i)?.sys ?? null);
@@ -14724,16 +14759,15 @@
               return lineChart(
                 [{ values: sysVals, color: "#1054E0" }, { values: diaVals, color: "#1EBED6" }],
                 niceDomain(wk.flatMap((d) => [d.sys, d.dia]), 15, 40, 40),
-                xLabs);
-            })()}
-            <div class="flex gap16 s12 t-sec mt4"><span style="color:#1054E0">● 收缩压</span><span style="color:#1EBED6">● 舒张压</span></div>
+                xLabs) + `<div class="flex gap16 s12 t-sec mt4"><span style="color:#1054E0">● 收缩压</span><span style="color:#1EBED6">● 舒张压</span></div>`;
+            })() : `<div class="ta-c s15 t-sec" style="padding:56px 0">这一段还没有血压记录</div>`}
           </div>
           <div class="island-card mt12" style="padding:18px">
             <div class="flex between" style="align-items:baseline">
               <div class="s20 fb t-heart">${I.ecg}心率趋势</div>
-              <div class="s15 fb t-heart mono">${vitalsWeekAvg().hr} <span class="s11 t-sec">bpm</span></div>
+              ${wk.length ? `<div class="s15 fb t-heart mono">${avg.hr} <span class="s11 t-sec">bpm</span></div>` : ""}
             </div>
-            ${(() => {
+            ${wk.length ? (() => {
               const xLabs = vitalsWindowDates().map((d) => `${d.getDate()}日`);
               const byIdx = new Map(wk.map((d, idx) => [d.dayIdx ?? idx, d]));
               const hrVals = xLabs.map((_, i) => byIdx.get(i)?.hr ?? null);
@@ -14741,7 +14775,7 @@
                 [{ values: hrVals, color: "#F05A6E" }],
                 niceDomain(wk.map((d) => d.hr), 10, 30, 30),
                 xLabs);
-            })()}
+            })() : `<div class="ta-c s15 t-sec" style="padding:56px 0">这一段还没有心率记录</div>`}
           </div>
         </div>
       </div>`;
@@ -16704,12 +16738,21 @@
     { day: "六", sys: 124, dia: 76, hr: 58 },
     { day: "日", sys: 128, dia: 82, hr: 60 },
   ];
-  /// 最近 7 天滚动窗口读数（每日零点自动顺延，无翻页）
+  /// 最近 7 天滚动窗口读数（每日零点自动顺延，无翻页；支持测试态预览）
   function vitalsWeekData() {
+    const mode = S.vitalsTestMode || "normal";
+    if (mode === "empty") return [];
     const baseWeek = (activePersonStore().vitalsWeek || VITALS_WEEK);
     if (!baseWeek.length) return [];
     const dates = vitalsWindowDates();
-    return baseWeek.map((d, i) => ({ ...d, dayIdx: i, day: `${dates[i].getDate()}日` }));
+    const mapped = baseWeek.map((d, i) => ({ ...d, dayIdx: i, day: `${dates[i].getDate()}日` }));
+    if (mode === "sparse") {
+      return mapped.filter((_, i) => i === 0 || i === 3 || i === 6);
+    }
+    if (mode === "alert") {
+      return mapped.map((d, i) => (i === 4 ? { ...d, sys: 184, dia: 112, hr: 106 } : d));
+    }
+    return mapped;
   }
   function vitalsWeekAvg() {
     const w = vitalsWeekData();
