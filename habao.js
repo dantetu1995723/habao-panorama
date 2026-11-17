@@ -1515,7 +1515,6 @@
     "exercise-risk>body-test": "replace",
     "body-test>borg": "push",
     "borg>confirm-exercise": "push",
-    "borg>risk-result": "push",
     "vitals>vitals-detail": "push",
     "vitals>consult": "cover",
     "report>analysis": "push",
@@ -1612,7 +1611,6 @@
       { id: "borg", t: "感受问卷", code: "BorgQuestionnaireView", how: "push" },
       { id: "confirm-exercise", t: "确认运动计划", code: "ExerciseScheduleConfirmView", how: "push" },
       { id: "test-early-stop", t: "体测提前终止", code: "BodyTestBlockedView", how: "push" },
-      { id: "risk-result", t: "评估结果（异常）", code: "IntakeResultView", how: "push" },
       { id: "vitals-detail", t: "指标明细", code: "VitalsMeasurementDetailView", how: "push" },
       { id: "category-manage", t: "管理类别", code: "CategoryManageView", how: "push" },
       { id: "followup", t: "问卷随访", code: "ReviewFollowUpPage", how: "push" },
@@ -1670,7 +1668,7 @@
     "body-test": { code: "BodyTestRunView", note: "原地踏步三分钟。选定体测模式后进入本页并叠加「体测指南弹窗 → 3-2-1 倒计时」，倒计时结束开始运行。长按停止或倒计时归零后按步行时长分流：① 未走满 3 分钟（<180 秒）提前终止 → 专属「体测提前终止，暂不生成运动计划」页；② 走满 3 分钟（180 秒）→ 进入感受问卷。导航栏右上提供快捷演示按钮方便切换两种体测结果。" },
     "test-early-stop": { code: "BodyTestBlockedView(.earlyTermination)", note: "不能生成运动计划体测拦截情况之一（提前终止运动）。体测未走满 3 分钟即手动长按停止时进入，展示「体测提前终止，暂不生成运动计划」、本次实际步行数据、3 条针对性安全建议与「我知道了，暂不生成」主按钮，不进感受问卷。" },
     "body-test-sit": { code: "BodyTestRunView", note: "室内 1 分钟坐立。次数大号读数 + 倒计时 + 同龄参考。停止后问卷顶部两栏「测试时长 / 完成次数」。" },
-    borg: { code: "BorgQuestionnaireView", note: "体测停止后直进，顶部读本次 BodyTestRecord（户外三栏 / 室内坐立两栏）。下方精简为单一「本次测试的感受（单选）」7 档描述选项（从非常非常轻松到非常非常费力），不再展示多维滑动条与反应/说话多题。底部统一为「提交结果」，导航栏右上角提供「⇄ 能生成计划 / 不能生成计划」胶囊一键切换演示状态；提交后交由 AI 综合体测数据与主观感受判定是否生成运动计划。" },
+    borg: { code: "BorgQuestionnaireView", note: "体测停止后直进，顶部读本次 BodyTestRecord（户外三栏 / 室内坐立两栏）。下方精简为单一「本次测试的感受（单选）」7 档描述选项（从非常非常轻松到非常非常费力），不再展示多维滑动条与反应/说话多题。底部统一为「提交结果」，无论选择哪一档感受，提交后均直接进入「确认计划」生成运动计划（已移除「评估结果（异常）」拦截页与右上角演示切换胶囊）。" },
     followup: { code: "ReviewFollowUpPage", note: "V10.306：问卷随访时间树（对齐真机 ReviewFollowUpPage.swift）。顶栏「返回」+「问卷随访」+ 右上 Demo 状态切换胶囊（填写一半 / 已填两次 / 未填写）。内容区单张白底岛卡（.island-card）内嵌时间树（.followup-timeline），圆点与左上顶边平齐、竖线圆心贯通：① 填写中草稿（空心蓝圈，上次填写时间 + 已答 N/51 题）；② 历史记录节点（实心蓝圈，日期 + 随访小结），各行均可点击打开「随访详情」页（FollowUpDetailView）查看答题明细；③ 无记录无草稿时正中大区空态（图标圆章 + 适老说明）；底部悬浮操作坞：有草稿时展示纵向双钮（主钮「继续填写问卷」+ 次钮白底蓝描边「重新开始随访」，点击弹窗确认清空草稿），无草稿时单枚主钮（「再次填写问卷」/「填写随访问卷」）。" },
     "followup-detail": { code: "FollowUpDetailView", note: "随访详情页：逐题展示问卷题目所属分类、题目标题及作答结果（只读展示）。" },
     questionnaire: { code: "FollowUpQuestionBank", note: "51 题一题一屏。必答门禁：未作答「下一步」置灰，第 1 题「上一步」置灰。单选后不自动跳下一题。提交后出结果页，再 dismiss 回问卷随访，不把随访再压一层。右上「题号」进答题进度。" },
@@ -1689,6 +1687,20 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.419",
+      date: "2026-11-17",
+      time: "16:50",
+      title: "感受问卷无论选择哪一档均直接生成运动计划，移除「评估发现异常，暂不生成运动计划」界面",
+      screens: [
+        { id: "borg", label: "感受问卷" },
+        { id: "confirm-exercise", label: "确认运动计划" },
+      ],
+      items: [
+        "移除感受问卷提交后的「评估结果（评估发现异常，暂不生成运动计划）」拦截分支及全景左树对应节点，无论选择 7 档中的哪一档感受，点击「提交结果」均直接进入「确认计划」生成运动计划。",
+        "同步移除感受问卷导航栏右上角「⇄ 能生成计划 / 不能生成计划」演示切换胶囊。",
+      ],
+    },
     {
       ver: "V10.418",
       date: "2026-11-17",
@@ -2916,19 +2928,10 @@
       { act: "finishTest", label: "长按 2 秒结束" },
       { screen: "borg", label: "感受问卷" },
       { act: "setSym", label: "勾选不适症状", optional: true },
-      { act: "borgOk", label: "评级 → 低风险" },
+      { act: "borgOk", label: "提交结果 → 确认计划" },
       { screen: "confirm-exercise", label: "确认运动计划" },
       { act: "confirmExercise", label: "确认写入" },
       { screen: "home", label: "回首页" },
-    ]},
-    { id: "ex-high", label: "已入组 · 分支：高风险不生成", cold: "demo", steps: [
-      { act: "typeEx", label: "选择类型 → 运动" },
-      { act: "openGuide", label: "选模式" },
-      { act: "beginCountdown", label: "立即开始" },
-      { act: "finishTest", label: "长按结束" },
-      { screen: "borg", label: "感受问卷" },
-      { act: "borgOk", state: (s) => s.borg > 7, label: "Borg > 7 或严重不适" },
-      { screen: "risk-result", label: "评估结果：发现异常，暂不生成运动计划" },
     ]},
     { id: "ex-contra", label: "已入组 · 分支：命中禁忌症", cold: "demo", steps: [
       { act: "typeEx", label: "选择类型 → 运动" },
@@ -6691,7 +6694,6 @@
       "body-test-sit": [...home, C("schedule"), C("body-test")],
       borg: [...home, C("schedule"), C("exercise-risk"), P("borg")],
       "confirm-exercise": [...home, C("schedule"), C("exercise-risk"), P("borg"), P("confirm-exercise")],
-      "risk-result": [...home, C("schedule"), C("exercise-risk"), P("borg"), P("risk-result")],
     };
     return (map[id] || [...home, C(id)]).map((f) => ({ ...f }));
   }
@@ -6819,8 +6821,6 @@
       let reasonNote = "";
       if (S.screen === "exercise-risk" && S.contra) {
         reasonNote = "命中绝对运动禁忌症";
-      } else if (S.screen === "risk-result") {
-        reasonNote = "体测或量表评估未达标";
       }
       completePendingExerciseInviteIfNeeded({ created: false, reasonNote });
     }
@@ -13252,26 +13252,10 @@
       },
       setFeeling() {
         S.feeling = el.dataset.v;
-        S.feelingOverride = null;
-        render();
-      },
-      borgDemo() {
-        const curOpt = FEELING_OPTIONS.find((x) => x.id === (S.feeling || "veryVeryLight")) || FEELING_OPTIONS[0];
-        const canGenNow = S.feelingOverride !== null && S.feelingOverride !== undefined ? S.feelingOverride : curOpt.ok;
-        const nextCanGen = !canGenNow;
-        S.feelingOverride = nextCanGen;
-        if (nextCanGen) {
-          if (!S.feeling || !curOpt.ok) S.feeling = "light";
-        } else {
-          if (!S.feeling || curOpt.ok) S.feeling = "veryHard";
-        }
         render();
       },
       borgOk() {
-        const fid = S.feeling || "veryVeryLight";
-        const opt = FEELING_OPTIONS.find((x) => x.id === fid) || FEELING_OPTIONS[0];
-        const canGen = S.feelingOverride !== null && S.feelingOverride !== undefined ? S.feelingOverride : opt.ok;
-        go(canGen ? "confirm-exercise" : "risk-result", "push");
+        go("confirm-exercise", "push");
       },
       sys(d) { markManualVitalsStep(); S.sys = stepOrSeed(S.sys, d, 120, 70, 220); render(); },
       dia(d) { markManualVitalsStep(); S.dia = stepOrSeed(S.dia, d, 78, 40, 140); render(); },
@@ -14717,12 +14701,9 @@
 
     borg: () => {
       const fid = S.feeling || "veryVeryLight";
-      const curOpt = FEELING_OPTIONS.find((x) => x.id === fid) || FEELING_OPTIONS[0];
-      const canGenerate = S.feelingOverride !== null && S.feelingOverride !== undefined ? S.feelingOverride : curOpt.ok;
-      const rightToggle = `<button class="cap" data-act="borgDemo" type="button" style="${canGenerate ? "" : "color:#c2410c;background:rgba(242,153,74,0.16);"}">⇄ ${canGenerate ? "能生成计划" : "不能生成计划"}</button>`;
       return `
       <div class="page">
-        ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "感受问卷", rightToggle)}
+        ${navBar(`<button class="nav-text" data-act="later" type="button">稍后</button>`, "感受问卷", "")}
         <div class="scroll px20" style="padding-top:12px">
           ${borgSummaryIsland()}
           <div style="display:flex;align-items:baseline;gap:6px;margin-top:14px">
@@ -14764,60 +14745,6 @@
         </div>
         <div class="px20" style="padding-bottom:28px">
           <button class="cta h52" data-act="newExerciseDraft" type="button">${I.plus}自主新建计划</button>
-        </div>
-      </div>`;
-    },
-
-    "risk-result": () => {
-      const fid = S.feeling || "veryHard";
-      const curOpt = FEELING_OPTIONS.find((x) => x.id === fid);
-      const safeIssues = [
-        ...(curOpt ? [`测试感受：${curOpt.title}`] : []),
-        "AI 综合评估：当前运动耐量暂不适合开展运动计划",
-      ];
-      const advice = [
-        ["暂停生成运动计划", "本次体测后出现劳累度偏高或身体不适，继续运动可能增加心血管负担，请先休息观察。"],
-        ["关注症状并及时就医", "如胸痛、胸闷、气促、头晕或心悸等症状持续或加重，请及时联系医生或前往医院就诊。"],
-        ["日常服药与监测照常", "服药、测血压及作息等其他健康计划不受影响，可继续按时打卡记录。"],
-      ];
-      return `
-      <div class="page">
-        ${navBar("", "评估结果")}
-        <div class="contra-wrap">
-          <div class="contra-scroll">
-            <div class="contra-hero">
-              <div class="contra-badge">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>
-              </div>
-              <h2 class="contra-title">评估发现异常，暂不生成运动计划</h2>
-              <p class="contra-sub">根据本次体测与感受问卷评估结果，当前存在运动风险信号，暂不建议为您生成运动计划。</p>
-            </div>
-            <div class="contra-card red">
-              <div class="contra-card-head">
-                <span>发现的异常情况</span>
-                <span class="contra-count">共 ${safeIssues.length} 项</span>
-              </div>
-              <div class="contra-tags">
-                ${safeIssues.map((h) => `<span class="contra-tag"><span class="contra-tag-dot"></span>${esc(h)}</span>`).join("")}
-              </div>
-            </div>
-            <div class="contra-card amber">
-              <div class="contra-card-head"><span>安全建议与说明</span></div>
-              <div class="contra-advice-list">
-                ${advice.map((a, idx) => `
-                  <div class="contra-advice-row">
-                    <div class="contra-advice-ico">${idx + 1}</div>
-                    <div>
-                      <div class="contra-advice-title">${a[0]}</div>
-                      <div class="contra-advice-desc">${a[1]}</div>
-                    </div>
-                  </div>`).join("")}
-              </div>
-            </div>
-          </div>
-          <div class="contra-foot">
-            <button class="cta contra-btn" data-act="later" type="button">我知道了，暂不生成</button>
-          </div>
         </div>
       </div>`;
     },
@@ -22442,7 +22369,6 @@
     "body-test": "02-创建计划/创建运动计划.md",
     borg: "02-创建计划/创建运动计划.md",
     "confirm-exercise": "02-创建计划/创建运动计划.md",
-    "risk-result": "02-创建计划/创建运动计划.md",
     "task-add": "02-创建计划/创建测血压饮食作息.md",
     "task-edit": "02-创建计划/创建测血压饮食作息.md",
     "task-view": "02-创建计划/创建测血压饮食作息.md",
