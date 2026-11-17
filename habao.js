@@ -715,7 +715,10 @@
     if (!S.parsedResult || forceReset) {
       S.parsedResult = {
         disease: DISEASE_INFO.join("、"),
-        dischargeYMD: "2026-09-17",
+        dischargeYear: null,
+        dischargeMonth: null,
+        dischargeDay: null,
+        dischargeYMD: "",
         medications: MEDS.map((m) => ({
           name: m.name || "",
           dose: m.dose || "",
@@ -725,7 +728,10 @@
         surgeryOptions: ["PCI"],
         surgeryOtherChecked: false,
         surgeryOtherText: "",
-        surgeryYMD: "2026-09-08",
+        surgeryYear: null,
+        surgeryMonth: null,
+        surgeryDay: null,
+        surgeryYMD: "",
       };
     }
     if (!Array.isArray(S.parsedResult.medications)) {
@@ -735,6 +741,26 @@
       S.parsedResult.surgeryOptions = [];
     }
     return S.parsedResult;
+  }
+
+  function syncParsedYMD(p, isDischarge) {
+    const yKey = isDischarge ? "dischargeYear" : "surgeryYear";
+    const mKey = isDischarge ? "dischargeMonth" : "surgeryMonth";
+    const dKey = isDischarge ? "dischargeDay" : "surgeryDay";
+    const ymdKey = isDischarge ? "dischargeYMD" : "surgeryYMD";
+    const y = p[yKey];
+    const m = p[mKey];
+    let d = p[dKey];
+    if (m != null && d != null) {
+      const maxDay = new Date(y != null ? y : 2026, m, 0).getDate();
+      d = Math.min(d, maxDay);
+      p[dKey] = d;
+    }
+    if (y != null && m != null && d != null) {
+      p[ymdKey] = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    } else {
+      p[ymdKey] = "";
+    }
   }
 
   function canGeneratePlanFromParsed() {
@@ -977,31 +1003,20 @@
     if (event.target instanceof HTMLSelectElement && event.target.dataset.parsedDate) {
       const p = ensureParsedResult(false);
       const part = event.target.dataset.parsedDate;
-      const val = parseInt(event.target.value, 10);
+      const raw = event.target.value;
+      const val = raw === "" ? null : parseInt(raw, 10);
       if (part.startsWith("discharge")) {
-        const cur = parseYMD(p.dischargeYMD || "2026-09-17");
-        let y = cur.getFullYear();
-        let m = cur.getMonth() + 1;
-        let d = cur.getDate();
-        if (part === "dischargeYear") y = val;
-        else if (part === "dischargeMonth") m = val;
-        else if (part === "dischargeDay") d = val;
-        const maxDay = new Date(y, m, 0).getDate();
-        d = Math.min(d, maxDay);
-        p.dischargeYMD = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        if (part === "dischargeYear") p.dischargeYear = val;
+        else if (part === "dischargeMonth") p.dischargeMonth = val;
+        else if (part === "dischargeDay") p.dischargeDay = val;
+        syncParsedYMD(p, true);
         render();
         return;
       }
-      const cur = parseYMD(p.surgeryYMD || "2026-09-08");
-      let y = cur.getFullYear();
-      let m = cur.getMonth() + 1;
-      let d = cur.getDate();
-      if (part === "year") y = val;
-      else if (part === "month") m = val;
-      else if (part === "day") d = val;
-      const maxDay = new Date(y, m, 0).getDate();
-      d = Math.min(d, maxDay);
-      p.surgeryYMD = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      if (part === "year") p.surgeryYear = val;
+      else if (part === "month") p.surgeryMonth = val;
+      else if (part === "day") p.surgeryDay = val;
+      syncParsedYMD(p, false);
       render();
       return;
     }
@@ -1683,6 +1698,19 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.402",
+      date: "2026-11-17",
+      time: "09:06",
+      title: "「解析结果」页占位提示改为灰色字体，日期默认状态改为「请选择」",
+      screens: [
+        { id: "ocr-parsed", label: "解析结果" },
+      ],
+      items: [
+        "修复「疾病信息」「用药处方」「其他手术」输入框占位提示文本（placeholder）受文本填充色影响显示为深黑色的问题，统一调整为灰色字体呈现。",
+        "将「出院时间（必填）」与「手术时间（选填）」的年 / 月 / 日下拉框默认状态改为「请选择」（灰色占位态），选全出院年月日且疾病信息与用药处方非空时右上角「提交」方可用。",
+      ],
+    },
     {
       ver: "V10.401",
       date: "2026-11-16",
@@ -14124,22 +14152,20 @@
 
     "ocr-parsed": () => {
       const p = ensureParsedResult(false);
-      if (!p.dischargeYMD) p.dischargeYMD = "2026-09-17";
-      if (!p.surgeryYMD) p.surgeryYMD = "2026-09-08";
+      syncParsedYMD(p, true);
+      syncParsedYMD(p, false);
       const ready = canGeneratePlanFromParsed();
 
-      const disObj = parseYMD(p.dischargeYMD);
-      const disY = disObj.getFullYear();
-      const disM = disObj.getMonth() + 1;
-      const disD = disObj.getDate();
-      const disMaxD = new Date(disY, disM, 0).getDate();
+      const disY = p.dischargeYear;
+      const disM = p.dischargeMonth;
+      const disD = p.dischargeDay;
+      const disMaxD = disM != null ? new Date(disY != null ? disY : 2026, disM, 0).getDate() : 31;
       const disDays = Array.from({ length: disMaxD }, (_, i) => i + 1);
 
-      const dObj = parseYMD(p.surgeryYMD);
-      const selY = dObj.getFullYear();
-      const selM = dObj.getMonth() + 1;
-      const selD = dObj.getDate();
-      const maxD = new Date(selY, selM, 0).getDate();
+      const selY = p.surgeryYear;
+      const selM = p.surgeryMonth;
+      const selD = p.surgeryDay;
+      const maxD = selM != null ? new Date(selY != null ? selY : 2026, selM, 0).getDate() : 31;
       const years = [];
       for (let y = 2027; y >= 2015; y--) years.push(y);
       const months = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -14204,17 +14230,20 @@
             </div>
             <div class="parsed-ymd-row">
               <label class="parsed-ymd-col">
-                <select class="parsed-ymd-select" data-parsed-date="dischargeYear">
+                <select class="parsed-ymd-select ${disY == null ? "placeholder" : ""}" data-parsed-date="dischargeYear">
+                  <option value="" ${disY == null ? "selected" : ""}>请选择</option>
                   ${years.map((y) => `<option value="${y}" ${y === disY ? "selected" : ""}>${y}年</option>`).join("")}
                 </select>
               </label>
               <label class="parsed-ymd-col">
-                <select class="parsed-ymd-select" data-parsed-date="dischargeMonth">
+                <select class="parsed-ymd-select ${disM == null ? "placeholder" : ""}" data-parsed-date="dischargeMonth">
+                  <option value="" ${disM == null ? "selected" : ""}>请选择</option>
                   ${months.map((m) => `<option value="${m}" ${m === disM ? "selected" : ""}>${m}月</option>`).join("")}
                 </select>
               </label>
               <label class="parsed-ymd-col">
-                <select class="parsed-ymd-select" data-parsed-date="dischargeDay">
+                <select class="parsed-ymd-select ${disD == null ? "placeholder" : ""}" data-parsed-date="dischargeDay">
+                  <option value="" ${disD == null ? "selected" : ""}>请选择</option>
                   ${disDays.map((d) => `<option value="${d}" ${d === disD ? "selected" : ""}>${d}日</option>`).join("")}
                 </select>
               </label>
@@ -14247,17 +14276,20 @@
             </div>
             <div class="parsed-ymd-row">
               <label class="parsed-ymd-col">
-                <select class="parsed-ymd-select" data-parsed-date="year">
+                <select class="parsed-ymd-select ${selY == null ? "placeholder" : ""}" data-parsed-date="year">
+                  <option value="" ${selY == null ? "selected" : ""}>请选择</option>
                   ${years.map((y) => `<option value="${y}" ${y === selY ? "selected" : ""}>${y}年</option>`).join("")}
                 </select>
               </label>
               <label class="parsed-ymd-col">
-                <select class="parsed-ymd-select" data-parsed-date="month">
+                <select class="parsed-ymd-select ${selM == null ? "placeholder" : ""}" data-parsed-date="month">
+                  <option value="" ${selM == null ? "selected" : ""}>请选择</option>
                   ${months.map((m) => `<option value="${m}" ${m === selM ? "selected" : ""}>${m}月</option>`).join("")}
                 </select>
               </label>
               <label class="parsed-ymd-col">
-                <select class="parsed-ymd-select" data-parsed-date="day">
+                <select class="parsed-ymd-select ${selD == null ? "placeholder" : ""}" data-parsed-date="day">
+                  <option value="" ${selD == null ? "selected" : ""}>请选择</option>
                   ${days.map((d) => `<option value="${d}" ${d === selD ? "selected" : ""}>${d}日</option>`).join("")}
                 </select>
               </label>

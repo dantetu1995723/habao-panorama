@@ -4571,6 +4571,13 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   background: #fff;
   box-shadow: 0 0 0 3px rgba(16, 84, 224, 0.1);
 }
+.parsed-context-input::placeholder,
+.parsed-med-input::placeholder,
+.parsed-surgery-other-input::placeholder {
+  color: #8E9BB0;
+  -webkit-text-fill-color: #8E9BB0;
+  opacity: 1;
+}
 .parsed-ymd-row {
   display: grid;
   grid-template-columns: 1.2fr 1fr 1fr;
@@ -4588,6 +4595,14 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   padding: 0 10px;
   font-size: 15px;
   font-weight: 600;
+  color: #18243E;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+}
+.parsed-ymd-select.placeholder {
+  color: #8E9BB0;
+  font-weight: 500;
 }
 
 /* V10.393：解析结果页手术名称多选胶囊 + 其他可填写 */
@@ -4641,11 +4656,6 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   border-color: var(--blue);
   background: #FFFFFF;
   box-shadow: 0 0 0 3px rgba(16, 84, 224, 0.1);
-}
-  color: #18243E;
-  font-family: inherit;
-  outline: none;
-  cursor: pointer;
 }
 .parsed-ymd-select:focus {
   border-color: var(--blue);
