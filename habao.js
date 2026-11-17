@@ -1605,7 +1605,7 @@
     ]},
     { g: "栈内 Push · 创建与报告", items: [
       { id: "ocr-group", t: "当前组资料", code: "IntakeCaptureView", how: "push" },
-      { id: "ocr-detail", t: "资料详情", code: "IntakeCaptureView", how: "push" },
+      { id: "ocr-detail", t: "上传资料（确认）", code: "IntakeCaptureView", how: "push" },
       { id: "ocr-parsed", t: "解析结果", code: "OCRParseResultView", how: "push" },
       { id: "confirm-plan", t: "确认计划", code: "InfoWithScreeningHost", how: "push" },
       { id: "borg", t: "感受问卷", code: "BorgQuestionnaireView", how: "push" },
@@ -1688,6 +1688,18 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.407",
+      date: "2026-11-17",
+      time: "10:21",
+      title: "拍照完成后资料解析前的图片确认页标题由「资料详情」改为「上传资料」",
+      screens: [
+        { id: "ocr-detail", label: "上传资料（确认）" },
+      ],
+      items: [
+        "拍照完成后、点击「解析 / 提交」前的图片确认页顶部导航栏标题由「资料详情」统一改为「上传资料」，与前一步拍摄页标题保持一致。",
+      ],
+    },
     {
       ver: "V10.406",
       date: "2026-11-17",
@@ -14171,7 +14183,7 @@
         : `<button class="nav-text ${ready ? "blue" : "dim"}" ${ready ? 'data-act="ocrParse"' : "disabled"} type="button">${I.spark}解析</button>`;
       return `
       <div class="page">
-        ${navBar(`<button class="nav-text blue" data-act="ocrReshoot" type="button">${I.chevL}拍摄</button>`, "资料详情", right)}
+        ${navBar(`<button class="nav-text blue" data-act="ocrReshoot" type="button">${I.chevL}拍摄</button>`, "上传资料", right)}
         <div class="scroll px20" style="padding-top:12px">
           ${displayGroups.length ? displayGroups.map((g) => `
             <div class="flex between mb8" style="align-items:center">
