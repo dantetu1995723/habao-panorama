@@ -561,24 +561,17 @@
     if (S.screen !== "walk") go("walk", "cover");
     go("walk-contra", "cover");
   }
-  function renderBodyTestBlockedScreen(reason) {
-    const isUnder90 = reason === "underNinetySeconds";
-    const bt = S.bodyTest || { duration: isUnder90 ? 45 : 120, distance: isUnder90 ? 37 : 99, cadence: 90 };
-    const dur = Number(bt.duration || (isUnder90 ? 45 : 120));
+  function renderBodyTestBlockedScreen() {
+    const bt = S.bodyTest || { duration: 120, distance: 99, cadence: 90 };
+    const dur = Number(bt.duration || 120);
     const mmss = `${Math.floor(dur / 60)}:${pad(dur % 60)}`;
     const dist = bt.distance || Math.round(dur * 0.825);
     const cad = bt.cadence || 90;
-    const navTitle = isUnder90 ? "步行时间不足" : "体测提前终止";
-    const headline = isUnder90 ? "步行时间不足 90 秒，暂不生成运动计划" : "体测提前终止，暂不生成运动计划";
-    const subtitle = isUnder90
-      ? "本次体测有效步行时长未达到 90 秒最低评估要求，暂无法为您安全制定运动计划。"
-      : "您已在测试过程中提前终止运动，未能完成完整 3 分钟评估。为保障安全，本次暂不生成运动计划。";
-    const tag = isUnder90 ? "有效步行不足 90 秒" : "提前终止（未满 3 分钟）";
-    const advice = isUnder90 ? [
-      ["先休息观察身体状态", "若因气促、乏力、心慌或头晕导致未能坚持 90 秒，请立即坐下休息并密切观察症状。"],
-      ["状态平稳后再行重测", "如仅因临时被打断或误触停止且身体无任何不适，可稍后在精力充沛、环境安全时重新完成完整 3 分钟测试。"],
-      ["日常服药与监测照常", "服药、测血压及作息等其他健康计划不受影响，可继续按时打卡记录。"],
-    ] : [
+    const navTitle = "体测提前终止";
+    const headline = "体测提前终止，暂不生成运动计划";
+    const subtitle = "您已在测试过程中提前终止运动，未能完成完整 3 分钟评估。为保障安全，本次暂不生成运动计划。";
+    const tag = "提前终止（未满 3 分钟）";
+    const advice = [
       ["立即停止并静坐休息", "提前终止通常提示当前运动负荷偏高或身体出现不适，请保持静坐、平稳呼吸，切勿勉强继续。"],
       ["不适持续请及时就医", "如出现胸痛、明显气促、心慌、头晕或站立不稳等症状且休息后未缓解，请及时联系医生或拨打 120。"],
       ["日常服药与监测照常", "暂不生成运动计划不影响您的用药、测血压与作息打卡，待医生评估平稳后再重新测试。"],
@@ -631,7 +624,6 @@
           </div>
           <div class="contra-foot">
             <button class="cta contra-btn" data-act="later" type="button">我知道了，暂不生成</button>
-            ${isUnder90 ? `<button class="cta-line mt8" data-act="restartBodyTest" type="button" style="height:44px">重新开始体测</button>` : ""}
           </div>
         </div>
       </div>`;
@@ -1619,7 +1611,6 @@
       { id: "borg", t: "感受问卷", code: "BorgQuestionnaireView", how: "push" },
       { id: "confirm-exercise", t: "确认运动计划", code: "ExerciseScheduleConfirmView", how: "push" },
       { id: "test-early-stop", t: "体测提前终止", code: "BodyTestBlockedView", how: "push" },
-      { id: "test-under-90", t: "步行不足 90 秒", code: "BodyTestBlockedView", how: "push" },
       { id: "risk-result", t: "评估结果（异常）", code: "IntakeResultView", how: "push" },
       { id: "vitals-detail", t: "指标明细", code: "VitalsMeasurementDetailView", how: "push" },
       { id: "category-manage", t: "管理类别", code: "CategoryManageView", how: "push" },
@@ -1675,9 +1666,8 @@
     "task-edit": { code: "AddEditTaskView", note: "标题「更新计划」。V0.2 采用无滚动「三联动态磁贴 + 单屏模块舞台」切换架构：顶部磁贴实时回显事项、时刻与周期摘要，中部单屏切换「事项内容 / 时刻与提醒 / 周期与日期」；「提醒时间」与「打卡时间」1:1 对称同构，「时间段」配备醒目粗体时间范围标注，「起止日期」通栏对齐零截断。修改时间或周期字段保存前弹出「确认更新计划」精简弹窗，简单描述更改让用户确认；仅改名称/备注/血压等直接原地保存。" },
     "task-view": { code: "AddEditTaskView", note: "查看计划（只读，右上「更新」）。V0.2 采用无滚动「三联动态磁贴 + 单屏模块舞台」切换架构，顶部三枚磁贴一眼总览事项、时刻与周期，中部单屏切换三大模块；「到点提醒」收纳在「时刻与提醒」模块内且在查看态下可直接切换；底部固定操作坞并排展示删除或「取消本次打卡」按钮，无需滚动。" },
     "exercise-risk": { code: "BodyTestRunView", note: "体能测试前安全确认。若病历命中三度房室传导阻滞或以上、活动性心肌炎/心包炎/心内膜炎、NYHA心功能Ⅲ级及以上、起搏器手术等绝对运动禁忌症，直接展示通用绝对运动禁忌症界面（不进入体测、不生成运动计划）。「稍后 / 退出评估 / 我知道了，暂不运动」关整段评估流。" },
-    "body-test": { code: "BodyTestRunView", note: "原地踏步三分钟。选定体测模式后进入本页并叠加「体测指南弹窗 → 3-2-1 倒计时」，倒计时结束开始运行。长按停止或倒计时归零后按步行时长分流：① <90 秒 → 专属「步行时间不足 90 秒，暂不生成运动计划」页；② 90–179 秒提前终止 → 专属「体测提前终止，暂不生成运动计划」页；③ 走满 3 分钟（180 秒）→ 进入感受问卷。导航栏右上提供快捷演示按钮方便切换三种体测结果。" },
-    "test-early-stop": { code: "BodyTestBlockedView(.earlyTermination)", note: "不能生成运动计划三种体测情况之一（情况 1：提前终止运动）。步行 ≥90 秒但未走满 3 分钟即手动长按停止时进入，展示「体测提前终止，暂不生成运动计划」、本次实际步行数据、3 条针对性安全建议与「我知道了，暂不生成」主按钮，不进感受问卷。" },
-    "test-under-90": { code: "BodyTestBlockedView(.underNinetySeconds)", note: "不能生成运动计划三种体测情况之一（情况 2：走路不到 90 秒）。有效步行时长不足 90 秒时进入，展示「步行时间不足 90 秒，暂不生成运动计划」、本次实际步行数据、3 条休息与重测建议，底部提供「我知道了，暂不生成」主按钮及「重新开始体测」次按钮，不进感受问卷。" },
+    "body-test": { code: "BodyTestRunView", note: "原地踏步三分钟。选定体测模式后进入本页并叠加「体测指南弹窗 → 3-2-1 倒计时」，倒计时结束开始运行。长按停止或倒计时归零后按步行时长分流：① 未走满 3 分钟（<180 秒）提前终止 → 专属「体测提前终止，暂不生成运动计划」页；② 走满 3 分钟（180 秒）→ 进入感受问卷。导航栏右上提供快捷演示按钮方便切换两种体测结果。" },
+    "test-early-stop": { code: "BodyTestBlockedView(.earlyTermination)", note: "不能生成运动计划体测拦截情况之一（提前终止运动）。体测未走满 3 分钟即手动长按停止时进入，展示「体测提前终止，暂不生成运动计划」、本次实际步行数据、3 条针对性安全建议与「我知道了，暂不生成」主按钮，不进感受问卷。" },
     "body-test-sit": { code: "BodyTestRunView", note: "室内 1 分钟坐立。次数大号读数 + 倒计时 + 同龄参考。停止后问卷顶部两栏「测试时长 / 完成次数」。" },
     borg: { code: "BorgQuestionnaireView", note: "体测停止后直进，顶部读本次 BodyTestRecord（户外三栏 / 室内坐立两栏）。下方精简为单一「本次测试的感受（单选）」7 档描述选项（从非常非常轻松到非常非常费力），不再展示多维滑动条与反应/说话多题。底部统一为「提交结果」，导航栏右上角提供「⇄ 能生成计划 / 不能生成计划」胶囊一键切换演示状态；提交后交由 AI 综合体测数据与主观感受判定是否生成运动计划。" },
     followup: { code: "ReviewFollowUpPage", note: "V10.306：问卷随访时间树（对齐真机 ReviewFollowUpPage.swift）。顶栏「返回」+「问卷随访」+ 右上 Demo 状态切换胶囊（填写一半 / 已填两次 / 未填写）。内容区单张白底岛卡（.island-card）内嵌时间树（.followup-timeline），圆点与左上顶边平齐、竖线圆心贯通：① 填写中草稿（空心蓝圈，上次填写时间 + 已答 N/51 题）；② 历史记录节点（实心蓝圈，日期 + 随访小结），各行均可点击打开「随访详情」页（FollowUpDetailView）查看答题明细；③ 无记录无草稿时正中大区空态（图标圆章 + 适老说明）；底部悬浮操作坞：有草稿时展示纵向双钮（主钮「继续填写问卷」+ 次钮白底蓝描边「重新开始随访」，点击弹窗确认清空草稿），无草稿时单枚主钮（「再次填写问卷」/「填写随访问卷」）。" },
@@ -1698,6 +1688,20 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.404",
+      date: "2026-11-17",
+      time: "09:22",
+      title: "体测移除「步行不足 90 秒」独立分支，所有未走满 3 分钟停止均统一进入「体测提前终止」",
+      screens: [
+        { id: "body-test", label: "踏步体测" },
+        { id: "test-early-stop", label: "体测提前终止" },
+      ],
+      items: [
+        "移除体测未达 90 秒时的独立拦截界面与左树节点，无论步行是否满 90 秒，只要未走满 3 分钟提前停止均统一进入「体测提前终止，暂不生成运动计划」页。",
+        "踏步体测运行页右上角演示快捷入口同步移除「<90s」按钮，仅保留「提前停」与「走满3分」。",
+      ],
+    },
     {
       ver: "V10.403",
       date: "2026-11-17",
@@ -12975,12 +12979,6 @@
       finishTest() {
         S.testRunning = false;
         const elapsed = Number(S.testElapsed || 0);
-        if (S.testMode !== "sit" && elapsed < 90) {
-          S.testElapsed = Math.max(12, elapsed);
-          captureBodyTest();
-          go("test-under-90", "push");
-          return;
-        }
         const total = S.testMode === "sit" ? 60 : 180;
         if (elapsed < total) {
           captureBodyTest();
@@ -12993,11 +12991,7 @@
       demoBodyTest() {
         const mode = el.dataset.v;
         S.testRunning = false;
-        if (mode === "under90") {
-          S.testElapsed = 45;
-          captureBodyTest();
-          go("test-under-90", "push");
-        } else if (mode === "early") {
+        if (mode === "early") {
           S.testElapsed = 120;
           captureBodyTest();
           go("test-early-stop", "push");
@@ -14426,7 +14420,6 @@
       const mmss = (s) => `${Math.floor(s / 60)}:${pad(s % 60)}`;
       const warn = sit ? "如果您起坐时需要他人扶助，请勿独自进行评估" : "如果您因为任何原因不能独立行走，请勿进行评估";
       const demoRight = `<div class="flex gap4">
-        <button class="cap" data-act="demoBodyTest" data-v="under90" type="button" style="font-size:10.5px;padding:4px 7px;color:#c2410c;background:rgba(242,153,74,0.16)">&lt;90s</button>
         <button class="cap" data-act="demoBodyTest" data-v="early" type="button" style="font-size:10.5px;padding:4px 7px;color:#c2410c;background:rgba(242,153,74,0.16)">提前停</button>
         <button class="cap" data-act="demoBodyTest" data-v="full" type="button" style="font-size:10.5px;padding:4px 7px">走满3分</button>
       </div>`;
@@ -14586,9 +14579,7 @@
       </div>`;
     },
 
-    "test-early-stop": () => renderBodyTestBlockedScreen("earlyTermination"),
-
-    "test-under-90": () => renderBodyTestBlockedScreen("underNinetySeconds"),
+    "test-early-stop": () => renderBodyTestBlockedScreen(),
 
     vitals: () => {
       const wk = vitalsWeekData();
