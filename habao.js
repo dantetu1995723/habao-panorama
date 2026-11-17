@@ -1688,6 +1688,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.420",
+      date: "2026-11-17",
+      time: "17:32",
+      title: "精简「打卡通知」系统权限弹窗文案",
+      screens: [
+        { id: "notify", label: "打卡通知" },
+      ],
+      items: [
+        "将「打卡通知」打开开关时的系统通知权限弹窗标题精简为「开启通知权限」，正文精简为「允许后可按时收到打卡提醒。」。",
+      ],
+    },
+    {
       ver: "V10.419",
       date: "2026-11-17",
       time: "16:50",
@@ -12218,8 +12230,8 @@
         if (next) {
           S.pendingNotifyToggle = { kind: "all" };
           openOverlay("confirm", {
-            title: "开启打卡系统通知权限",
-            body: "开启打卡提醒需要获取手机系统通知权限，以便按时向您发送服药、测血压、复查等打卡提醒。",
+            title: "开启通知权限",
+            body: "允许后可按时收到打卡提醒。",
             ok: "允许",
             cancel: "取消",
             action: "confirmEnableNotifySwitch",
@@ -12241,8 +12253,8 @@
         if (next) {
           S.pendingNotifyToggle = { kind: "cat", cat: c };
           openOverlay("confirm", {
-            title: "开启打卡系统通知权限",
-            body: "开启打卡提醒需要获取手机系统通知权限，以便按时向您发送服药、测血压、复查等打卡提醒。",
+            title: "开启通知权限",
+            body: "允许后可按时收到打卡提醒。",
             ok: "允许",
             cancel: "取消",
             action: "confirmEnableNotifySwitch",
@@ -12270,8 +12282,8 @@
         if (next) {
           S.pendingNotifyToggle = { kind: "fam" };
           openOverlay("confirm", {
-            title: "开启打卡系统通知权限",
-            body: "开启打卡提醒需要获取手机系统通知权限，以便按时向您发送服药、测血压、复查等打卡提醒。",
+            title: "开启通知权限",
+            body: "允许后可按时收到打卡提醒。",
             ok: "允许",
             cancel: "取消",
             action: "confirmEnableNotifySwitch",
