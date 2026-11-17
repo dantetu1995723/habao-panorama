@@ -1699,6 +1699,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.403",
+      date: "2026-11-17",
+      time: "09:10",
+      title: "「解析结果」页「手术名称」移除右上角「清空」按钮",
+      screens: [
+        { id: "ocr-parsed", label: "解析结果" },
+      ],
+      items: [
+        "移除「解析结果」页「手术名称（选填）」卡片右上角的「清空」按钮，直接通过点击标签取消选中。",
+      ],
+    },
+    {
       ver: "V10.402",
       date: "2026-11-17",
       time: "09:06",
@@ -14173,11 +14185,6 @@
       const hasDisease = Boolean((p.disease || "").length);
       const medRows = p.medications || [];
       const hasMed = medRows.length > 0;
-      const hasSurg = Boolean(
-        (p.surgeryOptions && p.surgeryOptions.length) ||
-        p.surgeryOtherChecked ||
-        (p.surgeryOtherText || "").trim()
-      );
       return `
       <div class="page">
         ${navBar(
@@ -14254,7 +14261,6 @@
             <div class="parsed-field-head">
               <span class="parsed-field-title">手术名称</span>
               <span class="parsed-badge opt">选填</span>
-              <button class="parsed-clear-btn ${hasSurg ? "" : "dim"}" data-act="clearParsedField" data-field="surgeryOptions" ${hasSurg ? "" : "disabled"} type="button">清空</button>
             </div>
             <div class="parsed-surgery-chips">
               ${SURGERY_PRESET_OPTIONS.map((opt) => {
