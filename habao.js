@@ -1688,6 +1688,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.421",
+      date: "2026-11-17",
+      time: "17:34",
+      title: "明确「打卡通知」系统权限弹窗说明",
+      screens: [
+        { id: "notify", label: "打卡通知" },
+      ],
+      items: [
+        "将「打卡通知」打开开关时的系统通知权限弹窗正文调整为「需先开启系统通知权限，才能打开打卡提醒。」。",
+      ],
+    },
+    {
       ver: "V10.420",
       date: "2026-11-17",
       time: "17:32",
@@ -12231,7 +12243,7 @@
           S.pendingNotifyToggle = { kind: "all" };
           openOverlay("confirm", {
             title: "开启通知权限",
-            body: "允许后可按时收到打卡提醒。",
+            body: "需先开启系统通知权限，才能打开打卡提醒。",
             ok: "允许",
             cancel: "取消",
             action: "confirmEnableNotifySwitch",
@@ -12254,7 +12266,7 @@
           S.pendingNotifyToggle = { kind: "cat", cat: c };
           openOverlay("confirm", {
             title: "开启通知权限",
-            body: "允许后可按时收到打卡提醒。",
+            body: "需先开启系统通知权限，才能打开打卡提醒。",
             ok: "允许",
             cancel: "取消",
             action: "confirmEnableNotifySwitch",
@@ -12283,7 +12295,7 @@
           S.pendingNotifyToggle = { kind: "fam" };
           openOverlay("confirm", {
             title: "开启通知权限",
-            body: "允许后可按时收到打卡提醒。",
+            body: "需先开启系统通知权限，才能打开打卡提醒。",
             ok: "允许",
             cancel: "取消",
             action: "confirmEnableNotifySwitch",
