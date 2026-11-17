@@ -1629,7 +1629,7 @@
     "insurance-claim": { code: "LegalAgreementDetailSheet(.insuranceClaim)", note: "《支架保险理赔须知》详情页：明确中国人民保险承保范围（新植入支架内再狭窄介入自费最高 2 万元/次全年不限次 + 100 元/天住院津贴）、理赔申请材料清单及除外责任提示。VIP 会员页支架保险卡与个人中心「关于我们」共用。" },
     home: { code: "TodayView + HomeClockSection", note: "唯一一级页。左栏跟手变焦 196–206，焦点卡带转盘；拨转 0.68°/pt 最短弧吸附。每张计划卡展示标题、提醒时间（或已完成）及「开始日期 – 结束日期」起止区间。散步打卡后居中舞台。复查打卡弹三选一：上传资料 / 直接打卡 / 暂不打卡。左栏顶虚框直开当天该时段添加页：默认测血压，服药 / 运动 / 复查置灰禁用。V0.0 / V0.1 都是这套侧边转盘首页；底坞中圆哈宝医生始终常亮可点击进入问诊页（非 VIP 发送消息后在聊天流内弹出 VIP 购买提示对话卡）。打卡不再在卡片上盖家属章；谁打的记在 V0.1 个人中心「操作记录」，V0.0 没有这一页。" },
     schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行展示时刻与单日/循环/类别胶囊，下方循环计划展示「开始日期 – 结束日期」起止区间（与首页保持一致），单日计划展示当天日期；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上更新才进编辑。未完成与已完成全程统一采用蓝白色系（去绿改蓝白）。" },
-    vitals: { code: "HealthMonitorModuleView", note: "只按周翻页（不可到未来）。展示整体 AI 评估卡与平均血压/平均心率趋势折线图（已移除底栏「进入哈宝医生」按钮）。" },
+    vitals: { code: "HealthMonitorModuleView", note: "固定展示最近7天滚动窗口（每日零点自动顺延，无翻页）。展示整体 AI 评估卡与血压趋势/心率趋势折线图（横坐标为 x日；已移除底栏「进入哈宝医生」按钮）。" },
     report: { code: "FollowUpModuleView", note: "V10.270：综合结论 + 三等分入口（基础报告 / 复查报告 / 问卷随访）。资料增删与问卷提交后展示「AI 正在解析生成解读中…」更新中间态。" },
     "report-sub": { code: "BodyReportSubReportView", note: "V10.339：顶栏两枚 Tab「AI 解读 / 资料合集」，打卡复查拍照后直接进资料合集；资料合集缩略图右上角支持「×」删除单页。资料增删后 AI 解读呈现更新中间态。「刷新报告解读」按钮仅在「AI 解读」界面底部展示（仅有资料更新才可点击，否则禁用；在「资料合集」界面不显示）。底栏保留「新增报告资料」大主按钮；打卡复查落库后弹出「复查资料已保存」弹窗（主按钮「立即打卡」自动跳回首页完成打卡，次按钮「稍后打卡」留在资料合集由用户稍后自行打卡；弹窗关闭后点击左上角返回正常进入身体报告界面，再由身体报告返回首页）。" },
     walk: { code: "WalkView", note: "大标题 + 44 回首页（dismiss cover，不压栈）。地图主卡底浮层：60 圆钮记录/分享 + 60 主胶囊。三态：开始运动 / 返回运动 / 保存并打卡。点「开始运动」、以及首页「进入运动，开始散步」，都先按出院诊断比对绝对禁忌症；未命中直接进入散步会话，命中则打开通用「运动安全提示（绝对禁忌症）」界面，不再弹出确认弹窗；返回运动不再问。保存归属：计划入口完成原任务，自由入口按开始时刻新建「自主散步」，不猜测也不占用存量计划。" },
@@ -1688,6 +1688,20 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.408",
+      date: "2026-11-17",
+      time: "10:38",
+      title: "「血压监测」移除按周翻页逻辑，固定保持「最近7天」滚动趋势窗口",
+      screens: [
+        { id: "vitals", label: "血压监测" },
+        { id: "vitals-detail", label: "指标明细" },
+      ],
+      items: [
+        "移除「血压监测」与「指标明细」顶部的左右翻页箭头与滑动翻页手势，固定展示「最近7天」滚动窗口，随日期推进自动顺延更新。",
+        "下方「血压趋势」「心率趋势」折线图及「体征综合评估」统一基于最近 7 天数据实时计算并展示 x日 横坐标。",
+      ],
+    },
     {
       ver: "V10.407",
       date: "2026-11-17",
@@ -6347,20 +6361,15 @@
     const d = new Date(2026, 8 + S.calOffset, 1);
     return `${d.getFullYear()}年${d.getMonth() + 1}月`;
   }
-  function vitalsWindowDates(offset = S.vitalsOffset || 0) {
+  function vitalsWindowDates() {
     const dates = [];
-    const endOffset = offset * 7;
     for (let i = -6; i <= 0; i++) {
-      dates.push(demoDate(endOffset + i));
+      dates.push(demoDate(i));
     }
     return dates;
   }
   function vitalsWeekLabel() {
-    if ((S.vitalsOffset || 0) === 0) return "最近7天";
-    const dates = vitalsWindowDates();
-    const a = dates[0];
-    const b = dates[dates.length - 1];
-    return `${a.getMonth() + 1}月${a.getDate()}日 — ${b.getMonth() + 1}月${b.getDate()}日`;
+    return "最近7天";
   }
   function stampMonthTitle() {
     const d = new Date(2026, 8 + S.stampCalOffset, 1);
@@ -7572,7 +7581,6 @@
   function bindSwipes() {
     const pairs = [
       ["#cal-swipe", () => { S.calOffset -= 1; render(); }, () => { S.calOffset += 1; render(); }],
-      ["#vitals-swipe", () => { S.vitalsOffset = Math.min(0, S.vitalsOffset - 1); render(); }, () => { S.vitalsOffset = Math.min(0, S.vitalsOffset + 1); render(); }],
       ["#q-swipe", () => act("qPrev"), () => act("qNext")],
       ["#stamp-cal-swipe", () => { S.stampCalOffset -= 1; render(); }, () => { S.stampCalOffset += 1; render(); }],
       ["#date-pick-swipe", () => act("calMonth", { dataset: { dir: "-1" } }), () => act("calMonth", { dataset: { dir: "1" } })],
@@ -8622,8 +8630,6 @@
       pickScope() { S.scheduleScope = el.dataset.s; closeOverlay(); },
       calPrev() { S.calOffset -= 1; render(); },
       calNext() { S.calOffset += 1; render(); },
-      vitalsPrev() { S.vitalsOffset -= 1; render(); },
-      vitalsNext() { S.vitalsOffset = Math.min(0, S.vitalsOffset + 1); render(); },
       stampPrev() { S.stampCalOffset -= 1; render(); },
       stampNext() { S.stampCalOffset += 1; render(); },
       // 集章日历选日：回写选中日并关弹窗（真机 StampCalendarPopup）
@@ -14644,10 +14650,8 @@
       return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "血压监测", `<button class="cap" data-go="vitals-detail" type="button">${I.list}明细</button>`)}
-        <div class="flex between px20 s17 fb t" style="padding:8px 20px 12px" id="vitals-swipe">
-          <button class="cal-nav" data-act="vitalsPrev" type="button">${I.chevL}</button>
-          <span>${vitalsWeekLabel()}</span>
-          <button class="cal-nav ${S.vitalsOffset >= 0 ? "off" : ""}" data-act="vitalsNext" type="button">${I.chevR}</button>
+        <div class="flex center px20 s17 fb t" style="padding:8px 20px 12px">
+          <span>最近7天</span>
         </div>
         <div class="scroll px20">
           <div class="island-card" style="padding:18px">
@@ -14719,7 +14723,7 @@
       return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "指标明细", `<button class="cap" data-act="shareVitals" type="button">分享${I.share}</button>`)}
-        <div class="px20 s17 fb t" style="padding:8px 20px">‹　${vitalsWeekLabel()}　›</div>
+        <div class="px20 s17 fb t ta-c" style="padding:8px 20px">最近7天</div>
         <div class="scroll px20">
           <div class="s15 fb t mb8">今天</div>
           ${rows.map((r) => `
@@ -16667,37 +16671,12 @@
     { day: "六", sys: 124, dia: 76, hr: 58 },
     { day: "日", sys: 128, dia: 82, hr: 60 },
   ];
-  /// 按 7 天偏移生成该窗口读数：最近7天为基线；前第 1 个 7 天（o === -1）演示缺测 2 天；前第 2 个 7 天（o === -2）演示缺测 4 天
+  /// 最近 7 天滚动窗口读数（每日零点自动顺延，无翻页）
   function vitalsWeekData() {
     const baseWeek = (activePersonStore().vitalsWeek || VITALS_WEEK);
     if (!baseWeek.length) return [];
-    const o = S.vitalsOffset || 0;
-    const dates = vitalsWindowDates(o);
-    const labelAt = (i) => `${dates[i].getDate()}日`;
-    if (!o) {
-      return baseWeek.map((d, i) => ({ ...d, dayIdx: i, day: labelAt(i) }));
-    }
-    if (o === -1) {
-      return baseWeek
-        .map((d, i) => ({ ...d, dayIdx: i, day: labelAt(i) }))
-        .filter((_, i) => i !== 1 && i !== 4);
-    }
-    if (o === -2) {
-      return baseWeek
-        .map((d, i) => ({ ...d, dayIdx: i, day: labelAt(i) }))
-        .filter((_, i) => i === 0 || i === 3 || i === 6);
-    }
-    const drift = -o * 1.9;
-    return baseWeek.map((d, i) => {
-      const w = Math.sin((i + 1) * (o * 1.7)) * 6 + Math.cos(o * 2.3 + i) * 3;
-      return {
-        dayIdx: i,
-        day: labelAt(i),
-        sys: Math.round(d.sys + w + drift),
-        dia: Math.round(d.dia + w * 0.55 + drift * 0.5),
-        hr: Math.round(d.hr + w * 0.8 + drift * 0.4),
-      };
-    });
+    const dates = vitalsWindowDates();
+    return baseWeek.map((d, i) => ({ ...d, dayIdx: i, day: `${dates[i].getDate()}日` }));
   }
   function vitalsWeekAvg() {
     const w = vitalsWeekData();
