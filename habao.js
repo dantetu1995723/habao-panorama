@@ -1689,6 +1689,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.413",
+      date: "2026-11-17",
+      time: "11:51",
+      title: "「血压监测」最近血压 / 最近心率卡新增「M月d日 HH:mm」测量时间",
+      screens: [
+        { id: "vitals", label: "血压监测" },
+      ],
+      items: [
+        "在「最近血压」「最近心率」两张指标卡底部新增测量时间（如「9月11日 07:12」），与测血压计划卡片的时间格式保持统一。",
+      ],
+    },
+    {
       ver: "V10.412",
       date: "2026-11-17",
       time: "11:23",
@@ -14745,6 +14757,7 @@
                       <span class="s12 fb" style="color:${bpColor};opacity:.7">mmHg</span>
                     </div>
                     <div class="s13 fb" style="margin-top:6px;color:${bpColor};opacity:.85">${sum.latestBpStat}</div>
+                    <div class="s12 t-sec mono mt2">${sum.latestTimeText}</div>
                   </div>
                   <div style="padding:12px;border-radius:13px;background:rgba(240,90,110,.06)">
                     <div class="s13 fb t-sec">最近心率</div>
@@ -14753,6 +14766,7 @@
                       <span class="s12 fb" style="color:#F05A6E;opacity:.7">bpm</span>
                     </div>
                     <div class="s13 fb" style="margin-top:6px;color:#F05A6E;opacity:.85">${sum.latestHrStat}</div>
+                    <div class="s12 t-sec mono mt2">${sum.latestTimeText}</div>
                   </div>
                 </div>
               ` : ""}
@@ -17120,6 +17134,10 @@
     }
 
     const latest = wk[wk.length - 1];
+    const latestDates = vitalsWindowDates();
+    const latestDate = latestDates[latest.dayIdx ?? (wk.length - 1)] || demoDate(0);
+    const latestHM = (S.vitalsLog && S.vitalsLog[0] && S.vitalsLog[0].time) ? S.vitalsLog[0].time : "08:00";
+    const latestTimeText = `${latestDate.getMonth() + 1}月${latestDate.getDate()}日 ${latestHM}`;
     const latestBpCode = VITAL.bpStatus(latest.sys, latest.dia, age);
     const latestHrCode = VITAL.hrStatus(latest.hr);
     const latestBpStat = latestBpCode === "inTarget" ? "达标" : latestBpCode === "aboveTarget" ? "偏高" : latestBpCode === "belowTarget" ? "偏低" : "触及告警";
@@ -17156,6 +17174,7 @@
       latestHr: latest.hr,
       latestBpStat,
       latestHrStat,
+      latestTimeText,
       text: `${latestClause}；${trendClause}。`,
     };
   }
