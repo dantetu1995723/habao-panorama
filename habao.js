@@ -1689,6 +1689,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.410",
+      date: "2026-11-17",
+      time: "11:02",
+      title: "「血压监测」评估卡标题「最近7天评估」下方集成「xx月xx日-xx月xx日」日期范围",
+      screens: [
+        { id: "vitals", label: "血压监测" },
+      ],
+      items: [
+        "在「最近7天评估」卡片标题下方紧邻展示最近 7 天的具体起止日期（如「9月5日-9月11日」），与标题融为一体，清晰标明统计区间。",
+      ],
+    },
+    {
       ver: "V10.409",
       date: "2026-11-17",
       time: "10:41",
@@ -6383,6 +6395,12 @@
   }
   function vitalsWeekLabel() {
     return "最近7天";
+  }
+  function vitalsDateRangeLabel() {
+    const dates = vitalsWindowDates();
+    const a = dates[0];
+    const b = dates[dates.length - 1];
+    return `${a.getMonth() + 1}月${a.getDate()}日-${b.getMonth() + 1}月${b.getDate()}日`;
   }
   function stampMonthTitle() {
     const d = new Date(2026, 8 + S.stampCalOffset, 1);
@@ -14665,7 +14683,13 @@
         ${navBar(cap(I.chevL, "返回"), "血压监测", `<button class="cap" data-go="vitals-detail" type="button">${I.list}明细</button>`)}
         <div class="scroll px20" style="padding-top:8px">
           <div class="island-card" style="padding:18px">
-            <div class="flex between center"><div class="s19 fb t">最近7天评估</div><span class="cap" style="${badgeStyles[sum.tone] || badgeStyles.blue}">${sum.badge}</span></div>
+            <div class="flex between" style="align-items:flex-start">
+              <div>
+                <div class="s19 fb t">最近7天评估</div>
+                <div class="s13 fb t-sec mono mt2">${vitalsDateRangeLabel()}</div>
+              </div>
+              <span class="cap" style="${badgeStyles[sum.tone] || badgeStyles.blue}">${sum.badge}</span>
+            </div>
             <p class="s16 t mt12" style="line-height:1.45">${sum.text}</p>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
               <div style="padding:12px;border-radius:13px;background:${bpBg}">
