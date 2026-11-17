@@ -1689,6 +1689,32 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.406",
+      date: "2026-11-17",
+      time: "09:53",
+      title: "「血压监测」改为最近7天时间跨度、7天为单位评估趋势，图表标题改为「血压趋势」「心率趋势」且横坐标显示「x日」",
+      screens: [
+        { id: "vitals", label: "血压监测" },
+        { id: "vitals-detail", label: "指标明细" },
+      ],
+      items: [
+        "顶部时间跨度由自然周「本周」调整为以 7 天为单位的滚动区间「最近7天」，左右翻页按 7 天步进（如「8月29日 — 9月4日」），体征综合评估与报告均按 7 天为单位统计。",
+        "下方两张趋势图标题由「平均血压」「平均心率」分别调整为「血压趋势」「心率趋势」，横坐标统一按「x日」（如「5日」～「11日」）展示 7 天日期刻度。",
+      ],
+    },
+    {
+      ver: "V10.405",
+      date: "2026-11-17",
+      time: "09:28",
+      title: "「血压监测」体征综合评估卡底部新增「综合评估每天零点刷新」灰字说明",
+      screens: [
+        { id: "vitals", label: "血压监测" },
+      ],
+      items: [
+        "在「体征综合评估」卡片底部新增灰字说明「综合评估每天零点刷新」，位于原「仅依据当前记录提供康复参考，不替代医生诊断」提示上方。",
+      ],
+    },
+    {
       ver: "V10.404",
       date: "2026-11-17",
       time: "09:22",
@@ -6309,10 +6335,20 @@
     const d = new Date(2026, 8 + S.calOffset, 1);
     return `${d.getFullYear()}年${d.getMonth() + 1}月`;
   }
+  function vitalsWindowDates(offset = S.vitalsOffset || 0) {
+    const dates = [];
+    const endOffset = offset * 7;
+    for (let i = -6; i <= 0; i++) {
+      dates.push(demoDate(endOffset + i));
+    }
+    return dates;
+  }
   function vitalsWeekLabel() {
-    if (S.vitalsOffset === 0) return "本周";
-    if (S.vitalsOffset === -1) return "上周";
-    return `${-S.vitalsOffset} 周前`;
+    if ((S.vitalsOffset || 0) === 0) return "最近7天";
+    const dates = vitalsWindowDates();
+    const a = dates[0];
+    const b = dates[dates.length - 1];
+    return `${a.getMonth() + 1}月${a.getDate()}日 — ${b.getMonth() + 1}月${b.getDate()}日`;
   }
   function stampMonthTitle() {
     const d = new Date(2026, 8 + S.stampCalOffset, 1);
@@ -14623,28 +14659,40 @@
                 <div class="s13 fb" style="margin-top:6px;color:#F05A6E;opacity:.85">${sum.hrStat}</div>
               </div>
             </div>
-            <p class="s12 t-sec mt12">仅依据当前记录提供康复参考，不替代医生诊断</p>
+            <p class="s12 t-sec mt12">综合评估每天零点刷新</p>
+            <p class="s12 t-sec mt4">仅依据当前记录提供康复参考，不替代医生诊断</p>
           </div>
           <div class="island-card mt12" style="padding:18px">
             <div class="flex between" style="align-items:baseline">
-              <div class="s20 fb t">${I.heartSq}平均血压</div>
+              <div class="s20 fb t">${I.heartSq}血压趋势</div>
               <div class="s15 fb t mono">${vitalsWeekAvg().sys}/${vitalsWeekAvg().dia} <span class="s11 t-sec">mmHg</span></div>
             </div>
-            ${lineChart(
-              [{ values: wk.map((d) => d.sys), color: "#1054E0" }, { values: wk.map((d) => d.dia), color: "#1EBED6" }],
-              niceDomain(wk.flatMap((d) => [d.sys, d.dia]), 15, 40, 40),
-              wk.map((d) => d.day))}
+            ${(() => {
+              const xLabs = vitalsWindowDates().map((d) => `${d.getDate()}日`);
+              const byIdx = new Map(wk.map((d, idx) => [d.dayIdx ?? idx, d]));
+              const sysVals = xLabs.map((_, i) => byIdx.get(i)?.sys ?? null);
+              const diaVals = xLabs.map((_, i) => byIdx.get(i)?.dia ?? null);
+              return lineChart(
+                [{ values: sysVals, color: "#1054E0" }, { values: diaVals, color: "#1EBED6" }],
+                niceDomain(wk.flatMap((d) => [d.sys, d.dia]), 15, 40, 40),
+                xLabs);
+            })()}
             <div class="flex gap16 s12 t-sec mt4"><span style="color:#1054E0">● 收缩压</span><span style="color:#1EBED6">● 舒张压</span></div>
           </div>
           <div class="island-card mt12" style="padding:18px">
             <div class="flex between" style="align-items:baseline">
-              <div class="s20 fb t-heart">${I.ecg}平均心率</div>
+              <div class="s20 fb t-heart">${I.ecg}心率趋势</div>
               <div class="s15 fb t-heart mono">${vitalsWeekAvg().hr} <span class="s11 t-sec">bpm</span></div>
             </div>
-            ${lineChart(
-              [{ values: wk.map((d) => d.hr), color: "#F05A6E" }],
-              niceDomain(wk.map((d) => d.hr), 10, 30, 30),
-              wk.map((d) => d.day))}
+            ${(() => {
+              const xLabs = vitalsWindowDates().map((d) => `${d.getDate()}日`);
+              const byIdx = new Map(wk.map((d, idx) => [d.dayIdx ?? idx, d]));
+              const hrVals = xLabs.map((_, i) => byIdx.get(i)?.hr ?? null);
+              return lineChart(
+                [{ values: hrVals, color: "#F05A6E" }],
+                niceDomain(wk.map((d) => d.hr), 10, 30, 30),
+                xLabs);
+            })()}
           </div>
         </div>
       </div>`;
@@ -14659,7 +14707,7 @@
       return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "指标明细", `<button class="cap" data-act="shareVitals" type="button">分享${I.share}</button>`)}
-        <div class="px20 s17 fb t" style="padding:8px 20px">‹　本周　›</div>
+        <div class="px20 s17 fb t" style="padding:8px 20px">‹　${vitalsWeekLabel()}　›</div>
         <div class="scroll px20">
           <div class="s15 fb t mb8">今天</div>
           ${rows.map((r) => `
@@ -16607,22 +16655,32 @@
     { day: "六", sys: 124, dia: 76, hr: 58 },
     { day: "日", sys: 128, dia: 82, hr: 60 },
   ];
-  /// 按周偏移生成该周读数：本周为基线；上一周（o === -1）演示缺测 2 天（已测均达标/已测较平稳）；上两周（o === -2）演示缺测 4 天（记录偏少/多日未测）
+  /// 按 7 天偏移生成该窗口读数：最近7天为基线；前第 1 个 7 天（o === -1）演示缺测 2 天；前第 2 个 7 天（o === -2）演示缺测 4 天
   function vitalsWeekData() {
     const baseWeek = (activePersonStore().vitalsWeek || VITALS_WEEK);
+    if (!baseWeek.length) return [];
     const o = S.vitalsOffset || 0;
-    if (!o) return baseWeek;
+    const dates = vitalsWindowDates(o);
+    const labelAt = (i) => `${dates[i].getDate()}日`;
+    if (!o) {
+      return baseWeek.map((d, i) => ({ ...d, dayIdx: i, day: labelAt(i) }));
+    }
     if (o === -1) {
-      return baseWeek.filter((_, i) => i !== 1 && i !== 4);
+      return baseWeek
+        .map((d, i) => ({ ...d, dayIdx: i, day: labelAt(i) }))
+        .filter((_, i) => i !== 1 && i !== 4);
     }
     if (o === -2) {
-      return baseWeek.filter((_, i) => i === 0 || i === 3 || i === 6);
+      return baseWeek
+        .map((d, i) => ({ ...d, dayIdx: i, day: labelAt(i) }))
+        .filter((_, i) => i === 0 || i === 3 || i === 6);
     }
     const drift = -o * 1.9;
     return baseWeek.map((d, i) => {
       const w = Math.sin((i + 1) * (o * 1.7)) * 6 + Math.cos(o * 2.3 + i) * 3;
       return {
-        day: d.day,
+        dayIdx: i,
+        day: labelAt(i),
         sys: Math.round(d.sys + w + drift),
         dia: Math.round(d.dia + w * 0.55 + drift * 0.5),
         hr: Math.round(d.hr + w * 0.8 + drift * 0.4),
@@ -16666,9 +16724,10 @@
     }
 
     const paths = series.map((s) => {
-      const pts = s.values.map((v, i) => `${xAt(i).toFixed(1)},${yAt(v).toFixed(2)}`).join(" ");
+      const valid = s.values.map((v, i) => (v == null ? null : { v, i })).filter(Boolean);
+      const pts = valid.map(({ v, i }) => `${xAt(i).toFixed(1)},${yAt(v).toFixed(2)}`).join(" ");
       return `<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-        ${s.values.map((v, i) => `<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(v).toFixed(2)}" r="4.3" fill="${s.color}"/>`).join("")}`;
+        ${valid.map(({ v, i }) => `<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(v).toFixed(2)}" r="4.3" fill="${s.color}"/>`).join("")}`;
     }).join("");
 
     return `<div class="chart-plot">
