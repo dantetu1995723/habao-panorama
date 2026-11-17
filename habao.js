@@ -1689,6 +1689,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.412",
+      date: "2026-11-17",
+      time: "11:23",
+      title: "「血压监测」评估卡指标改为「最近血压 / 最近心率」，评估文案精简为最近一次分析 + 近7天趋势",
+      screens: [
+        { id: "vitals", label: "血压监测" },
+      ],
+      items: [
+        "评估卡下排左右两栏由「平均血压 / 平均心率」改为展示最近一次测量的「最近血压 / 最近心率」及单次达标状态（达标 / 偏高 / 偏低 / 触及告警）。",
+        "评估正文精简为「最近一次测量分析 + 最近7天趋势」两段式表达（如「最近一次血压、心率均达标；近7天血压平稳、心率平稳。」），更简洁易读。",
+      ],
+    },
+    {
       ver: "V10.411",
       date: "2026-11-17",
       time: "11:16",
@@ -14691,8 +14704,8 @@
         red: "color:#e11d48;background:rgba(240,90,110,.14)",
         blue: "color:#1054E0;background:rgba(16,84,224,.10)",
       };
-      const bpColor = sum.bpStat === "触及告警" ? "#F05A6E" : "#1054E0";
-      const bpBg = sum.bpStat === "触及告警" ? "rgba(240,90,110,.06)" : "rgba(16,84,224,.06)";
+      const bpColor = sum.latestBpStat === "触及告警" ? "#F05A6E" : "#1054E0";
+      const bpBg = sum.latestBpStat === "触及告警" ? "rgba(240,90,110,.06)" : "rgba(16,84,224,.06)";
       const mode = S.vitalsTestMode || "normal";
       const isAnalyzing = mode === "analyzing";
       const modes = [
@@ -14726,20 +14739,20 @@
               ${wk.length ? `
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
                   <div style="padding:12px;border-radius:13px;background:${bpBg}">
-                    <div class="s13 fb t-sec">平均血压</div>
+                    <div class="s13 fb t-sec">最近血压</div>
                     <div style="margin-top:6px;display:flex;align-items:baseline;gap:3px">
-                      <span class="s20 fb mono" style="color:${bpColor}">${avg.sys}/${avg.dia}</span>
+                      <span class="s20 fb mono" style="color:${bpColor}">${sum.latestSys}/${sum.latestDia}</span>
                       <span class="s12 fb" style="color:${bpColor};opacity:.7">mmHg</span>
                     </div>
-                    <div class="s13 fb" style="margin-top:6px;color:${bpColor};opacity:.85">${sum.bpStat}</div>
+                    <div class="s13 fb" style="margin-top:6px;color:${bpColor};opacity:.85">${sum.latestBpStat}</div>
                   </div>
                   <div style="padding:12px;border-radius:13px;background:rgba(240,90,110,.06)">
-                    <div class="s13 fb t-sec">平均心率</div>
+                    <div class="s13 fb t-sec">最近心率</div>
                     <div style="margin-top:6px;display:flex;align-items:baseline;gap:3px">
-                      <span class="s20 fb mono" style="color:#F05A6E">${avg.hr}</span>
+                      <span class="s20 fb mono" style="color:#F05A6E">${sum.latestHr}</span>
                       <span class="s12 fb" style="color:#F05A6E;opacity:.7">bpm</span>
                     </div>
-                    <div class="s13 fb" style="margin-top:6px;color:#F05A6E;opacity:.85">${sum.hrStat}</div>
+                    <div class="s13 fb" style="margin-top:6px;color:#F05A6E;opacity:.85">${sum.latestHrStat}</div>
                   </div>
                 </div>
               ` : ""}
@@ -17106,31 +17119,21 @@
       tone = "amber";
     }
 
-    const parts = [];
-    if (unmeasuredDays >= 3) {
-      parts.push(`近7天有 ${unmeasuredDays} 天未测（仅记 ${measuredDays} 天）`);
-    } else if (unmeasuredDays > 0) {
-      parts.push(`近7天有 ${unmeasuredDays} 天未测`);
-    }
+    const latest = wk[wk.length - 1];
+    const latestBpCode = VITAL.bpStatus(latest.sys, latest.dia, age);
+    const latestHrCode = VITAL.hrStatus(latest.hr);
+    const latestBpStat = latestBpCode === "inTarget" ? "达标" : latestBpCode === "aboveTarget" ? "偏高" : latestBpCode === "belowTarget" ? "偏低" : "触及告警";
+    const latestHrStat = latestHrCode === "inTarget" ? "达标" : latestHrCode === "aboveTarget" ? "偏快" : latestHrCode === "belowTarget" ? "偏慢" : "触及告警";
 
-    if (bpAlerts > 0) {
-      parts.push(`${bpAlerts} 次血压触及报警线`);
-    } else if (bpOutside === 0) {
-      parts.push(unmeasuredDays > 0 ? "已测血压均达标" : "血压均达标");
-    } else {
-      parts.push(`${bpOutside} 次血压超目标（${VITAL.bpTargetText(age)}）`);
-    }
+    const latestClause = (latestBpStat === "达标" && latestHrStat === "达标")
+      ? "最近一次血压、心率均达标"
+      : `最近一次血压${latestBpStat}、心率${latestHrStat}`;
 
-    if (hrAlerts > 0) {
-      parts.push(`${hrAlerts} 次心率触及报警线`);
-    } else if (hrOutside === 0) {
-      parts.push(unmeasuredDays > 0 ? "已测心率均达标" : "心率均达标");
-    } else {
-      parts.push(`${hrOutside} 次心率超目标（55–60）`);
-    }
-
+    const totalAlerts = bpAlerts + hrAlerts;
+    const alertPrefix = totalAlerts > 0 ? `有 ${totalAlerts} 次触及报警线，` : "";
+    let trendClause = "";
     if (unmeasuredDays >= 3 || total < 4) {
-      parts.push("建议坚持每日测量");
+      trendClause = `近7天${alertPrefix}仅记 ${measuredDays} 天，建议坚持每日测量`;
     } else {
       const mid = Math.floor(total / 2);
       const early = wk.slice(0, mid);
@@ -17138,18 +17141,23 @@
       const avgOf = (arr, k) => Math.round(arr.reduce((s, d) => s + d[k], 0) / arr.length);
       const bpDelta = avgOf(recent, "sys") - avgOf(early, "sys");
       const hrDelta = avgOf(recent, "hr") - avgOf(early, "hr");
-      if (bpVolatile) parts.push("血压波动较大");
-      else if (bpDelta >= 5) parts.push("血压略有上升");
-      else if (bpDelta <= -5) parts.push("血压有所回落");
-      else parts.push("血压平稳");
-
-      if (hrVolatile) parts.push("心率波动较大");
-      else if (hrDelta >= 4) parts.push("心率略有上升");
-      else if (hrDelta <= -4) parts.push("心率有所回落");
-      else parts.push("心率平稳");
+      const bpTrend = bpVolatile ? "血压波动较大" : bpDelta >= 5 ? "血压略有上升" : bpDelta <= -5 ? "血压有所回落" : "血压平稳";
+      const hrTrend = hrVolatile ? "心率波动较大" : hrDelta >= 4 ? "心率略有上升" : hrDelta <= -4 ? "心率有所回落" : "心率平稳";
+      trendClause = `近7天${alertPrefix}${bpTrend}、${hrTrend}`;
     }
 
-    return { badge, tone, bpStat, hrStat, text: `${parts.join("，")}。` };
+    return {
+      badge,
+      tone,
+      bpStat,
+      hrStat,
+      latestSys: latest.sys,
+      latestDia: latest.dia,
+      latestHr: latest.hr,
+      latestBpStat,
+      latestHrStat,
+      text: `${latestClause}；${trendClause}。`,
+    };
   }
 
   /// 录入面板动态提示：高压 / 低压 / 心率三项分开独立判档（无数学符号纯中文适老表述，取更严重一档着色）
