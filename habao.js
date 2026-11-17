@@ -1690,6 +1690,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.417",
+      date: "2026-11-17",
+      time: "16:35",
+      title: "「打卡通知」打开任意开关新增打卡系统通知权限弹窗",
+      screens: [
+        { id: "notify", label: "打卡通知" },
+      ],
+      items: [
+        "在「打卡通知」页打开任意开关（全部打卡、六类、自建类别或已绑定守护人后的通知守护我的人）时，弹出「开启打卡系统通知权限」确认弹窗。",
+        "点击「允许」后授权并开启对应通知开关，点击「取消」则保持关闭状态；关闭开关时直接生效无需弹窗。",
+      ],
+    },
+    {
       ver: "V10.416",
       date: "2026-11-17",
       time: "15:31",
@@ -12182,18 +12195,26 @@
         logOp("改了到点提醒", "打卡通知", [["提醒", `${label} 已${next ? "打开" : "关闭"}`]]);
         render();
       },
-      // 全部打卡总开关：全开时点按全关，否则全开；上岛全关时点按自动开启通知自己
+      // 全部打卡总开关：全开时点按全关，否则弹窗申请打卡系统权限后全开；上岛全关时点按自动开启通知自己
       toggleAll() {
         const canNotifyGuardian = hasConfirmedGuardiansForCurrentPerson();
         const gateActive = !!(S.notifySelf || (genHasFamily() && canNotifyGuardian && S.notifyFamily));
         const curOn = gateActive && allCatsOn();
         const next = !curOn;
-        if (next && !gateActive) {
-          S.notifySelf = true;
+        if (next) {
+          S.pendingNotifyToggle = { kind: "all" };
+          openOverlay("confirm", {
+            title: "开启打卡系统通知权限",
+            body: "开启打卡提醒需要获取手机系统通知权限，以便按时向您发送服药、测血压、复查等打卡提醒。",
+            ok: "允许",
+            cancel: "取消",
+            action: "confirmEnableNotifySwitch",
+          });
+          return;
         }
-        Object.keys(CAT).forEach((c) => { S.cats[c] = next; });
-        (S.customCats || []).forEach((c) => { S.cats[c.id] = next; });
-        logOp("改了到点提醒", "打卡通知", [["提醒", `全部打卡 已${next ? "打开" : "关闭"}`]]);
+        Object.keys(CAT).forEach((c) => { S.cats[c] = false; });
+        (S.customCats || []).forEach((c) => { S.cats[c.id] = false; });
+        logOp("改了到点提醒", "打卡通知", [["提醒", "全部打卡 已关闭"]]);
         render();
       },
       toggleCat() {
@@ -12203,12 +12224,20 @@
         const gateActive = !!(S.notifySelf || (genHasFamily() && canNotifyGuardian && S.notifyFamily));
         const curOn = gateActive && !!S.cats[c];
         const next = !curOn;
-        if (next && !gateActive) {
-          S.notifySelf = true;
+        if (next) {
+          S.pendingNotifyToggle = { kind: "cat", cat: c };
+          openOverlay("confirm", {
+            title: "开启打卡系统通知权限",
+            body: "开启打卡提醒需要获取手机系统通知权限，以便按时向您发送服药、测血压、复查等打卡提醒。",
+            ok: "允许",
+            cancel: "取消",
+            action: "confirmEnableNotifySwitch",
+          });
+          return;
         }
-        S.cats[c] = next;
+        S.cats[c] = false;
         const nm = (CAT[c] && CAT[c].name) || ((S.customCats || []).find((x) => x.id === c) || {}).name || "类别";
-        logOp("改了到点提醒", "打卡通知", [["提醒", `${nm} 已${S.cats[c] ? "打开" : "关闭"}`]]);
+        logOp("改了到点提醒", "打卡通知", [["提醒", `${nm} 已关闭`]]);
         render();
       },
       toggleFam() {
@@ -12224,12 +12253,47 @@
         }
         const curOn = !!(S.notifyFamily && anyCatOn());
         const next = !curOn;
-        S.notifyFamily = next;
-        if (next && !anyCatOn()) {
+        if (next) {
+          S.pendingNotifyToggle = { kind: "fam" };
+          openOverlay("confirm", {
+            title: "开启打卡系统通知权限",
+            body: "开启打卡提醒需要获取手机系统通知权限，以便按时向您发送服药、测血压、复查等打卡提醒。",
+            ok: "允许",
+            cancel: "取消",
+            action: "confirmEnableNotifySwitch",
+          });
+          return;
+        }
+        S.notifyFamily = false;
+        logOp("改了到点提醒", "打卡通知", [["提醒", `${famLabel} 已关闭`]]);
+        render();
+      },
+      confirmEnableNotifySwitch() {
+        const pending = S.pendingNotifyToggle;
+        S.pendingNotifyToggle = null;
+        closeOverlay();
+        if (!pending) return;
+        const canNotifyGuardian = hasConfirmedGuardiansForCurrentPerson();
+        const gateActive = !!(S.notifySelf || (genHasFamily() && canNotifyGuardian && S.notifyFamily));
+        if (pending.kind === "all") {
+          if (!gateActive) S.notifySelf = true;
           Object.keys(CAT).forEach((c) => { S.cats[c] = true; });
           (S.customCats || []).forEach((c) => { S.cats[c.id] = true; });
+          logOp("改了到点提醒", "打卡通知", [["提醒", "全部打卡 已打开"]]);
+        } else if (pending.kind === "cat" && pending.cat) {
+          const c = pending.cat;
+          if (!gateActive) S.notifySelf = true;
+          S.cats[c] = true;
+          const nm = (CAT[c] && CAT[c].name) || ((S.customCats || []).find((x) => x.id === c) || {}).name || "类别";
+          logOp("改了到点提醒", "打卡通知", [["提醒", `${nm} 已打开`]]);
+        } else if (pending.kind === "fam") {
+          S.notifyFamily = true;
+          if (!anyCatOn()) {
+            Object.keys(CAT).forEach((c) => { S.cats[c] = true; });
+            (S.customCats || []).forEach((c) => { S.cats[c.id] = true; });
+          }
+          logOp("改了到点提醒", "打卡通知", [["提醒", "通知守护我的人 已打开"]]);
         }
-        logOp("改了到点提醒", "打卡通知", [["提醒", `${famLabel} 已${next ? "打开" : "关闭"}`]]);
         render();
       },
       goFamily() {
