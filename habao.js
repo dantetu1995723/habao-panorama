@@ -1690,6 +1690,20 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.415",
+      date: "2026-11-17",
+      time: "14:15",
+      title: "移除「添加家属」A→B 发起绑定后的「撤回」功能",
+      screens: [
+        { id: "family-add", label: "添加家属" },
+        { id: "family", label: "家属管理" },
+      ],
+      items: [
+        "在「家属管理」中，当家属处于「待对方确认」状态时，顶部档案卡右上角不再提供「撤回」按钮，仅在已绑定状态保留「解除」按钮。",
+        "「添加家属」达 5 位上限提示文案同步移除「撤回或」表述，改为「如需新增请先解除绑定」。",
+      ],
+    },
+    {
       ver: "V10.414",
       date: "2026-11-17",
       time: "13:38",
@@ -11034,15 +11048,12 @@
         ensureCareGraph();
         const bid = el.dataset.id;
         const bond = S.careBonds.find((b) => String(b.id) === String(bid));
-        if (!bond) return;
+        if (!bond || bond.status === "pending") return;
         const other = bondOtherName(bond, S.currentPersonName);
-        const isPending = bond.status === "pending";
         openOverlay("confirm", {
-          title: isPending ? "撤回请求" : "解除绑定",
-          body: isPending
-            ? `确认撤回向${other}发送的绑定请求吗？`
-            : `确认解除与${other}的家属绑定吗？`,
-          ok: isPending ? "撤回" : "解除",
+          title: "解除绑定",
+          body: `确认解除与${other}的家属绑定吗？`,
+          ok: "解除",
           danger: true,
           action: "doRemoveCareBond",
           bondId: bond.id,
@@ -11052,38 +11063,32 @@
         ensureCareGraph();
         const bid = S.overlayData && S.overlayData.bondId;
         const bond = S.careBonds.find((b) => String(b.id) === String(bid));
-        if (!bond) { closeOverlay(); return; }
+        if (!bond || bond.status === "pending") { closeOverlay(); return; }
         const actor = S.currentPersonName || "李建国";
         const other = bondOtherName(bond, actor);
         const rel = bondRelationForViewer(bond, actor);
-        const isPending = bond.status === "pending";
-        if (isPending) {
-          S.careBonds = S.careBonds.filter((b) => String(b.id) !== String(bond.id));
-          removeFamilyCollaborateOp(bond.id, bond.initiatedByName || actor, other);
-        } else {
-          bond.confirmed = false;
-          bond.status = "unbound";
-          bond.unboundByName = actor;
-          bond.unacknowledgedBindFor = [];
-          // 仅被解绑人 other 需要确认知晓（进首页弹窗直达家属管理点「知道了」）；发起人 actor（B）不进待确认列表、不弹窗
-          bond.unacknowledgedUnbindFor = [other];
-          bond.unboundPopupShownFor = [];
-          logFamilyCollaborateOp({
-            actorName: actor,
-            targetName: other,
-            action: "解除了家属绑定",
-            place: "家属管理",
-            how: `${other}（${rel}）`,
-            includeTargetInSentence: false,
-          });
-        }
+        bond.confirmed = false;
+        bond.status = "unbound";
+        bond.unboundByName = actor;
+        bond.unacknowledgedBindFor = [];
+        // 仅被解绑人 other 需要确认知晓（进首页弹窗直达家属管理点「知道了」）；发起人 actor（B）不进待确认列表、不弹窗
+        bond.unacknowledgedUnbindFor = [other];
+        bond.unboundPopupShownFor = [];
+        logFamilyCollaborateOp({
+          actorName: actor,
+          targetName: other,
+          action: "解除了家属绑定",
+          place: "家属管理",
+          how: `${other}（${rel}）`,
+          includeTargetInSentence: false,
+        });
         syncLegacyListsFromBonds();
-        if (!isPending && S.selectedProxyFamilyName === other) {
+        if (S.selectedProxyFamilyName === other) {
           const nextFirst = manageableFamilyBondsFor(actor)[0];
           S.selectedProxyFamilyName = nextFirst ? bondOtherName(nextFirst, actor) : null;
         }
         S.overlay = null;
-        toast(isPending ? `已撤回向${other}发送的绑定申请` : `已解除与${other}的家属绑定`);
+        toast(`已解除与${other}的家属绑定`);
         render();
       },
       ackBindOrUnbind() {
@@ -16383,7 +16388,7 @@
           <div style="width:38px;height:38px;border-radius:50%;background:rgba(16,84,224,.10);color:var(--blue);display:grid;place-items:center;flex-shrink:0">${I.people}</div>
           <div style="min-width:0;flex:1">
             <div class="s15 fb t">已达 5 位家属上限</div>
-            <div class="s12 t-sec" style="margin-top:3px;line-height:1.45">每人最多可绑定 5 位家属（含待确认申请），如需新增请先撤回或解除</div>
+            <div class="s12 t-sec" style="margin-top:3px;line-height:1.45">每人最多可绑定 5 位家属（含待确认申请），如需新增请先解除绑定</div>
           </div>
         </div>
       `;
@@ -16533,7 +16538,7 @@
                 </div>
                 <div style="font-size:13px;font-weight:500;color:rgba(255,255,255,.84);margin-top:4px;font-variant-numeric:tabular-nums">手机号 ${esc(ph)}</div>
               </div>
-              ${(isUnbound || needsIncomingConfirm) ? "" : `<button type="button" data-act="askRemoveCareBond" data-id="${selectedBond.id}" style="flex-shrink:0;white-space:nowrap;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.18);border:0.8px solid rgba(255,255,255,.28);color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit">${isPending ? "撤回" : "解除"}</button>`}
+              ${(isUnbound || isPending || needsIncomingConfirm) ? "" : `<button type="button" data-act="askRemoveCareBond" data-id="${selectedBond.id}" style="flex-shrink:0;white-space:nowrap;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.18);border:0.8px solid rgba(255,255,255,.28);color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit">解除</button>`}
             </div>
             ${ackBannerHTML}
           </div>`;
