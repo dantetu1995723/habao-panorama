@@ -390,9 +390,10 @@
   // V10.50：身体报告子报告页顶部分页（AI 解读 / 资料合集）——同构「计划 / 解析依据」，字号加大到适老档
   function reportPaneTabs() {
     const onInsight = S.reportPane !== "archive";
+    const hasUnreadArchive = S.reportKind === "visit" ? !!S.unreadReviewArchive : !!S.unreadBaselineArchive;
     return `<div class="filter lg">
       <button class="${onInsight ? "on" : ""}" data-act="setReportPane" data-p="insight" type="button">AI 解读</button>
-      <button class="${onInsight ? "" : "on"}" data-act="setReportPane" data-p="archive" type="button">资料合集</button>
+      <button class="${onInsight ? "" : "on"}" data-act="setReportPane" data-p="archive" type="button"><span class="tab-label-wrap">资料合集${hasUnreadArchive && onInsight ? `<span class="tab-red-dot" aria-label="有新资料"></span>` : ""}</span></button>
     </div>`;
   }
 
@@ -1689,6 +1690,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.414",
+      date: "2026-11-17",
+      time: "13:38",
+      title: "身体报告「基础报告 / 复查报告」上传流程完成后回到「AI 解读」界面，「资料合集」标签显示未读红点",
+      screens: [
+        { id: "report-sub", label: "基础报告 / 复查报告" },
+      ],
+      items: [
+        "在身体报告的「基础报告」和「复查报告」中，每次走完新增报告资料拍照上传并提交后，统一回到「AI 解读」界面。",
+        "上传完成后「资料合集」分页标签右上角显示未读红点提示，点击切换至「资料合集」查看后红点自动清除。",
+      ],
+    },
+    {
       ver: "V10.413",
       date: "2026-11-17",
       time: "11:51",
@@ -2648,6 +2662,8 @@
     reportReturnHome: false,
     // V10.50：报告页两页就地切换——默认落「AI 解读」，另一页是只读「资料合集」
     reportPane: "insight",
+    unreadBaselineArchive: false,
+    unreadReviewArchive: false,
     apptCapture: false,
     qDone: false,
     walkTaskId: null,
@@ -6934,7 +6950,12 @@
       });
       return;
     }
-    S.reportPane = "archive";
+    if (visit) {
+      S.unreadReviewArchive = true;
+    } else {
+      S.unreadBaselineArchive = true;
+    }
+    S.reportPane = "insight";
     dismissCover();
   }
   function laterCapture() {
@@ -12976,6 +12997,10 @@
       // V10.50：报告页顶部分页（AI 解读 / 资料合集），页内就地切换
       setReportPane() {
         S.reportPane = el.dataset.p === "archive" ? "archive" : "insight";
+        if (S.reportPane === "archive") {
+          if (S.reportKind === "visit") S.unreadReviewArchive = false;
+          else S.unreadBaselineArchive = false;
+        }
         render();
       },
       // V10.61：资料合集已在本页 Tab，底栏不论有无存量都直接进拍摄

@@ -882,6 +882,12 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
 .filter.green button.on { color: var(--blue); }
 /* V10.50：报告页分页字号加大到适老档（真机 17pt / 竖向 12pt，热区 ≥44pt） */
 .filter.lg button { font-size: calc(17px * var(--fs)); padding: 12px 8px; }
+.tab-label-wrap { position: relative; display: inline-block; }
+.tab-red-dot {
+  position: absolute; top: -2px; right: -10px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #ef4444;
+}
 .hist-bar {
   display: flex; align-items: center; gap: 8px;
   background: rgba(16,84,224,.08); border-radius: 999px; padding: 8px 12px;
