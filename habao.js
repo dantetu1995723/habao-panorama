@@ -1722,6 +1722,20 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.433",
+      date: "2026-11-18",
+      time: "14:50",
+      title: "自定义循环规则移除「一次」概念，统一简化为「每N天 / 每N周 / 每N月」",
+      screens: [
+        { id: "task-add", label: "添加计划" },
+        { id: "task-edit", label: "更新计划" },
+        { id: "task-view", label: "查看计划" },
+      ],
+      items: [
+        "根据产品负责人指示「自定义循环规则，这里不要‘一次’的概念」，将「自定义循环」弹窗步进器、循环规则第 4 格芯片、顶部「周期与日期」摘要磁贴及查看态/核对弹窗中的自定义循环规则文案由「每N天一次 / 每N周一次 / 每N月一次」统一调整为「每N天 / 每N周 / 每N月」。",
+      ],
+    },
+    {
       ver: "V10.432",
       date: "2026-11-18",
       time: "14:12",
@@ -6272,7 +6286,7 @@
   function customRuleDisplayName(count, unit) {
     const u = (unit === "week" || unit === "month") ? unit : "day";
     const n = clampRuleInterval(count, u);
-    return u === "week" ? `每${n}周一次` : u === "month" ? `每${n}月一次` : `每${n}天一次`;
+    return u === "week" ? `每${n}周` : u === "month" ? `每${n}月` : `每${n}天`;
   }
   function durationGranularity(rule, intervalUnit = S.draft?.intervalUnit) {
     if (rule === "custom") {
