@@ -1722,6 +1722,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.434",
+      date: "2026-11-18",
+      time: "16:10",
+      title: "「血压监测」最近血压 / 最近心率卡移除「达标 / 不达标」状态标签",
+      screens: [
+        { id: "vitals", label: "血压监测" },
+      ],
+      items: [
+        "根据产品负责人指示「这块不用判断“达标/不达标”」，移除「最近7天评估」下方「最近血压」「最近心率」两张指标卡中的单次达标状态行，仅保留指标名称、最近一次数值与测量时间。",
+      ],
+    },
+    {
       ver: "V10.433",
       date: "2026-11-18",
       time: "14:50",
@@ -15127,8 +15139,7 @@
                       <span class="s20 fb mono" style="color:${bpColor}">${sum.latestSys}/${sum.latestDia}</span>
                       <span class="s12 fb" style="color:${bpColor};opacity:.7">mmHg</span>
                     </div>
-                    <div class="s13 fb" style="margin-top:6px;color:${bpColor};opacity:.85">${sum.latestBpStat}</div>
-                    <div class="s12 t-sec mono mt2">${sum.latestTimeText}</div>
+                    <div class="s12 t-sec mono mt6">${sum.latestTimeText}</div>
                   </div>
                   <div style="padding:12px;border-radius:13px;background:rgba(240,90,110,.06)">
                     <div class="s13 fb t-sec">最近心率</div>
@@ -15136,8 +15147,7 @@
                       <span class="s20 fb mono" style="color:#F05A6E">${sum.latestHr}</span>
                       <span class="s12 fb" style="color:#F05A6E;opacity:.7">bpm</span>
                     </div>
-                    <div class="s13 fb" style="margin-top:6px;color:#F05A6E;opacity:.85">${sum.latestHrStat}</div>
-                    <div class="s12 t-sec mono mt2">${sum.latestTimeText}</div>
+                    <div class="s12 t-sec mono mt6">${sum.latestTimeText}</div>
                   </div>
                 </div>
               ` : ""}
