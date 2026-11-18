@@ -1688,6 +1688,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.428",
+      date: "2026-11-18",
+      time: "10:51",
+      title: "「今日集章」移除底部「今日全达标 · 每一枚章都已收下」徽章区块",
+      screens: [
+        { id: "stamps", label: "今日集章" },
+      ],
+      items: [
+        "移除「今日集章」列表底部的「今日全达标 · 每一枚章都已收下」哈宝盛开徽章区块，全达标时由顶部绿色 100% 进度环与各时段「✓ 已集 X/X」胶囊直接体现。",
+      ],
+    },
+    {
       ver: "V10.427",
       date: "2026-11-18",
       time: "10:33",
@@ -15758,11 +15770,6 @@
                 <div><div class="stamp ${doneSet.has(t.id) ? "" : "ghost"}"><img src="${A.stamp[t.cat]}" alt="" /></div><div class="stamp-cap">${t.title}</div></div>`).join("")}</div>
             </div>`;
           }).join("")}
-          ${allDone ? `<div class="ta-c" style="padding:12px 0 18px">
-            <img src="${A.stamp.bloom}" width="104" height="104" alt="" />
-            <div class="s18 fb t-green mt6">${isToday ? "今日全达标" : "当日全达标"}</div>
-            <div class="s13 t-sec mt2">每一枚章都已收下</div>
-          </div>` : ""}
         </div>
         <div class="dock-pair" style="padding-bottom:28px">
           <button class="dock-cap ghost" data-act="goHome" type="button">${I.chevL}返回</button>
