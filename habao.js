@@ -1688,6 +1688,22 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.423",
+      date: "2026-11-18",
+      time: "10:05",
+      title: "简化无计划/全达标集章为大头像，并还原分享海报真实数据",
+      screens: [
+        { id: "stamps", label: "今日集章" },
+        { id: "vitals-detail", label: "指标明细" },
+        { id: "analysis", label: "明细分析" },
+      ],
+      items: [
+        "简化集章页与集章分享海报的无计划空态、全达标态为单一居中的哈宝大头像 + 主文案，移除多余幽灵章与复杂叠层。",
+        "修复集章分享海报进行中只显示 6 个类别图标的问题，改为完整渲染当天全部计划（如 21 个计划即展示 21 枚哈宝章与任务标题）。",
+        "升级血压监测周报与身体报告小结分享海报，完全模拟真机按天明细列表与 3 张完整分析正文卡片。",
+      ],
+    },
+    {
       ver: "V10.422",
       date: "2026-11-18",
       time: "09:41",
@@ -15591,10 +15607,9 @@
         </div>
         <div class="scroll px24 grow" style="padding-top:16px">
           ${rxStampSectionHTML(sel)}
-          ${empty ? `<div class="stamp-empty">
-            <div class="empty-hero"><img src="${A.stamp.bloom}" width="104" alt="" /></div>
-            <div class="s18 fb t mt8">${isToday ? "今天还没有计划" : "这一天还没有计划"}</div>
-            <div class="stamp-grid ghost-grid mt16">${Object.keys(CAT).map((c) => `<div class="stamp ghost"><img src="${A.stamp[c]}" alt="" /></div>`).join("")}</div>
+          ${empty ? `<div class="stamp-empty" style="padding-top:36px">
+            <img src="${A.stamp.bloom}" width="132" height="132" style="opacity:.85" alt="" />
+            <div class="s20 fb t mt12">${isToday ? "今天还没有计划" : "这一天还没有计划"}</div>
             ${mTotal ? `<div class="month-strip">本月已集 <b>${mDone}</b>/${mTotal} · ${Math.round((mDone / mTotal) * 100)}%</div>` : ""}
           </div>` : ""}
           ${empty ? "" : byP.filter((p) => p.items.length).map((p) => {
@@ -15610,9 +15625,10 @@
                 <div><div class="stamp ${doneSet.has(t.id) ? "" : "ghost"}"><img src="${A.stamp[t.cat]}" alt="" /></div><div class="stamp-cap">${t.title}</div></div>`).join("")}</div>
             </div>`;
           }).join("")}
-          ${doneN === dayTasks.length && dayTasks.length ? `<div class="bloom-badge">
-            <img src="${A.stamp.bloom}" width="42" height="42" alt="" />
-            <div><div class="s17 fb t-green">${isToday ? "今日全达标" : "当日全达标"}</div><div class="s13 t-sec">每一枚章都已收下</div></div>
+          ${doneN === dayTasks.length && dayTasks.length ? `<div class="ta-c" style="padding:12px 0 18px">
+            <img src="${A.stamp.bloom}" width="104" height="104" alt="" />
+            <div class="s18 fb t-green mt6">${isToday ? "今日全达标" : "当日全达标"}</div>
+            <div class="s13 t-sec mt2">每一枚章都已收下</div>
           </div>` : ""}
         </div>
         <div class="dock-pair" style="padding-bottom:28px">
@@ -20989,9 +21005,33 @@
     reportPoster: () => {
       const kind = S.overlayData.kind || "vitals";
       const avg = vitalsWeekAvg();
-      const rows = kind === "vitals"
-        ? [["平均血压", `${avg.sys}/${avg.dia} mmHg`], ["平均心率", `${avg.hr} bpm`], ["记录天数", `${vitalsWeekData().length} 天`]]
-        : [["基础报告", "出院小结已解析"], ["复查报告", "尚无复查批次"], ["问卷随访", "轻度活动受限"]];
+      const week = vitalsWeekData();
+      const bodyHTML = kind === "vitals" ? `
+        <div class="poster-vitals-sum">
+          <div><small>平均血压</small><b>${week.length ? `${avg.sys}/${avg.dia}` : "—"} <i>mmHg</i></b></div>
+          <span class="v-div"></span>
+          <div><small>平均心率</small><b class="hr">${week.length ? avg.hr : "—"} <i>bpm</i></b></div>
+        </div>
+        <div class="poster-scroll-list">
+          ${week.length ? week.slice().reverse().map((d, i) => `
+            <div class="poster-v-row">
+              <span class="t-sec s12" style="min-width:44px;text-align:left">${i === 0 ? "今天" : i === 1 ? "昨天" : d.day}</span>
+              <span class="fb t s13">${d.sys}/${d.dia} <small class="t-sec">mmHg</small></span>
+              <span class="fb s13" style="color:#E84855;margin-left:auto">${d.hr} <small class="t-sec">bpm</small></span>
+            </div>`).join("") : `<div class="ta-c py12"><img src="${A.stamp.monitor}" width="68" alt="" /><div class="s13 t-sec mt6">这一段还没有测量记录</div></div>`}
+        </div>` : `
+        <div class="s12 t-sec" style="margin-top:-4px">AI 根据当前资料实时更新</div>
+        <div class="poster-scroll-list">
+          ${[
+            ["基础报告", "出院小结已解析，明确冠脉术后二级预防用药与基础运动康复建议。"],
+            ["复查报告", "尚无复查批次，建议按出院医嘱于术后 1 个月上传心内科复查记录。"],
+            ["问卷随访", "最近一次随访提示轻度活动受限，日常散步及呼吸节律保持平稳。"],
+          ].map(([title, desc]) => `
+            <div class="poster-a-card">
+              <div class="s13 fb t">${title}</div>
+              <div class="s12 t-sec mt4" style="line-height:1.45">${desc}</div>
+            </div>`).join("")}
+        </div>`;
       return `
       <div class="scrim bottom" data-act="close">
         <div class="sheet ta-c" onclick="event.stopPropagation()">
@@ -21001,10 +21041,8 @@
               <div class="poster-head"><img src="${A.logo}" width="26" height="26" alt="" /><span>哈宝 · 康复打卡</span></div>
               <span class="poster-badge">${kind === "vitals" ? "血压监测" : "身体报告"}</span>
             </div>
-            <div class="poster-title">${kind === "vitals" ? "血压监测周报" : "身体报告小结"}</div>
-            <div class="col gap10 mt4" style="width:100%">
-              ${rows.map(([k, v]) => `<div class="flex between s15" style="padding:11px 14px;background:rgba(255,255,255,.88);border:1px solid rgba(16,84,224,.08);border-radius:14px"><span class="t-sec">${k}</span><span class="fb t">${v}</span></div>`).join("")}
-            </div>
+            <div class="poster-title">${kind === "vitals" ? "最近7天血压" : "明细分析"}</div>
+            ${bodyHTML}
             <div class="poster-foot-brand"><span></span><i>循光而行 · 一天一节律</i><span></span></div>
           </div>
           <div class="flex center gap16">
@@ -21946,6 +21984,32 @@
       const dayTasks = liveTasks(sel);
       const dayN = Math.max(1, dayTasks.length);
       const allDone = dayTasks.length > 0 && doneN === dayTasks.length;
+      const empty = dayTasks.length === 0;
+      const bodyHTML = empty ? `
+        <div class="ta-c" style="padding:16px 0">
+          <img src="${A.stamp.bloom}" width="116" height="116" style="opacity:.85" alt="" />
+          <div class="s16 fb t mt10">这一天还没有计划</div>
+        </div>` : allDone ? `
+        <div class="ta-c" style="padding:14px 0">
+          <img src="${A.stamp.bloom}" width="128" height="128" alt="" />
+          <div class="s18 fb t-green mt8">今日全达标</div>
+          <div class="poster-foot mt4">已收下 ${doneN} / ${dayTasks.length} 枚健康章</div>
+        </div>` : `
+        <div class="poster-ring">
+          <div class="stamp-ring" style="transform:scale(1.3)">
+            <svg viewBox="0 0 36 36">
+              <circle class="bg" cx="18" cy="18" r="15"/>
+              <circle class="fg" cx="18" cy="18" r="15" style="stroke-dasharray:94.2;stroke-dashoffset:${(94.2 * (1 - doneN / dayN)).toFixed(1)}"/>
+            </svg>
+            <span>${Math.round((doneN / dayN) * 100)}%</span>
+          </div>
+        </div>
+        <div class="poster-scroll-grid">
+          <div class="stamp-grid poster-grid">
+            ${dayTasks.map((t) => `<div><div class="stamp ${doneSet.has(t.id) ? "" : "ghost"}"><img src="${A.stamp[t.cat]}" alt="" /></div><div class="stamp-cap">${t.title}</div></div>`).join("")}
+          </div>
+        </div>
+        <div class="poster-foot">已收下 ${doneN} / ${dayTasks.length} 枚健康章</div>`;
       return `
       <div class="scrim bottom" data-act="close">
         <div class="sheet ta-c" onclick="event.stopPropagation()">
@@ -21957,20 +22021,7 @@
             </div>
             <div class="poster-title">${d.getMonth() + 1}月${d.getDate()}日集章</div>
             ${rxPosterLine(sel)}
-            ${allDone ? `<div class="poster-bloom-hero"><img src="${A.stamp.bloom}" width="78" height="78" alt="" /></div>` : `
-            <div class="poster-ring">
-              <div class="stamp-ring ${allDone ? "done" : ""}" style="transform:scale(1.4)">
-                <svg viewBox="0 0 36 36">
-                  <circle class="bg" cx="18" cy="18" r="15"/>
-                  <circle class="fg" cx="18" cy="18" r="15" style="stroke-dasharray:94.2;stroke-dashoffset:${(94.2 * (1 - doneN / dayN)).toFixed(1)}"/>
-                </svg>
-                <span>${Math.round((doneN / dayN) * 100)}%</span>
-              </div>
-            </div>`}
-            <div class="stamp-grid poster-grid">
-              ${Object.keys(CAT).map((c) => `<div class="stamp ${doneSet.has(dayTasks.find((t) => t.cat === c)?.id) ? "" : "ghost"}"><img src="${A.stamp[c]}" alt="" /></div>`).join("")}
-            </div>
-            <div class="poster-foot">已收下 ${doneN} / ${dayTasks.length} 枚健康章</div>
+            ${bodyHTML}
             <div class="poster-foot-brand"><span></span><i>循光而行 · 一天一节律</i><span></span></div>
           </div>
           <div class="flex center gap16">
