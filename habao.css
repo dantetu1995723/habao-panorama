@@ -3306,6 +3306,11 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   padding: 16px 22px;
   box-shadow: 0 4px 8px rgba(16,84,224,.18);
 }
+.dock-cap.primary:disabled {
+  opacity: .35;
+  pointer-events: none;
+  box-shadow: none;
+}
 
 /* 集章 / 散步 / 指标 / 报告分享海报：统一极光蓝白渐变 + 哈宝品牌页眉 + 底部落款 */
 .poster-full {

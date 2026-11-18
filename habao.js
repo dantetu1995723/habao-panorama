@@ -1688,6 +1688,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.425",
+      date: "2026-11-18",
+      time: "10:24",
+      title: "「今日集章」无计划态禁用分享，并新增测试态切换栏（正常 / 进行中 / 全达标 / 无计划）",
+      screens: [
+        { id: "stamps", label: "今日集章" },
+      ],
+      items: [
+        "「今日集章」当当日无计划（总计划数为 0）时，底部「一键分享」按钮置灰禁用且不可点击。",
+        "「今日集章」顶部新增「测试态」切换胶囊栏（正常 / 进行中 / 全达标 / 无计划），方便一键预览部分集章、全达标盛开徽章与无计划空态（禁用分享）三种表现。",
+      ],
+    },
+    {
       ver: "V10.424",
       date: "2026-11-18",
       time: "10:12",
@@ -2620,6 +2633,7 @@
     frames: [{ id: "home", how: "root" }],
     enrolled: true,
     vitalsTestMode: "normal",
+    stampTestMode: "normal",
     loggedIn: true,
     privacyAccepted: true,
     loginTermsChecked: true,
@@ -8877,6 +8891,7 @@
       calPrev() { S.calOffset -= 1; render(); },
       calNext() { S.calOffset += 1; render(); },
       setVitalsTestMode() { S.vitalsTestMode = el.dataset.mode || "normal"; render(); },
+      setStampTestMode() { S.stampTestMode = el.dataset.mode || "normal"; render(); },
       stampPrev() { S.stampCalOffset -= 1; render(); },
       stampNext() { S.stampCalOffset += 1; render(); },
       // 集章日历选日：回写选中日并关弹窗（真机 StampCalendarPopup）
@@ -13064,7 +13079,11 @@
         S.messages.push({ who: "ai", t: "已记下这次通话。你可以继续打字补充，我再一起看。" });
         render();
       },
-      shareStamp() { openOverlay("share"); },
+      shareStamp() {
+        const st = stampViewState(S.stampSelYMD || toYMD(demoDate()));
+        if (!st.canShare) return;
+        openOverlay("share");
+      },
       openCal() { openOverlay("stampCal"); },
       opDel() {
         const delId = el.dataset.id;
@@ -15663,13 +15682,15 @@
       const sel = S.stampSelYMD || todayYMD;
       const isToday = sel === todayYMD;
       const selDate = parseYMD(sel);
-      // 今日取真实打卡态；过去日按 Demo 采样（与日历格同源），只读
-      const doneSet = stampDoneSet(sel);
-      const doneN = doneSet.size;
-      const dayTasks = liveTasks(sel);
-      const dayN = Math.max(1, dayTasks.length);
-      const pct = Math.round((doneN / dayN) * 100);
-      const empty = doneSet.size === 0;
+      const mode = S.stampTestMode || "normal";
+      const st = stampViewState(sel);
+      const { dayTasks, doneSet, doneN, pct, empty, allDone, canShare } = st;
+      const stampModes = [
+        ["normal", "正常"],
+        ["progress", "进行中"],
+        ["done", "全达标"],
+        ["empty", "无计划"],
+      ];
       // 本月汇总：整月从入组首日累加到今天（与选中哪天无关，真机 emptyMonthStrip 同口径）
       let mDone = 0; let mTotal = 0;
       for (let d = 1; d <= parseYMD(todayYMD).getDate(); d++) {
@@ -15687,17 +15708,22 @@
         <div class="welcome stamps-bar">
           <div class="titles stamps-title">
             <h2>${isToday ? "今日集章进度" : `${selDate.getMonth() + 1}月${selDate.getDate()}日集章进度`}</h2>
-            <div class="stamp-ring ${doneN === dayTasks.length && dayTasks.length ? "done" : ""}">
+            ${dayTasks.length ? `<div class="stamp-ring ${allDone ? "done" : ""}">
               <svg viewBox="0 0 36 36">
                 <circle class="bg" cx="18" cy="18" r="15"/>
                 <circle class="fg" cx="18" cy="18" r="15" style="stroke-dasharray:94.2;stroke-dashoffset:${(94.2 * (1 - pct / 100)).toFixed(1)}"/>
               </svg>
               <span>${pct}%</span>
-            </div>
+            </div>` : ""}
           </div>
           <button class="circle-btn lg" data-act="openCal" type="button">${I.cal}</button>
         </div>
-        <div class="scroll px24 grow" style="padding-top:16px">
+        <div class="px24 flex gap6 wrap" style="align-items:center;margin-top:8px">
+          <span class="s12 fb t-sec">测试态</span>
+          ${stampModes.map(([m, label]) => `
+            <button class="cap ${mode === m ? "on" : ""}" style="min-height:26px;padding:3px 10px;font-size:12px" data-act="setStampTestMode" data-mode="${m}" type="button">${label}</button>`).join("")}
+        </div>
+        <div class="scroll px24 grow" style="padding-top:14px">
           ${rxStampSectionHTML(sel)}
           ${empty ? `<div class="stamp-empty" style="padding-top:36px">
             <img src="${A.stamp.bloom}" width="132" height="132" style="opacity:.85" alt="" />
@@ -15717,7 +15743,7 @@
                 <div><div class="stamp ${doneSet.has(t.id) ? "" : "ghost"}"><img src="${A.stamp[t.cat]}" alt="" /></div><div class="stamp-cap">${t.title}</div></div>`).join("")}</div>
             </div>`;
           }).join("")}
-          ${doneN === dayTasks.length && dayTasks.length ? `<div class="ta-c" style="padding:12px 0 18px">
+          ${allDone ? `<div class="ta-c" style="padding:12px 0 18px">
             <img src="${A.stamp.bloom}" width="104" height="104" alt="" />
             <div class="s18 fb t-green mt6">${isToday ? "今日全达标" : "当日全达标"}</div>
             <div class="s13 t-sec mt2">每一枚章都已收下</div>
@@ -15725,7 +15751,7 @@
         </div>
         <div class="dock-pair" style="padding-bottom:28px">
           <button class="dock-cap ghost" data-act="goHome" type="button">${I.chevL}返回</button>
-          <button class="dock-cap primary" data-act="shareStamp" type="button">一键分享 ${I.share}</button>
+          <button class="dock-cap primary" ${canShare ? 'data-act="shareStamp"' : "disabled"} type="button">一键分享 ${I.share}</button>
         </div>
       </div>`;
     },
@@ -21034,6 +21060,34 @@
   /// 集章选中日的完成集合：今日取真实打卡态，过去日按 Demo 采样（日历格与页面共用，保证两处一致）
   /// Demo：入组首日之前没有计划，用来走空态
   const STAMP_FIRST_YMD = "2026-09-07";
+  function stampViewState(sel) {
+    const mode = S.stampTestMode || "normal";
+    const baseTasks = liveTasks(sel);
+    const sampleTasks = baseTasks.length ? baseTasks : SEED.slice(0, 9);
+    if (mode === "empty") {
+      return { dayTasks: [], doneSet: new Set(), doneN: 0, pct: 0, empty: true, allDone: false, canShare: false };
+    }
+    if (mode === "done") {
+      const doneSet = new Set(sampleTasks.map((t) => t.id));
+      return { dayTasks: sampleTasks, doneSet, doneN: sampleTasks.length, pct: 100, empty: false, allDone: sampleTasks.length > 0, canShare: sampleTasks.length > 0 };
+    }
+    if (mode === "progress") {
+      const target = sampleTasks.length > 1
+        ? Math.max(1, Math.min(sampleTasks.length - 1, Math.round(sampleTasks.length * 0.6)))
+        : 1;
+      const doneSet = new Set(sampleTasks.slice(0, target).map((t) => t.id));
+      const pct = sampleTasks.length ? Math.round((doneSet.size / sampleTasks.length) * 100) : 0;
+      return { dayTasks: sampleTasks, doneSet, doneN: doneSet.size, pct, empty: false, allDone: false, canShare: sampleTasks.length > 0 };
+    }
+    const doneSet = stampDoneSet(sel);
+    const doneN = doneSet.size;
+    const dayN = Math.max(1, baseTasks.length);
+    const pct = baseTasks.length ? Math.round((doneN / dayN) * 100) : 0;
+    const empty = baseTasks.length === 0;
+    const allDone = baseTasks.length > 0 && doneN === baseTasks.length;
+    return { dayTasks: baseTasks, doneSet, doneN, pct, empty, allDone, canShare: !empty };
+  }
+
   function stampDoneSet(ymd) {
     if (ymd < STAMP_FIRST_YMD) return new Set();
     if (ymd === toYMD(demoDate())) {
@@ -22076,12 +22130,8 @@
     share: () => {
       const sel = S.stampSelYMD || toYMD(demoDate());
       const d = parseYMD(sel);
-      const doneSet = stampDoneSet(sel);
-      const doneN = doneSet.size;
-      const dayTasks = liveTasks(sel);
+      const { dayTasks, doneSet, doneN, allDone, empty } = stampViewState(sel);
       const dayN = Math.max(1, dayTasks.length);
-      const allDone = dayTasks.length > 0 && doneN === dayTasks.length;
-      const empty = dayTasks.length === 0;
       const bodyHTML = empty ? `
         <div class="ta-c" style="padding:16px 0">
           <img src="${A.stamp.bloom}" width="116" height="116" style="opacity:.85" alt="" />
