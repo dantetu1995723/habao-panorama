@@ -1688,6 +1688,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.426",
+      date: "2026-11-18",
+      time: "10:28",
+      title: "「今日集章」无计划空态移除「本月已集」进度条",
+      screens: [
+        { id: "stamps", label: "今日集章" },
+      ],
+      items: [
+        "移除「今日集章」无计划空态下方的「本月已集 X/Y · Z%」提示条，仅保留居中哈宝大头像与「今天还没有计划」（或「这一天还没有计划」）。",
+      ],
+    },
+    {
       ver: "V10.425",
       date: "2026-11-18",
       time: "10:24",
@@ -15691,14 +15703,6 @@
         ["done", "全达标"],
         ["empty", "无计划"],
       ];
-      // 本月汇总：整月从入组首日累加到今天（与选中哪天无关，真机 emptyMonthStrip 同口径）
-      let mDone = 0; let mTotal = 0;
-      for (let d = 1; d <= parseYMD(todayYMD).getDate(); d++) {
-        const ymd = `2026-09-${String(d).padStart(2, "0")}`;
-        if (ymd < STAMP_FIRST_YMD) continue;
-        mDone += stampDoneSet(ymd).size;
-        mTotal += liveTasks(ymd).length;
-      }
       const byP = PERIODS.map((p) => ({
         ...p,
         items: dayTasks.filter((t) => (t.h >= p.from && t.h < p.to) || (p.title === "夜间" && (t.h >= 21 || t.h < 6))),
@@ -15728,7 +15732,6 @@
           ${empty ? `<div class="stamp-empty" style="padding-top:36px">
             <img src="${A.stamp.bloom}" width="132" height="132" style="opacity:.85" alt="" />
             <div class="s20 fb t mt12">${isToday ? "今天还没有计划" : "这一天还没有计划"}</div>
-            ${mTotal ? `<div class="month-strip">本月已集 <b>${mDone}</b>/${mTotal} · ${Math.round((mDone / mTotal) * 100)}%</div>` : ""}
           </div>` : ""}
           ${empty ? "" : byP.filter((p) => p.items.length).map((p) => {
             const d = p.items.filter((t) => doneSet.has(t.id)).length;
