@@ -1688,6 +1688,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.427",
+      date: "2026-11-18",
+      time: "10:33",
+      title: "「今日集章」分享海报统一为单纯的已完成集章图标罗列",
+      screens: [
+        { id: "stamps", label: "今日集章" },
+      ],
+      items: [
+        "简化「今日集章」分享海报为单一状态：不再区分全达标徽章与进度环，也不展示未完成的幽灵章，单纯三列罗列当日已完成的集章图标与标题。",
+      ],
+    },
+    {
       ver: "V10.426",
       date: "2026-11-18",
       time: "10:28",
@@ -22133,33 +22145,18 @@
     share: () => {
       const sel = S.stampSelYMD || toYMD(demoDate());
       const d = parseYMD(sel);
-      const { dayTasks, doneSet, doneN, allDone, empty } = stampViewState(sel);
-      const dayN = Math.max(1, dayTasks.length);
-      const bodyHTML = empty ? `
-        <div class="ta-c" style="padding:16px 0">
-          <img src="${A.stamp.bloom}" width="116" height="116" style="opacity:.85" alt="" />
-          <div class="s16 fb t mt10">这一天还没有计划</div>
-        </div>` : allDone ? `
-        <div class="ta-c" style="padding:14px 0">
-          <img src="${A.stamp.bloom}" width="128" height="128" alt="" />
-          <div class="s18 fb t-green mt8">今日全达标</div>
-          <div class="poster-foot mt4">已收下 ${doneN} / ${dayTasks.length} 枚健康章</div>
+      const { dayTasks, doneSet } = stampViewState(sel);
+      const completedTasks = dayTasks.filter((t) => doneSet.has(t.id));
+      const bodyHTML = completedTasks.length === 0 ? `
+        <div class="ta-c" style="padding:20px 0">
+          <div class="poster-foot">暂未完成打卡</div>
         </div>` : `
-        <div class="poster-ring">
-          <div class="stamp-ring" style="transform:scale(1.3)">
-            <svg viewBox="0 0 36 36">
-              <circle class="bg" cx="18" cy="18" r="15"/>
-              <circle class="fg" cx="18" cy="18" r="15" style="stroke-dasharray:94.2;stroke-dashoffset:${(94.2 * (1 - doneN / dayN)).toFixed(1)}"/>
-            </svg>
-            <span>${Math.round((doneN / dayN) * 100)}%</span>
-          </div>
-        </div>
-        <div class="poster-scroll-grid">
+        <div class="poster-scroll-grid" style="margin-top:8px">
           <div class="stamp-grid poster-grid">
-            ${dayTasks.map((t) => `<div><div class="stamp ${doneSet.has(t.id) ? "" : "ghost"}"><img src="${A.stamp[t.cat]}" alt="" /></div><div class="stamp-cap">${t.title}</div></div>`).join("")}
+            ${completedTasks.map((t) => `<div><div class="stamp"><img src="${A.stamp[t.cat]}" alt="" /></div><div class="stamp-cap">${t.title}</div></div>`).join("")}
           </div>
         </div>
-        <div class="poster-foot">已收下 ${doneN} / ${dayTasks.length} 枚健康章</div>`;
+        <div class="poster-foot">已收下 ${completedTasks.length} 枚健康章</div>`;
       return `
       <div class="scrim bottom" data-act="close">
         <div class="sheet ta-c" onclick="event.stopPropagation()">
