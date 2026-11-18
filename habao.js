@@ -1722,6 +1722,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.432",
+      date: "2026-11-18",
+      time: "14:12",
+      title: "首页导航栏关怀语句统一「今日无计划」文案，并补齐交互全景当日无计划判断",
+      screens: [
+        { id: "home", label: "首页" },
+      ],
+      items: [
+        "首页导航栏暖心副标题在未入组或已入组但当日无计划时，统一展示「今日暂无计划，好好照顾自己」。",
+        "补齐交互全景当日任务数为 0 时的判断，避免已入组但今日无计划时仍回落为分时段问候。",
+      ],
+    },
+    {
       ver: "V10.431",
       date: "2026-11-18",
       time: "11:49",
@@ -3457,7 +3470,7 @@
     const tasks = liveTasks();
     const allDone = tasks.length > 0 && tasks.every((t) => S.completed[t.id]);
     if (allDone) return "今天都照顾好了，真棒";
-    if (!S.enrolled) return "慢慢来，从创建计划开始";
+    if (!S.enrolled || tasks.length === 0) return "今日暂无计划，好好照顾自己";
     let b = blockId;
     if (b == null) {
       if (S.scheme === 3) {
