@@ -1688,6 +1688,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.429",
+      date: "2026-11-18",
+      time: "11:18",
+      title: "「测血压打卡」改为纯记录模式，移除目标标签与底部评估提示条",
+      screens: [
+        { id: "checkin-vitals", label: "测血压打卡" },
+      ],
+      items: [
+        "移除血压卡片右上角「康复目标 <140/90」与心率卡片右上角「目标 55–60」展示，保留硬件已同步标识。",
+        "移除面板底部实时评估提示条，使测血压打卡界面回归纯数值记录。",
+      ],
+    },
+    {
       ver: "V10.428",
       date: "2026-11-18",
       time: "10:51",
@@ -21306,10 +21319,8 @@
           : "当前为手动修改值，点右侧可重新恢复血压计读数";
       const hwSyncBadge = isSynced
         ? `<span style="font-size:12px;font-weight:700;color:#1AA64A;background:rgba(26,166,74,.12);padding:3px 8px;border-radius:99px">📡 硬件已同步</span>`
-        : `<div class="s12 t-sec">康复目标 ${VITAL.bpTargetText(VIT_AGE)}</div>`;
-      const hrSyncBadge = isSynced
-        ? `<span style="font-size:12px;font-weight:700;color:#1AA64A;background:rgba(26,166,74,.12);padding:3px 8px;border-radius:99px">📡 硬件已同步</span>`
-        : `<div class="s12 t-sec">目标 55–60</div>`;
+        : "";
+      const hrSyncBadge = hwSyncBadge;
       return `
       <div class="scrim bottom" data-act="close">
         <div class="sheet" style="max-height:90%" onclick="event.stopPropagation()">
@@ -21350,11 +21361,6 @@
               ${vitCol("静息心率", vHr, "hr", "#F05A6E", "bpm", [VITAL.hrBand[0], VITAL.hrBand[1]], [40, 180], VITAL.hrStatus(vHr), true)}
             </div>
           </div>
-          <div class="hist-bar mt12 s13" style="${(() => {
-            const s = vitalsStatus();
-            if (s.level === "none") return "color:var(--secondary)";
-            return VITAL_RANK[s.level] === 0 ? "" : `background:${VITAL_COLOR[s.level]}1a;color:${VITAL_COLOR[s.level]}`;
-          })()}">${vitalsStatus().level === "none" ? I.scope : I.check}${vitalsStatus().text}</div>
           <button class="cta mt16 ${isSyncing ? "off" : ""}" data-act="vitalsSave" type="button">${isSyncing ? "正在同步血压计…" : "保存并打卡"}</button>
         </div>
       </div>`;
