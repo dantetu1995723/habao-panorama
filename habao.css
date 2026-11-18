@@ -4728,6 +4728,17 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   background: #FFFFFF;
   box-shadow: 0 0 0 3px rgba(16, 84, 224, 0.1);
 }
+.parsed-sub-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--secondary);
+  margin-bottom: 8px;
+}
+.parsed-surgery-time-wrap {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(16, 84, 224, 0.1);
+}
 .parsed-ymd-select:focus {
   border-color: var(--blue);
   background: #fff;
