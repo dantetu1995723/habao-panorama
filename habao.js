@@ -1688,6 +1688,20 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.424",
+      date: "2026-11-18",
+      time: "10:12",
+      title: "「确认计划」底栏改为「重新拍照解析 + 确认」双按钮，右上角改为「恢复」",
+      screens: [
+        { id: "confirm-plan", label: "确认计划" },
+      ],
+      items: [
+        "将「确认计划」右上角原「确认」按钮下移至底栏，与「重新拍照解析」并排展示为左「重新拍照解析」（白底蓝框次钮）+ 右「确认」（主蓝钮）双按钮。",
+        "导航栏右上角统一改为常驻「恢复」按钮，交互逻辑与「当前计划」完全一致：未删除卡片时置灰禁用，任意删除卡片后点亮可用，点击一键还原初始卡片列表。",
+        "删除任意卡片后，对应时段或「复查计划」标题行右侧同步出现「＋ 事项名称 时刻」虚线恢复胶囊，支持逐条就地恢复。",
+      ],
+    },
+    {
       ver: "V10.423",
       date: "2026-11-18",
       time: "10:05",
@@ -6042,7 +6056,7 @@
   // kind = "exercise" 时只整批替换运动（真机 syncExerciseTasks），不碰基础日程
   // V10.312：非运动 = 康复基础日程，按 mergeBaselineInto 整套替换上一版基础日程，手建计划不动
   function commitConfirmDrafts(kind) {
-    const drafts = S.confirmDrafts || [];
+    const drafts = (S.confirmDrafts || []).filter((x) => x.on !== false);
     if (!drafts.length) return 0;
     const isExercise = kind === "exercise";
     if (isExercise) {
@@ -8461,7 +8475,7 @@
         }
         const wasEnrolled = S.enrolled;
         // 操作记录：资料 + 各类计划合成一条（真机 recordPlanConfirmed）
-        const written = (S.confirmDrafts || []).map((d) => ({ title: d.title, cat: d.cat }));
+        const written = (S.confirmDrafts || []).filter((d) => d.on !== false).map((d) => ({ title: d.title, cat: d.cat }));
         // V10.312：被整套替换的是上一版基础日程（手建计划不动），按类统计旧条数
         const replacing = {};
         if (wasEnrolled) {
@@ -8594,7 +8608,33 @@
       },
       delConfirmDraft() {
         const i = +el.dataset.i;
-        if (!Number.isNaN(i) && S.confirmDrafts) S.confirmDrafts.splice(i, 1);
+        if (!Number.isNaN(i) && S.confirmDrafts && S.confirmDrafts[i]) {
+          if (S.screen === "confirm-plan") {
+            S.confirmDrafts[i].on = false;
+          } else {
+            S.confirmDrafts.splice(i, 1);
+          }
+        }
+        render();
+      },
+      restoreConfirmDraft() {
+        const i = +el.dataset.i;
+        if (!Number.isNaN(i) && S.confirmDrafts && S.confirmDrafts[i]) {
+          S.confirmDrafts[i].on = true;
+        }
+        render();
+      },
+      resetConfirmDrafts() {
+        if (Array.isArray(S.confirmDraftsInitial) && S.confirmDraftsInitial.length) {
+          S.confirmDrafts = S.confirmDraftsInitial.map((x) => ({
+            ...x,
+            weekdays: x.weekdays ? x.weekdays.slice() : undefined,
+            monthDays: x.monthDays ? x.monthDays.slice() : undefined,
+            on: true,
+          }));
+        } else if (Array.isArray(S.confirmDrafts)) {
+          S.confirmDrafts.forEach((x) => { x.on = true; });
+        }
         render();
       },
       editRestCard() {
@@ -8783,7 +8823,11 @@
             S.confirmDrafts = null;
           }
         } else if (S.confirmDrafts && i != null && S.confirmDrafts[i]) {
-          S.confirmDrafts.splice(i, 1);
+          if (ret === "confirm-plan") {
+            S.confirmDrafts[i].on = false;
+          } else {
+            S.confirmDrafts.splice(i, 1);
+          }
         }
         dismissCover();
       },
@@ -14588,61 +14632,109 @@
       // V10.316：去除顶部统计卡，卡片右上角保留「新建 / 已调整 / 保留」标识 Tag（首次排定统一标「新建」，再次排定按存量精准区分）
       const dupList = baselineSourceTasks();
       const hasBaseline = dupList && activeBaselineTasks(dupList).length > 0;
-      const diff = hasBaseline ? computeBaselineDiffJS(S.confirmDrafts, dupList) : null;
+      const activeDrafts = S.confirmDrafts.filter((x) => x.on !== false);
+      const diff = hasBaseline ? computeBaselineDiffJS(activeDrafts, dupList) : null;
       const dupHint = (x) => {
         const h = baselineManualDupHint(x, dupList);
         return h ? `<div class="confirm-dup-hint">${esc(h)}</div>` : "";
       };
       const itemBadge = (i) => {
         if (!diff) return "added";
-        return diff.statusByIdx[i] || "added";
+        const activeIdx = activeDrafts.indexOf(S.confirmDrafts[i]);
+        return (activeIdx >= 0 ? diff.statusByIdx[activeIdx] : null) || "added";
       };
-      const indexed = S.confirmDrafts.map((x, i) => ({ ...x, i, h: parseHour(x.time), m: parseMinute(x.time) }));
-      const daily = indexed.filter((x) => x.cat !== "appointment");
-      const groups = groupByPeriod(daily, (x) => x.h);
-      const appts = indexed
-        .filter((x) => x.cat === "appointment")
-        .sort((a, b) => (a.h !== b.h ? a.h - b.h : a.m !== b.m ? a.m - b.m : a.i - b.i));
+      const indexed = S.confirmDrafts.map((x, i) => ({
+        ...x, i, h: parseHour(x.time), m: parseMinute(x.time), on: x.on !== false,
+      }));
+      const canRestore = indexed.some((x) => !x.on);
+      const rightBtn = `<button class="nav-text ${canRestore ? "blue" : ""} nav-hit" ${canRestore ? 'data-act="resetConfirmDrafts"' : "disabled"} type="button">恢复</button>`;
+      const sortConfirmEntry = (a, b) => {
+        if (a.h !== b.h) return a.h - b.h;
+        if (a.m !== b.m) return a.m - b.m;
+        const isWakeA = a.title === "起床" || (a.title && a.title.indexOf("起床") >= 0 && a.title.indexOf("血压") < 0);
+        const isWakeB = b.title === "起床" || (b.title && b.title.indexOf("起床") >= 0 && b.title.indexOf("血压") < 0);
+        if (isWakeA !== isWakeB) return isWakeA ? -1 : 1;
+        return a.i - b.i;
+      };
+      const dailyAll = indexed.filter((x) => x.cat !== "appointment");
+      const periodSections = PERIODS.map((p) => {
+        const matchPeriod = (h) => p.title === "夜间" ? (h >= 21 || h < 6) : (h >= p.from && h < p.to);
+        const activeItems = dailyAll.filter((x) => x.on && matchPeriod(x.h)).sort(sortConfirmEntry);
+        const inactiveItems = dailyAll.filter((x) => !x.on && matchPeriod(x.h)).sort(sortConfirmEntry);
+        return { ...p, activeItems, inactiveItems, total: activeItems.length + inactiveItems.length };
+      }).filter((g) => g.total > 0);
+      const appts = indexed.filter((x) => x.cat === "appointment" && x.on).sort(sortConfirmEntry);
+      const apptInactive = indexed.filter((x) => x.cat === "appointment" && !x.on).sort(sortConfirmEntry);
       return `
       <div class="page">
-        ${navBar(`<button class="nav-text nav-hit" data-act="later" type="button">稍后</button>`, "确认计划",
-          `<button class="nav-text blue nav-hit" data-act="confirmPlan" type="button">确认</button>`)}
+        ${navBar(`<button class="nav-text nav-hit" data-act="later" type="button">稍后</button>`, "确认计划", rightBtn)}
         <div class="scroll px20" style="padding-top:12px;padding-bottom:120px">
-          ${groups.map((g) => `
+          ${periodSections.map((g) => `
             <div class="confirm-period">
-              ${sectionHead(I[g.icon], g.title, g.items.length)}
-              <div class="col gap10">${g.items.map((x) => {
-                const rawNote = x.cat === "medication"
-                  ? (x.note != null ? x.note : confirmMedNote(x.title))
-                  : (x.note || "");
-                return actionCard({
-                  cat: x.cat, title: x.title, time: taskCardTimeLabel(x, x.time), dateLabel: taskDateFieldLabel(x), date: taskDateRangeLabel(x), draft: true, routine: !!x.routineSkeleton, cycle: x.cycle !== false, idx: x.i,
-                  dose: x.cat === "medication" ? (x.dose || medDose(x.title, x.note)) : "",
-                  note: rawNote || "可编辑备注",
-                  noteEmpty: !rawNote,
-                  statusBadge: itemBadge(x.i),
-                  origNote: null,
-                }) + dupHint(x);
-              }).join("")}</div>
+              <div class="confirm-period-head">
+                <div class="confirm-period-title">
+                  ${I[g.icon] || ""}${g.title}${g.activeItems.length ? `<span class="count-pill">${g.activeItems.length}</span>` : ""}
+                </div>
+                ${g.inactiveItems.length ? `
+                  <div class="confirm-period-add-chips">
+                    ${g.inactiveItems.map((x) => `
+                      <button class="routine-head-chip" data-act="restoreConfirmDraft" data-i="${x.i}" type="button">
+                        ${I.plus}
+                        <span class="r-name">${esc(x.title)}</span>
+                        <span class="r-time">${esc(x.time)}</span>
+                        ${x.routineSkeleton ? `<span class="r-tag">基础</span>` : ""}
+                      </button>`).join("")}
+                  </div>` : ""}
+              </div>
+              ${g.activeItems.length ? `
+                <div class="col gap10">${g.activeItems.map((x) => {
+                  const rawNote = x.cat === "medication"
+                    ? (x.note != null ? x.note : confirmMedNote(x.title))
+                    : (x.note || "");
+                  return actionCard({
+                    cat: x.cat, title: x.title, time: taskCardTimeLabel(x, x.time), dateLabel: taskDateFieldLabel(x), date: taskDateRangeLabel(x), draft: true, routine: !!x.routineSkeleton, cycle: x.cycle !== false, idx: x.i,
+                    dose: x.cat === "medication" ? (x.dose || medDose(x.title, x.note)) : "",
+                    note: rawNote || "可编辑备注",
+                    noteEmpty: !rawNote,
+                    statusBadge: itemBadge(x.i),
+                    origNote: null,
+                  }) + dupHint(x);
+                }).join("")}</div>` : ""}
             </div>`).join("")}
-          <div class="confirm-period">
-            ${sectionHead(I.cal, "复查计划", appts.length, true)}
-            <div class="col gap10">${appts.map((a) => {
-              const rawNote = a.note || "";
-              const md = (a.monthDays && a.monthDays.length) ? a.monthDays : [17];
-              const apptTask = { ...a, rule: a.rule || "monthly", monthDays: md };
-              return actionCard({
-                cat: "appointment", title: a.title, time: taskCardTimeLabel(apptTask, a.time), dateLabel: taskDateFieldLabel(apptTask), date: taskDateRangeLabel(apptTask), appt: true, draft: true, cycle: a.cycle !== false, idx: a.i,
-                note: rawNote || "可编辑备注",
-                noteEmpty: !rawNote,
-                statusBadge: itemBadge(a.i),
-                origNote: null,
-              }) + dupHint(a);
-            }).join("")}</div>
-          </div>
+          ${(appts.length || apptInactive.length) ? `
+            <div class="confirm-period">
+              <div class="confirm-period-head">
+                <div class="confirm-period-title red">
+                  ${I.cal}复查计划${appts.length ? `<span class="count-pill red">${appts.length}</span>` : ""}
+                </div>
+                ${apptInactive.length ? `
+                  <div class="confirm-period-add-chips">
+                    ${apptInactive.map((a) => `
+                      <button class="routine-head-chip red" data-act="restoreConfirmDraft" data-i="${a.i}" type="button">
+                        ${I.plus}
+                        <span class="r-name">${esc(a.title)}</span>
+                        <span class="r-time">${esc(a.time)}</span>
+                      </button>`).join("")}
+                  </div>` : ""}
+              </div>
+              ${appts.length ? `
+                <div class="col gap10">${appts.map((a) => {
+                  const rawNote = a.note || "";
+                  const md = (a.monthDays && a.monthDays.length) ? a.monthDays : [17];
+                  const apptTask = { ...a, rule: a.rule || "monthly", monthDays: md };
+                  return actionCard({
+                    cat: "appointment", title: a.title, time: taskCardTimeLabel(apptTask, a.time), dateLabel: taskDateFieldLabel(apptTask), date: taskDateRangeLabel(apptTask), appt: true, draft: true, cycle: a.cycle !== false, idx: a.i,
+                    note: rawNote || "可编辑备注",
+                    noteEmpty: !rawNote,
+                    statusBadge: itemBadge(a.i),
+                    origNote: null,
+                  }) + dupHint(a);
+                }).join("")}</div>` : ""}
+            </div>` : ""}
         </div>
-        <div class="px20 col gap10" style="padding-bottom:28px">
-          <button class="cta h52" data-act="reparseCase" type="button">${I.cam}重新拍照解析</button>
+        <div class="px20 flex gap12 confirm-bottom-row" style="padding-bottom:28px">
+          <button class="cta-line h52" data-act="reparseCase" type="button">${I.cam}重新拍照解析</button>
+          <button class="cta h52" data-act="confirmPlan" type="button">确认</button>
         </div>
       </div>`;
     },
@@ -16995,11 +17087,16 @@
         dose: m.dose || medDose(m.name),
         srcTitle: m.src,
         note: confirmMedNote(m.name),
-        cycle: true, rule: "daily", muteFirst: false,
+        cycle: true, rule: "daily", muteFirst: false, on: true,
       })),
-      ...rest,
-      ...appts,
+      ...rest.map((x) => ({ ...x, on: true })),
+      ...appts.map((x) => ({ ...x, on: true })),
     ];
+    S.confirmDraftsInitial = S.confirmDrafts.map((x) => ({
+      ...x,
+      weekdays: x.weekdays ? x.weekdays.slice() : undefined,
+      monthDays: x.monthDays ? x.monthDays.slice() : undefined,
+    }));
   }
 
   function parsedBloodPressureRows() {
