@@ -1722,6 +1722,20 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.435",
+      date: "2026-11-18",
+      time: "16:43",
+      title: "「今日血压」仅在查看计划中展示，编辑、更新与新建计划不再展示",
+      screens: [
+        { id: "task_view", label: "查看计划" },
+        { id: "task_edit", label: "更新计划" },
+        { id: "task_add", label: "添加计划" },
+      ],
+      items: [
+        "根据产品负责人指示「这块血压展示，只要在查看计划展示即可，编辑和更新计划里可以不用展示，用不上」，将测血压类计划的「今日血压」区块收敛为仅在查看计划时展示，编辑计划、更新计划与新建计划均不再展示。",
+      ],
+    },
+    {
       ver: "V10.434",
       date: "2026-11-18",
       time: "16:10",
@@ -20545,8 +20559,8 @@
   }
 
   function editorVitalsBlock(d, mode, done, accent) {
-    if (d.cat !== "monitoring") return "";
-    const canStep = mode === "edit" && done;
+    if (d.cat !== "monitoring" || mode !== "view") return "";
+    const canStep = false;
     const sys = done ? S.sys : null;
     const dia = done ? S.dia : null;
     const hr = done ? S.hr : null;
@@ -20870,12 +20884,12 @@
           ${modHead(I.doc, mode !== "add" && rxOn() && S.rx && S.rx[t.id] ? `事项内容<span class="rx-chip" style="margin-left:8px">医嘱</span>` : "事项内容", routineBadgeHTML)}
           <div class="sec-label" style="margin-top:0">事项名称</div>
           ${editable && !isBaselineRoutineDetail
-            ? `<input class="voice-box w100" name="taskTitle" style="color:${accent.fg};border:0;font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" ? "42px" : "46px"}" placeholder="填写事项名称" value="${String(d.title || "").replace(/"/g, "&quot;")}" />`
-            : `<div class="v02-ro-box" style="background:${accent.muted};color:${accent.fg};font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" ? "42px" : "46px"}">${esc(contentPrimary)}</div>`}
+            ? `<input class="voice-box w100" name="taskTitle" style="color:${accent.fg};border:0;font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" && viewing ? "42px" : "46px"}" placeholder="填写事项名称" value="${String(d.title || "").replace(/"/g, "&quot;")}" />`
+            : `<div class="v02-ro-box" style="background:${accent.muted};color:${accent.fg};font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" && viewing ? "42px" : "46px"}">${esc(contentPrimary)}</div>`}
           <div class="sec-label">补充备注</div>
           ${editable
-            ? `<textarea class="voice-box w100" name="taskNote" style="color:${accent.fg};border:0;resize:none;font-family:inherit;font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" ? "42px" : "46px"}" placeholder="补充说明，例如剂量 / 注意事项">${d.note || ""}</textarea>`
-            : `<div class="v02-ro-box note" style="background:${accent.muted};color:${trimmedNote ? accent.fg : "var(--secondary)"};opacity:${trimmedNote ? 1 : 0.78};font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" ? "42px" : "46px"}">${trimmedNote ? esc(trimmedNote) : "暂无补充备注"}</div>`}
+            ? `<textarea class="voice-box w100" name="taskNote" style="color:${accent.fg};border:0;resize:none;font-family:inherit;font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" && viewing ? "42px" : "46px"}" placeholder="补充说明，例如剂量 / 注意事项">${d.note || ""}</textarea>`
+            : `<div class="v02-ro-box note" style="background:${accent.muted};color:${trimmedNote ? accent.fg : "var(--secondary)"};opacity:${trimmedNote ? 1 : 0.78};font-size:calc(16px * var(--fs));font-weight:600;min-height:${d.cat === "monitoring" && viewing ? "42px" : "46px"}">${trimmedNote ? esc(trimmedNote) : "暂无补充备注"}</div>`}
           ${vitalsHTML}
           <div class="sec-label">事项分类</div>
           ${isBaselineRoutineDetail
