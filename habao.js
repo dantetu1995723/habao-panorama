@@ -721,9 +721,7 @@
         surgeryOptions: ["PCI"],
         surgeryOtherChecked: false,
         surgeryOtherText: "",
-        surgeryYear: null,
-        surgeryMonth: null,
-        surgeryDay: null,
+        surgeryDates: {},
         surgeryYMD: "",
       };
     }
@@ -733,7 +731,28 @@
     if (!Array.isArray(S.parsedResult.surgeryOptions)) {
       S.parsedResult.surgeryOptions = [];
     }
+    if (!S.parsedResult.surgeryDates || typeof S.parsedResult.surgeryDates !== "object") {
+      S.parsedResult.surgeryDates = {};
+    }
     return S.parsedResult;
+  }
+
+  function syncSurgeryDateMap(p, key) {
+    if (!p.surgeryDates || typeof p.surgeryDates !== "object") p.surgeryDates = {};
+    const entry = p.surgeryDates[key] || { year: null, month: null, day: null, ymd: "" };
+    if (entry.month != null && entry.day != null) {
+      const maxDay = new Date(entry.year != null ? entry.year : 2026, entry.month, 0).getDate();
+      entry.day = Math.min(entry.day, maxDay);
+    }
+    if (entry.year != null && entry.month != null && entry.day != null) {
+      entry.ymd = `${entry.year}-${String(entry.month).padStart(2, "0")}-${String(entry.day).padStart(2, "0")}`;
+    } else {
+      entry.ymd = "";
+    }
+    p.surgeryDates[key] = entry;
+    const activeKeys = SURGERY_PRESET_OPTIONS.filter((opt) => (p.surgeryOptions || []).includes(opt));
+    if (p.surgeryOtherChecked) activeKeys.push("__other__");
+    p.surgeryYMD = activeKeys.map((k) => (p.surgeryDates[k] && p.surgeryDates[k].ymd) || "").find(Boolean) || "";
   }
 
   function syncParsedYMD(p, isDischarge) {
@@ -963,6 +982,10 @@
     if (event.target instanceof HTMLInputElement && event.target.dataset.parsedSurgeryOther !== undefined) {
       const p = ensureParsedResult(false);
       p.surgeryOtherText = event.target.value;
+      const otherTitleEl = document.querySelector(`[data-other-time-title="1"]`);
+      if (otherTitleEl) {
+        otherTitleEl.textContent = `${(p.surgeryOtherText || "").trim() || "其他手术"} · 手术时间`;
+      }
       const clearBtn = document.querySelector(`.parsed-clear-btn[data-field="surgeryOptions"]`);
       if (clearBtn) {
         const hasSurg = Boolean(
@@ -1003,6 +1026,17 @@
         else if (part === "dischargeMonth") p.dischargeMonth = val;
         else if (part === "dischargeDay") p.dischargeDay = val;
         syncParsedYMD(p, true);
+        render();
+        return;
+      }
+      const sKey = event.target.dataset.surgeryKey;
+      if (sKey) {
+        if (!p.surgeryDates || typeof p.surgeryDates !== "object") p.surgeryDates = {};
+        if (!p.surgeryDates[sKey]) p.surgeryDates[sKey] = { year: null, month: null, day: null, ymd: "" };
+        if (part === "year") p.surgeryDates[sKey].year = val;
+        else if (part === "month") p.surgeryDates[sKey].month = val;
+        else if (part === "day") p.surgeryDates[sKey].day = val;
+        syncSurgeryDateMap(p, sKey);
         render();
         return;
       }
@@ -1687,6 +1721,19 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.431",
+      date: "2026-11-18",
+      time: "11:49",
+      title: "「解析结果」页「手术记录」调整为每个选中手术各配独立手术时间",
+      screens: [
+        { id: "ocr-parsed", label: "解析结果" },
+      ],
+      items: [
+        "在「手术记录（选填）」卡片中，将单一共享手术时间升级为「一个手术对应一个手术时间」：每选中一项手术名称（含「其他」），下方即独立展出一组「{手术名} · 手术时间」年月日三下拉框。",
+        "取消选中某项手术时仅收起该项对应的时间选择器，其余已选手术的日期互不影响。",
+      ],
+    },
     {
       ver: "V10.430",
       date: "2026-11-18",
@@ -14677,30 +14724,54 @@
             <div class="parsed-surgery-other-wrap">
               <input class="parsed-surgery-other-input" type="text" data-parsed-surgery-other="1" placeholder="请输入其他手术名称" value="${esc(p.surgeryOtherText || "")}" />
             </div>` : ""}
-            ${((p.surgeryOptions && p.surgeryOptions.length > 0) || p.surgeryOtherChecked) ? `
-            <div class="parsed-surgery-time-wrap">
-              <div class="parsed-sub-label">手术时间</div>
-              <div class="parsed-ymd-row">
-                <label class="parsed-ymd-col">
-                  <select class="parsed-ymd-select ${selY == null ? "placeholder" : ""}" data-parsed-date="year">
-                    <option value="" ${selY == null ? "selected" : ""}>请选择</option>
-                    ${years.map((y) => `<option value="${y}" ${y === selY ? "selected" : ""}>${y}年</option>`).join("")}
-                  </select>
-                </label>
-                <label class="parsed-ymd-col">
-                  <select class="parsed-ymd-select ${selM == null ? "placeholder" : ""}" data-parsed-date="month">
-                    <option value="" ${selM == null ? "selected" : ""}>请选择</option>
-                    ${months.map((m) => `<option value="${m}" ${m === selM ? "selected" : ""}>${m}月</option>`).join("")}
-                  </select>
-                </label>
-                <label class="parsed-ymd-col">
-                  <select class="parsed-ymd-select ${selD == null ? "placeholder" : ""}" data-parsed-date="day">
-                    <option value="" ${selD == null ? "selected" : ""}>请选择</option>
-                    ${days.map((d) => `<option value="${d}" ${d === selD ? "selected" : ""}>${d}日</option>`).join("")}
-                  </select>
-                </label>
-              </div>
-            </div>` : ""}
+            ${(() => {
+              const activeTimeItems = SURGERY_PRESET_OPTIONS
+                .filter((opt) => (p.surgeryOptions || []).includes(opt))
+                .map((opt) => ({ key: opt, label: opt, isOther: false }));
+              if (p.surgeryOtherChecked) {
+                activeTimeItems.push({
+                  key: "__other__",
+                  label: (p.surgeryOtherText || "").trim() || "其他手术",
+                  isOther: true,
+                });
+              }
+              if (!activeTimeItems.length) return "";
+              return `
+              <div class="parsed-surgery-time-wrap">
+                ${activeTimeItems.map((item) => {
+                  const entry = (p.surgeryDates && p.surgeryDates[item.key]) || { year: null, month: null, day: null };
+                  const eY = entry.year;
+                  const eM = entry.month;
+                  const eD = entry.day;
+                  const eMaxD = eM != null ? new Date(eY != null ? eY : 2026, eM, 0).getDate() : 31;
+                  const eDays = Array.from({ length: eMaxD }, (_, i) => i + 1);
+                  return `
+                  <div class="parsed-surgery-time-item">
+                    <div class="parsed-surgery-time-title" ${item.isOther ? `data-other-time-title="1"` : ""}>${esc(item.label)} · 手术时间</div>
+                    <div class="parsed-ymd-row">
+                      <label class="parsed-ymd-col">
+                        <select class="parsed-ymd-select ${eY == null ? "placeholder" : ""}" data-parsed-date="year" data-surgery-key="${escAttr(item.key)}">
+                          <option value="" ${eY == null ? "selected" : ""}>请选择</option>
+                          ${years.map((y) => `<option value="${y}" ${y === eY ? "selected" : ""}>${y}年</option>`).join("")}
+                        </select>
+                      </label>
+                      <label class="parsed-ymd-col">
+                        <select class="parsed-ymd-select ${eM == null ? "placeholder" : ""}" data-parsed-date="month" data-surgery-key="${escAttr(item.key)}">
+                          <option value="" ${eM == null ? "selected" : ""}>请选择</option>
+                          ${months.map((m) => `<option value="${m}" ${m === eM ? "selected" : ""}>${m}月</option>`).join("")}
+                        </select>
+                      </label>
+                      <label class="parsed-ymd-col">
+                        <select class="parsed-ymd-select ${eD == null ? "placeholder" : ""}" data-parsed-date="day" data-surgery-key="${escAttr(item.key)}">
+                          <option value="" ${eD == null ? "selected" : ""}>请选择</option>
+                          ${eDays.map((d) => `<option value="${d}" ${d === eD ? "selected" : ""}>${d}日</option>`).join("")}
+                        </select>
+                      </label>
+                    </div>
+                  </div>`;
+                }).join("")}
+              </div>`;
+            })()}
           </div>
         </div>
       </div>`;
