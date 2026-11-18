@@ -1688,6 +1688,23 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.422",
+      date: "2026-11-18",
+      time: "09:41",
+      title: "集章贴画全面升级为哈宝形象，并统一优化各分享海报视觉",
+      screens: [
+        { id: "stamps", label: "今日集章" },
+        { id: "walk-records", label: "散步记录" },
+        { id: "vitals", label: "血压监测" },
+        { id: "body-report", label: "身体报告" },
+      ],
+      items: [
+        "将用药、运动、监测、饮食、休息、复诊与全勤盛放 7 枚集章贴画全部替换为统一风格的哈宝形象贴纸。",
+        "统一真机与交互全景 4 类分享海报（集章名信片、散步打卡、血压监测周报、身体报告小结）的极光蓝白渐变底、哈宝品牌页眉与底部落款。",
+        "全勤集章海报新增哈宝盛放光晕徽章，散步与血压监测无记录占位同步融入哈宝运动/监测贴画。",
+      ],
+    },
+    {
       ver: "V10.421",
       date: "2026-11-17",
       time: "17:34",
@@ -20980,11 +20997,15 @@
         <div class="sheet ta-c" onclick="event.stopPropagation()">
           <div class="grab"></div>
           <div class="poster-full">
-            <div class="poster-head"><img src="${A.logo}" width="30" height="30" alt="" /><span>哈宝 · 康复打卡</span></div>
-            <div class="poster-title">${kind === "vitals" ? "血压监测周报" : "身体报告小结"}</div>
-            <div class="col gap10 mt12">
-              ${rows.map(([k, v]) => `<div class="flex between s15" style="padding:10px 14px;background:#F4F7FC;border-radius:12px"><span class="t-sec">${k}</span><span class="fb t">${v}</span></div>`).join("")}
+            <div class="poster-brand">
+              <div class="poster-head"><img src="${A.logo}" width="26" height="26" alt="" /><span>哈宝 · 康复打卡</span></div>
+              <span class="poster-badge">${kind === "vitals" ? "血压监测" : "身体报告"}</span>
             </div>
+            <div class="poster-title">${kind === "vitals" ? "血压监测周报" : "身体报告小结"}</div>
+            <div class="col gap10 mt4" style="width:100%">
+              ${rows.map(([k, v]) => `<div class="flex between s15" style="padding:11px 14px;background:rgba(255,255,255,.88);border:1px solid rgba(16,84,224,.08);border-radius:14px"><span class="t-sec">${k}</span><span class="fb t">${v}</span></div>`).join("")}
+            </div>
+            <div class="poster-foot-brand"><span></span><i>循光而行 · 一天一节律</i><span></span></div>
           </div>
           <div class="flex center gap16">
             ${[["微信", "demoShare", "#07C160"], ["小红书", "demoShare", "#FF2442"], ["保存图片", "savedAlbum", "#1054E0"], ["取消", "close", "#828EA5"]]
@@ -21880,21 +21901,25 @@
       <div class="scrim bottom" data-act="close">
         <div class="sheet ta-c" onclick="event.stopPropagation()">
           <div class="grab"></div>
-          <div class="poster-card">
-            <div class="poster-pin">${I.walk}<span>散步打卡</span></div>
-            <div class="poster-date">${date}</div>
-            <div class="poster-route">
+          <div class="poster-full">
+            <div class="poster-brand">
+              <div class="poster-head"><img src="${A.logo}" width="26" height="26" alt="" /><span>哈宝 · 康复打卡</span></div>
+              <span class="poster-badge">散步打卡</span>
+            </div>
+            <div class="poster-title">${date}</div>
+            <div class="poster-route" style="width:100%;margin-top:4px;background:#fff;box-shadow:0 8px 20px rgba(16,84,224,.08)">
               <svg viewBox="0 0 100 88" preserveAspectRatio="xMidYMid meet">
                 <path d="${r.d}" fill="none" stroke="#1054E0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
                 <circle cx="${r.s[0]}" cy="${r.s[1]}" r="6" fill="#fff"/><circle cx="${r.s[0]}" cy="${r.s[1]}" r="4.5" fill="#1AA64A"/>
                 <circle cx="${r.e[0]}" cy="${r.e[1]}" r="6" fill="#fff"/><circle cx="${r.e[0]}" cy="${r.e[1]}" r="4.5" fill="#F0644A"/>
               </svg>
             </div>
-            <div class="poster-stats">
+            <div class="poster-stats" style="width:100%;margin-top:4px">
               <div><b>${d.km || "0.68"}</b><small>km 距离</small></div>
               <div><b>${d.dur || "12:34"}</b><small>时长</small></div>
               <div><b>${d.steps || "920"}</b><small>步数</small></div>
             </div>
+            <div class="poster-foot-brand"><span></span><i>循光而行 · 一天一节律</i><span></span></div>
           </div>
           <div class="flex center gap16">
             ${[["微信", "demoShare", "#07C160"], ["小红书", "demoShare", "#FF2442"], ["保存图片", "savedAlbum", "#1054E0"], ["取消", "close", "#828EA5"]]
@@ -21926,26 +21951,27 @@
         <div class="sheet ta-c" onclick="event.stopPropagation()">
           <div class="grab"></div>
           <div class="poster-full">
-            <div class="poster-head">
-              <img src="${A.logo}" width="30" height="30" alt="" />
-              <span>哈宝 · 康复打卡</span>
+            <div class="poster-brand">
+              <div class="poster-head"><img src="${A.logo}" width="26" height="26" alt="" /><span>哈宝 · 康复打卡</span></div>
+              <span class="poster-badge">健康名信片</span>
             </div>
             <div class="poster-title">${d.getMonth() + 1}月${d.getDate()}日集章</div>
             ${rxPosterLine(sel)}
+            ${allDone ? `<div class="poster-bloom-hero"><img src="${A.stamp.bloom}" width="78" height="78" alt="" /></div>` : `
             <div class="poster-ring">
-              <div class="stamp-ring ${allDone ? "done" : ""}" style="transform:scale(1.5)">
+              <div class="stamp-ring ${allDone ? "done" : ""}" style="transform:scale(1.4)">
                 <svg viewBox="0 0 36 36">
                   <circle class="bg" cx="18" cy="18" r="15"/>
                   <circle class="fg" cx="18" cy="18" r="15" style="stroke-dasharray:94.2;stroke-dashoffset:${(94.2 * (1 - doneN / dayN)).toFixed(1)}"/>
                 </svg>
                 <span>${Math.round((doneN / dayN) * 100)}%</span>
               </div>
-            </div>
-            ${allDone ? `<img src="${A.stamp.bloom}" width="76" alt="" />` : ""}
+            </div>`}
             <div class="stamp-grid poster-grid">
               ${Object.keys(CAT).map((c) => `<div class="stamp ${doneSet.has(dayTasks.find((t) => t.cat === c)?.id) ? "" : "ghost"}"><img src="${A.stamp[c]}" alt="" /></div>`).join("")}
             </div>
             <div class="poster-foot">已收下 ${doneN} / ${dayTasks.length} 枚健康章</div>
+            <div class="poster-foot-brand"><span></span><i>循光而行 · 一天一节律</i><span></span></div>
           </div>
           <div class="flex center gap16">
             ${[["微信", "demoShare", "#07C160"], ["小红书", "demoShare", "#FF2442"], ["保存图片", "savedAlbum", "#1054E0"], ["取消", "close", "#828EA5"]]
