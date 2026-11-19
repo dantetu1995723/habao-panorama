@@ -1722,6 +1722,20 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.444",
+      date: "2026-11-19",
+      time: "14:26",
+      title: "移除取消打卡后再次打卡的「修改打卡时间」弹窗，默认采用当前打卡时间",
+      screens: [
+        { id: "home", label: "康复时钟首页" },
+        { id: "schedule", label: "健康计划" },
+      ],
+      items: [
+        "根据产品负责人指示「我觉得这个弹窗还是不要了，就是打卡时间是当前打卡时间就行了，不然太复杂」，移除取消后再次打卡时弹出的时间调整弹窗。",
+        "保留测血压与运动取消打卡的简洁确认弹窗（取消后同步删除本次血压/散步记录）；再次打卡直接走原有打卡流程并采用当前打卡时间覆写当日计划槽位。",
+      ],
+    },
+    {
       ver: "V10.443",
       date: "2026-11-19",
       time: "14:11",
@@ -7437,8 +7451,6 @@
 
   function performUndoCheckInForTask(id) {
     const t = SEED.find((x) => x.id === id) || findEditableTask(id);
-    S.cancelledTodayTasks = S.cancelledTodayTasks || {};
-    S.cancelledTodayTasks[id] = true;
     delete S.completed[id];
     if (S.taskVitalsHw) delete S.taskVitalsHw[id];
     unmarkProxy(id);
@@ -7446,44 +7458,6 @@
       if (t.cat === "monitoring" && t.title !== "测心率") removeTaskVitalRecord(id);
       else if (t.cat === "exercise") removeTaskWalkRecord(id);
     }
-  }
-
-  function applyReCheckInTime(id, h, m) {
-    const t = SEED.find((x) => x.id === id) || findEditableTask(id);
-    const hm = `${pad(h)}:${pad(m)}`;
-    if (t) {
-      t.h = h;
-      t.m = m;
-    }
-    S.s4DoneAt = S.s4DoneAt || {};
-    S.s4DoneAt[id] = hm;
-    const v = (S.vitalsLog || []).find((r) => r.taskId === id);
-    if (v) v.time = hm;
-    const personWalkRecords = activePersonStore().walkRecords || WALK_RECORDS;
-    const todayItems = personWalkRecords[0]?.items || [];
-    const w = todayItems.find((it) => it.taskId === id);
-    if (w && w.card) {
-      w.card[2] = `${hm} – ${hm}`;
-    }
-  }
-
-  function promptReCheckInTimeIfNeeded(id) {
-    if (!S.cancelledTodayTasks || !S.cancelledTodayTasks[id]) return false;
-    delete S.cancelledTodayTasks[id];
-    const t = SEED.find((x) => x.id === id) || findEditableTask(id);
-    const origH = t ? (t.h ?? 8) : 8;
-    const origM = t ? (t.m ?? 0) : 0;
-    const titleText = t ? t.title : taskTitle(id);
-    openOverlay("time", {
-      title: `修改${titleText}打卡时间`,
-      h: origH,
-      m: origM,
-      origH,
-      origM,
-      kind: "recheckin",
-      taskId: id,
-    });
-    return true;
   }
   function openOverlay(name, data = {}) {
     S.overlay = name;
@@ -8515,9 +8489,7 @@
         }
         S.completed[id] = true;
         markProxy(id);
-        if (!promptReCheckInTimeIfNeeded(id)) {
-          if (S.screen === "home") refreshHomeSoft(); else render();
-        }
+        if (S.screen === "home") refreshHomeSoft(); else render();
       },
       // 方案四：先记下打卡时刻（已完成卡的祝语要读它），分流仍照旧走 checkin
       s4Checkin() {
@@ -8597,7 +8569,6 @@
         S.completed[id] = true;
         markProxy(id, place);
         closeOverlay();
-        promptReCheckInTimeIfNeeded(id);
       },
       familyRemindTask() {
         const id = S.overlayData.id;
@@ -8636,7 +8607,7 @@
         S.completed[id] = true;
         markProxy(id, "运动");
         toast(`已代${S.name}完成「${taskTitle(id)}」打卡`);
-        if (!promptReCheckInTimeIfNeeded(id)) render();
+        render();
       },
       shareWalk() {
         openOverlay("walkPoster", {
@@ -8714,7 +8685,6 @@
         S.block = blockOf(t ? t.h : 9).id;
         toast(created ? "已保存并打卡 · 新建「自主散步」" : "已保存并打卡");
         goHome();
-        promptReCheckInTimeIfNeeded(id, demoNowHMText());
       },
       exerciseGo() {
         const id = S.overlayData.id;
@@ -8732,7 +8702,6 @@
         S.completed[id] = true;
         markProxy(id);
         closeOverlay();
-        promptReCheckInTimeIfNeeded(id, demoNowHMText());
       },
       appointmentGo() {
         closeOverlay();
@@ -8747,7 +8716,6 @@
         S.completed[id] = true;
         markProxy(id);
         closeOverlay();
-        promptReCheckInTimeIfNeeded(id);
       },
       vitalsSave() {
         if (S.vitalsSyncPhase === "syncing") return;
@@ -8774,7 +8742,6 @@
         markProxy(vid, null, true);
         logOp("打卡了", place, [["计划", taskTitle(vid)], ["读数", `${isHw ? "哈宝血压计，" : ""}血压 ${S.sys}/${S.dia}，心率 ${S.hr} bpm`]]);
         closeOverlay();
-        promptReCheckInTimeIfNeeded(vid, nowHM);
       },
       sheetHwResync() {
         startSheetHwSync();
@@ -9282,16 +9249,6 @@
           S.confirmDrafts = null;
         }
         if (d.kind === "draft" && S.draft) { S.draft.hour = d.h; S.draft.min = d.m; }
-        if (d.kind === "recheckin" && d.taskId) {
-          applyReCheckInTime(d.taskId, d.h, d.m);
-        }
-        closeOverlay();
-      },
-      recheckinKeepOrig() {
-        const d = S.overlayData;
-        if (d && d.kind === "recheckin" && d.taskId) {
-          applyReCheckInTime(d.taskId, d.origH ?? d.h, d.origM ?? d.m);
-        }
         closeOverlay();
       },
       openScope() { openOverlay("scope"); },
@@ -13841,8 +13798,6 @@
         ]);
         toast("已完成复查打卡并返回首页");
         goHome();
-        const cancelledAppt = doneAppts.find((t) => S.cancelledTodayTasks && S.cancelledTodayTasks[t.id]);
-        if (cancelledAppt) promptReCheckInTimeIfNeeded(cancelledAppt.id);
       },
       confirmOk() {
         const a = S.overlayData.action;
@@ -22133,19 +22088,13 @@
       </div>`,
     time: () => {
       const d = S.overlayData;
-      const isRecheckin = d.kind === "recheckin";
       // 时段胶囊跟随编辑页语义色（复查红 / 完成绿 / 其余信任蓝）
-      const acc = editorAccent(
-        isRecheckin
-          ? (SEED.find((x) => x.id === d.taskId) || findEditableTask(d.taskId) || { cat: "monitoring" })
-          : (S.draft || { cat: "monitoring" }),
-        false
-      );
+      const acc = editorAccent(S.draft || { cat: "monitoring" }, false);
       return `
-      <div class="scrim center" data-act="${isRecheckin ? "recheckinKeepOrig" : "close"}">
+      <div class="scrim center" data-act="close">
         <div class="popup" style="border-radius:28px;padding:22px 22px 20px;max-width:380px" onclick="event.stopPropagation()">
-          <h3 class="${isRecheckin ? "s22" : "s26"} fb t ta-c" style="color:${acc.fg};line-height:1.3">${d.title || "提醒时间"}</h3>
-          ${d.subLabel ? `<div class="time-band" style="background:${acc.muted};color:${acc.fg}">${esc(d.subLabel)}</div>` : (d.block != null ? `<div class="time-band" style="background:${acc.muted};color:${acc.fg}">${BLOCKS[d.block].title}　${BLOCKS[d.block].range}</div>` : "")}
+          <h3 class="s26 fb t ta-c">${d.title || "提醒时间"}</h3>
+          ${d.block != null ? `<div class="time-band" style="background:${acc.muted};color:${acc.fg}">${BLOCKS[d.block].title}　${BLOCKS[d.block].range}</div>` : ""}
           <div class="time-cols" id="time-cols">
             <div class="time-col" data-unit="h">
               <button class="step" ${timeCanStep(d, "h", 1) ? `data-act="timeStep" data-unit="h" data-dir="1"` : "disabled"} type="button">${I.chevU}</button>
@@ -22159,15 +22108,10 @@
               <button class="step" ${timeCanStep(d, "m", -1) ? `data-act="timeStep" data-unit="m" data-dir="-1"` : "disabled"} type="button">${I.chevD}</button>
             </div>
           </div>
-          ${isRecheckin
-            ? `<div class="duo" style="margin-top:16px">
-                <button class="cancel" data-act="recheckinKeepOrig" type="button">不修改</button>
-                <button class="ok" data-act="timeDone" type="button">修改</button>
-              </div>`
-            : `<div class="duo" style="margin-top:16px">
-                <button class="cancel" data-act="close" type="button">取消</button>
-                <button class="ok" data-act="timeDone" type="button">完成</button>
-              </div>`}
+          <div class="duo" style="margin-top:16px">
+            <button class="cancel" data-act="close" type="button">取消</button>
+            <button class="ok" data-act="timeDone" type="button">完成</button>
+          </div>
         </div>
       </div>`;
     },
