@@ -1722,6 +1722,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.446",
+      date: "2026-11-19",
+      time: "15:56",
+      title: "重构「哈宝医生」随访提醒卡片以契合每月统一随访问卷逻辑，并移除题目数展示",
+      screens: [
+        { id: "consult", label: "哈宝医生" },
+      ],
+      items: [
+        "移除随访提醒气泡中不符合项目逻辑的「术后满 1 个月用药随访（20/20 题）」虚拟项，收口为项目真实的一张每月定期随访问卷「本月定期随访问卷」，附注「包含一般情况与生活质量评估 · 每月一次」。",
+        "全面移除随访提醒卡片状态文案与底部按钮中的题目数显示：右侧状态简化为「待完成 / 填写中 / 已完成」，底部按钮简化为「去完成随访 › / 继续完成随访 ›」。",
+      ],
+    },
+    {
       ver: "V10.445",
       date: "2026-11-19",
       time: "15:41",
@@ -5306,9 +5319,10 @@
           kind: "followUpReminder",
           title: "随访医生提醒您完成定期随访，提交后自动更新身体报告：",
           pushedAtLabel: "10:15",
+          followUpTitle: "本月定期随访问卷",
+          followUpMeta: "包含一般情况与生活质量评估 · 每月一次",
           followUpItems: [
-            { title: "本月术后定期随访问卷", progressText: "待完成 · 共 51 题", isCompleted: false },
-            { title: "术后满 1 个月用药随访", progressText: "已完成 · 20/20 题", isCompleted: true }
+            { title: "本月定期随访问卷", progressText: "待完成", isCompleted: false }
           ],
           followUpCompleted: false
         }
@@ -5366,9 +5380,9 @@
     if (!Array.isArray(S.messages)) S.messages = [];
     const pushCount = S.messages.filter((m) => m && m.doctorPushCard).length;
     const hasNormalChat = S.messages.some((m) => m && m.who === "ai" && m.t && !m.doctorPushCard);
-    if (forceReset || !S.doctorPushSeedV10256 || pushCount !== 3 || !hasNormalChat) {
+    if (forceReset || !S.doctorPushSeedV10446 || pushCount !== 3 || !hasNormalChat) {
       S.messages = defaultDoctorPushMessages();
-      S.doctorPushSeedV10256 = true;
+      S.doctorPushSeedV10446 = true;
     }
   }
   function bubbleCornerHumanBtnHTML(m, readOnly) {
@@ -5423,23 +5437,19 @@
       `;
     } else if (c.kind === "followUpReminder") {
       const answered = Object.keys(S.qAns || {}).length;
-      const items = Array.isArray(c.followUpItems) && c.followUpItems.length ? c.followUpItems : [
-        { title: "本月术后定期随访问卷", progressText: "待完成 · 共 51 题", isCompleted: !!c.followUpCompleted }
-      ];
-      listRowsHTML = items.map((it, idx) => {
-        const isDone = (idx === 0 && c.followUpCompleted) ? true : !!it.isCompleted;
-        const rightText = idx === 0
-          ? (c.followUpCompleted ? "已完成 · 51/51 题" : (answered > 0 ? `待完成 · 已答 ${answered}/51 题` : it.progressText))
-          : it.progressText;
-        return `
-          <div style="display:flex;align-items:center;gap:6px;padding:5px 0;${idx < items.length - 1 ? "border-bottom:1px solid rgba(16,84,224,.08);" : ""}">
-            <span style="width:5px;height:5px;border-radius:50%;background:${isDone ? "rgba(16,84,224,.35)" : "#1054E0"};flex-shrink:0"></span>
-            <span style="font-size:13.5px;font-weight:700;color:#1054E0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(it.title)}</span>
-            <span style="flex:1"></span>
-            <span style="font-size:12px;font-weight:${isDone ? 500 : 700};color:${isDone ? "#6E7D96" : "#1054E0"};white-space:nowrap;flex-shrink:0">${esc(rightText)}</span>
-          </div>
-        `;
-      }).join("");
+      const itemTitle = c.followUpTitle || (Array.isArray(c.followUpItems) && c.followUpItems[0]?.title) || "本月定期随访问卷";
+      const metaText = c.followUpMeta || "包含一般情况与生活质量评估 · 每月一次";
+      const isDone = !!c.followUpCompleted;
+      const rightText = isDone ? "已完成" : (answered > 0 ? "填写中" : "待完成");
+      listRowsHTML = `
+        <div style="display:flex;align-items:center;gap:6px;padding:5px 0;${metaText ? "border-bottom:1px solid rgba(16,84,224,.08);" : ""}">
+          <span style="width:5px;height:5px;border-radius:50%;background:${isDone ? "rgba(16,84,224,.35)" : "#1054E0"};flex-shrink:0"></span>
+          <span style="font-size:13.5px;font-weight:700;color:#1054E0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(itemTitle)}</span>
+          <span style="flex:1"></span>
+          <span style="font-size:12px;font-weight:${isDone ? 500 : 700};color:${isDone ? "#6E7D96" : "#1054E0"};white-space:nowrap;flex-shrink:0">${esc(rightText)}</span>
+        </div>
+        ${metaText ? `<div style="padding:5px 0;font-size:12px;font-weight:500;color:#6E7D96;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(metaText)}</div>` : ""}
+      `;
 
       actionsHTML = c.followUpCompleted ? `
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
@@ -5447,7 +5457,7 @@
           <button type="button" data-act="openConsultReport" style="height:27px;padding:0 10px;border:none;background:rgba(16,84,224,.09);color:#1054E0;font-size:12.5px;font-weight:700;border-radius:99px;cursor:pointer;flex-shrink:0">查看报告 ›</button>
         </div>
       ` : `
-        <button type="button" data-act="goDoctorFollowUp" data-id="${esc(m.id)}" style="width:100%;height:32px;border-radius:99px;border:none;background:#1054E0;color:#fff;font-size:13px;font-weight:700;cursor:pointer">${answered > 0 ? `继续完成随访（已答 ${answered}/51）›` : "去完成随访（共 51 题）›"}</button>
+        <button type="button" data-act="goDoctorFollowUp" data-id="${esc(m.id)}" style="width:100%;height:32px;border-radius:99px;border:none;background:#1054E0;color:#fff;font-size:13px;font-weight:700;cursor:pointer">${answered > 0 ? "继续完成随访 ›" : "去完成随访 ›"}</button>
       `;
     } else if (c.kind === "dailyEducation") {
       const points = Array.isArray(c.educationPoints) ? c.educationPoints : [];
@@ -15957,7 +15967,7 @@
         { k: "all", short: "全部", t: "全部情形总览", sub: "同时展示 3 类功能气泡 + 正常对话随时转人工" },
         { k: "normalChat", short: "正常对话", t: "正常对话 · 随时转人工", sub: "纯普通对话气泡：前段 AI 回复，中途转人工医生直接发普通气泡" },
         { k: "planPush", short: "推计划", t: "后台医生推送新计划", sub: "功能气泡 1：3 项康复计划清单 + 接受/拒绝" },
-        { k: "followUp", short: "随访", t: "提醒用户完成随访", sub: "功能气泡 2：随访问卷进度清单 + 去完成随访" },
+        { k: "followUp", short: "随访", t: "提醒用户完成随访", sub: "功能气泡 2：本月定期随访提醒 + 去完成随访" },
         { k: "education", short: "宣教", t: "日常康复宣教信息", sub: "功能气泡 3：术后护心要点清单 + 就此提问/知道了" },
         { k: "emptyGreeting", short: "空态", t: "初始空态问候", sub: "展示未发生对话时的初始问候卡" }
       ];
