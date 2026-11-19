@@ -1722,6 +1722,20 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.438",
+      date: "2026-11-19",
+      time: "12:27",
+      title: "更新或新建计划调整事项类别（如调成复查）移除特殊提醒弹窗与强制改周期，让用户自由发挥",
+      screens: [
+        { id: "task-edit", label: "更新计划" },
+        { id: "task-add", label: "添加计划" },
+      ],
+      items: [
+        "根据产品负责人指示「更新事项类别，调成复查特殊弹窗可以不要，这种更新的我觉得不用太细，让用户自由发挥」，移除将计划事项分类调为复查（或调整时段）时的「复查周期提醒」「计划时间提醒」等特殊二次确认弹窗。",
+        "在更新或添加计划中切换事项分类（如切换为「复查」）时，保持用户当前的计划类型与循环周期不变，不自动强制改写周期，也不会在仅修改事项分类时误触发「确认更新计划」时间变更弹窗，完全交由用户自由发挥。",
+      ],
+    },
+    {
       ver: "V10.437",
       date: "2026-11-19",
       time: "12:25",
@@ -4220,21 +4234,6 @@
           hardBlockMessage: `检测到${target}存在绝对运动禁忌症（室颤、心衰Ⅲ级及以上），无法创建运动计划`,
         };
       }
-    }
-
-    if ((hour >= 21 || hour < 6) && (cat === "exercise" || cat === "appointment")) {
-      if (!warningTitle) warningTitle = "计划时间提醒";
-      const catName = cat === "exercise" ? "运动" : "复查";
-      warnings.push(`当前设定的时间（${pad(hour)}:${pad(min)}）处于夜间或凌晨休息时段，心血管康复人群不宜在该时段安排${catName}计划，是否仍要继续？`);
-    } else if (hour >= 0 && hour < 5 && (cat === "monitoring" || cat === "diet")) {
-      if (!warningTitle) warningTitle = "计划时间提醒";
-      const catName = cat === "monitoring" ? "测血压" : "饮食";
-      warnings.push(`当前设定的时间（${pad(hour)}:${pad(min)}）处于凌晨深睡时段，可能打断睡眠并引起血压波动，建议调整至晨起后，是否仍要继续安排${catName}？`);
-    }
-
-    if (cat === "appointment" && cycle && (!rule || rule === "daily")) {
-      if (!warningTitle) warningTitle = "复查周期提醒";
-      warnings.push("门诊复查通常为特定单日或按月定期复查，当前设置为「每日循环」，可能会每天重复提醒，是否仍要继续？");
     }
 
     if (cat === "medication" && isProxyAction) {
@@ -9240,14 +9239,6 @@
           S.dia = null;
           S.hr = null;
         }
-        if (el.dataset.c === "appointment" && !S.lockRecurrence) {
-          S.draft.cycle = true;
-          S.draft.rule = "monthly";
-          if (!S.draft.monthDays?.length) S.draft.monthDays = [11];
-        } else if (prev === "appointment" && el.dataset.c !== "appointment" && !S.lockRecurrence) {
-          S.draft.cycle = true;
-          if (S.draft.rule === "monthly") S.draft.rule = "daily";
-        }
         render();
       },
       toggleDraftRoutine() {
@@ -12222,9 +12213,6 @@
         S.proxyEditorDraft.cat = nextCat;
         if (!S.proxyEditorDraft.title.trim() || S.proxyEditorDraft.title === prevDefault) {
           S.proxyEditorDraft.title = defaults[nextCat] || "康复计划";
-        }
-        if (nextCat === "appointment" && S.proxyEditorDraft.mode === "add") {
-          S.proxyEditorDraft.cycle = false;
         }
         render();
       },
