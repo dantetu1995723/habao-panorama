@@ -1722,6 +1722,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.447",
+      date: "2026-11-19",
+      time: "16:03",
+      title: "精简「哈宝医生」随访提醒卡片为「时间 + 定期随访问卷 + 待完成/已完成」清单",
+      screens: [
+        { id: "consult", label: "哈宝医生" },
+      ],
+      items: [
+        "去掉多余评估说明附注行，随访提醒清单收敛为简洁的时间与「定期随访问卷」两期记录（当月「YYYY年M月 定期随访问卷 · 待完成/填写中/已完成」+ 上月「YYYY年M月 定期随访问卷 · 已完成」），不展示任何题目数。",
+      ],
+    },
+    {
       ver: "V10.446",
       date: "2026-11-19",
       time: "15:56",
@@ -5315,17 +5327,22 @@
         id: "dp-followup-1",
         who: "ai",
         t: "",
-        doctorPushCard: {
-          kind: "followUpReminder",
-          title: "随访医生提醒您完成定期随访，提交后自动更新身体报告：",
-          pushedAtLabel: "10:15",
-          followUpTitle: "本月定期随访问卷",
-          followUpMeta: "包含一般情况与生活质量评估 · 每月一次",
-          followUpItems: [
-            { title: "本月定期随访问卷", progressText: "待完成", isCompleted: false }
-          ],
-          followUpCompleted: false
-        }
+        doctorPushCard: (() => {
+          const now = new Date();
+          const curMonth = `${now.getFullYear()}年${now.getMonth() + 1}月`;
+          const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          const prevMonth = `${prev.getFullYear()}年${prev.getMonth() + 1}月`;
+          return {
+            kind: "followUpReminder",
+            title: "随访医生提醒您完成定期随访，提交后自动更新身体报告：",
+            pushedAtLabel: "10:15",
+            followUpItems: [
+              { title: `${curMonth} 定期随访问卷`, progressText: "待完成", isCompleted: false },
+              { title: `${prevMonth} 定期随访问卷`, progressText: "已完成", isCompleted: true }
+            ],
+            followUpCompleted: false
+          };
+        })()
       },
       {
         id: "dp-edu-1",
@@ -5380,9 +5397,9 @@
     if (!Array.isArray(S.messages)) S.messages = [];
     const pushCount = S.messages.filter((m) => m && m.doctorPushCard).length;
     const hasNormalChat = S.messages.some((m) => m && m.who === "ai" && m.t && !m.doctorPushCard);
-    if (forceReset || !S.doctorPushSeedV10446 || pushCount !== 3 || !hasNormalChat) {
+    if (forceReset || !S.doctorPushSeedV10447 || pushCount !== 3 || !hasNormalChat) {
       S.messages = defaultDoctorPushMessages();
-      S.doctorPushSeedV10446 = true;
+      S.doctorPushSeedV10447 = true;
     }
   }
   function bubbleCornerHumanBtnHTML(m, readOnly) {
@@ -5437,19 +5454,23 @@
       `;
     } else if (c.kind === "followUpReminder") {
       const answered = Object.keys(S.qAns || {}).length;
-      const itemTitle = c.followUpTitle || (Array.isArray(c.followUpItems) && c.followUpItems[0]?.title) || "本月定期随访问卷";
-      const metaText = c.followUpMeta || "包含一般情况与生活质量评估 · 每月一次";
-      const isDone = !!c.followUpCompleted;
-      const rightText = isDone ? "已完成" : (answered > 0 ? "填写中" : "待完成");
-      listRowsHTML = `
-        <div style="display:flex;align-items:center;gap:6px;padding:5px 0;${metaText ? "border-bottom:1px solid rgba(16,84,224,.08);" : ""}">
-          <span style="width:5px;height:5px;border-radius:50%;background:${isDone ? "rgba(16,84,224,.35)" : "#1054E0"};flex-shrink:0"></span>
-          <span style="font-size:13.5px;font-weight:700;color:#1054E0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(itemTitle)}</span>
-          <span style="flex:1"></span>
-          <span style="font-size:12px;font-weight:${isDone ? 500 : 700};color:${isDone ? "#6E7D96" : "#1054E0"};white-space:nowrap;flex-shrink:0">${esc(rightText)}</span>
-        </div>
-        ${metaText ? `<div style="padding:5px 0;font-size:12px;font-weight:500;color:#6E7D96;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(metaText)}</div>` : ""}
-      `;
+      const items = Array.isArray(c.followUpItems) && c.followUpItems.length ? c.followUpItems : [
+        { title: "定期随访问卷", progressText: c.followUpCompleted ? "已完成" : "待完成", isCompleted: !!c.followUpCompleted }
+      ];
+      listRowsHTML = items.map((it, idx) => {
+        const isDone = (idx === 0 && c.followUpCompleted) ? true : !!it.isCompleted;
+        const rightText = idx === 0
+          ? (c.followUpCompleted ? "已完成" : (answered > 0 ? "填写中" : "待完成"))
+          : (isDone ? "已完成" : "待完成");
+        return `
+          <div style="display:flex;align-items:center;gap:6px;padding:5px 0;${idx < items.length - 1 ? "border-bottom:1px solid rgba(16,84,224,.08);" : ""}">
+            <span style="width:5px;height:5px;border-radius:50%;background:${isDone ? "rgba(16,84,224,.35)" : "#1054E0"};flex-shrink:0"></span>
+            <span style="font-size:13.5px;font-weight:700;color:#1054E0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(it.title)}</span>
+            <span style="flex:1"></span>
+            <span style="font-size:12px;font-weight:${isDone ? 500 : 700};color:${isDone ? "#6E7D96" : "#1054E0"};white-space:nowrap;flex-shrink:0">${esc(rightText)}</span>
+          </div>
+        `;
+      }).join("");
 
       actionsHTML = c.followUpCompleted ? `
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
