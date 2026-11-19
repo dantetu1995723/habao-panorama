@@ -1722,6 +1722,20 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.437",
+      date: "2026-11-19",
+      time: "12:25",
+      title: "「测血压 / 运动」取消打卡后再次打卡新增「是否更新打卡时间」询问弹窗",
+      screens: [
+        { id: "home", label: "康复时钟首页" },
+        { id: "schedule", label: "健康计划" },
+      ],
+      items: [
+        "根据产品负责人指示「取消后再次打卡，应该询问一次用户要不要更新时间」，当测血压或运动计划当日取消打卡后再次打卡完成时，自动弹出「是否更新打卡时间？」确认窗（提供「不更新（保留原时间）」与「更新时间」两个选项）。",
+        "选择「更新时间」将打卡完成时间与关联的血压/散步记录时间更新为当前最新时刻；选择「不更新」则保留取消前首次打卡的原时刻并在该时间点覆写数据。",
+      ],
+    },
+    {
       ver: "V10.436",
       date: "2026-11-19",
       time: "12:05",
@@ -7363,6 +7377,22 @@
 
   function performUndoCheckInForTask(id) {
     const t = SEED.find((x) => x.id === id) || findEditableTask(id);
+    if (t && requiresUndoConfirm(t)) {
+      let prevTime = null;
+      if (t.cat === "monitoring" && t.title !== "测心率") {
+        prevTime = findTaskVitalRecord(id)?.time;
+      } else if (t.cat === "exercise") {
+        const w = findTaskWalkRecord(id);
+        if (w && w.card && w.card[2]) {
+          prevTime = String(w.card[2]).split("–").pop().trim();
+        }
+      }
+      if (!prevTime) {
+        prevTime = (S.s4DoneAt && S.s4DoneAt[id]) || `${String(t.h ?? 7).padStart(2, "0")}:${String(t.m ?? 10).padStart(2, "0")}`;
+      }
+      S.lastCancelledTimeByTask = S.lastCancelledTimeByTask || {};
+      S.lastCancelledTimeByTask[id] = prevTime;
+    }
     delete S.completed[id];
     if (S.taskVitalsHw) delete S.taskVitalsHw[id];
     unmarkProxy(id);
@@ -7370,6 +7400,26 @@
       if (t.cat === "monitoring" && t.title !== "测心率") removeTaskVitalRecord(id);
       else if (t.cat === "exercise") removeTaskWalkRecord(id);
     }
+  }
+
+  function promptReCheckInTimeIfNeeded(id, latestTimeText) {
+    const prevTime = S.lastCancelledTimeByTask && S.lastCancelledTimeByTask[id];
+    if (!prevTime) return false;
+    delete S.lastCancelledTimeByTask[id];
+    const nowText = latestTimeText || demoNowHMText();
+    openOverlay("confirm", {
+      title: "是否更新打卡时间？",
+      body: `「${taskTitle(id)}」今日曾在 ${prevTime} 打过卡，本次重新打卡是否将记录时间更新为当前时间（${nowText}）？`,
+      cancel: `不更新（${prevTime}）`,
+      cancelAction: "keepPrevCheckInTime",
+      ok: "更新时间",
+      danger: false,
+      action: "confirmUpdateCheckInTime",
+      taskId: id,
+      prevTime,
+      nowText,
+    });
+    return true;
   }
   function openOverlay(name, data = {}) {
     S.overlay = name;
@@ -8597,6 +8647,7 @@
         S.block = blockOf(t ? t.h : 9).id;
         toast(created ? "已保存并打卡 · 新建「自主散步」" : "已保存并打卡");
         goHome();
+        promptReCheckInTimeIfNeeded(id, demoNowHMText());
       },
       exerciseGo() {
         const id = S.overlayData.id;
@@ -8610,9 +8661,11 @@
         beginWalk(taskId);
       },
       exerciseDone() {
-        S.completed[S.overlayData.id] = true;
-        markProxy(S.overlayData.id);
+        const id = S.overlayData.id;
+        S.completed[id] = true;
+        markProxy(id);
         closeOverlay();
+        promptReCheckInTimeIfNeeded(id, demoNowHMText());
       },
       appointmentGo() {
         closeOverlay();
@@ -8637,12 +8690,13 @@
         const vid = S.overlayData.id;
         const place = S.overlayData.place || "首页";
         const isHw = !!(hasBoundBPMonitor() && S.vitalsFromHw && S.vitalsSyncPhase === "synced");
+        const nowHM = demoNowHMText();
         S.completed[vid] = true;
         S.taskVitalsHw = S.taskVitalsHw || {};
         S.taskVitalsHw[vid] = isHw;
         // 同一测血压计划当天唯一槽位覆写，移除该计划此前的旧读数
         S.vitalsLog = (S.vitalsLog || []).filter((r) => r.taskId !== vid);
-        S.vitalsLog.unshift({ time: demoNowHMText(), sys: S.sys, dia: S.dia, hr: S.hr, hw: isHw, taskId: vid });
+        S.vitalsLog.unshift({ time: nowHM, sys: S.sys, dia: S.dia, hr: S.hr, hw: isHw, taskId: vid });
         if (S.lastRemovedVitalsByTask) delete S.lastRemovedVitalsByTask[vid];
         if (VITALS_WEEK.length) {
           VITALS_WEEK[VITALS_WEEK.length - 1] = { day: "日", sys: S.sys, dia: S.dia, hr: S.hr };
@@ -8651,6 +8705,7 @@
         markProxy(vid, null, true);
         logOp("打卡了", place, [["计划", taskTitle(vid)], ["读数", `${isHw ? "哈宝血压计，" : ""}血压 ${S.sys}/${S.dia}，心率 ${S.hr} bpm`]]);
         closeOverlay();
+        promptReCheckInTimeIfNeeded(vid, nowHM);
       },
       sheetHwResync() {
         startSheetHwSync();
@@ -9754,6 +9809,25 @@
           return;
         }
         performUndoCheckInForTask(id);
+        closeOverlay();
+      },
+      confirmUpdateCheckInTime() {
+        closeOverlay();
+      },
+      keepPrevCheckInTime() {
+        const id = S.overlayData?.taskId;
+        const prevTime = S.overlayData?.prevTime;
+        if (id && prevTime) {
+          if (S.s4DoneAt) S.s4DoneAt[id] = prevTime;
+          const v = (S.vitalsLog || []).find((r) => r.taskId === id);
+          if (v) v.time = prevTime;
+          const personWalkRecords = activePersonStore().walkRecords || WALK_RECORDS;
+          const todayItems = personWalkRecords[0]?.items || [];
+          const w = todayItems.find((it) => it.taskId === id);
+          if (w && w.card) {
+            w.card[2] = `${prevTime} – ${prevTime}`;
+          }
+        }
         closeOverlay();
       },
       sendChat() {
@@ -21654,7 +21728,7 @@
           <h3>${S.overlayData.title || "确认"}</h3>
           <p${S.overlayData.blueBody ? ' class="plan-date-note"' : ""}>${S.overlayData.body || ""}</p>
           <div class="duo">
-            <button class="cancel" data-act="close" type="button">${S.overlayData.cancel || "取消"}</button>
+            <button class="cancel" data-act="${S.overlayData.cancelAction || "close"}" type="button">${S.overlayData.cancel || "取消"}</button>
             <button class="${S.overlayData.danger ? "danger" : "ok"}" data-act="confirmOk" type="button">${S.overlayData.ok || "确定"}</button>
           </div>
         </div>
