@@ -1722,6 +1722,20 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.439",
+      date: "2026-11-19",
+      time: "13:45",
+      title: "所有类型计划「取消后再次打卡」统一弹出「调整当日计划时间」选择器弹窗（默认原计划时间，可随时调整）",
+      screens: [
+        { id: "home", label: "康复时钟首页" },
+        { id: "schedule", label: "健康计划" },
+      ],
+      items: [
+        "根据产品负责人指示「我觉得再打卡情况，弹窗应该通用给所有类型的计划，直接设计一个调整当日计划的时间的弹窗，默认是原计划时间，可以随时调整」，将取消后再次打卡的时间弹窗扩展为全类型计划通用。",
+        "弹窗升级为时/分双列步进时间选择器「调整当日计划时间」，默认回填该计划的原计划时间，支持随时上下调节时/分，提供「保持原时间」与「确认时间」操作，确认后同步更新当日计划时间、打卡时刻及关联血压/散步记录时刻。",
+      ],
+    },
+    {
       ver: "V10.438",
       date: "2026-11-19",
       time: "12:27",
@@ -7376,22 +7390,8 @@
 
   function performUndoCheckInForTask(id) {
     const t = SEED.find((x) => x.id === id) || findEditableTask(id);
-    if (t && requiresUndoConfirm(t)) {
-      let prevTime = null;
-      if (t.cat === "monitoring" && t.title !== "测心率") {
-        prevTime = findTaskVitalRecord(id)?.time;
-      } else if (t.cat === "exercise") {
-        const w = findTaskWalkRecord(id);
-        if (w && w.card && w.card[2]) {
-          prevTime = String(w.card[2]).split("–").pop().trim();
-        }
-      }
-      if (!prevTime) {
-        prevTime = (S.s4DoneAt && S.s4DoneAt[id]) || `${String(t.h ?? 7).padStart(2, "0")}:${String(t.m ?? 10).padStart(2, "0")}`;
-      }
-      S.lastCancelledTimeByTask = S.lastCancelledTimeByTask || {};
-      S.lastCancelledTimeByTask[id] = prevTime;
-    }
+    S.cancelledTodayTasks = S.cancelledTodayTasks || {};
+    S.cancelledTodayTasks[id] = true;
     delete S.completed[id];
     if (S.taskVitalsHw) delete S.taskVitalsHw[id];
     unmarkProxy(id);
@@ -7401,22 +7401,41 @@
     }
   }
 
-  function promptReCheckInTimeIfNeeded(id, latestTimeText) {
-    const prevTime = S.lastCancelledTimeByTask && S.lastCancelledTimeByTask[id];
-    if (!prevTime) return false;
-    delete S.lastCancelledTimeByTask[id];
-    const nowText = latestTimeText || demoNowHMText();
-    openOverlay("confirm", {
-      title: "是否更新打卡时间？",
-      body: `「${taskTitle(id)}」今日曾在 ${prevTime} 打过卡，本次重新打卡是否将记录时间更新为当前时间（${nowText}）？`,
-      cancel: `不更新（${prevTime}）`,
-      cancelAction: "keepPrevCheckInTime",
-      ok: "更新时间",
-      danger: false,
-      action: "confirmUpdateCheckInTime",
+  function applyReCheckInTime(id, h, m) {
+    const t = SEED.find((x) => x.id === id) || findEditableTask(id);
+    const hm = `${pad(h)}:${pad(m)}`;
+    if (t) {
+      t.h = h;
+      t.m = m;
+    }
+    S.s4DoneAt = S.s4DoneAt || {};
+    S.s4DoneAt[id] = hm;
+    const v = (S.vitalsLog || []).find((r) => r.taskId === id);
+    if (v) v.time = hm;
+    const personWalkRecords = activePersonStore().walkRecords || WALK_RECORDS;
+    const todayItems = personWalkRecords[0]?.items || [];
+    const w = todayItems.find((it) => it.taskId === id);
+    if (w && w.card) {
+      w.card[2] = `${hm} – ${hm}`;
+    }
+  }
+
+  function promptReCheckInTimeIfNeeded(id) {
+    if (!S.cancelledTodayTasks || !S.cancelledTodayTasks[id]) return false;
+    delete S.cancelledTodayTasks[id];
+    const t = SEED.find((x) => x.id === id) || findEditableTask(id);
+    const origH = t ? (t.h ?? 8) : 8;
+    const origM = t ? (t.m ?? 0) : 0;
+    const titleText = t ? t.title : taskTitle(id);
+    openOverlay("time", {
+      title: "调整当日计划时间",
+      subLabel: `${titleText} · 原计划 ${pad(origH)}:${pad(origM)}`,
+      h: origH,
+      m: origM,
+      origH,
+      origM,
+      kind: "recheckin",
       taskId: id,
-      prevTime,
-      nowText,
     });
     return true;
   }
@@ -8450,7 +8469,9 @@
         }
         S.completed[id] = true;
         markProxy(id);
-        if (S.screen === "home") refreshHomeSoft(); else render();
+        if (!promptReCheckInTimeIfNeeded(id)) {
+          if (S.screen === "home") refreshHomeSoft(); else render();
+        }
       },
       // 方案四：先记下打卡时刻（已完成卡的祝语要读它），分流仍照旧走 checkin
       s4Checkin() {
@@ -8530,6 +8551,7 @@
         S.completed[id] = true;
         markProxy(id, place);
         closeOverlay();
+        promptReCheckInTimeIfNeeded(id);
       },
       familyRemindTask() {
         const id = S.overlayData.id;
@@ -8568,7 +8590,7 @@
         S.completed[id] = true;
         markProxy(id, "运动");
         toast(`已代${S.name}完成「${taskTitle(id)}」打卡`);
-        render();
+        if (!promptReCheckInTimeIfNeeded(id)) render();
       },
       shareWalk() {
         openOverlay("walkPoster", {
@@ -8675,9 +8697,11 @@
         startArchive("capture");
       },
       appointmentDone() {
-        S.completed[S.overlayData.id] = true;
-        markProxy(S.overlayData.id);
+        const id = S.overlayData.id;
+        S.completed[id] = true;
+        markProxy(id);
         closeOverlay();
+        promptReCheckInTimeIfNeeded(id);
       },
       vitalsSave() {
         if (S.vitalsSyncPhase === "syncing") return;
@@ -9212,6 +9236,16 @@
           S.confirmDrafts = null;
         }
         if (d.kind === "draft" && S.draft) { S.draft.hour = d.h; S.draft.min = d.m; }
+        if (d.kind === "recheckin" && d.taskId) {
+          applyReCheckInTime(d.taskId, d.h, d.m);
+        }
+        closeOverlay();
+      },
+      recheckinKeepOrig() {
+        const d = S.overlayData;
+        if (d && d.kind === "recheckin" && d.taskId) {
+          applyReCheckInTime(d.taskId, d.origH ?? d.h, d.origM ?? d.m);
+        }
         closeOverlay();
       },
       openScope() { openOverlay("scope"); },
@@ -22051,13 +22085,19 @@
       </div>`,
     time: () => {
       const d = S.overlayData;
+      const isRecheckin = d.kind === "recheckin";
       // 时段胶囊跟随编辑页语义色（复查红 / 完成绿 / 其余信任蓝）
-      const acc = editorAccent(S.draft || { cat: "monitoring" }, false);
+      const acc = editorAccent(
+        isRecheckin
+          ? (SEED.find((x) => x.id === d.taskId) || findEditableTask(d.taskId) || { cat: "monitoring" })
+          : (S.draft || { cat: "monitoring" }),
+        false
+      );
       return `
-      <div class="scrim center" data-act="close">
+      <div class="scrim center" data-act="${isRecheckin ? "recheckinKeepOrig" : "close"}">
         <div class="popup" style="border-radius:28px;padding:22px 22px 20px;max-width:380px" onclick="event.stopPropagation()">
-          <h3 class="s26 fb t ta-c">${d.title || "提醒时间"}</h3>
-          ${d.block != null ? `<div class="time-band" style="background:${acc.muted};color:${acc.fg}">${BLOCKS[d.block].title}　${BLOCKS[d.block].range}</div>` : ""}
+          <h3 class="s26 fb t ta-c" style="color:${acc.fg}">${d.title || "提醒时间"}</h3>
+          ${d.subLabel ? `<div class="time-band" style="background:${acc.muted};color:${acc.fg}">${esc(d.subLabel)}</div>` : (d.block != null ? `<div class="time-band" style="background:${acc.muted};color:${acc.fg}">${BLOCKS[d.block].title}　${BLOCKS[d.block].range}</div>` : "")}
           <div class="time-cols" id="time-cols">
             <div class="time-col" data-unit="h">
               <button class="step" ${timeCanStep(d, "h", 1) ? `data-act="timeStep" data-unit="h" data-dir="1"` : "disabled"} type="button">${I.chevU}</button>
@@ -22072,8 +22112,8 @@
             </div>
           </div>
           <div class="duo" style="margin-top:16px">
-            <button class="cancel" data-act="close" type="button">取消</button>
-            <button class="ok" data-act="timeDone" type="button">完成</button>
+            <button class="cancel" data-act="${isRecheckin ? "recheckinKeepOrig" : "close"}" type="button">${isRecheckin ? "保持原时间" : "取消"}</button>
+            <button class="ok" data-act="timeDone" type="button">${isRecheckin ? "确认时间" : "完成"}</button>
           </div>
         </div>
       </div>`;
