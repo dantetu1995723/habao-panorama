@@ -1722,6 +1722,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.443",
+      date: "2026-11-19",
+      time: "14:11",
+      title: "再打卡时间弹窗标题改为「修改{计划名}打卡时间」，底部按钮改为「不修改 / 修改」",
+      screens: [
+        { id: "home", label: "康复时钟首页" },
+        { id: "schedule", label: "健康计划" },
+      ],
+      items: [
+        "根据产品负责人指示「我觉得这里应该改成修改xx打卡时间，下面两个按钮是“修改/不修改”」，将再打卡时间调整弹窗标题合并为「修改{计划名}打卡时间」（移除多余计划名胶囊），底部恢复为双按钮「不修改 / 修改」。",
+      ],
+    },
+    {
       ver: "V10.442",
       date: "2026-11-19",
       time: "14:01",
@@ -7462,8 +7475,7 @@
     const origM = t ? (t.m ?? 0) : 0;
     const titleText = t ? t.title : taskTitle(id);
     openOverlay("time", {
-      title: "调整当日计划时间",
-      subLabel: `${titleText}`,
+      title: `修改${titleText}打卡时间`,
       h: origH,
       m: origM,
       origH,
@@ -22132,7 +22144,7 @@
       return `
       <div class="scrim center" data-act="${isRecheckin ? "recheckinKeepOrig" : "close"}">
         <div class="popup" style="border-radius:28px;padding:22px 22px 20px;max-width:380px" onclick="event.stopPropagation()">
-          <h3 class="s26 fb t ta-c" style="color:${acc.fg}">${d.title || "提醒时间"}</h3>
+          <h3 class="${isRecheckin ? "s22" : "s26"} fb t ta-c" style="color:${acc.fg};line-height:1.3">${d.title || "提醒时间"}</h3>
           ${d.subLabel ? `<div class="time-band" style="background:${acc.muted};color:${acc.fg}">${esc(d.subLabel)}</div>` : (d.block != null ? `<div class="time-band" style="background:${acc.muted};color:${acc.fg}">${BLOCKS[d.block].title}　${BLOCKS[d.block].range}</div>` : "")}
           <div class="time-cols" id="time-cols">
             <div class="time-col" data-unit="h">
@@ -22148,7 +22160,10 @@
             </div>
           </div>
           ${isRecheckin
-            ? `<div class="duo" style="margin-top:16px"><button class="ok" style="flex:1" data-act="timeDone" type="button">确认</button></div>`
+            ? `<div class="duo" style="margin-top:16px">
+                <button class="cancel" data-act="recheckinKeepOrig" type="button">不修改</button>
+                <button class="ok" data-act="timeDone" type="button">修改</button>
+              </div>`
             : `<div class="duo" style="margin-top:16px">
                 <button class="cancel" data-act="close" type="button">取消</button>
                 <button class="ok" data-act="timeDone" type="button">完成</button>
