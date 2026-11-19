@@ -1722,6 +1722,20 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.441",
+      date: "2026-11-19",
+      time: "13:58",
+      title: "确保血压、运动、复查再打卡仍完整弹出原有打卡抽屉，保持流程一致性",
+      screens: [
+        { id: "home", label: "康复时钟首页" },
+        { id: "schedule", label: "健康计划" },
+      ],
+      items: [
+        "根据产品负责人指示「再打卡对于血压、运动和复查，原来的sheet还是要跳出的，保持流程一致性」，补齐真机健康计划页点击运动计划打卡/再打卡弹出运动打卡确认抽屉（进入运动开始散步 / 直接打卡 / 暂不打卡）的链路。",
+        "补齐交互全景复查计划经「上传复查资料 → 立即打卡」返回首页完成再打卡后，同样触发「调整当日计划时间」弹窗，确保血压、运动、复查在首次打卡与取消后再打卡时均先走完原有打卡面板/抽屉流程。",
+      ],
+    },
+    {
       ver: "V10.440",
       date: "2026-11-19",
       time: "13:55",
@@ -13809,6 +13823,8 @@
         ]);
         toast("已完成复查打卡并返回首页");
         goHome();
+        const cancelledAppt = doneAppts.find((t) => S.cancelledTodayTasks && S.cancelledTodayTasks[t.id]);
+        if (cancelledAppt) promptReCheckInTimeIfNeeded(cancelledAppt.id);
       },
       confirmOk() {
         const a = S.overlayData.action;
