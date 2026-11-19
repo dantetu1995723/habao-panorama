@@ -1722,6 +1722,21 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.436",
+      date: "2026-11-19",
+      time: "12:05",
+      title: "「测血压 / 运动」取消打卡新增关联数据删除确认弹窗，再次打卡按同一计划时间点覆写",
+      screens: [
+        { id: "home", label: "康复时钟首页" },
+        { id: "schedule", label: "健康计划" },
+        { id: "task-view", label: "查看计划" },
+      ],
+      items: [
+        "针对测血压与运动两类具有跨模块关联数据（血压监测 / 散步记录）的计划，每次取消打卡时新增二次确认弹窗，明确告知已记录的关联数据将一并删除，提供「不取消 / 坚持取消」选项防误触。",
+        "选择「坚持取消」后同步清除该计划当天关联的血压记录或散步记录；后续再次点击该计划打卡时，在同一计划当天槽位覆写记录，避免产生重复脏数据（复查计划保持取消打卡不删除已上传资料）。",
+      ],
+    },
+    {
       ver: "V10.435",
       date: "2026-11-18",
       time: "16:43",
@@ -7275,12 +7290,86 @@
     closeFlow();
   }
   function initVitalsDefaults() {
-    const latest = (S.vitalsLog && S.vitalsLog.length) ? S.vitalsLog[0] : null;
+    const taskId = S.overlayData && S.overlayData.id;
+    const cached = (taskId && S.lastRemovedVitalsByTask && S.lastRemovedVitalsByTask[taskId]) || null;
+    const latest = cached || ((S.vitalsLog && S.vitalsLog.length) ? S.vitalsLog[0] : null);
     S.sys = latest?.sys ?? 120;
     S.dia = latest?.dia ?? 78;
     S.hr = latest?.hr ?? 72;
     S.vitalsSyncPhase = "idle";
     S.vitalsFromHw = false;
+  }
+
+  function requiresUndoConfirm(t) {
+    if (!t) return false;
+    if (t.cat === "exercise") return true;
+    if (t.cat === "monitoring" && t.title !== "测心率") return true;
+    return false;
+  }
+
+  function findTaskVitalRecord(id) {
+    const log = S.vitalsLog || [];
+    return log.find((r) => r.taskId === id) || log.find((r) => !r.taskId) || null;
+  }
+
+  function removeTaskVitalRecord(id) {
+    const log = S.vitalsLog || [];
+    let idx = log.findIndex((r) => r.taskId === id);
+    if (idx < 0) idx = log.findIndex((r) => !r.taskId);
+    if (idx >= 0) {
+      const removed = log[idx];
+      S.lastRemovedVitalsByTask = S.lastRemovedVitalsByTask || {};
+      S.lastRemovedVitalsByTask[id] = { ...removed };
+      log.splice(idx, 1);
+      if (VITALS_WEEK.length && log.length) {
+        VITALS_WEEK[VITALS_WEEK.length - 1] = { day: "日", sys: log[0].sys, dia: log[0].dia, hr: log[0].hr };
+      }
+    }
+  }
+
+  function findTaskWalkRecord(id) {
+    const personWalkRecords = activePersonStore().walkRecords || WALK_RECORDS;
+    const todayGroup = personWalkRecords[0];
+    if (!todayGroup || !todayGroup.items) return null;
+    const activeItems = todayGroup.items.filter((it) => !(S.walkDeleted || {})[it.key]);
+    return activeItems.find((it) => it.taskId === id) || activeItems.find((it) => !it.taskId) || null;
+  }
+
+  function removeTaskWalkRecord(id) {
+    const rec = findTaskWalkRecord(id);
+    if (!rec) return;
+    S.walkDeleted = S.walkDeleted || {};
+    S.walkDeleted[rec.key] = true;
+  }
+
+  function undoCheckInPrompt(t) {
+    const title = `取消「${t.title}」打卡？`;
+    if (t.cat === "monitoring" && t.title !== "测心率") {
+      const v = findTaskVitalRecord(t.id);
+      const body = v
+        ? `取消打卡后，已记录的血压数据（${v.time || "今日"} · 血压 ${v.sys}/${v.dia} mmHg，心率 ${v.hr} bpm）将一并删除；下次打卡时将在该计划时间点重新记录并覆写。`
+        : "取消打卡后，本次关联的血压数据将一并删除；下次打卡时将在该计划时间点重新记录并覆写。";
+      return { title, body };
+    }
+    if (t.cat === "exercise") {
+      const w = findTaskWalkRecord(t.id);
+      const body = (w && w.card)
+        ? `取消打卡后，已记录的散步数据（${w.card[2]} · ${w.card[0]} 公里）将一并删除；下次打卡时将在该计划时间点重新记录并覆写。`
+        : "取消打卡后，本次关联的运动记录将一并删除；下次打卡时将在该计划时间点重新记录并覆写。";
+      return { title, body };
+    }
+    return { title, body: "确定要取消本次打卡吗？" };
+  }
+
+  function performUndoCheckInForTask(id) {
+    const t = SEED.find((x) => x.id === id) || findEditableTask(id);
+    delete S.completed[id];
+    if (S.taskVitalsHw) delete S.taskVitalsHw[id];
+    unmarkProxy(id);
+    if (t) {
+      if (t.cat === "monitoring" && t.title !== "测心率") removeTaskVitalRecord(id);
+      else if (t.cat === "exercise") removeTaskWalkRecord(id);
+    }
   }
   function openOverlay(name, data = {}) {
     S.overlay = name;
@@ -8278,9 +8367,20 @@
         const t = SEED.find((x) => x.id === id);
         if (!t) return;
         if (S.completed[id]) {
-          delete S.completed[id];
-          if (S.taskVitalsHw) delete S.taskVitalsHw[id];
-          unmarkProxy(id);
+          if (requiresUndoConfirm(t)) {
+            const prompt = undoCheckInPrompt(t);
+            openOverlay("confirm", {
+              title: prompt.title,
+              body: prompt.body,
+              cancel: "不取消",
+              ok: "坚持取消",
+              danger: true,
+              action: "doConfirmUndoCheckIn",
+              taskId: id,
+            });
+            return;
+          }
+          performUndoCheckInForTask(id);
           if (S.screen === "home") refreshHomeSoft(); else render();
           return;
         }
@@ -8477,6 +8577,16 @@
       walkSave() {
         const { id, created } = resolveWalkCheckInTask();
         S.completed[id] = true;
+        // 同一运动计划当天唯一槽位覆写散步记录
+        const personWalkRecords = activePersonStore().walkRecords || WALK_RECORDS;
+        if (personWalkRecords[0] && Array.isArray(personWalkRecords[0].items)) {
+          const hm = demoNowHMText();
+          const rangeText = `${hm} – ${hm}`;
+          const recKey = `0.42|${rangeText}|${id}`;
+          personWalkRecords[0].items = personWalkRecords[0].items.filter((it) => it.taskId !== id);
+          personWalkRecords[0].items.unshift({ key: recKey, taskId: id, card: ["0.42", "580", rangeText, 0] });
+          if (S.walkDeleted) delete S.walkDeleted[recKey];
+        }
         // 散步 + 打卡（自由散步还新建「自主散步」）合成一条
         markProxy(id, null, true);
         logOp("完成了散步", "运动", [["散步", "0.42 公里"], ["打卡", `${taskTitle(id)} 已完成`]]);
@@ -8530,8 +8640,10 @@
         S.completed[vid] = true;
         S.taskVitalsHw = S.taskVitalsHw || {};
         S.taskVitalsHw[vid] = isHw;
-        S.vitalsLog = S.vitalsLog || [];
-        S.vitalsLog.unshift({ time: demoNowHMText(), sys: S.sys, dia: S.dia, hr: S.hr, hw: isHw });
+        // 同一测血压计划当天唯一槽位覆写，移除该计划此前的旧读数
+        S.vitalsLog = (S.vitalsLog || []).filter((r) => r.taskId !== vid);
+        S.vitalsLog.unshift({ time: demoNowHMText(), sys: S.sys, dia: S.dia, hr: S.hr, hw: isHw, taskId: vid });
+        if (S.lastRemovedVitalsByTask) delete S.lastRemovedVitalsByTask[vid];
         if (VITALS_WEEK.length) {
           VITALS_WEEK[VITALS_WEEK.length - 1] = { day: "日", sys: S.sys, dia: S.dia, hr: S.hr };
         }
@@ -9586,6 +9698,21 @@
       goNotify() { closeOverlay(); go("notify", "cover"); },
       // 查看计划 · 取消本次打卡：解禁提醒与删除（真机 store.toggleCompletion 的反向）
       undoCheckIn() {
+        const curTask = findEditableTask(S.taskId) || SEED.find((x) => x.id === S.taskId);
+        if (requiresUndoConfirm(curTask)) {
+          const prompt = undoCheckInPrompt(curTask);
+          openOverlay("confirm", {
+            title: prompt.title,
+            body: prompt.body,
+            cancel: "不取消",
+            ok: "坚持取消",
+            danger: true,
+            action: "doConfirmUndoCheckIn",
+            taskId: S.taskId,
+            fromTaskView: true,
+          });
+          return;
+        }
         if (S.proxyTargetPersonName) {
           const famName = S.proxyTargetPersonName;
           const me = currentDemoPerson();
@@ -9603,9 +9730,31 @@
           if (t) toast(`已取消${famName}的「${t.title}」打卡`);
           return;
         }
-        delete S.completed[S.taskId];
-        unmarkProxy(S.taskId);
+        performUndoCheckInForTask(S.taskId);
         render();
+      },
+      doConfirmUndoCheckIn() {
+        const id = S.overlayData?.taskId || S.taskId;
+        const fromTaskView = !!S.overlayData?.fromTaskView;
+        if (fromTaskView && S.proxyTargetPersonName) {
+          const famName = S.proxyTargetPersonName;
+          const me = currentDemoPerson();
+          const ymd = S.taskOccurrence || S.calSelYMD || toYMD(demoDate());
+          const t = findEditableTask(id);
+          setFamilyTaskCompletedOn(famName, id, ymd, false);
+          S.careProxyRequests = (S.careProxyRequests || []).filter((r) => !(
+            r.senderName === me.name &&
+            r.recipientName === famName &&
+            r.kind === "checkIn" &&
+            String(r.targetTaskId || r.taskSnapshot?.id) === String(id) &&
+            !r.recipientPopupShown
+          ));
+          closeOverlay();
+          if (t) toast(`已取消${famName}的「${t.title}」打卡`);
+          return;
+        }
+        performUndoCheckInForTask(id);
+        closeOverlay();
       },
       sendChat() {
         const v = (S.chatDraft || "").trim();
