@@ -1722,6 +1722,20 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.440",
+      date: "2026-11-19",
+      time: "13:55",
+      title: "「调整当日计划时间」弹窗精简为单颗「确认」按钮并移除「原计划时间」文案",
+      screens: [
+        { id: "home", label: "康复时钟首页" },
+        { id: "schedule", label: "健康计划" },
+      ],
+      items: [
+        "根据产品负责人指示「不用写原时间，就是一个确认按钮，默认原时间让用户自己调」，移除弹窗顶部胶囊中的「原计划 HH:mm」文字与底部「保持原时间」次按钮。",
+        "保留默认选中原计划时间并可随时上下调节时/分，底部收敛为单颗通栏「确认」主按钮。",
+      ],
+    },
+    {
       ver: "V10.439",
       date: "2026-11-19",
       time: "13:45",
@@ -7429,7 +7443,7 @@
     const titleText = t ? t.title : taskTitle(id);
     openOverlay("time", {
       title: "调整当日计划时间",
-      subLabel: `${titleText} · 原计划 ${pad(origH)}:${pad(origM)}`,
+      subLabel: `${titleText}`,
       h: origH,
       m: origM,
       origH,
@@ -22111,10 +22125,12 @@
               <button class="step" ${timeCanStep(d, "m", -1) ? `data-act="timeStep" data-unit="m" data-dir="-1"` : "disabled"} type="button">${I.chevD}</button>
             </div>
           </div>
-          <div class="duo" style="margin-top:16px">
-            <button class="cancel" data-act="${isRecheckin ? "recheckinKeepOrig" : "close"}" type="button">${isRecheckin ? "保持原时间" : "取消"}</button>
-            <button class="ok" data-act="timeDone" type="button">${isRecheckin ? "确认时间" : "完成"}</button>
-          </div>
+          ${isRecheckin
+            ? `<div class="duo" style="margin-top:16px"><button class="ok" style="flex:1" data-act="timeDone" type="button">确认</button></div>`
+            : `<div class="duo" style="margin-top:16px">
+                <button class="cancel" data-act="close" type="button">取消</button>
+                <button class="ok" data-act="timeDone" type="button">完成</button>
+              </div>`}
         </div>
       </div>`;
     },
