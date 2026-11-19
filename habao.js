@@ -1722,6 +1722,20 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.442",
+      date: "2026-11-19",
+      time: "14:01",
+      title: "精简「测血压 / 运动」取消打卡确认弹窗文案",
+      screens: [
+        { id: "home", label: "康复时钟首页" },
+        { id: "schedule", label: "健康计划" },
+        { id: "task-view", label: "查看计划" },
+      ],
+      items: [
+        "根据产品负责人指示「取消打卡弹窗太复杂，简化说法，清晰点」，将测血压与运动取消打卡弹窗正文精简为一句直白提示：「取消后将同时删除本次血压记录。」/「取消后将同时删除本次散步记录。」。",
+      ],
+    },
+    {
       ver: "V10.441",
       date: "2026-11-19",
       time: "13:58",
@@ -7400,18 +7414,10 @@
   function undoCheckInPrompt(t) {
     const title = `取消「${t.title}」打卡？`;
     if (t.cat === "monitoring" && t.title !== "测心率") {
-      const v = findTaskVitalRecord(t.id);
-      const body = v
-        ? `取消打卡后，已记录的血压数据（${v.time || "今日"} · 血压 ${v.sys}/${v.dia} mmHg，心率 ${v.hr} bpm）将一并删除；下次打卡时将在该计划时间点重新记录并覆写。`
-        : "取消打卡后，本次关联的血压数据将一并删除；下次打卡时将在该计划时间点重新记录并覆写。";
-      return { title, body };
+      return { title, body: "取消后将同时删除本次血压记录。" };
     }
     if (t.cat === "exercise") {
-      const w = findTaskWalkRecord(t.id);
-      const body = (w && w.card)
-        ? `取消打卡后，已记录的散步数据（${w.card[2]} · ${w.card[0]} 公里）将一并删除；下次打卡时将在该计划时间点重新记录并覆写。`
-        : "取消打卡后，本次关联的运动记录将一并删除；下次打卡时将在该计划时间点重新记录并覆写。";
-      return { title, body };
+      return { title, body: "取消后将同时删除本次散步记录。" };
     }
     return { title, body: "确定要取消本次打卡吗？" };
   }
