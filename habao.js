@@ -1722,6 +1722,20 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.445",
+      date: "2026-11-19",
+      time: "15:41",
+      title: "修复「更新计划」中单日计划无法切换为循环计划及持续时长残留 1 天的缺陷",
+      screens: [
+        { id: "task-edit", label: "更新计划" },
+        { id: "task-view", label: "查看计划" },
+      ],
+      items: [
+        "修复在首页使用「添加今日计划」后，再进入单日计划的「更新计划」点击「循环计划」无响应的问题。",
+        "修复单日计划切换为循环计划后，循环规则未默认选中（残留单日规则）以及持续时长残留为 1 天导致保存后次日不循环的问题，切至循环态自动恢复默认规则与「一年」持续时长。",
+      ],
+    },
+    {
       ver: "V10.444",
       date: "2026-11-19",
       time: "14:26",
@@ -5893,12 +5907,13 @@
       m: d.min,
       note: d.note || "",
       cycle: !!d.cycle,
-      rule: d.cycle ? d.rule : null,
+      isRecurring: !!d.cycle,
+      rule: d.cycle ? ((d.rule && d.rule !== "once") ? d.rule : (d.cat === "appointment" ? "monthly" : "daily")) : "once",
       weekdays: d.cycle ? d.weekdays : null,
       monthDays: d.cycle ? d.monthDays : null,
       intervalCount: d.cycle && d.rule === "custom" ? clampRuleInterval(d.intervalCount, d.intervalUnit) : undefined,
       intervalUnit: d.cycle && d.rule === "custom" ? ((d.intervalUnit === "week" || d.intervalUnit === "month") ? d.intervalUnit : "day") : undefined,
-      duration: d.cycle ? d.duration : null,
+      duration: d.cycle ? (d.duration || (d.customDays ? null : "oneYear")) : null,
       endDate: d.cycle ? (d.endDate || null) : null,
       customDays: d.cycle ? (d.customDays || null) : null,
       customId: d.customId || undefined,
@@ -6440,14 +6455,14 @@
       cat: t.cat,
       routineSkeleton: isRoutineSkeletonTask(t),
       cycle: t.cycle !== false,
-      // 保留已存的循环规则，否则编辑一次「每周三」就退化成「每日」
-      rule: t.rule || (appt ? "monthly" : "daily"),
+      // 保留已存的循环规则，否则编辑一次「每周三」就退化成「每日」；单日计划的 "once" 不带入循环态
+      rule: (t.rule && t.rule !== "once") ? t.rule : (appt ? "monthly" : "daily"),
       weekdays: t.weekdays ? t.weekdays.slice() : [6],
       monthDays: t.monthDays ? t.monthDays.slice() : [11],
       intervalCount: clampRuleInterval(t.intervalCount, iUnit),
       intervalUnit: iUnit,
       didCustomizeRule: t.rule === "custom",
-      duration: "duration" in t ? t.duration : "oneYear",
+      duration: t.cycle === false ? "oneYear" : ("duration" in t ? t.duration : "oneYear"),
       endDate: t.endDate || null,
       customId: t.customId || null,
       customDays: t.customDays || null,
@@ -7148,6 +7163,8 @@
     S.captureMode = "intake";
     S.lockCategory = false;
     S.lockProfessional = false;
+    S.lockRecurrence = false;
+    S.lockBlock = false;
     S.allowedCategories = null;
     S.isConfirmDraftEdit = false;
     S.confirmDrafts = null;
@@ -9315,8 +9332,9 @@
         render();
       },
       draftCycle() {
-        if (!S.draft || S.lockRecurrence) return;
+        if (!S.draft || (S.lockRecurrence && S.screen === "task-add")) return;
         const orig = findEditableTask(S.taskId);
+        const wasCycle = !!S.draft.cycle;
         const nextCycle = el.dataset.v === "1";
         S.draft.cycle = nextCycle;
         if (S.screen === "task-edit" && orig) {
@@ -9327,7 +9345,16 @@
             S.draft.onceDate = orig.onceDate || toYMD(demoDate());
           }
         }
-        if (S.draft.cycle) S.draft.rule = S.draft.cat === "appointment" ? "monthly" : (S.draft.rule || "daily");
+        if (S.draft.cycle) {
+          if (!S.draft.rule || S.draft.rule === "once") {
+            S.draft.rule = S.draft.cat === "appointment" ? "monthly" : "daily";
+          }
+          if (!wasCycle && !S.draft.duration && (!S.draft.customDays || S.draft.customDays <= 1)) {
+            S.draft.duration = "oneYear";
+            S.draft.customDays = null;
+            S.draft.endDate = null;
+          }
+        }
         render();
       },
       editorGroup() {
@@ -9565,7 +9592,7 @@
         render();
       },
       openOnceDate() {
-        if (!S.draft || S.lockRecurrence) return;
+        if (!S.draft || (S.lockRecurrence && S.screen === "task-add")) return;
         const ymd = S.draft.onceDate || toYMD(demoDate());
         const floor = S.screen === "task-edit" ? toYMD(demoDate()) : null;
         openOverlay("datePick", { selected: ymd, month: ymd, minYmd: floor });
@@ -10487,6 +10514,7 @@
         replace("task-add");
       },
       editTask() {
+        S.lockRecurrence = false;
         const orig = findEditableTask(S.taskId);
         initDraft(orig);
         if (S.draft) {
