@@ -1732,6 +1732,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.457",
+      date: "2026-11-20",
+      time: "13:51",
+      title: "「基础报告 / 复查报告」新增报告资料拍照提交后落点统一回到 AI 解析界面并触发 AI 解读刷新",
+      screens: [
+        { id: "report-sub", label: "基础报告 / 复查报告" },
+      ],
+      items: [
+        "在「基础报告 / 复查报告」AI 解析界面点击底栏「新增报告资料」走完拍照提交流程后，不再跳入「资料合集」编辑态，改为直接落回之前的 AI 解析界面。",
+        "提交后立即正式落库、自动触发对应子报告及综合结论 AI 报告刷新（展示约 2.5 秒更新中间态后呈现最新解读），并点亮右上角「资料合集」未读红点。",
+      ],
+    },
+    {
       ver: "V10.456",
       date: "2026-11-20",
       time: "13:49",
@@ -7488,61 +7501,6 @@
     const visit = isVisitCapture();
     const fromCheckIn = visit && S.apptCapture;
     const filled = S.docGroups.filter((g) => g.pages > 0);
-    // V10.454 / V10.455：在「基础报告 / 复查报告」AI 解析页或「资料合集」编辑态点击「新增报告资料」拍照提交后，
-    // 统一将新拍资料合并进编辑草稿并落点至「资料合集」编辑态，待用户点击右上角「保存」统一落库并触发 AI 报告刷新返回 AI 解析页
-    const fromSubReport = !fromCheckIn && (
-      (S.reportArchiveEditing && Array.isArray(S.reportArchiveDraft)) ||
-      S.archivePlace === "基础报告" ||
-      S.archivePlace === "复查报告"
-    );
-    if (fromSubReport) {
-      const key = visit ? "review" : "baseline";
-      if (!Array.isArray(S.reportArchiveDraft)) {
-        S.reportArchiveDraft = S.reportArchiveEmpty
-          ? []
-          : (ARCHIVE_DEMO[key]?.groups || []).map((g) => ({ ...g }));
-      }
-      if (visit) {
-        ARCHIVE_DEMO.review.maxOrd = Math.max(3, S.pendingVisitMaxOrd || 3, ...filled.map((g, idx) => g.ord || (idx + 1)));
-        filled.forEach((g, idx) => {
-          const ord = g.ord || (idx + 1);
-          const ordTitle = `${cnOrdinal(ord)}次复查`;
-          const existing = S.reportArchiveDraft.find((x, i) => (x.ord || parseVisitOrd(x.title, i + 1)) === ord);
-          if (existing) {
-            existing.pages += g.pages;
-            existing.ord = ord;
-            existing.title = ordTitle;
-          } else {
-            S.reportArchiveDraft.push({ ord, title: ordTitle, pages: g.pages });
-          }
-        });
-        S.reportArchiveDraft.sort((a, b) => (a.ord || parseVisitOrd(a.title, 1)) - (b.ord || parseVisitOrd(b.title, 1)));
-      } else {
-        ARCHIVE_DEMO.baseline.customCats = [...(S.sessionCustomCats || ARCHIVE_DEMO.baseline.customCats || [])];
-        filled.forEach((g) => {
-          const catTitle = groupDisplayName(g);
-          if (String(g.cat).startsWith("custom:") && !(ARCHIVE_DEMO.baseline.customCats || []).includes(catTitle)) {
-            ARCHIVE_DEMO.baseline.customCats = [...(ARCHIVE_DEMO.baseline.customCats || []), catTitle];
-          }
-          const existing = S.reportArchiveDraft.find((x) => x.title === catTitle);
-          if (existing) {
-            existing.pages += g.pages;
-          } else {
-            S.reportArchiveDraft.push({ title: catTitle, pages: g.pages });
-          }
-        });
-      }
-      S.reportArchiveEditing = true;
-      S.captureMode = "intake";
-      seedDocGroups(0);
-      S.archivePlace = null;
-      S.reportArchiveEmpty = false;
-      dismissCover();
-      if (S.screen === "report-sub") {
-        go("report-archive", "push");
-      }
-      return;
-    }
     // 资料 BASE 互通（健康档案 / 基础报告 / 复查报告三处同源）：
     // 外侧资料合集根据每次上传累计（accumulate）更新，提交时才写入对应分组或复查批次
     const addedVisits = [];
