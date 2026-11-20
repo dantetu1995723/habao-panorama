@@ -1732,6 +1732,20 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.458",
+      date: "2026-11-20",
+      time: "14:33",
+      title: "复查打卡上传资料后点击「稍后打卡」直接返回首页",
+      screens: [
+        { id: "report-archive", label: "资料合集" },
+        { id: "home", label: "首页" },
+      ],
+      items: [
+        "复查计划拍照上传复查资料并保存后，在「复查资料已保存」弹窗中点击「稍后打卡」，不再停留在资料合集页，改为保持任务未打卡并直接返回首页。",
+        "点击「立即打卡」仍保持原行为：完成今日复查计划打卡并自动返回首页。",
+      ],
+    },
+    {
       ver: "V10.457",
       date: "2026-11-20",
       time: "13:51",
@@ -7551,8 +7565,8 @@
     S.archivePlace = null;
     S.reportArchiveEmpty = false;
     markReportMaterialUpdated(visit ? "review" : "baseline");
-    // V10.339：打卡复查拍完照之后直接进入复查报告的资料合集界面；
-    // 跳出「复查资料已保存」确认弹窗（主按钮「立即打卡」自动回首页完成打卡，次按钮「稍后打卡」留在资料合集）
+    // V10.339 / V10.458：打卡复查拍完照之后直接进入复查报告的资料合集界面；
+    // 跳出「复查资料已保存」确认弹窗（主按钮「立即打卡」自动回首页完成打卡，次按钮「稍后打卡」保持未打卡并直接返回首页）
     if (fromCheckIn) {
       S.apptCapture = false;
       S.reportKind = "visit";
@@ -7573,6 +7587,7 @@
         title: "复查资料已保存",
         body: "是否立即返回首页完成打卡？",
         cancel: "稍后打卡",
+        cancelAction: "deferAppointmentCheckIn",
         ok: "立即打卡",
         action: "confirmAppointmentCheckIn",
       });
@@ -14094,6 +14109,11 @@
           ["打卡", doneAppts.length ? `${opNames(doneAppts)} 已完成` : "复查计划已完成"],
         ]);
         toast("已完成复查打卡并返回首页");
+        goHome();
+      },
+      deferAppointmentCheckIn() {
+        closeOverlay();
+        toast("复查资料已保存，可稍后打卡");
         goHome();
       },
       confirmOk() {
