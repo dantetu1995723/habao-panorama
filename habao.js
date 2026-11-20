@@ -1732,6 +1732,20 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.460",
+      date: "2026-11-20",
+      time: "16:28",
+      title: "重构「哈宝医生」计划推送卡片排版，支持多行分层展示与每月多选日期智能折叠/展开",
+      screens: [
+        { id: "consult", label: "哈宝医生" },
+      ],
+      items: [
+        "每条推送计划由原先的单行硬挤改为清晰的上下分层结构：第 1 行展示计划名称（支持折行）与右侧等宽时刻胶囊；第 2 行独立展示循环周期（每日 / 每周多天 / 每月多天等）；第 3 行独立展示执行备注，彻底避免互相挤压和截断。",
+        "针对每月多选日期（如选了 30 天）增加智能压缩与按需展开：连续区间自动合并为「每月 1–30日（共30天）」，零散多日自动折叠为「每月 1日、3日、5日、7日 等共15天」，并支持点击右侧「明细 ▾ / 收起 ▴」原地展开查看全部日期。",
+        "接受计划时同步将完整循环规则（每日 / 每周 / 每月多日）写入健康计划。",
+      ],
+    },
+    {
       ver: "V10.459",
       date: "2026-11-20",
       time: "15:48",
@@ -5476,6 +5490,74 @@
     S.pendingPersonPopups = {};
     ensureDoctorPushSeed(false);
   }
+  function formatMonthlyDaysCompact(days) {
+    const raw = Array.isArray(days) ? days : [];
+    const set = new Set();
+    raw.forEach((d) => {
+      const n = Number(d);
+      if (n === 0 || (n >= 1 && n <= 31)) set.add(n);
+    });
+    const numeric = Array.from(set).filter((n) => n !== 0).sort((a, b) => a - b);
+    const hasLast = set.has(0);
+    const cleaned = hasLast ? [...numeric, 0] : numeric;
+    if (!cleaned.length) return { summary: "每月", full: "每月", isExpandable: false };
+    const dayLabel = (d) => (d === 0 ? "月末" : `${d}日`);
+    const full = cleaned.length === 1
+      ? (cleaned[0] === 0 ? "每月月末" : `每月${cleaned[0]}日`)
+      : `每月${cleaned.map(dayLabel).join("、")}`;
+    if (cleaned.length <= 4) {
+      return { summary: full, full, isExpandable: false };
+    }
+    const segments = [];
+    let i = 0;
+    while (i < numeric.length) {
+      const start = numeric[i];
+      let end = start;
+      while (i + 1 < numeric.length && numeric[i + 1] === end + 1) {
+        i += 1;
+        end = numeric[i];
+      }
+      if (end - start >= 2) {
+        segments.push(`${start}–${end}日`);
+      } else if (end === start + 1) {
+        segments.push(`${start}日`, `${end}日`);
+      } else {
+        segments.push(`${start}日`);
+      }
+      i += 1;
+    }
+    if (hasLast) segments.push("月末");
+    if (segments.length <= 3) {
+      return { summary: `每月 ${segments.join("、")}（共${cleaned.length}天）`, full, isExpandable: true };
+    }
+    const head = cleaned.slice(0, 4).map(dayLabel).join("、");
+    return { summary: `每月 ${head} 等共${cleaned.length}天`, full, isExpandable: true };
+  }
+  function planPushRecurrenceInfo(it) {
+    const rec = (it && it.recurrence) || "daily";
+    if (rec === "once") return { summary: "单日", full: "单日", isExpandable: false };
+    if (rec === "daily") return { summary: "每日", full: "每日", isExpandable: false };
+    if (rec === "weekly") {
+      const labels = ["日", "一", "二", "三", "四", "五", "六"];
+      const order = [2, 3, 4, 5, 6, 7, 1];
+      const wds = Array.isArray(it.weekdays) ? order.filter((w) => it.weekdays.includes(w)) : [];
+      if (!wds.length) return { summary: "每周", full: "每周", isExpandable: false };
+      if (wds.length === 7) return { summary: "每周一至周日", full: "每周一至周日", isExpandable: false };
+      const text = `每周${wds.map((w) => labels[w - 1]).join("、")}`;
+      return { summary: text, full: text, isExpandable: false };
+    }
+    if (rec === "monthly") {
+      return formatMonthlyDaysCompact(it.monthDays);
+    }
+    if (rec === "custom") {
+      const unitMap = { day: "天", week: "周", month: "月" };
+      const cnt = Math.max(2, Number(it.intervalCount) || 2);
+      const u = unitMap[it.intervalUnit] || "天";
+      const text = `每${cnt}${u}`;
+      return { summary: text, full: text, isExpandable: false };
+    }
+    return { summary: "每日", full: "每日", isExpandable: false };
+  }
   function defaultDoctorPushMessages() {
     return [
       {
@@ -5487,9 +5569,9 @@
           title: "后台王医生结合您近期恢复情况，为您推送了 3 项新计划：",
           pushedAtLabel: "09:45",
           planItems: [
-            { title: "晨起测血压", category: "monitoring", hour: 6, minute: 30, timeLabel: "06:30", note: "静坐 5 分钟测量" },
-            { title: "下午温和散步", category: "exercise", hour: 16, minute: 0, timeLabel: "16:00", note: "饭后慢走 20 分钟" },
-            { title: "睡前温水泡脚", category: "rest", hour: 21, minute: 30, timeLabel: "21:30", note: "40℃ 温水助眠" }
+            { title: "晨起测血压", category: "monitoring", hour: 6, minute: 30, timeLabel: "06:30", recurrence: "daily", note: "静坐 5 分钟测量" },
+            { title: "下午温和散步", category: "exercise", hour: 16, minute: 0, timeLabel: "16:00", recurrence: "weekly", weekdays: [2, 4, 6, 1], note: "饭后慢走 20 分钟" },
+            { title: "睡前温水泡脚", category: "rest", hour: 21, minute: 30, timeLabel: "21:30", recurrence: "monthly", monthDays: Array.from({ length: 30 }, (_, i) => i + 1), note: "40℃ 温水助眠，持续 15 分钟" }
           ],
           planTitle: "晨起测血压",
           planCategory: "monitoring",
@@ -5577,9 +5659,9 @@
     if (!Array.isArray(S.messages)) S.messages = [];
     const pushCount = S.messages.filter((m) => m && m.doctorPushCard).length;
     const hasNormalChat = S.messages.some((m) => m && m.who === "ai" && m.t && !m.doctorPushCard);
-    if (forceReset || !S.doctorPushSeedV10449 || pushCount !== 3 || !hasNormalChat) {
+    if (forceReset || !S.doctorPushSeedV10460 || pushCount !== 3 || !hasNormalChat) {
       S.messages = defaultDoctorPushMessages();
-      S.doctorPushSeedV10449 = true;
+      S.doctorPushSeedV10460 = true;
     }
   }
   function bubbleCornerHumanBtnHTML(m, readOnly) {
@@ -5605,16 +5687,29 @@
 
     if (c.kind === "planProposal") {
       const items = Array.isArray(c.planItems) && c.planItems.length ? c.planItems : [
-        { title: c.planTitle || "晨起测血压", timeLabel: "06:30", note: c.planNote || "按医嘱执行" }
+        { title: c.planTitle || "晨起测血压", timeLabel: "06:30", recurrence: "daily", note: c.planNote || "按医嘱执行" }
       ];
-      listRowsHTML = items.map((it, idx) => `
-        <div style="display:flex;align-items:center;gap:7px;padding:5px 0;${idx < items.length - 1 ? "border-bottom:1px solid rgba(16,84,224,.08);" : ""}">
-          <span style="font-size:13px;font-weight:700;color:#1054E0;font-variant-numeric:tabular-nums;width:38px;flex-shrink:0">${esc(it.timeLabel)}</span>
-          <span style="font-size:13.5px;font-weight:700;color:#1054E0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(it.title)}</span>
-          <span style="flex:1"></span>
-          <span style="font-size:12px;font-weight:500;color:#6E7D96;white-space:nowrap;flex-shrink:0">每日 · ${esc(it.note)}</span>
-        </div>
-      `).join("");
+      const expandedMap = S.expandedPlanPushItems || {};
+      const repeatSVG = `<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2.5px;color:rgba(16,84,224,.7)"><path d="M11.5 2.5 14 5l-2.5 2.5"/><path d="M2 8.5V7a2 2 0 0 1 2-2h10"/><path d="M4.5 13.5 2 11l2.5-2.5"/><path d="M14 7.5V9a2 2 0 0 1-2 2H2"/></svg>`;
+      listRowsHTML = items.map((it, idx) => {
+        const recInfo = planPushRecurrenceInfo(it);
+        const itemKey = `${m.id || "plan"}-${idx}`;
+        const isExpanded = !!expandedMap[itemKey];
+        const noteText = String(it.note || "").trim();
+        return `
+        <div style="display:flex;flex-direction:column;gap:4px;padding:8px 0;${idx < items.length - 1 ? "border-bottom:1px solid rgba(16,84,224,.08);" : ""}">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+            <span style="font-size:14px;font-weight:700;color:#1054E0;line-height:1.35;word-break:break-word">${esc(it.title)}</span>
+            <span style="font-size:12.5px;font-weight:700;color:#1054E0;font-variant-numeric:tabular-nums;background:rgba(16,84,224,.10);padding:2px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0">${esc(it.timeLabel)}</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:5px">
+            ${repeatSVG}
+            <span style="font-size:12px;font-weight:500;color:rgba(16,84,224,.84);line-height:1.4;flex:1;min-width:0;word-break:break-word">${esc(isExpanded ? recInfo.full : recInfo.summary)}</span>
+            ${recInfo.isExpandable ? `<button type="button" data-act="toggleDoctorPlanRecurrence" data-key="${esc(itemKey)}" style="border:none;background:rgba(16,84,224,.08);color:#1054E0;font-size:11.5px;font-weight:600;padding:1.5px 6px;border-radius:99px;cursor:pointer;white-space:nowrap;flex-shrink:0">${isExpanded ? "收起 ▴" : "明细 ▾"}</button>` : ""}
+          </div>
+          ${noteText ? `<div style="font-size:12px;font-weight:400;color:#6E7D96;line-height:1.4;word-break:break-word">${esc(noteText)}</div>` : ""}
+        </div>`;
+      }).join("");
 
       actionsHTML = c.planDecision === "pending" ? `
         <div style="display:flex;gap:8px">
@@ -10220,6 +10315,13 @@
         toast("已重置哈宝问诊全部演示数据");
         render();
       },
+      toggleDoctorPlanRecurrence() {
+        const key = el.dataset.key;
+        if (!key) return;
+        if (!S.expandedPlanPushItems) S.expandedPlanPushItems = {};
+        S.expandedPlanPushItems[key] = !S.expandedPlanPushItems[key];
+        render();
+      },
       acceptDoctorPlan() {
         const id = el.dataset.id;
         const msg = (S.messages || []).find((m) => m.id === id);
@@ -10227,20 +10329,26 @@
         const c = msg.doctorPushCard;
         c.planDecision = "accepted";
         const specs = Array.isArray(c.planItems) && c.planItems.length ? c.planItems : [
-          { title: c.planTitle, hour: c.planHour, minute: c.planMinute, category: c.planCategory || "monitoring", note: c.planNote || "", timeLabel: "06:30" }
+          { title: c.planTitle, hour: c.planHour, minute: c.planMinute, category: c.planCategory || "monitoring", note: c.planNote || "", timeLabel: "06:30", recurrence: "daily" }
         ];
         specs.forEach((sp) => {
           const exists = SEED.some((t) => t.title === sp.title);
           if (!exists) {
-            SEED.push({
+            const rec = sp.recurrence || "daily";
+            const item = {
               id: nextTaskId(),
               title: sp.title,
               h: sp.hour,
               m: sp.minute,
               cat: sp.category || "monitoring",
               note: sp.note || "",
+              cycle: rec !== "once",
+              rule: rec,
               rx: true
-            });
+            };
+            if (Array.isArray(sp.weekdays) && sp.weekdays.length) item.weekdays = [...sp.weekdays];
+            if (Array.isArray(sp.monthDays) && sp.monthDays.length) item.monthDays = [...sp.monthDays];
+            SEED.push(item);
           }
         });
         const summary = specs.map((sp) => `${sp.title}（${sp.timeLabel}）`).join("、");
