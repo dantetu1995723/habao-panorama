@@ -336,14 +336,10 @@
     </div>`;
   }
 
-  // V10.306：资料合集（或健康档案）发生增删时标记对应子报告待更新，点亮底栏「更新报告」按钮；
-  // 仅当点击「更新报告」触发子报告 AI 解读更新（或提交随访问卷）时，才同步自动更新「综合结论」。
+  // V10.451：资料合集（或健康档案）发生增删时，直接自动触发对应子报告及综合结论 AI 解读刷新。
   function markReportMaterialUpdated(kind) {
-    if (kind === "baseline") {
-      S.pendingBaselineUpdate = true;
-    } else if (kind === "review" || kind === "visit") {
-      S.pendingReviewUpdate = true;
-    }
+    const normalized = (kind === "review" || kind === "visit") ? "review" : "baseline";
+    triggerReportAnalysis(normalized);
   }
 
   function triggerReportAnalysis(kind) {
@@ -1664,7 +1660,7 @@
     schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行展示时刻与单日/循环/类别胶囊，下方循环计划展示「开始日期 – 结束日期」起止区间（与首页保持一致），单日计划展示当天日期；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上更新才进编辑。未完成与已完成全程统一采用蓝白色系（去绿改蓝白）。" },
     vitals: { code: "HealthMonitorModuleView", note: "固定展示最近7天滚动窗口（每日零点自动顺延，无翻页）。展示整体 AI 评估卡与血压趋势/心率趋势折线图（横坐标为 x日；已移除底栏「进入哈宝医生」按钮）。" },
     report: { code: "FollowUpModuleView", note: "V10.270：综合结论 + 三等分入口（基础报告 / 复查报告 / 问卷随访）。资料增删与问卷提交后展示「AI 正在解析生成解读中…」更新中间态。" },
-    "report-sub": { code: "BodyReportSubReportView", note: "V10.339：顶栏两枚 Tab「AI 解读 / 资料合集」，打卡复查拍照后直接进资料合集；资料合集缩略图右上角支持「×」删除单页。资料增删后 AI 解读呈现更新中间态。「刷新报告解读」按钮仅在「AI 解读」界面底部展示（仅有资料更新才可点击，否则禁用；在「资料合集」界面不显示）。底栏保留「新增报告资料」大主按钮；打卡复查落库后弹出「复查资料已保存」弹窗（主按钮「立即打卡」自动跳回首页完成打卡，次按钮「稍后打卡」留在资料合集由用户稍后自行打卡；弹窗关闭后点击左上角返回正常进入身体报告界面，再由身体报告返回首页）。" },
+    "report-sub": { code: "BodyReportSubReportView", note: "V10.451：顶栏两枚 Tab「AI 解读 / 资料合集」，打卡复查拍照后直接进资料合集；资料合集缩略图右上角支持「×」删除单页。移除「刷新报告解读」手动按钮，资料增删后自动触发对应子报告及综合结论 AI 解读刷新（呈现约 2.5 秒更新中间态）。底栏保留「新增报告资料」大主按钮；打卡复查落库后弹出「复查资料已保存」弹窗（主按钮「立即打卡」自动跳回首页完成打卡，次按钮「稍后打卡」留在资料合集由用户稍后自行打卡；弹窗关闭后点击左上角返回正常进入身体报告界面，再由身体报告返回首页）。" },
     walk: { code: "WalkView", note: "大标题 + 44 回首页（dismiss cover，不压栈）。地图主卡底浮层：60 圆钮记录 + 60 主胶囊（横向弹性撑满）。三态：开始运动 / 返回运动 / 保存并打卡。点「开始运动」、以及首页「进入运动，开始散步」，都先按出院诊断比对绝对禁忌症；未命中直接进入散步会话，命中则打开通用「运动安全提示（绝对禁忌症）」界面，不再弹出确认弹窗；返回运动不再问。保存归属：计划入口完成原任务，自由入口按开始时刻新建「自主散步」，不猜测也不占用存量计划。" },
     "walk-contra": { code: "AbsoluteContraindicationView", note: "通用绝对运动禁忌症提示界面（散步/运动前风险提示/家属代提醒共用）：顶部警示盾牌徽标 + 高对比度「检测到绝对运动禁忌症」标题与场景副标题 +「命中的禁忌指征」白卡（红底胶囊列出病历命中项）+「安全建议与说明」白卡（3 条清晰建议）+ 底部「我知道了，暂不运动」主按钮。" },
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
@@ -1721,6 +1717,20 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.451",
+      date: "2026-11-20",
+      time: "11:21",
+      title: "「基础报告 / 复查报告」移除「刷新报告解读」手动按钮，改为资料增删后自动刷新",
+      screens: [
+        { id: "report-sub", label: "基础 / 复查报告（AI 解读）" },
+        { id: "report", label: "身体报告" },
+      ],
+      items: [
+        "移除基础报告与复查报告「AI 解读」白卡底部的「刷新报告解读」手动按钮，界面更简洁直观。",
+        "在子报告或健康档案中新增报告资料或删除单页后，自动触发对应子报告「AI 解读」与主界面「综合结论」刷新（展示约 2.5 秒解析中间态后平滑呈现最新解读）。",
+      ],
+    },
     {
       ver: "V10.450",
       date: "2026-11-20",
@@ -13749,11 +13759,6 @@
         S.reportPane = "insight";
         go("report-sub", "cover");
       },
-      updateReport() {
-        const kind = el.dataset.kind || (S.reportKind === "visit" ? "review" : "baseline");
-        S.reportPane = "insight";
-        triggerReportAnalysis(kind);
-      },
       // V10.50：报告页顶部分页（AI 解读 / 资料合集），页内就地切换
       setReportPane() {
         S.reportPane = el.dataset.p === "archive" ? "archive" : "insight";
@@ -15645,11 +15650,9 @@
       const rep = activePersonStore().report;
       const isVisitSub = S.reportKind === "visit";
       const isAnalyzingSub = isVisitSub ? S.analyzingReview : S.analyzingBaseline;
-      const hasPendingSub = isVisitSub ? !!S.pendingReviewUpdate : !!S.pendingBaselineUpdate;
       const subTitle = isVisitSub ? "复查报告" : "基础报告";
       const curArchiveGroups = isVisitSub ? visitBaseDisplayGroups() : baselineBaseDisplayGroups();
       const missingReviewTitles = isVisitSub ? curArchiveGroups.filter((g) => g.pages <= 0).map((g) => g.title) : [];
-      const canUpdateSub = hasPendingSub && !isAnalyzingSub && !missingReviewTitles.length;
       const archiveHasData = !S.reportArchiveEmpty && curArchiveGroups.length > 0;
       const rightToggle = S.reportPane === "archive"
         ? `<button class="cap" data-act="toggleReportArchiveDemo" type="button" style="${archiveHasData ? "" : "color:#c2410c;background:rgba(242,153,74,0.16);"}">⇄ ${archiveHasData ? "有数据" : "空状态"}</button>`
@@ -15675,10 +15678,6 @@
                 ${isVisitSub && S.consultReportSub?.review ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生跨期对照解读】${S.consultReportSub.review}</div>` : ""}
                 ${!isVisitSub && S.consultReportSub?.baseline ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生基线报告解读】${S.consultReportSub.baseline}</div>` : ""}`))}
             </div>
-            ${S.reportPane === "insight" ? `
-            <div style="padding-top:10px; margin-top:auto">
-              <button class="cta report-update-dock-btn ${canUpdateSub ? "is-ready" : "is-disabled"}" ${canUpdateSub ? `data-act="updateReport" data-kind="${isVisitSub ? "review" : "baseline"}"` : "disabled"} type="button">${I.cycle}刷新报告解读</button>
-            </div>` : ""}
           </div>
         </div>
         <div class="px20 col gap10" style="padding-top:12px; padding-bottom:20px">
