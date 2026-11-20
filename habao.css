@@ -3431,6 +3431,13 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   display: grid; place-items: center; padding: 0; cursor: pointer;
 }
 .hr-thumb-del:active { transform: scale(.92); background: rgba(0,0,0,.72); }
+
+/* V10.453：资料合集独立界面导航与编辑模式 */
+.archive-nav-cap { position: relative; gap: 5px; }
+.archive-nav-cap svg { width: 14px; height: 14px; }
+.cap.primary-cap { background: var(--blue); color: #fff; border-color: var(--blue); font-weight: 700; box-shadow: 0 3px 10px rgba(16,84,224,.22); }
+.archive-edit-banner { display: flex; align-items: center; gap: 8px; padding: 9px 12px; margin-bottom: 12px; border-radius: 12px; background: rgba(16,84,224,.07); color: var(--blue); font-size: 13px; font-weight: 600; line-height: 1.45; }
+.archive-edit-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
 .hr-thumb-inner {
   position: absolute; inset: 6px; border-radius: 8px;
   background: var(--input); color: rgba(130,142,165,.5);

@@ -383,34 +383,43 @@
     </div>`;
   }
 
-  // V10.50：身体报告子报告页顶部分页（AI 解读 / 资料合集）——同构「计划 / 解析依据」，字号加大到适老档
-  function reportPaneTabs() {
-    const onInsight = S.reportPane !== "archive";
-    const hasUnreadArchive = S.reportKind === "visit" ? !!S.unreadReviewArchive : !!S.unreadBaselineArchive;
-    return `<div class="filter lg">
-      <button class="${onInsight ? "on" : ""}" data-act="setReportPane" data-p="insight" type="button">AI 解读</button>
-      <button class="${onInsight ? "" : "on"}" data-act="setReportPane" data-p="archive" type="button"><span class="tab-label-wrap">资料合集${hasUnreadArchive && onInsight ? `<span class="tab-red-dot" aria-label="有新资料"></span>` : ""}</span></button>
-    </div>`;
-  }
-
-  // V10.269 / V10.390：资料合集页——与健康档案同源（按每次上传资料累计更新，仅展示已上传有照片的分组），
-  // 点缩略图开全屏预览，点缩略图右上角「×」删除该页；补拍走底栏，直接进拍摄页
+  // V10.453：独立「资料合集」页内容渲染——默认只读看图（无 × 删除按钮），点击右上角「编辑」后
+  // 进入编辑态并展示每页右上角「×」（删除仅暂存在 S.reportArchiveDraft，点右上角「保存」才落库并触发 AI 报告刷新）
   function reportArchivePane() {
     const key = S.reportKind === "visit" ? "review" : "baseline";
     const src = ARCHIVE_DEMO[key];
-    const groups = S.reportArchiveEmpty
-      ? []
-      : (key === "baseline" ? baselineBaseDisplayGroups() : visitBaseDisplayGroups());
+    const editing = !!S.reportArchiveEditing;
+    let groups;
+    if (S.reportArchiveEmpty) {
+      groups = [];
+    } else if (editing && Array.isArray(S.reportArchiveDraft)) {
+      groups = S.reportArchiveDraft.filter((g) => (g.pages || 0) > 0);
+    } else {
+      groups = key === "baseline" ? baselineBaseDisplayGroups() : visitBaseDisplayGroups();
+    }
+    const archiveHasData = !S.reportArchiveEmpty && groups.length > 0;
+    const total = groups.reduce((s, g) => s + (g.pages || 0), 0);
+    const demoToggle = editing ? "" : `<button class="cap" data-act="toggleReportArchiveDemo" type="button" style="height:28px;padding:0 10px;font-size:12px;${archiveHasData ? "" : "color:#c2410c;background:rgba(242,153,74,0.16);"}">⇄ ${archiveHasData ? "有数据" : "空状态"}</button>`;
+    const editBanner = editing
+      ? `<div class="archive-edit-banner"><span class="archive-edit-dot"></span><span>编辑模式 · 点照片右上角 × 删除，完成后点右上角「保存」刷新 AI 报告</span></div>`
+      : "";
+    const topBar = (total > 0 || demoToggle)
+      ? `<div class="flex between" style="align-items:center;margin-bottom:10px">
+          ${total > 0 ? `<div class="s15 fsb" style="color:var(--blue);opacity:.72">共 ${total} 张</div>` : `<div></div>`}
+          ${demoToggle}
+        </div>`
+      : "";
     if (!groups.length) {
-      return `<div style="text-align:left">
+      return `${editBanner}${topBar}<div style="text-align:left">
         <div class="s19 fsb" style="color:var(--blue);opacity:.88">${src.empty}</div>
-        <p class="s15 fm t-sec" style="margin:8px 0 0">点下方「新增报告资料」拍照上传。</p>
+        <p class="s15 fm t-sec" style="margin:8px 0 0">${editing ? "点右上角「保存」将更新 AI 报告解读。" : "点下方「新增报告资料」拍照上传。"}</p>
       </div>`;
     }
-    const total = groups.reduce((s, g) => s + g.pages, 0);
-    return `${total > 0 ? `<div class="s15 fsb" style="color:var(--blue);opacity:.72">共 ${total} 张</div>` : ""}
-      ${groups.map((g) => {
-        const gi = src.groups.findIndex((x) => x.title === g.title);
+    return `${editBanner}${topBar}
+      ${groups.map((g, idx) => {
+        const draftIdx = editing && Array.isArray(S.reportArchiveDraft)
+          ? S.reportArchiveDraft.findIndex((x) => x.title === g.title)
+          : idx;
         return `
         <div class="hr-group">
           <div class="flex between" style="align-items:baseline">
@@ -425,7 +434,7 @@
                   <span class="hr-thumb-inner">${I.doc}</span>
                   <span class="hr-page-tag">第${i + 1}页</span>
                 </button>
-                <button class="hr-thumb-del" data-act="delHrPage" data-k="${key}" data-gi="${gi}" data-pi="${i}" type="button" aria-label="删除${g.title}第${i + 1}页">×</button>
+                ${editing ? `<button class="hr-thumb-del" data-act="delReportArchiveDraftPage" data-gi="${draftIdx}" data-pi="${i}" type="button" aria-label="删除${g.title}第${i + 1}页">×</button>` : ""}
               </div>`).join("")}
           </div>` : `
           <p class="s14 fm" style="margin:6px 0 4px;line-height:1.5;color:#c2410c">暂未上传${g.title}资料，可点击下方按钮补充上传。</p>`}
@@ -1570,8 +1579,11 @@
     "confirm-exercise>task-add": "cover",
     "task-view>task-edit": "replace",
     "task-edit>task-view": "replace",
+    "report-sub>report-archive": "push",
     "report-sub>ocr-capture": "cover",
     "report-sub>ocr-detail": "cover",
+    "report-archive>ocr-capture": "cover",
+    "report-archive>ocr-detail": "cover",
     "health-record>ocr-capture": "cover",
     "analysis>ocr-capture": "cover",
   };
@@ -1646,6 +1658,7 @@
       { id: "followup", t: "问卷随访", code: "ReviewFollowUpPage", how: "push" },
       { id: "followup-detail", t: "随访详情", code: "FollowUpDetailView", how: "cover" },
       { id: "analysis", t: "明细分析", code: "FollowUpAnalysisView", how: "push" },
+      { id: "report-archive", t: "资料合集", code: "BodyReportArchiveView", how: "push" },
     ]},
   ];
 
@@ -1660,7 +1673,8 @@
     schedule: { code: "RehabPanoramaView", note: "选中日驱动整页：周图标题写该周起止区间（周日起始，翻周才变、点选周内某天不动），列表与「未完成 / 已完成」计数随子计划过滤，历史日提示条日期动态、过去日号略淡。计划卡上不再盖家属章。周/月图左右滑翻页。列表操作卡：勾选 + 底栏查看/删除；有补充备注时收进卡内，用药 / 复查与其它类型同一套脚注（空不占行）。副行展示时刻与单日/循环/类别胶囊，下方循环计划展示「开始日期 – 结束日期」起止区间（与首页保持一致），单日计划展示当天日期；循环两钮「仅删本次 / 长期删除」，单日一钮删除。今日之前、以及该日已打卡，不展示删除，操作条只留「查看」。点查看先进查看计划，右上更新才进编辑。未完成与已完成全程统一采用蓝白色系（去绿改蓝白）。" },
     vitals: { code: "HealthMonitorModuleView", note: "固定展示最近7天滚动窗口（每日零点自动顺延，无翻页）。展示整体 AI 评估卡与血压趋势/心率趋势折线图（横坐标为 x日；已移除底栏「进入哈宝医生」按钮）。" },
     report: { code: "FollowUpModuleView", note: "V10.270：综合结论 + 三等分入口（基础报告 / 复查报告 / 问卷随访）。资料增删与问卷提交后展示「AI 正在解析生成解读中…」更新中间态。" },
-    "report-sub": { code: "BodyReportSubReportView", note: "V10.451：顶栏两枚 Tab「AI 解读 / 资料合集」，打卡复查拍照后直接进资料合集；资料合集缩略图右上角支持「×」删除单页。移除「刷新报告解读」手动按钮，资料增删后自动触发对应子报告及综合结论 AI 解读刷新（呈现约 2.5 秒更新中间态）。底栏保留「新增报告资料」大主按钮；打卡复查落库后弹出「复查资料已保存」弹窗（主按钮「立即打卡」自动跳回首页完成打卡，次按钮「稍后打卡」留在资料合集由用户稍后自行打卡；弹窗关闭后点击左上角返回正常进入身体报告界面，再由身体报告返回首页）。" },
+    "report-sub": { code: "BodyReportSubReportView", note: "V10.453：基础报告 / 复查报告主界面专注展示 AI 解读，移除卡顶双 Tab 栏，将「资料合集」移至导航栏右上角胶囊（有新上传资料时带红点）进入独立「资料合集」界面；底栏保留「新增报告资料」大主按钮，拍完提交后自动触发 AI 解读刷新并回到本页。" },
+    "report-archive": { code: "BodyReportArchiveView", note: "V10.453：基础报告 / 复查报告的独立「资料合集」界面。默认只读浏览（缩略图无 × 删除按钮，防误删）；点击导航栏右上角「编辑」进入编辑态（左上变为「取消」、右上变为蓝色「保存」），可点击照片右上角 × 暂存删除单页；点击「保存」提交变更、触发对应子报告及综合结论 AI 报告刷新，并自动回到之前的 AI 解析界面。" },
     walk: { code: "WalkView", note: "大标题 + 44 回首页（dismiss cover，不压栈）。地图主卡底浮层：60 圆钮记录 + 60 主胶囊（横向弹性撑满）。三态：开始运动 / 返回运动 / 保存并打卡。点「开始运动」、以及首页「进入运动，开始散步」，都先按出院诊断比对绝对禁忌症；未命中直接进入散步会话，命中则打开通用「运动安全提示（绝对禁忌症）」界面，不再弹出确认弹窗；返回运动不再问。保存归属：计划入口完成原任务，自由入口按开始时刻新建「自主散步」，不猜测也不占用存量计划。" },
     "walk-contra": { code: "AbsoluteContraindicationView", note: "通用绝对运动禁忌症提示界面（散步/运动前风险提示/家属代提醒共用）：顶部警示盾牌徽标 + 高对比度「检测到绝对运动禁忌症」标题与场景副标题 +「命中的禁忌指征」白卡（红底胶囊列出病历命中项）+「安全建议与说明」白卡（3 条清晰建议）+ 底部「我知道了，暂不运动」主按钮。" },
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
@@ -1717,6 +1731,21 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.453",
+      date: "2026-11-20",
+      time: "13:23",
+      title: "「基础报告 / 复查报告」资料合集移至导航栏右上角独立界面，新增「编辑 → 保存 → 触发 AI 报告刷新并返回 AI 解析」流程",
+      screens: [
+        { id: "report-sub", label: "基础报告 / 复查报告" },
+        { id: "report-archive", label: "资料合集" },
+      ],
+      items: [
+        "移除基础报告与复查报告卡片顶部的「AI 解读 / 资料合集」双 Tab 栏，子报告主界面专注展示 AI 解读，并将「资料合集」移至导航栏右上角入口（有新增资料时带未读红点）。",
+        "新增独立「资料合集」界面：默认处于只读浏览态（不展示删除按钮，防误删）；点击导航栏右上角「编辑」进入编辑态，左上角切换为「取消」、右上角切换为「保存」，可点击照片右上角 × 暂存删除单页。",
+        "编辑态点击「保存」正式提交变更并触发对应子报告及综合结论 AI 报告刷新，自动返回之前的 AI 解析界面呈现刷新中间态与最新解读；点击「取消」则放弃本次删除并退出编辑态。",
+      ],
+    },
     {
       ver: "V10.452",
       date: "2026-11-20",
@@ -3204,8 +3233,9 @@
     reportKind: "baseline",
     // V10.49：复查报告页的复诊打卡形态——多一颗「返回首页」；apptCapture 标记拍摄来自首页复查打卡
     reportReturnHome: false,
-    // V10.50：报告页两页就地切换——默认落「AI 解读」，另一页是只读「资料合集」
-    reportPane: "insight",
+    // V10.453：资料合集独立界面编辑态与暂存草稿
+    reportArchiveEditing: false,
+    reportArchiveDraft: null,
     unreadBaselineArchive: false,
     unreadReviewArchive: false,
     apptCapture: false,
@@ -7128,6 +7158,7 @@
       "vitals-detail": [...home, C("vitals"), P("vitals-detail")],
       report: [...home, C("report")],
       "report-sub": [...home, C("report"), C("report-sub")],
+      "report-archive": [...home, C("report"), C("report-sub"), P("report-archive")],
       followup: [...home, C("report"), P("followup")],
       questionnaire: [...home, C("report"), P("followup"), C("questionnaire")],
       analysis: [...home, C("report"), P("analysis")],
@@ -7473,16 +7504,17 @@
       S.apptCapture = false;
       S.reportKind = "visit";
       S.reportReturnHome = false;
-      S.reportPane = "archive";
+      S.reportArchiveEditing = false;
+      S.reportArchiveDraft = null;
       // 保持与真机 AppointmentReviewFlowHost 一致：
-      // 底层插入身体报告页 (report)，上层为复查报告页 (report-sub)，
-      // 弹窗关闭后点击复查报告左上角返回时，正常退回身体报告界面，再由身体报告返回首页
+      // 底层为身体报告页 (report) → 复查报告 AI 解析页 (report-sub) → 资料合集独立页 (report-archive)
       S.frames = [
         { id: "home", how: "root" },
         { id: "report", how: "cover" },
-        { id: "report-sub", how: "cover" }
+        { id: "report-sub", how: "cover" },
+        { id: "report-archive", how: "push" }
       ];
-      S.screen = "report-sub";
+      S.screen = "report-archive";
       render();
       openOverlay("confirm", {
         title: "复查资料已保存",
@@ -7498,8 +7530,13 @@
     } else {
       S.unreadBaselineArchive = true;
     }
-    S.reportPane = "insight";
+    S.reportArchiveEditing = false;
+    S.reportArchiveDraft = null;
     dismissCover();
+    // 若是从独立「资料合集」页点新增资料进来，提交后自动退回之前的 AI 解析界面
+    if (S.screen === "report-archive") {
+      back();
+    }
   }
   function laterCapture() {
     if (S.captureMode === "archive") {
@@ -13773,17 +13810,65 @@
       },
       openReport() {
         S.reportKind = el.dataset.kind || "baseline";
-        S.reportPane = "insight";
+        S.reportArchiveEditing = false;
+        S.reportArchiveDraft = null;
         go("report-sub", "cover");
       },
-      // V10.50：报告页顶部分页（AI 解读 / 资料合集），页内就地切换
-      setReportPane() {
-        S.reportPane = el.dataset.p === "archive" ? "archive" : "insight";
-        if (S.reportPane === "archive") {
-          if (S.reportKind === "visit") S.unreadReviewArchive = false;
-          else S.unreadBaselineArchive = false;
+      // V10.453：从基础报告 / 复查报告右上角进入独立「资料合集」界面
+      openReportArchive() {
+        if (S.reportKind === "visit") S.unreadReviewArchive = false;
+        else S.unreadBaselineArchive = false;
+        S.reportArchiveEditing = false;
+        S.reportArchiveDraft = null;
+        go("report-archive", "push");
+      },
+      // V10.453：「资料合集」右上角点击「编辑」进入编辑态，拷贝当前数据为草稿
+      editReportArchive() {
+        const key = S.reportKind === "visit" ? "review" : "baseline";
+        const cur = S.reportArchiveEmpty
+          ? []
+          : (ARCHIVE_DEMO[key]?.groups || []).map((g) => ({ ...g }));
+        S.reportArchiveDraft = cur;
+        S.reportArchiveEditing = true;
+        render();
+      },
+      // 编辑态点左上角「取消」：放弃未保存的删除并退出编辑态
+      cancelReportArchiveEdit() {
+        S.reportArchiveDraft = null;
+        S.reportArchiveEditing = false;
+        render();
+      },
+      // 编辑态删除单页：仅修改草稿，不立即落库也不立即触发 AI 刷新
+      delReportArchiveDraftPage() {
+        if (!S.reportArchiveEditing || !Array.isArray(S.reportArchiveDraft)) return;
+        const gi = +el.dataset.gi;
+        if (gi < 0 || !S.reportArchiveDraft[gi]) return;
+        S.reportArchiveDraft[gi].pages -= 1;
+        if (S.reportArchiveDraft[gi].pages <= 0) {
+          S.reportArchiveDraft.splice(gi, 1);
         }
         render();
+      },
+      // 编辑态点右上角「保存」：提交草稿变更、触发 AI 报告刷新并自动回到之前的 AI 解析界面
+      saveReportArchiveEdit() {
+        const key = S.reportKind === "visit" ? "review" : "baseline";
+        if (Array.isArray(S.reportArchiveDraft) && ARCHIVE_DEMO[key]) {
+          ARCHIVE_DEMO[key].groups = S.reportArchiveDraft
+            .filter((g) => (g.pages || 0) > 0)
+            .map((g, idx) => {
+              const copy = { ...g };
+              if (key === "review" && !copy.ord) copy.ord = parseVisitOrd(copy.title, idx + 1);
+              return copy;
+            });
+          if (!ARCHIVE_DEMO[key].groups.length) {
+            S.reportArchiveEmpty = false;
+          }
+          syncCurrentPersonArchiveSnapshot();
+        }
+        S.reportArchiveDraft = null;
+        S.reportArchiveEditing = false;
+        markReportMaterialUpdated(key);
+        back();
       },
       // V10.61：资料合集已在本页 Tab，底栏不论有无存量都直接进拍摄
       addArchive() {
@@ -15670,19 +15755,20 @@
       const subTitle = isVisitSub ? "复查报告" : "基础报告";
       const curArchiveGroups = isVisitSub ? visitBaseDisplayGroups() : baselineBaseDisplayGroups();
       const missingReviewTitles = isVisitSub ? curArchiveGroups.filter((g) => g.pages <= 0).map((g) => g.title) : [];
-      const archiveHasData = !S.reportArchiveEmpty && curArchiveGroups.length > 0;
-      const rightToggle = S.reportPane === "archive"
-        ? `<button class="cap" data-act="toggleReportArchiveDemo" type="button" style="${archiveHasData ? "" : "color:#c2410c;background:rgba(242,153,74,0.16);"}">⇄ ${archiveHasData ? "有数据" : "空状态"}</button>`
-        : "";
+      const hasUnreadArchive = isVisitSub ? !!S.unreadReviewArchive : !!S.unreadBaselineArchive;
+      const rightArchiveBtn = `<button class="cap archive-nav-cap" data-act="openReportArchive" type="button" aria-label="${hasUnreadArchive ? "资料合集，有新资料" : "资料合集"}">${I.doc}<span>资料合集</span>${hasUnreadArchive ? `<span class="tab-red-dot" style="top:-2px;right:-2px" aria-label="有新资料"></span>` : ""}</button>`;
       return `
       <div class="page">
-        ${navBar(cap(I.chevL, "返回", "", "back"), subTitle, rightToggle)}
+        ${navBar(cap(I.chevL, "返回", "", "back"), subTitle, rightArchiveBtn)}
         <div class="px20" style="padding-top:12px; flex:1; min-height:0; display:flex">
-          <div class="island-card" style="flex:1; min-height:0; display:flex; flex-direction:column; padding:14px 18px">
-            ${reportPaneTabs()}
-            <div class="scroll" style="margin-top:14px; padding-bottom:12px; flex:1; min-height:0">
-              ${S.reportPane === "archive" ? reportArchivePane() : (isAnalyzingSub ? `
-                ${reportIntermediateCardHTML(`哈宝医生正在重新生成${subTitle}解读…`, "已检测到资料增删变更，正在比对关键指标与基线档案，约需 2–3 秒…")}
+          <div class="island-card" style="flex:1; min-height:0; display:flex; flex-direction:column; padding:16px 18px 14px">
+            <div class="flex gap8" style="align-items:center;margin-bottom:12px">
+              <span style="color:var(--blue);display:inline-flex">${I.sparkle}</span>
+              <span class="s17 fb" style="color:var(--blue)">AI 解读</span>
+            </div>
+            <div class="scroll" style="padding-bottom:12px; flex:1; min-height:0">
+              ${isAnalyzingSub ? `
+                ${reportIntermediateCardHTML(`哈宝医生正在重新生成${subTitle}解读…`, "已检测到资料变更，正在比对关键指标与基线档案，约需 2–3 秒…")}
               ` : (missingReviewTitles.length ? `
                 <div style="padding:16px;border-radius:16px;background:rgba(242,153,74,.12)">
                   <div style="display:flex;align-items:center;gap:8px;color:#c2410c;font-size:18px;font-weight:700;margin-bottom:10px">
@@ -15693,13 +15779,38 @@
               ` : `
                 <p class="s21 fm t">${esc(isVisitSub ? rep.visit : rep.baseline)}</p>
                 ${isVisitSub && S.consultReportSub?.review ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生跨期对照解读】${S.consultReportSub.review}</div>` : ""}
-                ${!isVisitSub && S.consultReportSub?.baseline ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生基线报告解读】${S.consultReportSub.baseline}</div>` : ""}`))}
+                ${!isVisitSub && S.consultReportSub?.baseline ? `<div class="mt12 s16 fb" style="color:#1054E0;background:rgba(16,84,224,.07);padding:10px 12px;border-radius:12px;line-height:1.45">【哈宝医生基线报告解读】${S.consultReportSub.baseline}</div>` : ""}`)}
             </div>
           </div>
         </div>
         <div class="px20 col gap10" style="padding-top:12px; padding-bottom:20px">
           <button class="cta" data-act="addArchive" type="button">${I.cam}新增报告资料</button>
         </div>
+      </div>`;
+    },
+
+    "report-archive": () => {
+      const editing = !!S.reportArchiveEditing;
+      const leftBtn = editing
+        ? `<button class="cap" data-act="cancelReportArchiveEdit" type="button" style="color:var(--t-sec)">取消</button>`
+        : cap(I.chevL, "返回", "", "back");
+      const rightBtn = editing
+        ? `<button class="cap primary-cap" data-act="saveReportArchiveEdit" type="button">保存</button>`
+        : `<button class="cap" data-act="editReportArchive" type="button">编辑</button>`;
+      return `
+      <div class="page">
+        ${navBar(leftBtn, "资料合集", rightBtn)}
+        <div class="px20" style="padding-top:12px; flex:1; min-height:0; display:flex">
+          <div class="island-card" style="flex:1; min-height:0; display:flex; flex-direction:column; padding:14px 18px">
+            <div class="scroll" style="padding-bottom:12px; flex:1; min-height:0">
+              ${reportArchivePane()}
+            </div>
+          </div>
+        </div>
+        ${editing ? "" : `
+        <div class="px20 col gap10" style="padding-top:12px; padding-bottom:20px">
+          <button class="cta" data-act="addArchive" type="button">${I.cam}新增报告资料</button>
+        </div>`}
       </div>`;
     },
 
@@ -23145,6 +23256,7 @@
     "vitals-detail": "03-界面/血压监测.md",
     report: "03-界面/身体报告.md",
     "report-sub": "03-界面/身体报告.md",
+    "report-archive": "03-界面/身体报告.md",
     walk: "03-界面/运动.md",
     "walk-session": "03-界面/运动.md",
     "walk-records": "03-界面/运动.md",
