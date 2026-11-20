@@ -1722,6 +1722,21 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.449",
+      date: "2026-11-20",
+      time: "10:15",
+      title: "「哈宝医生」随访推送卡片与「问卷随访」界面同步标明创建时间与最近修改年月日",
+      screens: [
+        { id: "consult", label: "哈宝医生" },
+        { id: "followup", label: "问卷随访" },
+      ],
+      items: [
+        "哈宝医生「随访提醒」推送卡片每期随访标题标明完整年月日（YYYY年M月D日 定期随访问卷），下方小字展示「创建 YYYY-M-D」（未开始）或「创建 YYYY-M-D · 最近修改 YYYY-M-D」（填写中/已完成）。",
+        "点击「去完成随访」不再直接标为已完成，改为真正提交问卷后才标记「已完成」并写入最近修改日期，中途退出保存草稿则显示「填写中」。",
+        "「问卷随访」时间树卡片同步替换为「创建时间 + 最近修改时间」（年月日），替代原「上次填写时间」单一日期展示。",
+      ],
+    },
+    {
       ver: "V10.448",
       date: "2026-11-20",
       time: "09:23",
@@ -5342,16 +5357,19 @@
         t: "",
         doctorPushCard: (() => {
           const now = new Date();
-          const curMonth = `${now.getFullYear()}年${now.getMonth() + 1}月`;
-          const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-          const prevMonth = `${prev.getFullYear()}年${prev.getMonth() + 1}月`;
+          const fmtCN = (d) => `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+          const fmtDash = (d) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+          const prevUpdated = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+          const prevCreated = new Date(prevUpdated.getTime() - 2 * 86400000);
+          const curTitle = `${fmtCN(now)} 定期随访问卷`;
+          const prevTitle = `${fmtCN(prevCreated)} 定期随访问卷`;
           return {
             kind: "followUpReminder",
             title: "随访医生提醒您完成定期随访，提交后自动更新身体报告：",
             pushedAtLabel: "10:15",
             followUpItems: [
-              { title: `${curMonth} 定期随访问卷`, progressText: "待完成", isCompleted: false },
-              { title: `${prevMonth} 定期随访问卷`, progressText: "已完成", isCompleted: true }
+              { title: curTitle, progressText: "待完成", isCompleted: false, createdDate: fmtDash(now), updatedDate: null },
+              { title: prevTitle, progressText: "已完成", isCompleted: true, createdDate: fmtDash(prevCreated), updatedDate: fmtDash(prevUpdated) }
             ],
             followUpCompleted: false
           };
@@ -5410,9 +5428,9 @@
     if (!Array.isArray(S.messages)) S.messages = [];
     const pushCount = S.messages.filter((m) => m && m.doctorPushCard).length;
     const hasNormalChat = S.messages.some((m) => m && m.who === "ai" && m.t && !m.doctorPushCard);
-    if (forceReset || !S.doctorPushSeedV10447 || pushCount !== 3 || !hasNormalChat) {
+    if (forceReset || !S.doctorPushSeedV10449 || pushCount !== 3 || !hasNormalChat) {
       S.messages = defaultDoctorPushMessages();
-      S.doctorPushSeedV10447 = true;
+      S.doctorPushSeedV10449 = true;
     }
   }
   function bubbleCornerHumanBtnHTML(m, readOnly) {
@@ -5466,21 +5484,33 @@
         </div>
       `;
     } else if (c.kind === "followUpReminder") {
-      const answered = Object.keys(S.qAns || {}).length;
+      const now = new Date();
+      const todayDash = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+      const answered = Object.keys(S.answers || {}).length;
       const items = Array.isArray(c.followUpItems) && c.followUpItems.length ? c.followUpItems : [
-        { title: "定期随访问卷", progressText: c.followUpCompleted ? "已完成" : "待完成", isCompleted: !!c.followUpCompleted }
+        { title: "定期随访问卷", progressText: c.followUpCompleted ? "已完成" : "待完成", isCompleted: !!c.followUpCompleted, createdDate: todayDash, updatedDate: null }
       ];
       listRowsHTML = items.map((it, idx) => {
         const isDone = (idx === 0 && c.followUpCompleted) ? true : !!it.isCompleted;
         const rightText = idx === 0
           ? (c.followUpCompleted ? "已完成" : (answered > 0 ? "填写中" : "待完成"))
           : (isDone ? "已完成" : "待完成");
+        const createdStr = it.createdDate || todayDash;
+        const effectiveUpdated = idx === 0
+          ? (c.followUpCompleted ? (it.updatedDate || S.followupDraftUpdatedDash || todayDash) : (answered > 0 ? (S.followupDraftUpdatedDash || it.updatedDate || todayDash) : (it.updatedDate || null)))
+          : (it.updatedDate || (isDone ? createdStr : null));
+        const metaText = effectiveUpdated
+          ? `创建 ${createdStr} · 最近修改 ${effectiveUpdated}`
+          : `创建 ${createdStr}`;
         return `
-          <div style="display:flex;align-items:center;gap:6px;padding:5px 0;${idx < items.length - 1 ? "border-bottom:1px solid rgba(16,84,224,.08);" : ""}">
-            <span style="width:5px;height:5px;border-radius:50%;background:${isDone ? "rgba(16,84,224,.35)" : "#1054E0"};flex-shrink:0"></span>
-            <span style="font-size:13.5px;font-weight:700;color:#1054E0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(it.title)}</span>
-            <span style="flex:1"></span>
-            <span style="font-size:12px;font-weight:${isDone ? 500 : 700};color:${isDone ? "#6E7D96" : "#1054E0"};white-space:nowrap;flex-shrink:0">${esc(rightText)}</span>
+          <div style="display:flex;flex-direction:column;gap:2px;padding:5.5px 0;${idx < items.length - 1 ? "border-bottom:1px solid rgba(16,84,224,.08);" : ""}">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="width:5px;height:5px;border-radius:50%;background:${isDone ? "rgba(16,84,224,.35)" : "#1054E0"};flex-shrink:0"></span>
+              <span style="font-size:13.5px;font-weight:700;color:#1054E0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(it.title)}</span>
+              <span style="flex:1"></span>
+              <span style="font-size:12px;font-weight:${isDone ? 500 : 700};color:${isDone ? "#6E7D96" : "#1054E0"};white-space:nowrap;flex-shrink:0">${esc(rightText)}</span>
+            </div>
+            <div style="padding-left:11px;font-size:11px;font-weight:500;color:rgba(110,125,150,.9);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(metaText)}</div>
           </div>
         `;
       }).join("");
@@ -10075,10 +10105,12 @@
       },
       goDoctorFollowUp() {
         const id = el.dataset.id;
-        const msg = (S.messages || []).find((m) => m.id === id);
-        if (msg && msg.doctorPushCard) {
-          msg.doctorPushCard.followUpCompleted = true;
-        }
+        S.activeFollowUpMsgId = id || null;
+        const now = new Date();
+        const todayDash = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+        const todayYMD = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
+        if (!S.followupDraftCreatedYMD) S.followupDraftCreatedYMD = todayYMD;
+        if (!S.followupDraftCreatedDash) S.followupDraftCreatedDash = todayDash;
         go("questionnaire", "cover");
       },
       openConsultReport() {
@@ -13610,12 +13642,37 @@
             S.answers[q.id] = [...cur];
           }
         } else S.answers[q.id] = el.dataset.v;
+        const now = new Date();
+        const todayDash = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+        const todayYMD = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
+        if (!S.followupDraftCreatedYMD) S.followupDraftCreatedYMD = todayYMD;
+        if (!S.followupDraftCreatedDash) S.followupDraftCreatedDash = todayDash;
+        S.followupDraftUpdatedYMD = todayYMD;
+        S.followupDraftUpdatedDash = todayDash;
         render();
       },
       qNext() {
         if (S.qIndex < QUESTIONS.length - 1) S.qIndex += 1;
         else {
           S.qDone = true;
+          const now = new Date();
+          const todayDash = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+          const todayYMD = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`;
+          S.followupCompletedCreatedYMD = S.followupDraftCreatedYMD || todayYMD;
+          S.followupCompletedUpdatedYMD = todayYMD;
+          (S.messages || []).forEach((m) => {
+            if (m && m.doctorPushCard && m.doctorPushCard.kind === "followUpReminder") {
+              if (!S.activeFollowUpMsgId || m.id === S.activeFollowUpMsgId) {
+                m.doctorPushCard.followUpCompleted = true;
+                if (Array.isArray(m.doctorPushCard.followUpItems) && m.doctorPushCard.followUpItems.length) {
+                  m.doctorPushCard.followUpItems[0].isCompleted = true;
+                  m.doctorPushCard.followUpItems[0].progressText = "已完成";
+                  m.doctorPushCard.followUpItems[0].updatedDate = todayDash;
+                }
+              }
+            }
+          });
+          S.activeFollowUpMsgId = null;
           logOp("提交了问卷", "问卷随访", []);
           triggerReportAnalysis("followup");
         }
@@ -15619,21 +15676,36 @@
 
     followup: () => {
       const rep = activePersonStore().report;
+      const now = new Date();
+      const fmtCN = (d) => `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+      const todayYMD = fmtCN(now);
+      const twoDaysAgoYMD = fmtCN(new Date(now.getTime() - 2 * 86400000));
+      const threeDaysAgoYMD = fmtCN(new Date(now.getTime() - 3 * 86400000));
+      const fiveDaysAgoYMD = fmtCN(new Date(now.getTime() - 5 * 86400000));
+      const prevUpdated = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+      const prevCreated = new Date(prevUpdated.getTime() - 2 * 86400000);
+
       const scene = S.followupDemoScene || (S.qDone ? "filledTwice" : "inProgress");
       const sceneTitles = { inProgress: "填写一半", filledTwice: "已填两次", empty: "未填写" };
       const sceneLabel = sceneTitles[scene] || "填写一半";
 
       const hasDraft = scene === "inProgress";
+      const f1Created = S.followupCompletedCreatedYMD || fiveDaysAgoYMD;
+      const f1Updated = S.followupCompletedUpdatedYMD || rep.followupDate || threeDaysAgoYMD;
+      const f2Created = fmtCN(prevCreated);
+      const f2Updated = rep.followupPrevDate || fmtCN(prevUpdated);
+
       const records = scene === "empty" ? [] : (scene === "filledTwice" ? [
-        { id: "f1", date: rep.followupDate || "2026年7月28日", summary: "总体健康自评「好」，较去年「略有好转」，不吸烟，有高强度活动。整体状态稳定，建议维持当前生活习惯。" },
-        { id: "f2", date: rep.followupPrevDate || "2026年6月25日", summary: rep.followupPrevSummary || "总体健康尚可，轻度活动受限，建议继续规律散步。" },
+        { id: "f1", createdDate: f1Created, updatedDate: f1Updated, summary: "总体健康自评「好」，较去年「略有好转」，不吸烟，有高强度活动。整体状态稳定，建议维持当前生活习惯。" },
+        { id: "f2", createdDate: f2Created, updatedDate: f2Updated, summary: rep.followupPrevSummary || "总体健康尚可，轻度活动受限，建议继续规律散步。" },
       ] : [
-        { id: "f2", date: rep.followupPrevDate || "2026年6月25日", summary: rep.followupPrevSummary || "总体健康尚可，轻度活动受限，建议继续规律散步。" },
+        { id: "f2", createdDate: f2Created, updatedDate: f2Updated, summary: rep.followupPrevSummary || "总体健康尚可，轻度活动受限，建议继续规律散步。" },
       ]);
       const showsTimeline = hasDraft || records.length > 0 || S.analyzingFollowUp;
 
-      const answeredCount = Object.keys(S.answers).length || 25;
-      const draftLastFilledLabel = rep.followupDate || "2026年7月28日";
+      const answeredCount = Object.keys(S.answers || {}).length || 25;
+      const draftCreatedYMD = S.followupDraftCreatedYMD || twoDaysAgoYMD;
+      const draftUpdatedYMD = S.followupDraftUpdatedYMD || todayYMD;
       const totalCount = QUESTIONS.length || 51;
 
       const totalRows = (hasDraft ? 1 : 0) + records.length;
@@ -15652,8 +15724,8 @@
             <div class="followup-card draft">
               <div class="followup-card-head">
                 <div class="col gap4">
-                  <div class="s13" style="font-weight:500; color:rgba(16,84,224,.55)">上次填写时间</div>
-                  <div class="s16 fb" style="color:#1054E0; font-family:ui-monospace,SF Pro Rounded,sans-serif">${esc(draftLastFilledLabel)}</div>
+                  <div class="s13" style="font-weight:500; color:rgba(16,84,224,.65); font-family:ui-monospace,SF Pro Rounded,sans-serif">创建 ${esc(draftCreatedYMD)}</div>
+                  <div class="s16 fb" style="color:#1054E0; font-family:ui-monospace,SF Pro Rounded,sans-serif">最近修改 ${esc(draftUpdatedYMD)}</div>
                 </div>
                 <div class="followup-card-chev">${I.chevR}</div>
               </div>
@@ -15674,8 +15746,11 @@
               <div class="followup-dot completed"></div>
             </div>
             <div class="followup-card">
-              <div class="followup-card-head items-center">
-                <div class="s15 fb" style="color:#1054E0; font-family:ui-monospace,SF Pro Rounded,sans-serif">${esc(rec.date)}</div>
+              <div class="followup-card-head">
+                <div class="col gap2">
+                  <div class="s15 fb" style="color:#1054E0; font-family:ui-monospace,SF Pro Rounded,sans-serif">${esc(rec.updatedDate)}</div>
+                  <div class="s12" style="font-weight:500; color:rgba(16,84,224,.58); font-family:ui-monospace,SF Pro Rounded,sans-serif">创建 ${esc(rec.createdDate)} · 最近修改 ${esc(rec.updatedDate)}</div>
+                </div>
                 <div class="followup-card-chev">${I.chevR}</div>
               </div>
               <div class="s15 mt8" style="font-weight:500; color:rgba(16,84,224,.82); line-height:1.45">${esc(rec.summary)}</div>
