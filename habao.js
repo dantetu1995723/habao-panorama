@@ -17514,8 +17514,8 @@
       const canNotifyGuardian = hasConfirmedGuardiansForCurrentPerson();
       const guardianNames = confirmedGuardianNamesSummaryForCurrentPerson();
       const anyCat = anyCatOn();
-      const curP = activePerson();
-      const maskedPhone = curP.phone || "138****5678";
+      const curP = currentDemoPerson();
+      const maskedPhone = (curP && curP.phone) || "138****5678";
       const famTitle = "通知守护我的人";
       const famSub = canNotifyGuardian
         ? `到点与完成打卡时短信通知：${esc(guardianNames)}`
