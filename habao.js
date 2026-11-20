@@ -412,7 +412,7 @@
     if (!groups.length) {
       return `${editBanner}${topBar}<div style="text-align:left">
         <div class="s19 fsb" style="color:var(--blue);opacity:.88">${src.empty}</div>
-        <p class="s15 fm t-sec" style="margin:8px 0 0">${editing ? "点右上角「保存」将更新 AI 报告解读。" : "点下方「新增报告资料」拍照上传。"}</p>
+        <p class="s15 fm t-sec" style="margin:8px 0 0">${editing ? "点下方「新增报告资料」拍照上传，或点右上角「保存」更新 AI 报告。" : "点右上角「编辑」新增或管理报告资料。"}</p>
       </div>`;
     }
     return `${editBanner}${topBar}
@@ -1731,6 +1731,19 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.454",
+      date: "2026-11-20",
+      time: "13:32",
+      title: "「资料合集」底栏「新增报告资料」按钮改为点击「编辑」后再显现",
+      screens: [
+        { id: "report-archive", label: "资料合集" },
+      ],
+      items: [
+        "「基础报告 / 复查报告」独立「资料合集」界面在默认只读查看态下隐藏底栏「新增报告资料」按钮，保持纯浏览体验。",
+        "点击右上角「编辑」进入编辑态后，底部显现「新增报告资料」主按钮，支持在同一编辑态内拍照补传或删除单页，完成后点击右上角「保存」统一触发 AI 报告刷新并返回 AI 解析界面。",
+      ],
+    },
     {
       ver: "V10.453",
       date: "2026-11-20",
@@ -7448,6 +7461,46 @@
     const visit = isVisitCapture();
     const fromCheckIn = visit && S.apptCapture;
     const filled = S.docGroups.filter((g) => g.pages > 0);
+    // V10.454：若在「资料合集」编辑态内点击底部「新增报告资料」拍照提交，
+    // 先将新拍资料合并进编辑草稿并留在编辑态，待用户点击右上角「保存」统一落库并触发 AI 报告刷新
+    if (!fromCheckIn && S.reportArchiveEditing && Array.isArray(S.reportArchiveDraft)) {
+      if (visit) {
+        ARCHIVE_DEMO.review.maxOrd = Math.max(3, S.pendingVisitMaxOrd || 3, ...filled.map((g, idx) => g.ord || (idx + 1)));
+        filled.forEach((g, idx) => {
+          const ord = g.ord || (idx + 1);
+          const ordTitle = `${cnOrdinal(ord)}次复查`;
+          const existing = S.reportArchiveDraft.find((x, i) => (x.ord || parseVisitOrd(x.title, i + 1)) === ord);
+          if (existing) {
+            existing.pages += g.pages;
+            existing.ord = ord;
+            existing.title = ordTitle;
+          } else {
+            S.reportArchiveDraft.push({ ord, title: ordTitle, pages: g.pages });
+          }
+        });
+        S.reportArchiveDraft.sort((a, b) => (a.ord || parseVisitOrd(a.title, 1)) - (b.ord || parseVisitOrd(b.title, 1)));
+      } else {
+        ARCHIVE_DEMO.baseline.customCats = [...(S.sessionCustomCats || ARCHIVE_DEMO.baseline.customCats || [])];
+        filled.forEach((g) => {
+          const catTitle = groupDisplayName(g);
+          if (String(g.cat).startsWith("custom:") && !(ARCHIVE_DEMO.baseline.customCats || []).includes(catTitle)) {
+            ARCHIVE_DEMO.baseline.customCats = [...(ARCHIVE_DEMO.baseline.customCats || []), catTitle];
+          }
+          const existing = S.reportArchiveDraft.find((x) => x.title === catTitle);
+          if (existing) {
+            existing.pages += g.pages;
+          } else {
+            S.reportArchiveDraft.push({ title: catTitle, pages: g.pages });
+          }
+        });
+      }
+      S.captureMode = "intake";
+      seedDocGroups(0);
+      S.archivePlace = null;
+      S.reportArchiveEmpty = false;
+      dismissCover();
+      return;
+    }
     // 资料 BASE 互通（健康档案 / 基础报告 / 复查报告三处同源）：
     // 外侧资料合集根据每次上传累计（accumulate）更新，提交时才写入对应分组或复查批次
     const addedVisits = [];
@@ -15807,10 +15860,10 @@
             </div>
           </div>
         </div>
-        ${editing ? "" : `
+        ${editing ? `
         <div class="px20 col gap10" style="padding-top:12px; padding-bottom:20px">
           <button class="cta" data-act="addArchive" type="button">${I.cam}新增报告资料</button>
-        </div>`}
+        </div>` : ""}
       </div>`;
     },
 
