@@ -1665,7 +1665,7 @@
     vitals: { code: "HealthMonitorModuleView", note: "固定展示最近7天滚动窗口（每日零点自动顺延，无翻页）。展示整体 AI 评估卡与血压趋势/心率趋势折线图（横坐标为 x日；已移除底栏「进入哈宝医生」按钮）。" },
     report: { code: "FollowUpModuleView", note: "V10.270：综合结论 + 三等分入口（基础报告 / 复查报告 / 问卷随访）。资料增删与问卷提交后展示「AI 正在解析生成解读中…」更新中间态。" },
     "report-sub": { code: "BodyReportSubReportView", note: "V10.339：顶栏两枚 Tab「AI 解读 / 资料合集」，打卡复查拍照后直接进资料合集；资料合集缩略图右上角支持「×」删除单页。资料增删后 AI 解读呈现更新中间态。「刷新报告解读」按钮仅在「AI 解读」界面底部展示（仅有资料更新才可点击，否则禁用；在「资料合集」界面不显示）。底栏保留「新增报告资料」大主按钮；打卡复查落库后弹出「复查资料已保存」弹窗（主按钮「立即打卡」自动跳回首页完成打卡，次按钮「稍后打卡」留在资料合集由用户稍后自行打卡；弹窗关闭后点击左上角返回正常进入身体报告界面，再由身体报告返回首页）。" },
-    walk: { code: "WalkView", note: "大标题 + 44 回首页（dismiss cover，不压栈）。地图主卡底浮层：60 圆钮记录/分享 + 60 主胶囊。三态：开始运动 / 返回运动 / 保存并打卡。点「开始运动」、以及首页「进入运动，开始散步」，都先按出院诊断比对绝对禁忌症；未命中直接进入散步会话，命中则打开通用「运动安全提示（绝对禁忌症）」界面，不再弹出确认弹窗；返回运动不再问。保存归属：计划入口完成原任务，自由入口按开始时刻新建「自主散步」，不猜测也不占用存量计划。" },
+    walk: { code: "WalkView", note: "大标题 + 44 回首页（dismiss cover，不压栈）。地图主卡底浮层：60 圆钮记录 + 60 主胶囊（横向弹性撑满）。三态：开始运动 / 返回运动 / 保存并打卡。点「开始运动」、以及首页「进入运动，开始散步」，都先按出院诊断比对绝对禁忌症；未命中直接进入散步会话，命中则打开通用「运动安全提示（绝对禁忌症）」界面，不再弹出确认弹窗；返回运动不再问。保存归属：计划入口完成原任务，自由入口按开始时刻新建「自主散步」，不猜测也不占用存量计划。" },
     "walk-contra": { code: "AbsoluteContraindicationView", note: "通用绝对运动禁忌症提示界面（散步/运动前风险提示/家属代提醒共用）：顶部警示盾牌徽标 + 高对比度「检测到绝对运动禁忌症」标题与场景副标题 +「命中的禁忌指征」白卡（红底胶囊列出病历命中项）+「安全建议与说明」白卡（3 条清晰建议）+ 底部「我知道了，暂不运动」主按钮。" },
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
@@ -1721,6 +1721,19 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.448",
+      date: "2026-11-20",
+      time: "09:23",
+      title: "运动首页移除「分享」按钮，底部操作栏调整为「记录」圆钮 + 弹性撑满主胶囊",
+      screens: [
+        { id: "walk", label: "运动" },
+      ],
+      items: [
+        "同步真机运动页设计，移除交互全景运动首页（含患者本人视角与家属视角）地图底部浮层右侧「分享」圆钮，路径海报分享能力统一收敛在「记录」散步记录列表内按条分享。",
+        "底部操作栏调整为左侧「记录」60pt 圆钮 + 右侧弹性撑满的「开始运动 / 返回运动 / 保存并打卡 / 提醒TA运动」主胶囊，主操作更聚焦舒展。",
+      ],
+    },
     {
       ver: "V10.447",
       date: "2026-11-19",
@@ -8598,11 +8611,6 @@
         S.walkSaved = true;
         if (topFrame().id === "walk-session") back();
         else go("walk", "cover");
-      },
-      walkShare() {
-        // 散步分享 = 路径海报（不是集章名信片）；家属视角直接分享患者最近一次散步轨迹
-        if (S.walking || S.walkSaved || shownRole() === "family") openOverlay("walkPoster", { date: "2026年9月11日" });
-        else toast("还没有散步路径，先出门走一段吧");
       },
       familyConfirmDone() {
         const id = S.overlayData.id;
@@ -15890,7 +15898,6 @@
             <div class="walk-dock">
               <button class="walk-side" data-go="walk-records" type="button">${I.hist}<span>记录</span></button>
               <button class="walk-main" data-act="familyWalkRemind" type="button">${I.bell}${isReminded ? "再次提醒TA运动" : "提醒TA运动"}</button>
-              <button class="walk-side" data-act="walkShare" type="button">${I.share}<span>分享</span></button>
             </div>
           </div>
         </div>`;
@@ -15912,7 +15919,6 @@
           <div class="walk-dock">
             <button class="walk-side" data-go="walk-records" type="button">${I.hist}<span>记录</span></button>
             <button class="walk-main ${S.walking && !S.walkSaved ? "ghost" : ""}" data-act="${S.walkSaved ? "walkSave" : S.walking ? "walkResume" : "walkStart"}" type="button">${S.walkSaved ? "保存并打卡" : S.walking ? `${I.chevL}返回运动` : `${I.walk}开始运动`}</button>
-            <button class="walk-side" data-act="walkShare" type="button">${I.share}<span>分享</span></button>
           </div>
         </div>
       </div>`;
