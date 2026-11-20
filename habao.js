@@ -1722,6 +1722,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.450",
+      date: "2026-11-20",
+      time: "10:38",
+      title: "「打卡通知」页顶部新增短信通知渠道说明卡片，明确到点免费发送短信至绑定手机号",
+      screens: [
+        { id: "notify", label: "打卡通知" },
+      ],
+      items: [
+        "在「打卡通知」开关列表上方新增浅蓝圆角短信渠道说明卡，展示短信图标、「通过短信发送打卡提醒」标题与「到点免费发短信至 {脱敏手机号}」说明。",
+        "守护人开关副文案同步明确为「到点与完成打卡时短信通知：{守护人}」。",
+      ],
+    },
+    {
       ver: "V10.449",
       date: "2026-11-20",
       time: "10:15",
@@ -17501,15 +17514,24 @@
       const canNotifyGuardian = hasConfirmedGuardiansForCurrentPerson();
       const guardianNames = confirmedGuardianNamesSummaryForCurrentPerson();
       const anyCat = anyCatOn();
+      const curP = activePerson();
+      const maskedPhone = curP.phone || "138****5678";
       const famTitle = "通知守护我的人";
       const famSub = canNotifyGuardian
-        ? `到点与完成打卡时通知：${esc(guardianNames)}`
+        ? `到点与完成打卡时短信通知：${esc(guardianNames)}`
         : "尚未添加守护我的人，点按去添加";
       const gateActive = !!(S.notifySelf || (genHasFamily() && canNotifyGuardian && S.notifyFamily));
       return `
       <div class="page">
         ${navBar(cap(I.chevL, "返回"), "打卡通知")}
         <div class="scroll px20" style="padding-top:12px;padding-bottom:24px">
+          <div class="notify-sms-banner">
+            <div class="notify-sms-ico">${I.chat}</div>
+            <div class="notify-sms-body">
+              <h4>通过短信发送打卡提醒</h4>
+              <p>到点免费发短信至 ${esc(maskedPhone)}</p>
+            </div>
+          </div>
           ${genHasFamily() ? `<div class="list-island" style="margin-bottom:16px">
             ${rowToggle(famTitle, !!(canNotifyGuardian && S.notifyFamily && anyCat), "toggleFam", notifySys(I.two), "", famSub)}
           </div>` : ""}
