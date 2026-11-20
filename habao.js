@@ -1718,6 +1718,21 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.452",
+      date: "2026-11-20",
+      time: "12:15",
+      title: "修复非基础作息计划切换为「饮食 / 作息」或标题含作息前缀时被误判为「基础作息」的缺陷",
+      screens: [
+        { id: "task-detail", label: "查看计划 / 更新计划" },
+        { id: "today", label: "今日计划" },
+        { id: "first-rest", label: "当前计划" },
+      ],
+      items: [
+        "收口「基础作息」归属判定：仅创建计划伊始预设的基础作息骨架项（起床、早餐、午餐、午休、晚餐、上床睡觉）带有「基础作息」标签与字段锁定。",
+        "修复如「起床测血压」等非基础作息计划在修改事项分类为「饮食」或「作息」后，因标题前缀匹配而被自动转为「基础作息」并锁定编辑的问题。",
+      ],
+    },
+    {
       ver: "V10.451",
       date: "2026-11-20",
       time: "11:21",
@@ -6086,7 +6101,9 @@
     return (list || []).filter((t) => isBaselineTask(t) && taskActiveFromToday(t, today));
   }
   function isBaselineRestItem(t) {
-    return !!t && (t.routineSkeleton || ((t.cat === "rest" || t.cat === "diet") && (BASELINE_REST_NAMES.includes(t.title) || BASELINE_REST_NAMES.some((n) => t.title && t.title.startsWith(n)))));
+    if (!t) return false;
+    if (typeof t.routineSkeleton === "boolean") return t.routineSkeleton;
+    return isBaselineTask(t) && (t.cat === "rest" || t.cat === "diet") && BASELINE_REST_NAMES.includes(t.title);
   }
   function isRoutineSkeletonTask(t) {
     return !!(t && (t.routineSkeleton || (isBaselineTask(t) && isBaselineRestItem(t))));
@@ -6103,7 +6120,7 @@
           isRefresh: false, cycle: true, rule: "daily", duration: "oneYear", routineSkeleton: true,
         };
       }
-      const hit = old.find((t) => isBaselineRestItem(t) && (t.title === p.name || (t.title && t.title.startsWith(p.name))));
+      const hit = old.find((t) => isBaselineRestItem(t) && (t.title === p.name || (p.name === "上床睡觉" && t.title === "睡觉")));
       if (hit) {
         const origT = `${pad(hit.h ?? 0)}:${pad(hit.m ?? 0)}`;
         return {
@@ -14913,7 +14930,7 @@
                   ${g.inactiveItems.length ? `
                     <div class="confirm-period-add-chips">
                       ${g.inactiveItems.map((r) => {
-                        const isRoutineChip = !!(r.isRoutine || BASELINE_REST_NAMES.includes(r.name));
+                        const isRoutineChip = !!r.isRoutine;
                         return `
                         <button class="routine-head-chip" data-act="${r.isOtherPlan ? "restoreRestOtherCard" : "restoreRestCard"}" data-i="${r.isOtherPlan ? r.otherIdx : r.i}" type="button">
                           ${I.plus}
@@ -17343,7 +17360,7 @@
             const dateLabel = taskDateFieldLabel(taskObj);
             const rangeText = taskDateRangeLabel(taskObj);
             const notes = t.note ? `<div class="act-notes">${cardNote(I.alignLeft, esc(t.note))}</div>` : "";
-            const isRoutineCard = !!(isRoutineSkeletonTask(t) || BASELINE_REST_NAMES.includes(t.title));
+            const isRoutineCard = !!isRoutineSkeletonTask(t);
             const titleHTML = isRoutineCard
               ? `<div class="act-title-row"><div class="s15 fb t" style="line-height:1.35;word-break:break-word">${esc(t.title || "新计划")}</div><span class="diff-badge routine-badge">基础作息</span></div>`
               : `<div class="s15 fb t" style="line-height:1.35;word-break:break-word">${esc(t.title || "新计划")}</div>`;
@@ -20597,7 +20614,7 @@
   function taskCard(t, focus) {
     const done = !!S.completed[t.id];
     const appt = t.cat === "appointment" && !done;
-    const isRoutine = !!(isRoutineSkeletonTask(t) || isBaselineRestItem(t) || BASELINE_REST_NAMES.includes(t.title));
+    const isRoutine = !!(isRoutineSkeletonTask(t) || isBaselineRestItem(t));
     const stroke = done ? "#1AA64A" : "rgba(16,84,224,.10)";
     const sw = done ? 1.2 : 0.8;
     return `<div class="task-card hug ${done ? "done" : ""} ${appt ? "appt" : ""} ${focus ? "focus" : ""}" id="task-${t.id}" data-hug="18">
@@ -20941,7 +20958,7 @@
       }
     }
     const barCls = showDelete && !draft && isCycle ? " triple" : "";
-    const isRoutineCard = !!(isRoutine || (seedTask && isRoutineSkeletonTask(seedTask)) || BASELINE_REST_NAMES.includes(title));
+    const isRoutineCard = !!(isRoutine || (seedTask && isRoutineSkeletonTask(seedTask)));
     const badgeLabel = isRoutineCard ? "基础作息" : "";
     const titleHTML = badgeLabel
       ? `<div class="act-title-row"><div class="s15 fb t">${title}</div><span class="diff-badge routine-badge">${badgeLabel}</span></div>`
@@ -21272,8 +21289,8 @@
 
       // 模块一：事项内容（事项名称 + 补充备注 + 今日血压 + 事项分类）
       const isBaselineRoutineDetail = mode === "add"
-        ? !!(isConfirmEdit && (d.routineSkeleton || BASELINE_REST_NAMES.includes(d.title)))
-        : !!(isRoutineSkeletonTask(t) || isBaselineRestItem(t) || BASELINE_REST_NAMES.includes(t.title));
+        ? !!(isConfirmEdit && d.routineSkeleton)
+        : !!(isRoutineSkeletonTask(t) || isBaselineRestItem(t));
       const isCatLocked = viewing || (S.lockCategory && mode === "add") || isBaselineRoutineDetail;
       const catIcoHTML = d.cat === "custom" ? I[UNIFIED_CUSTOM_ICON] : (CAT_ICON[d.cat] ? CAT_ICON[d.cat]() : I.doc);
       const catKindBadge = PROFESSIONAL.has(d.cat) ? "专业康复日程" : "日常健康管理";
