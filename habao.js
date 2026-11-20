@@ -1732,6 +1732,20 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.459",
+      date: "2026-11-20",
+      time: "15:48",
+      title: "复查打卡「稍后打卡」停留在资料合集页，点击左上角「返回」直接回到首页",
+      screens: [
+        { id: "report-archive", label: "资料合集" },
+        { id: "home", label: "首页" },
+      ],
+      items: [
+        "复查计划上传资料保存后，在「复查资料已保存」弹窗点击「稍后打卡」，关闭弹窗并继续停留在「资料合集」页（任务保持未打卡），方便核对刚上传的资料。",
+        "停留期间点击「资料合集」页左上角「返回」按钮（或编辑保存后），不再逐级经过复查报告与身体报告页，直接回到首页。",
+      ],
+    },
+    {
       ver: "V10.458",
       date: "2026-11-20",
       time: "14:33",
@@ -7565,8 +7579,8 @@
     S.archivePlace = null;
     S.reportArchiveEmpty = false;
     markReportMaterialUpdated(visit ? "review" : "baseline");
-    // V10.339 / V10.458：打卡复查拍完照之后直接进入复查报告的资料合集界面；
-    // 跳出「复查资料已保存」确认弹窗（主按钮「立即打卡」自动回首页完成打卡，次按钮「稍后打卡」保持未打卡并直接返回首页）
+    // V10.339 / V10.459：打卡复查拍完照之后直接进入复查报告的资料合集界面；
+    // 跳出「复查资料已保存」确认弹窗（主按钮「立即打卡」自动回首页完成打卡，次按钮「稍后打卡」留在资料合集页，且从资料合集页返回直接回到首页）
     if (fromCheckIn) {
       S.apptCapture = false;
       S.reportKind = "visit";
@@ -7574,12 +7588,10 @@
       S.reportArchiveEditing = false;
       S.reportArchiveDraft = null;
       // 保持与真机 AppointmentReviewFlowHost 一致：
-      // 底层为身体报告页 (report) → 复查报告 AI 解析页 (report-sub) → 资料合集独立页 (report-archive)
+      // 稍后打卡停留在资料合集页 (report-archive)，点左上角「返回」直接回到首页 (home)
       S.frames = [
         { id: "home", how: "root" },
-        { id: "report", how: "cover" },
-        { id: "report-sub", how: "cover" },
-        { id: "report-archive", how: "push" }
+        { id: "report-archive", how: "cover" }
       ];
       S.screen = "report-archive";
       render();
@@ -7587,7 +7599,6 @@
         title: "复查资料已保存",
         body: "是否立即返回首页完成打卡？",
         cancel: "稍后打卡",
-        cancelAction: "deferAppointmentCheckIn",
         ok: "立即打卡",
         action: "confirmAppointmentCheckIn",
       });
@@ -14109,11 +14120,6 @@
           ["打卡", doneAppts.length ? `${opNames(doneAppts)} 已完成` : "复查计划已完成"],
         ]);
         toast("已完成复查打卡并返回首页");
-        goHome();
-      },
-      deferAppointmentCheckIn() {
-        closeOverlay();
-        toast("复查资料已保存，可稍后打卡");
         goHome();
       },
       confirmOk() {
