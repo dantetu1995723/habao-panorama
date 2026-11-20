@@ -412,7 +412,7 @@
     if (!groups.length) {
       return `${editBanner}${topBar}<div style="text-align:left">
         <div class="s19 fsb" style="color:var(--blue);opacity:.88">${src.empty}</div>
-        <p class="s15 fm t-sec" style="margin:8px 0 0">${editing ? "点下方「新增报告资料」拍照上传，或点右上角「保存」更新 AI 报告。" : "点右上角「编辑」新增或管理报告资料。"}</p>
+        <p class="s15 fm t-sec" style="margin:8px 0 0">${editing ? "点右上角「保存」将更新 AI 报告解读。" : "请返回上一页点下方「新增报告资料」拍照上传。"}</p>
       </div>`;
     }
     return `${editBanner}${topBar}
@@ -1731,6 +1731,19 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.456",
+      date: "2026-11-20",
+      time: "13:49",
+      title: "彻底移除「资料合集」界面底栏「新增报告资料」按钮，避免与外侧报告页重复",
+      screens: [
+        { id: "report-archive", label: "资料合集" },
+      ],
+      items: [
+        "移除「基础报告 / 复查报告」独立「资料合集」界面底栏的「新增报告资料」按钮（查看态与编辑态均不展示），新增资料统一由外侧「基础报告 / 复查报告」主界面底栏入口发起。",
+        "「资料合集」界面专注承担资料浏览、编辑删除与点击「保存」触发 AI 报告刷新并返回 AI 解析页的职责。",
+      ],
+    },
     {
       ver: "V10.455",
       date: "2026-11-20",
@@ -15882,17 +15895,13 @@
       return `
       <div class="page">
         ${navBar(leftBtn, "资料合集", rightBtn)}
-        <div class="px20" style="padding-top:12px; flex:1; min-height:0; display:flex">
+        <div class="px20" style="padding-top:12px; padding-bottom:20px; flex:1; min-height:0; display:flex">
           <div class="island-card" style="flex:1; min-height:0; display:flex; flex-direction:column; padding:14px 18px">
             <div class="scroll" style="padding-bottom:12px; flex:1; min-height:0">
               ${reportArchivePane()}
             </div>
           </div>
         </div>
-        ${editing ? `
-        <div class="px20 col gap10" style="padding-top:12px; padding-bottom:20px">
-          <button class="cta" data-act="addArchive" type="button">${I.cam}新增报告资料</button>
-        </div>` : ""}
       </div>`;
     },
 
