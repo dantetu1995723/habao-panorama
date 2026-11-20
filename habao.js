@@ -1732,6 +1732,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.461",
+      date: "2026-11-20",
+      time: "17:07",
+      title: "「户外散步」运动会话实时指标第 3 栏由「步频」改为「步数」",
+      screens: [
+        { id: "walk-session", label: "户外散步" },
+      ],
+      items: [
+        "户外散步会话面板的三栏实时运动指标由「总距离 / 总时长 / 步频（步/分）」调整为「总距离 / 总时长 / 步数（步）」，收起态与展开态同步生效。",
+      ],
+    },
+    {
       ver: "V10.460",
       date: "2026-11-20",
       time: "16:28",
@@ -21015,7 +21027,7 @@
         <i></i>
         <div><div class="val">08:12</div><div class="lab">总时长</div></div>
         <i></i>
-        <div><div class="val">96<small>步/分</small></div><div class="lab">步频</div></div>
+        <div><div class="val">620<small>步</small></div><div class="lab">步数</div></div>
       </div>`;
     const running = `
       ${S.walkSheet ? companion : ""}
