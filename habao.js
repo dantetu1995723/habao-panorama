@@ -1681,7 +1681,7 @@
     "walk-session": { code: "OutdoorWalkSessionView", note: "全屏地图 + 可提拉毛玻璃 sheet。展开：音源菜单+AI+封面曲名+三键播放；读数 38+单位在上；圆钮返回/暂停/120。暂停：已暂停横排 + 长按条 + 继续/结束/120。返回只收会话，不新开散步页。" },
     "walk-records": { code: "WalkRecordsSheet", note: "按天双列瀑布流。卡顶距离+步数/时段，路径区宽高比 0.88，底部分享/删除胶囊。分享出路径海报（图钉胶囊 + 完整日期 + 白卡路径 + 距离/时长/步数），删除先确认；右上「筛选」开贴底月历圈选起止日，列表顶出范围胶囊可一键清除。" },
     stamps: { code: "TodayStampShareView", note: "标题旁 36 进度环 + 右 44 日历。DayPeriod 6 段。底栏返回 + 一键分享。V0.1 + VIP 且采纳过方案时，标题下方多一张「方案章卡」：7 个日格（🌸 满日 / ◐ 部分 / ○ 空或未到 / 休 = 当天没排方案计划，算满日；今天蓝描边，点日格换日）、右上「本期已集 X/Y 章」、鼓励语（再集满 N 天拿金章 / 银章，只奖不罚）与「本期计划 ›」展开清单（调整 / 新增 / 保留 + 医嘱标）。其它状态：待采纳「📮 去采纳」、本期结束待交反馈（七格定格 + 期章 + 蓝色「交反馈」开期末反馈弹窗）、已交反馈下一期待采纳（「下一期方案已送达 去看看 ›」）。章卡下一行「我的期章」横排期章（金 ≥6 满日 / 银 4–5 / 铜 ≤3 且打过卡），点开看该期小结。海报日期下加「第 N 期康复方案 · 第 D 天 · 满日 X/7」（已结束带期章）。只有方案里的计划计入章卡，家属代打卡同样点亮，海报不带操作人。V0.0 / V0.2 / 未开通 VIP 只显示日章。" },
-    consult: { code: "SmartConsultChatView", note: "纯粹的 AI 问诊对话界面（所有入口始终可点击进入）：顶部导航左「返回」、居中「哈宝医生」；中间消息区在未发消息时展示问候卡（你好，这里是哈宝医生 / 有不适或用药疑问，都可以问我）；VIP 用户发送消息后以左右纯文本/图片气泡进行问答交流，非 VIP 用户发送消息后弹出「需购买 VIP 才能使用哈宝问诊」提示对话卡（可一键跳转 VIP 会员页开通，已购买 VIP 后自动转为哈宝医生打招呼气泡以便正式聊天问诊）；底部主输入框默认为「长按说话」按钮（按住说话、上滑取消、松开发送），左侧为键盘切换按钮（点击切换为文字输入框），右侧为「+」号功能面板（仅保留拍照、相册，已移除 AI 电话）。" },
+    consult: { code: "SmartConsultChatView", note: "纯粹的 AI 问诊对话界面（所有入口始终可点击进入）：顶部导航左「返回」、居中「哈宝医生」；中间消息区在未发消息时展示问候卡（你好，这里是哈宝医生 / 有不适或用药疑问，都可以问我）；VIP 用户发送消息后以左右纯文本/图片气泡进行问答交流，免费用户（未开通 VIP）进入即展示「成为 VIP 才能使用哈宝医生」提示气泡，气泡内提供「成为 VIP 会员 ›」按钮点击直接跳转 VIP 付费界面（已购买 VIP 后自动转为哈宝医生打招呼气泡以便正式聊天问诊）；底部主输入框默认为「长按说话」按钮（按住说话、上滑取消、松开发送），左侧为键盘切换按钮（点击切换为文字输入框），右侧为「+」号功能面板（仅保留拍照、相册，已移除 AI 电话）。" },
     profile: { code: "ServiceView", note: "V10.341：个人中心适老极简重构。顶部蓝卡移除重复手机号胶囊（保持清爽的性别+我）；下方拆分为上下两张白卡——上卡承载 5 项核心照护功能（硬件管理 / 操作记录 / 添加家属 / 家属管理 / 打卡通知），下卡以极简单行展示 4 项低频设置（更换手机号右侧展示 138****5678 ›、联系客服 ›、隐私管理 ›、关于我们右侧展示 V0.1.0 ›），底部去除重复版本号小字。" },
     "change-phone": { code: "ChangePhoneView", note: "V10.341：更换手机号页（极简版）。顶部单行展示「当前绑定 138****5678 · 档案与 VIP 不变」，紧接新手机号与 6 位验证码输入框及「确认更换」按钮，首屏清爽无冗长说明框。" },
     support: { code: "CustomerSupportView", note: "V10.341：联系客服页（首屏免滚版）。顶部压缩为紧凑单横条（400-1666-199 + 客服热线 08:00–20:00 + 右侧「拨打」胶囊），下方首屏完整呈现 4 项问题分类、反馈输入框与「提交反馈」按钮。" },
@@ -1732,6 +1732,20 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.463",
+      date: "2026-11-23",
+      time: "11:47",
+      title: "「哈宝医生」免费用户进入即展示 VIP 引导气泡，气泡内置按钮直达付费界面",
+      screens: [
+        { id: "consult", label: "哈宝医生" },
+        { id: "vip", label: "VIP 会员" },
+      ],
+      items: [
+        "免费用户（未开通 VIP）进入「哈宝医生」对话页后无需先发消息，对话流立即展示哈宝医生「成为 VIP 才能使用哈宝医生」提示气泡。",
+        "气泡内提供「成为 VIP 会员 ›」按钮，点击后直接跳转至 VIP 付费界面；开通 VIP 后自动转为哈宝医生打招呼气泡并开放正常问诊。",
+      ],
+    },
     {
       ver: "V10.462",
       date: "2026-11-20",
@@ -10246,7 +10260,7 @@
         }
         S.messages.push({ id: `msg-u-${Date.now()}`, who: "user", t: userText, timeLabel: "10:56" });
         if (!genHasVip()) {
-          S.messages.push({ id: `msg-v-${Date.now()}`, who: "vip", t: "需购买 VIP 才能使用哈宝问诊" });
+          S.messages.push({ id: `msg-v-${Date.now()}`, who: "vip", t: "成为 VIP 才能使用哈宝医生" });
         } else if (S.replyAsHumanDoctor) {
           const shortTopic = userText.length > 16 ? `${userText.slice(0, 16)}…` : userText;
           S.messages.push({
@@ -16507,6 +16521,11 @@
                 </div>
               </div>`;
           }).join("")}
+          ${!genHasVip() && (!visibleMessages.length || visibleMessages[visibleMessages.length - 1].who !== "vip") ? `
+            <div class="chat-msg-row ai">
+              <div class="chat-avatar ai" aria-label="哈宝医生头像"><img src="${A.logo}" alt="哈宝医生" /></div>
+              ${consultVipCardHTML()}
+            </div>` : ""}
         </div>
         ${S.consultScenarioModal ? `
           <div style="position:absolute;inset:0;z-index:90;background:rgba(15,23,42,.32);display:flex;flex-direction:column;justify-content:flex-end" data-act="closeConsultScenarioModal">
@@ -20425,9 +20444,9 @@
           <span class="consult-vip-tag">哈宝 VIP 专属服务</span>
           <span class="consult-vip-state${isVip ? " on" : ""}">${isVip ? "已开通" : "未开通"}</span>
         </div>
-        <div class="consult-vip-title">需购买 VIP 才能使用哈宝问诊</div>
-        <div class="consult-vip-desc">哈宝医生提供全年不限次数的在线问诊、用药与不适解答及报告解读服务。请先购买 VIP 会员（¥2400 / 年）后再使用哈宝问诊。</div>
-        <button class="consult-vip-btn${isVip ? " on" : ""}" data-go="vip" type="button">${I.crown}<span>${isVip ? "已开通 VIP · 查看权益 ›" : "去购买 VIP 会员 ›"}</span></button>
+        <div class="consult-vip-title">成为 VIP 才能使用哈宝医生</div>
+        <div class="consult-vip-desc">哈宝医生提供全年不限次数的在线问诊、用药与不适解答及报告解读服务。成为 VIP 会员（¥2400 / 年）后即可使用。</div>
+        <button class="consult-vip-btn${isVip ? " on" : ""}" data-go="vip" type="button">${I.crown}<span>${isVip ? "已开通 VIP · 查看权益 ›" : "成为 VIP 会员 ›"}</span></button>
       </div>`;
   }
   /* ── 家属代操作归属（V10.57）─────────────────────────────
