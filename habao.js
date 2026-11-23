@@ -1733,6 +1733,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.464",
+      date: "2026-11-23",
+      time: "11:53",
+      title: "补全「免费用户升级为 VIP 后」哈宝医生衔接表现，并在「状况」面板新增一键模拟",
+      screens: [
+        { id: "consult", label: "哈宝医生" },
+      ],
+      items: [
+        "免费用户进入哈宝医生看到 VIP 引导气泡并点击「成为 VIP 会员 ›」跳转完成开通返回后，无论此前是否发送过消息，原 VIP 引导气泡均自动转为哈宝医生欢迎打招呼气泡并开放正常问诊。",
+        "在哈宝医生右上角「状况」状态控制面板新增「会员身份模拟」区块，支持一键切换「模拟免费用户」与「模拟升级为 VIP」。",
+      ],
+    },
+    {
       ver: "V10.463",
       date: "2026-11-23",
       time: "11:47",
@@ -10305,6 +10318,39 @@
         S.replyAsHumanDoctor = el.dataset.mode === "human";
         render();
       },
+      simulateConsultFreeUser() {
+        ensureCareGraph();
+        const curName = (S.currentPersonName || "李建国").trim();
+        S.vip = false;
+        S.vipUntil = null;
+        if (!S.vipByPerson) S.vipByPerson = {};
+        S.vipByPerson[curName] = false;
+        S.consultWasFreePrompt = true;
+        S.consultFilter = "normalChat";
+        S.consultScenarioModal = false;
+        render();
+        toast("已切换为免费用户视角");
+      },
+      simulateConsultUpgradeVip() {
+        ensureCareGraph();
+        const curName = (S.currentPersonName || "李建国").trim();
+        if (!S.vipByPerson) S.vipByPerson = {};
+        S.vipByPerson[curName] = true;
+        if (!S.vipPurchasedByPerson) S.vipPurchasedByPerson = {};
+        S.vipPurchasedByPerson[curName] = true;
+        const d = new Date();
+        d.setFullYear(d.getFullYear() + 1);
+        S.vip = true;
+        S.vipUntil = d.getTime();
+        if (!(S.messages || []).some((m) => m && m.who === "vip")) {
+          S.messages.push({ id: `msg-v-${Date.now()}`, who: "vip", t: "成为 VIP 才能使用哈宝医生" });
+        }
+        S.consultWasFreePrompt = false;
+        S.consultFilter = "normalChat";
+        S.consultScenarioModal = false;
+        render();
+        toast("已模拟免费用户升级为 VIP");
+      },
       transferBubbleToHuman() {
         const id = el.dataset.id;
         const msg = (S.messages || []).find((m) => m && m.id === id);
@@ -11676,6 +11722,13 @@
         S.vipByPerson[curName] = true;
         if (!S.vipPurchasedByPerson) S.vipPurchasedByPerson = {};
         S.vipPurchasedByPerson[curName] = true;
+        if (S.consultWasFreePrompt) {
+          const hasVipMsg = (S.messages || []).some((m) => m && m.who === "vip");
+          if (!hasVipMsg) {
+            S.messages.push({ id: `msg-v-${Date.now()}`, who: "vip", t: "成为 VIP 才能使用哈宝医生" });
+          }
+          S.consultWasFreePrompt = false;
+        }
         const d = new Date();
         d.setFullYear(d.getFullYear() + 1);
         S.vip = true;
@@ -16412,6 +16465,7 @@
       const canSend = consultCanSend();
       const inText = S.inputMode === "text";
       const curPerson = S.currentPersonName || "李建国";
+      if (!genHasVip()) S.consultWasFreePrompt = true;
       if (!S.unreadConsultByPerson) S.unreadConsultByPerson = {};
       S.unreadConsultByPerson[curPerson] = false;
       const curFilter = S.consultFilter || "all";
@@ -16562,6 +16616,13 @@
                   <button type="button" data-act="resetConsultDemo" style="padding:0 12px;height:32px;border-radius:99px;border:none;background:rgba(16,84,224,.05);color:#6E7D96;font-size:12px;font-weight:700;cursor:pointer">重置默认数据</button>
                 </div>
               </div>
+              <div style="font-size:12.5px;font-weight:700;color:#6E7D96;margin:12px 0 6px">3. 会员身份模拟（免费用户 / 升级 VIP）</div>
+              <div style="background:#fff;border:1px solid rgba(16,84,224,.10);border-radius:14px;padding:10px">
+                <div style="display:flex;gap:8px">
+                  <button type="button" data-act="simulateConsultFreeUser" style="flex:1;height:34px;border-radius:99px;border:${!genHasVip() ? "none" : "1px solid rgba(16,84,224,.16)"};background:${!genHasVip() ? "#1054E0" : "rgba(16,84,224,.06)"};color:${!genHasVip() ? "#fff" : "#1054E0"};font-size:12.5px;font-weight:700;cursor:pointer">模拟免费用户</button>
+                  <button type="button" data-act="simulateConsultUpgradeVip" style="flex:1;height:34px;border-radius:99px;border:${genHasVip() ? "none" : "1px solid rgba(26,166,74,.24)"};background:${genHasVip() ? "#1AA64A" : "rgba(26,166,74,.08)"};color:${genHasVip() ? "#fff" : "#1AA64A"};font-size:12.5px;font-weight:700;cursor:pointer">模拟升级为 VIP</button>
+                </div>
+              </div>
             </div>
           </div>
         ` : ""}
@@ -16597,6 +16658,7 @@
       ensureCareGraph();
       ensureSeededCareNotices();
       const curPerson = S.currentPersonName || "李建国";
+      if (!genHasVip()) S.consultWasFreePrompt = true;
       const histMessages = S.messages.filter(
         (m) => !m.isCareBubble && m.who !== "notice"
       );
