@@ -1733,6 +1733,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.466",
+      date: "2026-11-24",
+      time: "17:22",
+      title: "「户外散步」点击「120 急救」改为直接拨打 120，移除确认弹窗",
+      screens: [
+        { id: "walk-session", label: "户外散步" },
+      ],
+      items: [
+        "户外散步运动中与暂停态点击「120 急救」按钮不再弹出「拨打 120？」确认弹窗，改为直接拨打 120。",
+        "哈宝医生危急值触发时的「拨打 120？」确认弹窗保持不变。",
+      ],
+    },
+    {
       ver: "V10.465",
       date: "2026-11-24",
       time: "16:52",
@@ -21146,7 +21159,7 @@
       <div class="sess-acts">
         <button class="sess-side" data-act="walkReturn" type="button">返回</button>
         <button class="sess-pause" data-act="walkPause" type="button">${I.pause}</button>
-        <button class="sess-120" data-act="call120" type="button"><b>120</b><span>急救</span></button>
+        <button class="sess-120" data-act="dial120" type="button"><b>120</b><span>急救</span></button>
       </div>`;
     const paused = `
       <div class="sess-pause-h">
@@ -21157,7 +21170,7 @@
       <div class="sess-acts">
         <button class="sess-pause sm" data-act="walkPause" type="button">${I.play}<em>继续</em></button>
         <button class="sess-end" data-hold="2000" data-act="walkEnd" data-hold-hint="松开手指可取消" type="button">结束</button>
-        <button class="sess-120" data-act="call120" type="button"><b>120</b><span>急救</span></button>
+        <button class="sess-120" data-act="dial120" type="button"><b>120</b><span>急救</span></button>
       </div>`;
     return `
       <div class="page sess-page">
