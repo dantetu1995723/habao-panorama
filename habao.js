@@ -1733,6 +1733,20 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.465",
+      date: "2026-11-24",
+      time: "16:52",
+      title: "「户外散步」与「散步记录」三栏运动指标名称及顺序统一调整为「散步距离 / 步数 / 用时」",
+      screens: [
+        { id: "walk-session", label: "散步运动中" },
+        { id: "walk-records", label: "散步记录" },
+      ],
+      items: [
+        "户外散步会话面板的三栏实时运动指标（收起态与展开态共用）由「总距离 / 总时长 / 步数」调整为「散步距离 / 步数 / 用时」。",
+        "散步记录分享海报底部三栏指标同步调整为「散步距离 / 步数 / 用时」。",
+      ],
+    },
+    {
       ver: "V10.464",
       date: "2026-11-23",
       time: "11:53",
@@ -21120,11 +21134,11 @@
       <div class="sess-div"></div>`;
     const metrics = `
       <div class="sess-metrics">
-        <div><div class="val">0.42<small>km</small></div><div class="lab">总距离</div></div>
-        <i></i>
-        <div><div class="val">08:12</div><div class="lab">总时长</div></div>
+        <div><div class="val">0.42<small>km</small></div><div class="lab">散步距离</div></div>
         <i></i>
         <div><div class="val">620<small>步</small></div><div class="lab">步数</div></div>
+        <i></i>
+        <div><div class="val">08:12</div><div class="lab">用时</div></div>
       </div>`;
     const running = `
       ${S.walkSheet ? companion : ""}
@@ -23094,9 +23108,9 @@
               </svg>
             </div>
             <div class="poster-stats" style="width:100%;margin-top:4px">
-              <div><b>${d.km || "0.68"}</b><small>km 距离</small></div>
-              <div><b>${d.dur || "12:34"}</b><small>时长</small></div>
+              <div><b>${d.km || "0.68"}</b><small>km 散步距离</small></div>
               <div><b>${d.steps || "920"}</b><small>步数</small></div>
+              <div><b>${d.dur || "12:34"}</b><small>用时</small></div>
             </div>
             <div class="poster-foot-brand"><span></span><i>循光而行 · 一天一节律</i><span></span></div>
           </div>
