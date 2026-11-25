@@ -1733,6 +1733,20 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.472",
+      date: "2026-11-25",
+      time: "14:05",
+      title: "同一时段存在多个测血压计划时，硬件测完弹出底部选计划 Sheet 由用户选择保存",
+      screens: [
+        { id: "home", label: "首页 / 选计划保存" },
+      ],
+      items: [
+        "同一自然时段仅 1 个测血压计划时，维持现有极简方案：硬件测完直接自动打卡（或复测更新）并在首页弹出单按钮「知道了」提示窗。",
+        "同一自然时段存在多个（≥2 个）测血压计划时，硬件测完自动弹出底部「选择要打卡的计划 / 选择要更新的计划」Sheet，顶部展示本次血压计测量时刻与血压/心率，中部单选列出当前时段对应计划（默认预选距测量时刻最接近的一条），点「保存并打卡」完成归属；点左上「暂不归属」则不打计划、仅保留原始测量在血压监测中。",
+        "首页开发菜单新增「模拟同段多计划测血压上传」演示入口，方便一键验收多计划选卡 Sheet。",
+      ],
+    },
+    {
       ver: "V10.471",
       date: "2026-11-25",
       time: "13:45",
@@ -9274,6 +9288,47 @@
         const hm = demoNowHM();
         ingestHardwareBPMeasurement({ sys: r.sys, dia: r.dia, hr: r.hr, h: hm.h, m: hm.m });
       },
+      hwPlanPick() {
+        const tid = el.dataset.tid;
+        if (S.overlay === "hwPlanPicker" && S.overlayData && tid) {
+          S.overlayData.selectedId = tid;
+          render();
+        }
+      },
+      hwPlanPickerSave() {
+        const d = S.overlayData;
+        if (!d || !d.tasks || !d.tasks.length) { closeOverlay(); return; }
+        const chosen = d.tasks.find((t) => t.id === d.selectedId) || d.tasks[0];
+        S.vitalsLog = S.vitalsLog || [];
+        S.vitalsLog.forEach((r) => { if (r.taskId === chosen.id && r.hw) r.taskId = null; });
+        S.vitalsLog.unshift({ id: `hw_pick_${Date.now()}`, time: d.time, sys: d.sys, dia: d.dia, hr: d.hr, hw: true, taskId: chosen.id });
+        const wasDone = !!S.completed[chosen.id];
+        S.completed[chosen.id] = true;
+        S.taskVitalsHw = S.taskVitalsHw || {};
+        S.taskVitalsHw[chosen.id] = true;
+        S.sys = d.sys; S.dia = d.dia; S.hr = d.hr;
+        if (VITALS_WEEK.length) VITALS_WEEK[VITALS_WEEK.length - 1] = { day: "日", sys: d.sys, dia: d.dia, hr: d.hr };
+        if (!wasDone) {
+          markProxy(chosen.id, null, true);
+          logOp("打卡了", "首页", [["计划", chosen.title], ["读数", `哈宝血压计，血压 ${d.sys}/${d.dia}，心率 ${d.hr} bpm`]]);
+        } else {
+          logOp("同步了血压", "首页", [["读数", `哈宝血压计复测更新「${chosen.title}」（血压 ${d.sys}/${d.dia}，心率 ${d.hr} bpm）`]]);
+        }
+        closeOverlay();
+        toast(wasDone ? `已更新「${chosen.title}」最新血压` : `已完成「${chosen.title}」打卡`);
+      },
+      hwPlanPickerCancel() {
+        const d = S.overlayData;
+        if (d) {
+          S.vitalsLog = S.vitalsLog || [];
+          S.vitalsLog.unshift({ id: `hw_free_${Date.now()}`, time: d.time, sys: d.sys, dia: d.dia, hr: d.hr, hw: true, taskId: null });
+          S.sys = d.sys; S.dia = d.dia; S.hr = d.hr;
+          if (VITALS_WEEK.length) VITALS_WEEK[VITALS_WEEK.length - 1] = { day: "日", sys: d.sys, dia: d.dia, hr: d.hr };
+          logOp("同步了血压", "血压监测", [["读数", `哈宝血压计（血压 ${d.sys}/${d.dia}，心率 ${d.hr} bpm）`]]);
+        }
+        closeOverlay();
+        toast("未归属计划，已保留在血压监测中");
+      },
       selectSheetHw() {
         const k = el.dataset.kind || "bloodPressure";
         if (!hwBound(k)) {
@@ -13275,6 +13330,42 @@
         closeOverlay();
         ingestHardwareBPMeasurement({ sys: r.sys, dia: r.dia, hr: r.hr, h: midH, m: 15 });
       },
+      debugSimBPMultiPlan() {
+        if (!S.hw) S.hw = {};
+        if (!S.hw.bloodPressure) {
+          S.hw.bloodPressure = { name: "哈宝血压计", serial: "3086", at: Date.now() };
+        }
+        const dev = S.hw.bloodPressure;
+        const b = BLOCKS.find((x) => x.id === S.block) || BLOCKS[1];
+        const midH = Math.floor((b.start + b.end) / 2);
+        const hm = `${pad(midH)}:15`;
+        const step = S.vitalsSyncStep || 0;
+        S.vitalsSyncStep = step + 1;
+        const r = simulatedBPReading(step);
+        let tasks = SEED.filter((t) => t.cat === "monitoring" && t.title !== "测心率" && blockIdForHour(t.h) === b.id);
+        if (tasks.length < 2) {
+          const existing = SEED.find((t) => t.cat === "monitoring" && t.title !== "测心率") || { id: "t1", title: "起床测血压", h: 7, m: 10 };
+          tasks = [
+            { id: existing.id, title: existing.title, h: existing.h, m: existing.m || 0 },
+            { id: "bp_extra_demo", title: "餐后测血压", h: Math.min(23, (existing.h || 7) + 1), m: 30 },
+          ];
+        }
+        S.screen = "home";
+        S.stack = ["home"];
+        openOverlay("hwPlanPicker", {
+          blockTitle: b.title,
+          isRecheckUpdate: false,
+          tasks,
+          suggestedId: tasks[0].id,
+          selectedId: tasks[0].id,
+          sys: r.sys,
+          dia: r.dia,
+          hr: r.hr,
+          time: hm,
+          name: dev.name,
+          serial: dev.serial,
+        });
+      },
       debugPickBlock() {
         const b = +el.dataset.block;
         S.block = b;
@@ -15118,8 +15209,8 @@
     };
 
     const uncompleted = blockBPTasks.filter((t) => !S.completed[t.id]);
-    if (uncompleted.length) {
-      const target = pickClosest(uncompleted);
+    if (uncompleted.length === 1) {
+      const target = uncompleted[0];
       S.vitalsLog.forEach((r) => { if (r.taskId === target.id && r.hw) r.taskId = null; });
       S.vitalsLog.unshift({ id: `hw_auto_${Date.now()}`, time: hm, sys, dia, hr, hw: true, taskId: target.id });
       S.completed[target.id] = true;
@@ -15138,10 +15229,26 @@
       });
       return;
     }
+    if (uncompleted.length > 1) {
+      const closest = pickClosest(uncompleted) || uncompleted[0];
+      S.screen = "home";
+      S.stack = ["home"];
+      openOverlay("hwPlanPicker", {
+        blockTitle: blockObj.title,
+        isRecheckUpdate: false,
+        tasks: uncompleted,
+        suggestedId: closest.id,
+        selectedId: closest.id,
+        sys, dia, hr, time: hm,
+        name: dev.name,
+        serial: dev.serial,
+      });
+      return;
+    }
 
     const completed = blockBPTasks.filter((t) => !!S.completed[t.id]);
-    if (completed.length) {
-      const target = pickClosest(completed);
+    if (completed.length === 1) {
+      const target = completed[0];
       // 复测更新：旧硬件测量解绑保留在血压监测明细中，最新一次接管该计划显示
       S.vitalsLog.forEach((r) => { if (r.taskId === target.id && r.hw) r.taskId = null; });
       S.vitalsLog.unshift({ id: `hw_recheck_${Date.now()}`, time: hm, sys, dia, hr, hw: true, taskId: target.id });
@@ -15156,6 +15263,22 @@
         title: "已更新本次血压记录",
         message: `${dev.name} · ${dev.serial} 于 ${hm} 完成复测，已自动更新「${target.title}」最新血压。`,
         sys, dia, hr,
+      });
+      return;
+    }
+    if (completed.length > 1) {
+      const closest = pickClosest(completed) || completed[0];
+      S.screen = "home";
+      S.stack = ["home"];
+      openOverlay("hwPlanPicker", {
+        blockTitle: blockObj.title,
+        isRecheckUpdate: true,
+        tasks: completed,
+        suggestedId: closest.id,
+        selectedId: closest.id,
+        sys, dia, hr, time: hm,
+        name: dev.name,
+        serial: dev.serial,
       });
       return;
     }
@@ -22547,6 +22670,7 @@
           <button class="dbg-row danger" data-act="debugRegenerate" type="button">${I.undo}<span>重新生成</span></button>
           <button class="dbg-row" data-act="debugTestLogin" type="button">${I.person}<span>测试登录步骤</span></button>
           <button class="dbg-row" data-act="debugSimBPAuto" type="button">${I.ecg}<span>模拟血压计测完上传<em>当前时段自动打卡</em></span></button>
+          <button class="dbg-row" data-act="debugSimBPMultiPlan" type="button">${I.list}<span>模拟同段多计划测血压上传<em>弹出选计划 Sheet</em></span></button>
           <div class="dbg-sep"></div>
           ${["0.0", "0.1"].map((v) => `
             <button class="dbg-row" data-act="debugGen" data-gen="${v}" type="button">
@@ -22738,6 +22862,55 @@
             </div>
           </div>
           <button class="cta mt16" data-act="vitalsSave" type="button">保存并打卡</button>
+        </div>
+      </div>`;
+    },
+    hwPlanPicker: () => {
+      const d = S.overlayData || {};
+      const tasks = d.tasks || [];
+      return `
+      <div class="scrim bottom" data-act="hwPlanPickerCancel">
+        <div class="sheet" style="max-height:85%" onclick="event.stopPropagation()">
+          <div class="grab"></div>
+          <div class="flex between">
+            <button class="nav-text" data-act="hwPlanPickerCancel" type="button">暂不归属</button>
+            <h3 class="s17">${d.isRecheckUpdate ? "选择要更新的计划" : "选择要打卡的计划"}</h3>
+            <span style="width:56px"></span>
+          </div>
+          <div class="island-card mt12" style="padding:14px">
+            <div class="flex between" style="align-items:center">
+              <div class="s13 fb" style="color:#1AA64A">${d.name || "哈宝血压计"} · ${d.serial || "3086"}</div>
+              <div class="s12 t-sec mono">测量于 ${d.time || demoNowHMText()}</div>
+            </div>
+            <div style="margin-top:10px;padding:10px 12px;border-radius:14px;background:#F4F7FC;display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center">
+              <div>
+                <div class="s12 t-sec">血压</div>
+                <div class="s18 fb mono" style="color:#1054E0;margin-top:3px">${d.sys || 122}/${d.dia || 76} <span class="s11" style="opacity:.7">mmHg</span></div>
+              </div>
+              <div style="border-left:1px solid rgba(16,84,224,.10)">
+                <div class="s12 t-sec">心率</div>
+                <div class="s18 fb mono" style="color:#F05A6E;margin-top:3px">${d.hr || 68} <span class="s11" style="opacity:.7">bpm</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="s13 fb t-sec mt12">${d.blockTitle || "当前"}时段有 ${tasks.length} 个${d.isRecheckUpdate ? "已打卡" : ""}测血压计划，请选择保存到哪一个：</div>
+          <div class="col gap10 mt10">
+            ${tasks.map((t) => {
+              const sel = (d.selectedId || d.suggestedId) === t.id;
+              const isSug = t.id === d.suggestedId;
+              return `<button type="button" data-act="hwPlanPick" data-tid="${t.id}" style="width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;cursor:pointer;text-align:left;background:${sel ? "rgba(16,84,224,.08)" : "#fff"};border:1.5px solid ${sel ? "#1054E0" : "rgba(16,84,224,.12)"}">
+                <span style="width:20px;height:20px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;background:${sel ? "#1054E0" : "#fff"};border:1.5px solid ${sel ? "#1054E0" : "#CBD5E1"};color:#fff;font-size:12px;font-weight:800">${sel ? "✓" : ""}</span>
+                <div style="min-width:0;flex:1">
+                  <div class="flex gap6" style="align-items:center">
+                    <span class="s16 fb" style="color:#0F172A">${t.title}</span>
+                    ${isSug ? `<span style="font-size:10.5px;font-weight:700;color:#1054E0;background:rgba(16,84,224,.10);padding:2px 6px;border-radius:99px">时间最接近</span>` : ""}
+                  </div>
+                  <div class="s12 t-sec mono mt4">计划时间 ${pad(t.h)}:${pad(t.m || 0)}</div>
+                </div>
+              </button>`;
+            }).join("")}
+          </div>
+          <button class="cta mt16" data-act="hwPlanPickerSave" type="button">${d.isRecheckUpdate ? "更新该计划血压" : "保存并打卡"}</button>
         </div>
       </div>`;
     },
