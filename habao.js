@@ -1808,6 +1808,21 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.478",
+      date: "2026-11-25",
+      time: "17:42",
+      title: "「家属管理」中测血压与复查计划的代打卡及取消打卡流程全面与本人一致",
+      screens: [
+        { id: "family-manage", label: "家属管理" },
+        { id: "home", label: "首页" },
+        { id: "activity", label: "操作记录" },
+      ],
+      items: [
+        "测血压代打卡：点击「代打卡」弹出与本人一致的血压/心率录入面板，点击「保存并打卡」后将读数写入对方血压监测，并在首页协助通知与双方操作记录中附带本次血压/心率数值；取消测血压打卡弹出「取消后将同时删除本次血压记录」确认窗，坚持取消后同步删除对应血压记录。",
+        "复查代打卡：点击「代打卡」弹出「上传复查资料 / 直接打卡」双选面板；选「上传复查资料」走完拍摄提交后进入复查资料合集页并弹「复查资料已保存（立即打卡 / 稍后打卡）」，选「直接打卡」则直接完成代打卡；取消复查打卡不弹窗且保留已上传资料，与本人完全一致。",
+      ],
+    },
+    {
       ver: "V10.477",
       date: "2026-11-25",
       time: "17:34",
@@ -4843,7 +4858,18 @@
     const note = String(r.summaryNote || "").trim();
     const dayLabel = proxyNonSameDayLabel(r);
     let how = title;
-    if (r.kind === "checkIn" || r.kind === "undoCheckIn" || r.kind === "remind") {
+    if (r.kind === "checkIn") {
+      const meaningfulNote = (note && note !== "代为完成打卡") ? note : "";
+      if (dayLabel && meaningfulNote) {
+        how = `${title}（${dayLabel}，${meaningfulNote}）`;
+      } else if (meaningfulNote) {
+        how = `${title}（${meaningfulNote}）`;
+      } else if (dayLabel) {
+        how = `${title}（${dayLabel}）`;
+      } else {
+        how = title;
+      }
+    } else if (r.kind === "undoCheckIn" || r.kind === "remind") {
       how = dayLabel ? `${title}（${dayLabel}）` : title;
     } else if (r.kind === "firstCreatePlan" || r.kind === "refreshMedicationPlan") {
       how = note || title;
@@ -5035,11 +5061,20 @@
     });
     return removed;
   }
-  /// 统一处理「帮家属取消打卡」：未读期内刚代打则直接抵消原通知与操作记录，否则发出「取消了打卡」通知并双端记账
+  /// 统一处理「帮家属取消打卡」：未读期内刚代打则直接抵消原通知与操作记录，否则发出「取消了打卡」通知并双端记账；测血压同步删对应血压记录
   function cancelProxyCheckInFor({ senderName, recipientName, task, ymd }) {
     if (!senderName || !recipientName || !task) return;
     const dayYMD = ymd || S.calSelYMD || toYMD(demoDate());
     setFamilyTaskCompletedOn(recipientName, task.id, dayYMD, false);
+    if (task.cat === "monitoring" && task.title !== "测心率") {
+      const bucket = ensurePersonStore(recipientName);
+      if (bucket.vitalsLog) {
+        bucket.vitalsLog = bucket.vitalsLog.filter((r) => String(r.taskId) !== String(task.id));
+      }
+      if ((S.boundPersonKey || "李建国") === recipientName && S.vitalsLog) {
+        S.vitalsLog = S.vitalsLog.filter((r) => String(r.taskId) !== String(task.id));
+      }
+    }
     const canceledCheckIns = removeUnreadProxyRequestsAndLogs((r) => (
       r.senderName === senderName &&
       r.recipientName === recipientName &&
@@ -8132,17 +8167,24 @@
       S.reportReturnHome = false;
       S.reportArchiveEditing = false;
       S.reportArchiveDraft = null;
+      const isProxyAppt = !!S.proxyApptContext;
       // 保持与真机 AppointmentReviewFlowHost 一致：
-      // 稍后打卡停留在资料合集页 (report-archive)，点左上角「返回」直接回到首页 (home)
-      S.frames = [
-        { id: "home", how: "root" },
-        { id: "report-archive", how: "cover" }
-      ];
+      // 稍后打卡停留在资料合集页 (report-archive)，点左上角「返回」直接回到首页或家属管理
+      S.frames = isProxyAppt
+        ? [
+            { id: "home", how: "root" },
+            { id: "family-manage", how: "cover" },
+            { id: "report-archive", how: "cover" },
+          ]
+        : [
+            { id: "home", how: "root" },
+            { id: "report-archive", how: "cover" },
+          ];
       S.screen = "report-archive";
       render();
       openOverlay("confirm", {
         title: "复查资料已保存",
-        body: "是否立即返回首页完成打卡？",
+        body: isProxyAppt ? "是否立即返回家属管理完成打卡？" : "是否立即返回首页完成打卡？",
         cancel: "稍后打卡",
         ok: "立即打卡",
         action: "confirmAppointmentCheckIn",
@@ -9490,15 +9532,40 @@
         closeOverlay();
       },
       appointmentGo() {
+        const proxyTarget = S.overlayData?.proxyTarget || null;
+        const proxyTask = S.overlayData?.proxyTask || null;
+        const proxyYMD = S.overlayData?.proxyYMD || null;
         closeOverlay();
         S.reportKind = "visit";
-        // V10.49：这条拍摄来自首页复查打卡，提交后接复查报告页而不是直接回首页
+        // V10.49：这条拍摄来自复查打卡，提交后接复查资料合集页并弹窗确认打卡
         S.apptCapture = true;
-        S.archivePlace = "首页";
+        if (proxyTarget && proxyTask) {
+          S.proxyApptContext = { famName: proxyTarget, task: proxyTask, ymd: proxyYMD || S.calSelYMD || toYMD(demoDate()) };
+          S.archivePlace = "家属管理";
+        } else {
+          S.proxyApptContext = null;
+          S.archivePlace = "首页";
+        }
         startArchive("capture");
       },
       appointmentDone() {
-        const id = S.overlayData.id;
+        const d = S.overlayData || {};
+        if (d.proxyTarget && d.proxyTask) {
+          const me = currentDemoPerson();
+          sendProxyRequestFor({
+            senderName: me.name,
+            recipientName: d.proxyTarget,
+            kind: "checkIn",
+            targetTaskId: d.proxyTask.id,
+            taskSnapshot: d.proxyTask,
+            summaryNote: "代为完成打卡",
+            onYMD: d.proxyYMD || S.calSelYMD || toYMD(demoDate()),
+          });
+          closeOverlay();
+          toast(`已为${d.proxyTarget}完成「${d.proxyTask.title}」代打卡`);
+          return;
+        }
+        const id = d.id;
         S.completed[id] = true;
         markProxy(id);
         closeOverlay();
@@ -9510,9 +9577,45 @@
           toast("请填写收缩压、舒张压与心率");
           return;
         }
-        const vid = S.overlayData.id;
-        const place = S.overlayData.place || "首页";
+        const d = S.overlayData || {};
         const nowHM = demoNowHMText();
+        if (d.proxyTarget && d.proxyTask) {
+          const me = currentDemoPerson();
+          const famName = d.proxyTarget;
+          const task = d.proxyTask;
+          const ymd = d.proxyYMD || S.calSelYMD || toYMD(demoDate());
+          const bucket = ensurePersonStore(famName);
+          if (!bucket.vitalsLog) bucket.vitalsLog = [];
+          bucket.vitalsLog = bucket.vitalsLog.filter((r) => String(r.taskId) !== String(task.id));
+          const entry = {
+            id: `vl_proxy_${Date.now()}`,
+            time: nowHM,
+            sys: S.sys,
+            dia: S.dia,
+            hr: S.hr,
+            taskId: task.id,
+            proxy: me.name,
+          };
+          bucket.vitalsLog.unshift(entry);
+          if ((S.boundPersonKey || "李建国") === famName) {
+            S.vitalsLog = (S.vitalsLog || []).filter((r) => String(r.taskId) !== String(task.id));
+            S.vitalsLog.unshift({ ...entry });
+          }
+          sendProxyRequestFor({
+            senderName: me.name,
+            recipientName: famName,
+            kind: "checkIn",
+            targetTaskId: task.id,
+            taskSnapshot: task,
+            summaryNote: `血压 ${S.sys}/${S.dia}，心率 ${S.hr} bpm`,
+            onYMD: ymd,
+          });
+          closeOverlay();
+          toast(`已为${famName}完成「${task.title}」代打卡`);
+          return;
+        }
+        const vid = d.id;
+        const place = d.place || "首页";
         S.completed[vid] = true;
         S.vitalsLog = (S.vitalsLog || []).filter((r) => r.taskId !== vid);
         S.vitalsLog.unshift({
@@ -12775,9 +12878,33 @@
         const famName = resolvedSelectedFamilyNameFor(me.name);
         const tid = el.dataset.id;
         if (!famName || !tid) return;
+        const ymd = S.calSelYMD || toYMD(demoDate());
         const bucket = ensurePersonStore(famName);
         const task = (bucket.tasks || []).find((t) => String(t.id) === String(tid));
         if (!task) return;
+        if (task.cat === "monitoring" && task.title !== "测心率") {
+          const latest = (bucket.vitalsLog || [])[0];
+          S.sys = latest?.sys ?? 120;
+          S.dia = latest?.dia ?? 78;
+          S.hr = latest?.hr ?? 72;
+          openOverlay("vitals", {
+            id: task.id,
+            place: "家属管理",
+            proxyTarget: famName,
+            proxyTask: { ...task },
+            proxyYMD: ymd,
+          });
+          return;
+        }
+        if (task.cat === "appointment") {
+          openOverlay("appointment", {
+            id: task.id,
+            proxyTarget: famName,
+            proxyTask: { ...task },
+            proxyYMD: ymd,
+          });
+          return;
+        }
         sendProxyRequestFor({
           senderName: me.name,
           recipientName: famName,
@@ -12785,7 +12912,7 @@
           targetTaskId: task.id,
           taskSnapshot: task,
           summaryNote: "代为完成打卡",
-          onYMD: S.calSelYMD || toYMD(demoDate()),
+          onYMD: ymd,
         });
         toast(`已为${famName}完成「${task.title}」代打卡`);
         render();
@@ -12802,6 +12929,21 @@
         if (!task) return;
         const wasDone = isFamilyTaskCompletedOn(famName, tid, ymd);
         if (wasDone) {
+          if (task.cat === "monitoring" && task.title !== "测心率") {
+            const prompt = undoCheckInPrompt(task);
+            openOverlay("confirm", {
+              title: prompt.title,
+              body: prompt.body,
+              cancel: "不取消",
+              ok: "坚持取消",
+              danger: true,
+              action: "doConfirmProxyUndoCheckIn",
+              famName,
+              taskId: task.id,
+              ymd,
+            });
+            return;
+          }
           cancelProxyCheckInFor({ senderName: me.name, recipientName: famName, task, ymd });
           toast(`已取消${famName}的「${task.title}」打卡`);
         } else {
@@ -12817,6 +12959,22 @@
           toast(`已为${famName}完成「${task.title}」代打卡`);
         }
         render();
+      },
+      doConfirmProxyUndoCheckIn() {
+        const d = S.overlayData || {};
+        const me = currentDemoPerson();
+        const famName = d.famName;
+        const tid = d.taskId;
+        const ymd = d.ymd || S.calSelYMD || toYMD(demoDate());
+        const bucket = famName ? ensurePersonStore(famName) : null;
+        const task = bucket ? (bucket.tasks || []).find((t) => String(t.id) === String(tid)) : null;
+        if (famName && task) {
+          cancelProxyCheckInFor({ senderName: me.name, recipientName: famName, task, ymd });
+          closeOverlay();
+          toast(`已取消${famName}的「${task.title}」打卡`);
+          return;
+        }
+        closeOverlay();
       },
       proxySkipTaskToday() {
         ensureCareGraph();
@@ -14910,6 +15068,23 @@
       hr(d) { markManualVitalsStep(); S.hr = stepOrSeed(S.hr, d, 72, 40, 180); render(); },
       confirmAppointmentCheckIn() {
         closeOverlay();
+        if (S.proxyApptContext) {
+          const ctx = S.proxyApptContext;
+          S.proxyApptContext = null;
+          const me = currentDemoPerson();
+          sendProxyRequestFor({
+            senderName: me.name,
+            recipientName: ctx.famName,
+            kind: "checkIn",
+            targetTaskId: ctx.task.id,
+            taskSnapshot: ctx.task,
+            summaryNote: "已上传复查资料",
+            onYMD: ctx.ymd || S.calSelYMD || toYMD(demoDate()),
+          });
+          toast(`已为${ctx.famName}完成「${ctx.task.title}」复查打卡`);
+          dismissCover();
+          return;
+        }
         const doneAppts = completeTodayAppointments();
         logOp("完成复查打卡", "复查报告", [
           ["打卡", doneAppts.length ? `${opNames(doneAppts)} 已完成` : "复查计划已完成"],
@@ -23014,7 +23189,7 @@
       <div class="scrim bottom" data-act="close">
         <div class="sheet" style="min-height:400px" onclick="event.stopPropagation()">
           <div class="grab"></div>
-          <div class="s18 fsb t-appt ta-c" style="padding:6px 8px 8px">${(SEED.find((t) => t.id === S.overlayData.id) || {}).title || "心内科复查"}</div>
+          <div class="s18 fsb t-appt ta-c" style="padding:6px 8px 8px">${esc(S.overlayData?.proxyTask?.title || (SEED.find((t) => t.id === S.overlayData.id) || {}).title || "心内科复查")}</div>
           <div class="col gap16" style="margin-top:12px;padding:16px 6px 24px">
             <button class="ex-choice appt" data-act="appointmentGo" type="button"><span class="ico">${I.cam}</span>上传复查资料</button>
             <button class="ex-choice secondary appt-sec" data-act="appointmentDone" type="button"><span class="ico">${I.check}</span>已完成复查，直接打卡</button>
@@ -23028,7 +23203,7 @@
         initVitalsDefaults();
       }
       const vSys = S.sys; const vDia = S.dia; const vHr = S.hr;
-      const tTitle = (SEED.find((t) => t.id === S.overlayData.id) || {}).title || "起床测血压";
+      const tTitle = esc(S.overlayData?.proxyTask?.title || (SEED.find((t) => t.id === S.overlayData.id) || {}).title || "起床测血压");
       return `
       <div class="scrim bottom" data-act="close">
         <div class="sheet" style="max-height:90%" onclick="event.stopPropagation()">
