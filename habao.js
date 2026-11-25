@@ -1808,6 +1808,21 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.477",
+      date: "2026-11-25",
+      time: "17:34",
+      title: "「家属管理」中的运动计划右侧由「代打卡」调整为「提醒」，已完成运动仅只读展示",
+      screens: [
+        { id: "family-manage", label: "家属管理" },
+        { id: "home", label: "首页" },
+        { id: "activity", label: "操作记录" },
+      ],
+      items: [
+        "「家属管理」计划卡片按分类区分：未完成的运动计划右侧显示「提醒」按钮，点击后向对方发送运动提醒通知并同步写入双方操作记录（不再支持代打卡）；其他分类保持「代打卡」。",
+        "已完成的运动计划在家属视角下仅展示已完成勾选状态（卡片与查看计划页均不提供取消打卡），防止家属误取消本人运动记录。",
+      ],
+    },
+    {
       ver: "V10.476",
       date: "2026-11-25",
       time: "17:10",
@@ -18512,12 +18527,20 @@
               ? `<div class="act-title-row"><div class="s15 fb t" style="line-height:1.35;word-break:break-word">${esc(t.title || "新计划")}</div><span class="diff-badge routine-badge">基础作息</span></div>`
               : `<div class="s15 fb t" style="line-height:1.35;word-break:break-word">${esc(t.title || "新计划")}</div>`;
 
+            const isExercise = kind === "exercise";
             const rightCircle = done
-              ? `<button type="button" data-act="toggleProxyCheckIn" data-id="${t.id}" title="取消打卡" style="width:34px;height:34px;border-radius:50%;border:0;flex:0 0 34px;background:var(--blue);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</button>`
-              : `<button type="button" data-act="sendProxyCheckIn" data-id="${t.id}" title="帮${esc(selectedFamName)}代打卡" style="height:34px;padding:0 12px;border-radius:999px;border:1.2px solid rgba(16,84,224,.32);background:rgba(16,84,224,.08);color:var(--blue);display:inline-flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap">
-                  <span style="width:12px;height:12px;display:grid;place-items:center">${I.check}</span>
-                  <span style="font-size:13px;font-weight:800;line-height:1">代打卡</span>
-                </button>`;
+              ? (isExercise
+                ? `<span title="已完成" style="width:34px;height:34px;border-radius:50%;flex:0 0 34px;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</span>`
+                : `<button type="button" data-act="toggleProxyCheckIn" data-id="${t.id}" title="取消打卡" style="width:34px;height:34px;border-radius:50%;border:0;flex:0 0 34px;background:var(--blue);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</button>`)
+              : (isExercise
+                ? `<button type="button" data-act="sendProxyRemind" data-id="${t.id}" title="提醒${esc(selectedFamName)}完成运动" style="height:34px;padding:0 12px;border-radius:999px;border:1.2px solid rgba(16,84,224,.32);background:rgba(16,84,224,.08);color:var(--blue);display:inline-flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap">
+                    <span style="width:12px;height:12px;display:grid;place-items:center">${I.bell}</span>
+                    <span style="font-size:13px;font-weight:800;line-height:1">提醒</span>
+                  </button>`
+                : `<button type="button" data-act="sendProxyCheckIn" data-id="${t.id}" title="帮${esc(selectedFamName)}代打卡" style="height:34px;padding:0 12px;border-radius:999px;border:1.2px solid rgba(16,84,224,.32);background:rgba(16,84,224,.08);color:var(--blue);display:inline-flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap">
+                    <span style="width:12px;height:12px;display:grid;place-items:center">${I.check}</span>
+                    <span style="font-size:13px;font-weight:800;line-height:1">代打卡</span>
+                  </button>`);
 
             const showDelete = !done && (selYMD >= todayYMD);
             const barCls = showDelete && isCycle ? " triple" : "";
@@ -22727,7 +22750,7 @@
               <button class="del-plan" style="margin-top:0;width:100%" data-act="delAll" type="button">${I.trash}删除本次和后续计划</button>
             </div>`
           : `<button class="del-plan" style="margin-top:0;width:100%" data-act="delTask" type="button">${I.trash}删除计划</button>`}</div>`;
-      } else if (viewing && done && !past) {
+      } else if (viewing && done && !past && !(S.proxyTargetPersonName && (persisted?.cat === "exercise" || d.cat === "exercise"))) {
         bottomDockHTML = `<div class="v02-bottom-dock"><button class="cta-ghost" style="color:${accent.fg};background:${accent.muted};margin-top:0" data-act="undoCheckIn" type="button">${I.undo}取消本次打卡</button></div>`;
       } else if (isConfirmEdit) {
         bottomDockHTML = `<div class="v02-bottom-dock"><button class="del-plan" style="margin-top:0;width:100%" data-act="delDraftInEditor" type="button">${I.trash}删除计划</button></div>`;
