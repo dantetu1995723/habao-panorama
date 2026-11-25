@@ -1808,6 +1808,23 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.476",
+      date: "2026-11-25",
+      time: "17:10",
+      title: "统一「家属管理」所有协助动作、首页「家属协助通知」弹窗与双方「操作记录」的口径与抵消规则",
+      screens: [
+        { id: "family-manage", label: "家属管理" },
+        { id: "home", label: "首页" },
+        { id: "activity", label: "操作记录" },
+      ],
+      items: [
+        "动作、对方首页通知弹窗与双方操作记录全面同构：补齐「取消了打卡」与「删除了这一次」，并将「排定了基础康复计划」「更新了基础康复计划」动词与本人操作完全统一，详情中完整展示关键改动摘要与非今日日期。",
+        "修复 A 帮 B 取消打卡时通知与操作记录断层的缺陷：B 未看弹窗前取消刚才的代打卡会同步撤回未读通知与双方操作记录；取消 B 自己打的卡或 B 已点「知道了」确认过的打卡时，向 B 弹出「取消了打卡」通知并双端记账。",
+        "完善未读期对称抵消与合并：B 点「知道了」前，未读「取消打卡→重打」、「新增计划→立刻删掉」及重复修改/删除同一计划时，首页通知与双方操作记录同步合并或撤回，保持两边条数与内容完全一致。",
+        "单条计划内拨动「本次提醒」微调开关改为静默生效，不再发协助通知或刷入操作记录，与操作记录规则保持一致。",
+      ],
+    },
+    {
       ver: "V10.475",
       date: "2026-11-25",
       time: "16:25",
@@ -4766,6 +4783,7 @@
     const map = {
       remind: "提醒",
       checkIn: "代打卡",
+      undoCheckIn: "取消打卡",
       createPlan: "新增计划",
       firstCreatePlan: "排定基础康复计划",
       refreshMedicationPlan: "更新基础康复计划",
@@ -4773,9 +4791,55 @@
       acceptExerciseInvite: "运动体测回执",
       rejectExerciseInvite: "运动体测回执",
       updatePlan: "修改计划",
+      deleteOnce: "仅删本次",
       deletePlan: "删除计划",
     };
     return map[kind] || "协助操作";
+  }
+  function proxyNonSameDayLabel(r) {
+    const ymd = String(r.onYMD || "").trim();
+    if (!ymd) return "";
+    const createdYMD = toYMD(r.createdAt ? new Date(r.createdAt) : demoDate());
+    if (ymd === createdYMD) return "";
+    const parts = ymd.split("-");
+    if (parts.length !== 3) return "";
+    const m = Number(parts[1]);
+    const d = Number(parts[2]);
+    if (!m || !d) return "";
+    return `${m}月${d}日`;
+  }
+  /// 家属管理动作 → 首页通知弹窗 & 双方操作记录 100% 统一动词与详情口径
+  function proxyActivityMeta(r) {
+    const actionMap = {
+      remind: "提醒了",
+      inviteExerciseTest: "提醒了",
+      acceptExerciseInvite: "回复了",
+      rejectExerciseInvite: "回复了",
+      checkIn: "打卡了",
+      undoCheckIn: "取消了打卡",
+      createPlan: "新建了计划",
+      firstCreatePlan: "排定了基础康复计划",
+      refreshMedicationPlan: "更新了基础康复计划",
+      updatePlan: "修改了计划",
+      deleteOnce: "删除了这一次",
+      deletePlan: "删除了计划",
+    };
+    const title = String(r.taskSnapshot?.title || "康复计划").trim();
+    const note = String(r.summaryNote || "").trim();
+    const dayLabel = proxyNonSameDayLabel(r);
+    let how = title;
+    if (r.kind === "checkIn" || r.kind === "undoCheckIn" || r.kind === "remind") {
+      how = dayLabel ? `${title}（${dayLabel}）` : title;
+    } else if (r.kind === "firstCreatePlan" || r.kind === "refreshMedicationPlan") {
+      how = note || title;
+    } else if (r.kind === "deleteOnce") {
+      how = note ? `${title}（${note}）` : (dayLabel ? `${title}（${dayLabel}当次）` : title);
+    } else if (r.kind === "createPlan" || r.kind === "updatePlan" || r.kind === "deletePlan") {
+      how = note ? `${title}（${note}）` : title;
+    } else {
+      how = title;
+    }
+    return { action: actionMap[r.kind] || "操作了", how };
   }
   function markFamilyManageSeenFor(personName, actorName) {
     ensureCareGraph();
@@ -4792,6 +4856,7 @@
     const t = snap.title || "康复计划";
     if (r.kind === "remind") return `${r.senderName}提醒你按时完成「${hm} ${t}」`;
     if (r.kind === "checkIn") return `${r.senderName}刚刚帮你完成了「${hm} ${t}」打卡`;
+    if (r.kind === "undoCheckIn") return `${r.senderName}刚刚帮你取消了「${hm} ${t}」打卡`;
     if (r.kind === "createPlan") return `${r.senderName}为你新增了康复计划「${hm} ${t}」`;
     if (r.kind === "firstCreatePlan") return `${r.senderName}已为你排定了基础康复计划${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
     if (r.kind === "refreshMedicationPlan") return `${r.senderName}已为你更新了基础康复计划${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
@@ -4799,6 +4864,7 @@
     if (r.kind === "acceptExerciseInvite") return `${r.senderName}已收到你的体测提醒，完成体测并创建了运动计划`;
     if (r.kind === "rejectExerciseInvite") return `${r.senderName}已收到你的体测提醒，选择暂不创建运动计划`;
     if (r.kind === "updatePlan") return `${r.senderName}帮你调整了计划「${hm} ${t}」${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
+    if (r.kind === "deleteOnce") return `${r.senderName}帮你删除了这一次「${t}」${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
     if (r.kind === "deletePlan") return `${r.senderName}帮你删除了计划「${hm} ${t}」${r.summaryNote ? `（${r.summaryNote}）` : ""}`;
     return `${r.senderName}帮你操作了「${t}」`;
   }
@@ -4860,12 +4926,14 @@
   function proxyActionLabel(kind) {
     if (kind === "remind") return "提醒";
     if (kind === "checkIn") return "代打卡";
+    if (kind === "undoCheckIn") return "取消打卡";
     if (kind === "createPlan") return "新增计划";
     if (kind === "firstCreatePlan") return "排定基础康复计划";
     if (kind === "refreshMedicationPlan") return "更新基础康复计划";
     if (kind === "inviteExerciseTest") return "运动体测邀请";
     if (kind === "acceptExerciseInvite" || kind === "rejectExerciseInvite") return "运动体测回执";
     if (kind === "updatePlan") return "修改计划";
+    if (kind === "deleteOnce") return "仅删本次";
     if (kind === "deletePlan") return "删除计划";
     return "代办";
   }
@@ -4937,26 +5005,53 @@
       }
     });
   }
+  /// 移除一批未读代理通知并同步从双方操作记录撤回（保证通知与操作记录同生共死）
+  function removeUnreadProxyRequestsAndLogs(predicate) {
+    const removed = [];
+    S.careProxyRequests = (S.careProxyRequests || []).filter((existing) => {
+      if (predicate(existing)) {
+        removed.push(existing);
+        return false;
+      }
+      return true;
+    });
+    removed.forEach((old) => {
+      removeFamilyCollaborateOp(old.id, old.senderName, old.recipientName);
+    });
+    return removed;
+  }
+  /// 统一处理「帮家属取消打卡」：未读期内刚代打则直接抵消原通知与操作记录，否则发出「取消了打卡」通知并双端记账
+  function cancelProxyCheckInFor({ senderName, recipientName, task, ymd }) {
+    if (!senderName || !recipientName || !task) return;
+    const dayYMD = ymd || S.calSelYMD || toYMD(demoDate());
+    setFamilyTaskCompletedOn(recipientName, task.id, dayYMD, false);
+    const canceledCheckIns = removeUnreadProxyRequestsAndLogs((r) => (
+      r.senderName === senderName &&
+      r.recipientName === recipientName &&
+      r.kind === "checkIn" &&
+      String(r.targetTaskId || r.taskSnapshot?.id) === String(task.id) &&
+      String(r.onYMD || toYMD(r.createdAt ? new Date(r.createdAt) : demoDate())) === String(dayYMD) &&
+      !r.recipientPopupShown
+    ));
+    if (canceledCheckIns.length === 0) {
+      sendProxyRequestFor({
+        senderName,
+        recipientName,
+        kind: "undoCheckIn",
+        targetTaskId: task.id,
+        taskSnapshot: { ...task },
+        onYMD: dayYMD,
+        skipDirectMutation: true,
+      });
+    }
+  }
   function sendProxyRequestFor({ senderName, recipientName, kind, targetTaskId, taskSnapshot, batchTasks, summaryNote, onYMD, skipDirectMutation }) {
     ensureCareGraph();
     const effId = targetTaskId || taskSnapshot?.id;
-    // 节点 ①（未读期合并/抵消）：若同一计划在 B 点「知道了」确认前被重复修改或删除，先合并替换未读通知
-    if (kind !== "createPlan") {
-      S.careProxyRequests = (S.careProxyRequests || []).filter((existing) => {
-        if (existing.senderName !== senderName || existing.recipientName !== recipientName || existing.recipientPopupShown) {
-          return true;
-        }
-        if (kind === "firstCreatePlan" || kind === "refreshMedicationPlan" || kind === "inviteExerciseTest" || kind === "acceptExerciseInvite" || kind === "rejectExerciseInvite") {
-          return existing.kind !== kind;
-        }
-        const sameTask = String(existing.targetTaskId || existing.taskSnapshot?.id) === String(effId);
-        if (!sameTask) return true;
-        if (kind === "deletePlan") {
-          return !(existing.kind === "deletePlan" || existing.kind === "updatePlan" || existing.kind === "checkIn");
-        }
-        return existing.kind !== kind;
-      });
-    }
+    const dayYMD = onYMD || S.calSelYMD || toYMD(demoDate());
+    const sameTask = (existing) => String(existing.targetTaskId || existing.taskSnapshot?.id) === String(effId);
+    const sameDay = (existing) => String(existing.onYMD || toYMD(existing.createdAt ? new Date(existing.createdAt) : demoDate())) === String(dayYMD);
+
     const req = {
       id: `pr_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       senderName,
@@ -4966,36 +5061,84 @@
       taskSnapshot: { ...taskSnapshot },
       batchTasks: Array.isArray(batchTasks) ? batchTasks.map((t) => ({ ...t })) : null,
       summaryNote: summaryNote || "",
-      onYMD: onYMD || S.calSelYMD || toYMD(demoDate()),
+      onYMD: dayYMD,
       status: "accepted",
       senderAcknowledged: true,
       recipientPopupShown: false,
       recipientManageSeen: false,
       createdAt: Date.now() + 1,
     };
+
+    // 对称抵消 ①：B 未读前，A 刚取消了打卡又重新帮 B 代打卡 → 直接恢复打卡并撤回刚才的未读取消通知与操作记录
+    if (kind === "checkIn") {
+      const canceledUndos = removeUnreadProxyRequestsAndLogs((existing) => (
+        existing.senderName === senderName &&
+        existing.recipientName === recipientName &&
+        !existing.recipientPopupShown &&
+        existing.kind === "undoCheckIn" &&
+        sameTask(existing) &&
+        sameDay(existing)
+      ));
+      if (canceledUndos.length > 0) {
+        if (!skipDirectMutation) applyAcceptedProxyMutationInStore(req);
+        return req;
+      }
+    }
+
+    // 对称抵消 ②：B 未读前，A 刚新增了计划又立刻长期删除该计划 → 同步撤回新建及相关未读通知与操作记录
+    if (kind === "deletePlan") {
+      const canceledCreates = removeUnreadProxyRequestsAndLogs((existing) => (
+        existing.senderName === senderName &&
+        existing.recipientName === recipientName &&
+        !existing.recipientPopupShown &&
+        sameTask(existing) &&
+        existing.kind === "createPlan"
+      ));
+      if (canceledCreates.length > 0) {
+        removeUnreadProxyRequestsAndLogs((existing) => (
+          existing.senderName === senderName &&
+          existing.recipientName === recipientName &&
+          !existing.recipientPopupShown &&
+          sameTask(existing) &&
+          ["updatePlan", "checkIn", "undoCheckIn", "deleteOnce", "deletePlan"].includes(existing.kind)
+        ));
+        if (!skipDirectMutation) applyAcceptedProxyMutationInStore(req);
+        return req;
+      }
+    }
+
+    // 未读期合并：若同一计划在 B 点「知道了」确认前被重复操作或删除，合并替换未读通知并同步清理双方旧操作记录
+    if (kind !== "createPlan") {
+      removeUnreadProxyRequestsAndLogs((existing) => {
+        if (existing.senderName !== senderName || existing.recipientName !== recipientName || existing.recipientPopupShown) {
+          return false;
+        }
+        if (["firstCreatePlan", "refreshMedicationPlan", "inviteExerciseTest", "acceptExerciseInvite", "rejectExerciseInvite"].includes(kind)) {
+          return existing.kind === kind;
+        }
+        if (!sameTask(existing)) return false;
+        if (kind === "deletePlan") {
+          return ["deletePlan", "deleteOnce", "updatePlan", "checkIn", "undoCheckIn"].includes(existing.kind);
+        }
+        if (kind === "checkIn" || kind === "undoCheckIn" || kind === "deleteOnce") {
+          return existing.kind === kind && sameDay(existing);
+        }
+        return existing.kind === kind;
+      });
+    }
+
     if (!skipDirectMutation) {
       applyAcceptedProxyMutationInStore(req);
     }
     S.careProxyRequests.unshift(req);
     S.proxyPopupPage = 0;
-    const actionMap = {
-      remind: "提醒了",
-      inviteExerciseTest: "提醒了",
-      acceptExerciseInvite: "回复了",
-      rejectExerciseInvite: "回复了",
-      checkIn: "打卡了",
-      createPlan: "新建了计划",
-      firstCreatePlan: "新建了计划",
-      refreshMedicationPlan: "修改了计划",
-      updatePlan: "修改了计划",
-      deletePlan: "删除了计划",
-    };
+    const meta = proxyActivityMeta(req);
     logFamilyCollaborateOp({
       entryId: req.id,
       actorName: senderName,
       targetName: recipientName,
-      action: actionMap[kind] || "打卡了",
-      how: taskSnapshot?.title || "",
+      action: meta.action,
+      how: meta.how,
     });
     return req;
   }
@@ -5132,6 +5275,14 @@
     } else if (req.kind === "checkIn") {
       if (tid) {
         setFamilyTaskCompletedOn(target, tid, ymd, true, req.senderName);
+      }
+    } else if (req.kind === "undoCheckIn") {
+      if (tid) {
+        setFamilyTaskCompletedOn(target, tid, ymd, false);
+      }
+    } else if (req.kind === "deleteOnce") {
+      if (tid) {
+        skipFamilyTaskOn(target, tid, ymd);
       }
     } else if (req.kind === "createPlan") {
       const nt = { ...req.taskSnapshot, id: tid || `proxy_${Date.now()}` };
@@ -6126,27 +6277,16 @@
     return { accent: "#1054E0", softBg: "rgba(16,84,224,.11)", border: "rgba(16,84,224,.24)", ico: I.two };
   }
   function proxyToOpItem(r) {
-    const actionMap = {
-      remind: "提醒了",
-      inviteExerciseTest: "提醒了",
-      acceptExerciseInvite: "回复了",
-      rejectExerciseInvite: "回复了",
-      checkIn: "打卡了",
-      createPlan: "新建了计划",
-      firstCreatePlan: "新建了计划",
-      refreshMedicationPlan: "修改了计划",
-      updatePlan: "修改了计划",
-      deletePlan: "删除了计划",
-    };
+    const meta = proxyActivityMeta(r);
     return {
       id: r.id,
       at: r.createdAt || Date.now(),
       role: "family",
       actor: r.senderName,
       targetName: r.recipientName,
-      action: actionMap[r.kind] || "操作了",
+      action: meta.action,
       place: "家属管理",
-      how: r.taskSnapshot?.title || "康复计划",
+      how: meta.how,
     };
   }
   function bondToOpItem(b, viewerName) {
@@ -10562,14 +10702,9 @@
           const me = currentDemoPerson();
           const ymd = S.taskOccurrence || S.calSelYMD || toYMD(demoDate());
           const t = findEditableTask(S.taskId);
-          setFamilyTaskCompletedOn(famName, S.taskId, ymd, false);
-          S.careProxyRequests = (S.careProxyRequests || []).filter((r) => !(
-            r.senderName === me.name &&
-            r.recipientName === famName &&
-            r.kind === "checkIn" &&
-            String(r.targetTaskId || r.taskSnapshot?.id) === String(S.taskId) &&
-            !r.recipientPopupShown
-          ));
+          if (t) {
+            cancelProxyCheckInFor({ senderName: me.name, recipientName: famName, task: t, ymd });
+          }
           render();
           if (t) toast(`已取消${famName}的「${t.title}」打卡`);
           return;
@@ -10585,14 +10720,9 @@
           const me = currentDemoPerson();
           const ymd = S.taskOccurrence || S.calSelYMD || toYMD(demoDate());
           const t = findEditableTask(id);
-          setFamilyTaskCompletedOn(famName, id, ymd, false);
-          S.careProxyRequests = (S.careProxyRequests || []).filter((r) => !(
-            r.senderName === me.name &&
-            r.recipientName === famName &&
-            r.kind === "checkIn" &&
-            String(r.targetTaskId || r.taskSnapshot?.id) === String(id) &&
-            !r.recipientPopupShown
-          ));
+          if (t) {
+            cancelProxyCheckInFor({ senderName: me.name, recipientName: famName, task: t, ymd });
+          }
           closeOverlay();
           if (t) toast(`已取消${famName}的「${t.title}」打卡`);
           return;
@@ -11397,7 +11527,7 @@
             kind: "updatePlan",
             targetTaskId: savedTask.id,
             taskSnapshot: { ...savedTask },
-            summaryNote: `修改为 ${pad(savedTask.h ?? 8)}:${pad(savedTask.m ?? 0)} · ${savedTask.cycle !== false ? "循环" : "单日"}`,
+            summaryNote: `改为 ${pad(savedTask.h ?? 8)}:${pad(savedTask.m ?? 0)} · ${savedTask.cycle !== false ? "循环" : "单日"}`,
             skipDirectMutation: true,
           });
           const opened = S.taskOccurrence || today;
@@ -11635,7 +11765,7 @@
             kind: "createPlan",
             targetTaskId: newTask.id,
             taskSnapshot: newTask,
-            summaryNote: `新增 ${pad(d.hour)}:${pad(d.min)} · ${d.cycle ? "循环" : "单日"}`,
+            summaryNote: `${pad(d.hour)}:${pad(d.min)} · ${d.cycle ? "循环" : "单日"}`,
           });
           closeFlow();
           toast(`已为${famName}添加计划「${d.title}」`);
@@ -11687,7 +11817,7 @@
               kind: "deletePlan",
               targetTaskId: t.id,
               taskSnapshot: { ...t },
-              summaryNote: "删除单日计划",
+              summaryNote: "",
             });
             closeFlow();
             toast(`已为${famName}删除计划「${t.title}」`);
@@ -11723,10 +11853,10 @@
             sendProxyRequestFor({
               senderName: me.name,
               recipientName: famName,
-              kind: "deletePlan",
+              kind: "deleteOnce",
               targetTaskId: t.id,
               taskSnapshot: { ...t },
-              summaryNote: `仅删除 ${monthDayLabel(parseYMD(ymd)).split(" ")[0]} 当次`,
+              summaryNote: `${monthDayLabel(parseYMD(ymd)).split(" ")[0]}当次`,
               onYMD: ymd,
               skipDirectMutation: true,
             });
@@ -11768,7 +11898,7 @@
               kind: "deletePlan",
               targetTaskId: t.id,
               taskSnapshot: { ...t },
-              summaryNote: "长期删除该计划",
+              summaryNote: t.cycle !== false ? "长期删除后续计划" : "",
             });
             closeFlow();
             toast(`已为${famName}删除计划「${t.title}」`);
@@ -12657,15 +12787,7 @@
         if (!task) return;
         const wasDone = isFamilyTaskCompletedOn(famName, tid, ymd);
         if (wasDone) {
-          setFamilyTaskCompletedOn(famName, tid, ymd, false);
-          // 节点 ①（未读期抵消）：若 B 尚未点「知道了」确认该条代打卡通知，A 取消打卡时同步撤消该条未读通知
-          S.careProxyRequests = (S.careProxyRequests || []).filter((r) => !(
-            r.senderName === me.name &&
-            r.recipientName === famName &&
-            r.kind === "checkIn" &&
-            String(r.targetTaskId || r.taskSnapshot?.id) === String(tid) &&
-            !r.recipientPopupShown
-          ));
+          cancelProxyCheckInFor({ senderName: me.name, recipientName: famName, task, ymd });
           toast(`已取消${famName}的「${task.title}」打卡`);
         } else {
           sendProxyRequestFor({
@@ -12714,10 +12836,10 @@
         sendProxyRequestFor({
           senderName: me.name,
           recipientName: famName,
-          kind: "deletePlan",
+          kind: "deleteOnce",
           targetTaskId: task.id,
           taskSnapshot: task,
-          summaryNote: `仅删除 ${monthDayLabel(parseYMD(ymd)).split(" ")[0]} 当次`,
+          summaryNote: `${monthDayLabel(parseYMD(ymd)).split(" ")[0]}当次`,
           onYMD: ymd,
           skipDirectMutation: true,
         });
@@ -12891,22 +13013,13 @@
         applyAcceptedProxyMutationInStore(req);
         req.status = "accepted";
         req.senderAcknowledged = false;
-        const actionMap = {
-          remind: "提醒了",
-          inviteExerciseTest: "提醒了",
-          checkIn: "打卡了",
-          createPlan: "新建了计划",
-          firstCreatePlan: "新建了计划",
-          refreshMedicationPlan: "修改了计划",
-          updatePlan: "修改了计划",
-          deletePlan: "删除了计划",
-        };
+        const meta = proxyActivityMeta(req);
         logFamilyCollaborateOp({
           entryId: req.id,
           actorName: req.senderName,
           targetName: req.recipientName,
-          action: actionMap[req.kind] || "打卡了",
-          how: req.taskSnapshot?.title || "",
+          action: meta.action,
+          how: meta.how,
         });
         if (req.kind === "inviteExerciseTest") {
           toast(`已收到${req.senderName}的体测提醒，请完成运动体测并自行创建运动计划`);
@@ -13228,8 +13341,8 @@
           targetTaskId: isEdit ? d.taskId : taskSnap.id,
           taskSnapshot: taskSnap,
           summaryNote: isEdit
-            ? `修改为 ${pad(d.hour)}:${pad(d.min)} · ${d.cycle ? "循环" : "单日"}`
-            : `新增 ${pad(d.hour)}:${pad(d.min)} · ${d.cycle ? "循环" : "单日"}`,
+            ? `改为 ${pad(d.hour)}:${pad(d.min)} · ${d.cycle ? "循环" : "单日"}`
+            : `${pad(d.hour)}:${pad(d.min)} · ${d.cycle ? "循环" : "单日"}`,
         });
         S.proxyEditorDraft = null;
         toast(isEdit ? `已帮${famName}保存计划修改，对方进入首页将收到弹窗通知` : `已为${famName}添加新计划，对方进入首页将收到弹窗通知`);
@@ -13287,7 +13400,7 @@
           kind: "deletePlan",
           targetTaskId: tid,
           taskSnapshot: taskSnap,
-          summaryNote: taskSnap.cycle !== false ? "长期删除该计划" : "删除单日计划",
+          summaryNote: taskSnap.cycle !== false ? "长期删除后续计划" : "",
         });
         S.pendingProxyDeleteTaskId = null;
         S.proxyEditorDraft = null;
