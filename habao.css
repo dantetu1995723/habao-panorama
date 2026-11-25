@@ -4846,6 +4846,36 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   border-color: var(--blue);
   box-shadow: 0 0 0 2px rgba(16, 84, 224, 0.1);
 }
+/* V10.475：确认计划页顶部轻量说明条 */
+.confirm-add-more-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  background: rgba(16, 84, 224, 0.065);
+  border: 1px solid rgba(16, 84, 224, 0.14);
+}
+.confirm-add-more-ico {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin-top: 2px;
+  border-radius: 50%;
+  background: rgba(16, 84, 224, 0.85);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+}
+.confirm-add-more-txt {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.48;
+  color: rgba(16, 84, 224, 0.88);
+}
 .parsed-med-input {
   width: 100%;
   min-width: 0;

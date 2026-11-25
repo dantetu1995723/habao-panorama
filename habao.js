@@ -1808,6 +1808,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.475",
+      date: "2026-11-25",
+      time: "16:25",
+      title: "「确认计划」页顶部新增轻提示条，说明确认基础计划后可在「健康计划」页自由添加其他计划",
+      screens: [
+        { id: "confirm-plan", label: "确认计划" },
+      ],
+      items: [
+        "在「确认计划」列表顶部新增浅蓝轻量提示条：「如需添加其他计划，请先确认基础计划，随后可在「健康计划」页自由添加。」",
+        "进入页面首屏即可见，向下浏览计划卡片时随列表自然滚走，不占用底部双按钮区域。",
+      ],
+    },
+    {
       ver: "V10.474",
       date: "2026-11-25",
       time: "16:05",
@@ -16269,6 +16282,10 @@
       <div class="page">
         ${navBar(`<button class="nav-text nav-hit" data-act="later" type="button">稍后</button>`, "确认计划", rightBtn)}
         <div class="scroll px20" style="padding-top:12px;padding-bottom:120px">
+          <div class="confirm-add-more-tip">
+            <span class="confirm-add-more-ico" aria-hidden="true">i</span>
+            <span class="confirm-add-more-txt">如需添加其他计划，请先确认基础计划，随后可在「健康计划」页自由添加。</span>
+          </div>
           ${periodSections.map((g) => `
             <div class="confirm-period">
               <div class="confirm-period-head">
