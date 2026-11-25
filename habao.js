@@ -710,6 +710,62 @@
     "起搏器植入术",
   ];
 
+  const MED_PERIOD_OPTIONS = [
+    "每日", "每2日", "每3日", "每4日", "每5日",
+    "每周", "每2周", "每3周", "每4周", "每5周",
+    "每月", "每2月", "每3月", "每4月", "每5月", "每6月",
+  ];
+  const MED_TIMES_OPTIONS = [1, 2, 3, 4, 5, 6];
+  const MED_TIMING_OPTIONS = ["餐前", "餐后", "睡觉前"];
+
+  function parseMedSchedule(rawFreq, rawUsage) {
+    const freq = String(rawFreq || "").trim();
+    const usageText = String(rawUsage || "").trim();
+    const combined = `${freq} ${usageText}`.toLowerCase();
+
+    let usage = "餐后";
+    if (/睡觉前|睡前|每晚|qn/.test(combined)) usage = "睡觉前";
+    else if (/餐前|空腹/.test(combined)) usage = "餐前";
+
+    let period = "每日";
+    if (freq.indexOf("隔日") >= 0) {
+      period = "每2日";
+    } else {
+      const pm = freq.match(/每\s*([1-6])?\s*(日|天|周|月)/);
+      if (pm) {
+        const count = pm[1] ? parseInt(pm[1], 10) : 1;
+        const unit = pm[2];
+        if (unit === "周") {
+          const c = Math.min(Math.max(count, 1), 5);
+          period = c === 1 ? "每周" : `每${c}周`;
+        } else if (unit === "月") {
+          const c = Math.min(Math.max(count, 1), 6);
+          period = c === 1 ? "每月" : `每${c}月`;
+        } else {
+          const c = Math.min(Math.max(count, 1), 5);
+          period = c === 1 ? "每日" : `每${c}日`;
+        }
+      }
+    }
+
+    let times = 1;
+    const cnMap = { "一": 1, "二": 2, "两": 2, "三": 3, "四": 4, "五": 5, "六": 6 };
+    const tm = freq.match(/([1-6一二两三四五六])\s*次/);
+    if (tm) {
+      const ch = tm[1];
+      if (/^[1-6]$/.test(ch)) times = parseInt(ch, 10);
+      else if (cnMap[ch]) times = cnMap[ch];
+    }
+
+    return { period, times, usage };
+  }
+
+  function formatMedFreq(period, times) {
+    const p = MED_PERIOD_OPTIONS.includes(period) ? period : "每日";
+    const t = MED_TIMES_OPTIONS.includes(Number(times)) ? Number(times) : 1;
+    return `${p} ${t} 次`;
+  }
+
   function ensureParsedResult(forceReset = false) {
     if (!S.parsedResult || forceReset) {
       S.parsedResult = {
@@ -718,12 +774,17 @@
         dischargeMonth: null,
         dischargeDay: null,
         dischargeYMD: "",
-        medications: MEDS.map((m) => ({
-          name: m.name || "",
-          dose: m.dose || "",
-          freq: m.freq || "",
-          usage: m.usage || "",
-        })),
+        medications: MEDS.map((m) => {
+          const parsed = parseMedSchedule(m.freq, m.usage || m.scene);
+          return {
+            name: m.name || "",
+            dose: m.dose || "",
+            period: parsed.period,
+            times: parsed.times,
+            freq: formatMedFreq(parsed.period, parsed.times),
+            usage: parsed.usage,
+          };
+        }),
         surgeryOptions: ["PCI"],
         surgeryOtherChecked: false,
         surgeryOtherText: "",
@@ -734,6 +795,15 @@
     if (!Array.isArray(S.parsedResult.medications)) {
       S.parsedResult.medications = [];
     }
+    S.parsedResult.medications.forEach((m) => {
+      if (!m.period || !MED_PERIOD_OPTIONS.includes(m.period) || !MED_TIMES_OPTIONS.includes(Number(m.times)) || !MED_TIMING_OPTIONS.includes(m.usage)) {
+        const parsed = parseMedSchedule(m.freq, m.usage);
+        m.period = MED_PERIOD_OPTIONS.includes(m.period) ? m.period : parsed.period;
+        m.times = MED_TIMES_OPTIONS.includes(Number(m.times)) ? Number(m.times) : parsed.times;
+        m.usage = MED_TIMING_OPTIONS.includes(m.usage) ? m.usage : parsed.usage;
+        m.freq = formatMedFreq(m.period, m.times);
+      }
+    });
     if (!Array.isArray(S.parsedResult.surgeryOptions)) {
       S.parsedResult.surgeryOptions = [];
     }
@@ -829,8 +899,8 @@
       .map((m) => ({
         name: String(m.name || "").trim(),
         dose: String(m.dose || "").trim(),
-        freq: String(m.freq || "").trim() || "每日 1 次",
-        usage: String(m.usage || "").trim() || "口服",
+        freq: formatMedFreq(m.period, m.times),
+        usage: MED_TIMING_OPTIONS.includes(m.usage) ? m.usage : "餐后",
       }))
       .filter((m) => m.name);
     S.meds = medRows.map((m) => {
@@ -970,12 +1040,21 @@
   // 打字只落草稿 + 更新候选行、**不整体重绘**（否则输入框当场丢焦点）；
   // 点这一块的「确认」才回写（真机：改动先落草稿，不再收起键盘即生效）。
   document.addEventListener("input", (event) => {
-    if (event.target instanceof HTMLInputElement && event.target.dataset.medIdx !== undefined) {
+    if ((event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) && event.target.dataset.medIdx !== undefined) {
       const p = ensureParsedResult(false);
       const idx = parseInt(event.target.dataset.medIdx, 10);
       const key = event.target.dataset.medKey;
       if (Number.isInteger(idx) && p.medications[idx] && key) {
-        p.medications[idx][key] = event.target.value;
+        const med = p.medications[idx];
+        if (key === "times") {
+          med.times = parseInt(event.target.value, 10) || 1;
+          med.freq = formatMedFreq(med.period, med.times);
+        } else if (key === "period") {
+          med.period = event.target.value;
+          med.freq = formatMedFreq(med.period, med.times);
+        } else {
+          med[key] = event.target.value;
+        }
       }
       const ready = canGeneratePlanFromParsed();
       const topBtn = document.getElementById("ocr-parsed-top-btn");
@@ -1181,7 +1260,7 @@
   /// 与真机 MedItem.inferTiming 同规则：频次 / 用法里的关键词决定时刻与场景
   function basisSceneFromKeywords(text) {
     const t = String(text || "").toLowerCase();
-    if (["睡前", "qn", "每晚"].some((k) => t.indexOf(k) >= 0)) return { meal: "睡前", time: "21:00" };
+    if (["睡觉前", "睡前", "qn", "每晚"].some((k) => t.indexOf(k) >= 0)) return { meal: "睡前", time: "21:00" };
     if (["午餐", "午间"].some((k) => t.indexOf(k) >= 0)) return { meal: "午餐后", time: "12:00" };
     if (t.indexOf("晚餐") >= 0) return { meal: "晚餐后", time: "18:30" };
     if (["空腹", "餐前"].some((k) => t.indexOf(k) >= 0)) return { meal: "空腹", time: "07:30" };
@@ -1696,7 +1775,7 @@
     "ocr-capture": { code: "IntakeCaptureView", note: "V10.275：首次建日程与新增用药复查统一走「拍照 → 资料详情 → 解析」独立通道流程，进入时从空白拍摄起（不预载资料 BASE 存量）。组轨道：点组卡只选中当前组，不进组资料；＋新建组开类别 sheet（.large）；复查直建「第 N 次复查」。快门写入当前组；快门左侧相册进当前组已拍页。入组须先拍出院记录才能确认；未拍时点右上「确认」出提示并切到出院组。" },
     "ocr-group": { code: "IntakeCaptureView", note: "单组已拍页。左「拍摄」回取景；右「相册」导入写入本组。组轨道点卡不会进这一页。" },
     "ocr-detail": { code: "IntakeCaptureView", note: "V10.289：仅展示前一个拍摄页中已勾选/保留的分组。基础报告或首次上传报告中含出院记录时排在最上方；选传组为空时显示灰色说明文字。首次建日程与新增用药复查的资料详情右上为「解析」，点击后进入「资料解析结果」页；健康档案与身体报告子页的补拍通道右上为「提交」，提交后直接归入共享资料 BASE（不经过资料解析结果页）。" },
-    "ocr-parsed": { code: "OCRParseResultView", note: "【V10.430】仅限创建计划步骤（排定 / 更新康复基础日程），在「上传资料」点击「解析」之后、进入「确认计划」之前的可编辑「解析结果」页（标题「解析结果」）。左上角为「< 返回」，右上角为同规格「提交」按钮。包含四个卡片区块：① 疾病信息（必填，多行文本框 + 清空）、② 用药处方（必填，逐行分字段「药名 / 剂量 / 频次 / 用法」填空卡片 + 每行删除 + 底部「+ 添加用药」+ 右上角「清空」）、③ 出院时间（必填，年 / 月 / 日三下拉框）、④ 手术记录（选填，将手术名称与手术时间合并为同一卡片：上方「手术名称」支持「PCI / 球囊 / 瓣膜置换术 / 射频消融术 / 封堵术 / 起搏器植入术」多选 + 「其他」可填写输入框；选中任一项手术后下方展开「手术时间」年 / 月 / 日三下拉框）。当三个必填字段非空时右上角「提交」亮起可点，点击进入「确认计划」页。" },
+    "ocr-parsed": { code: "OCRParseResultView", note: "【V10.474】仅限创建计划步骤（排定 / 更新康复基础日程），在「上传资料」点击「解析」之后、进入「确认计划」之前的可编辑「解析结果」页（标题「解析结果」）。左上角为「< 返回」，右上角为同规格「提交」按钮。包含四个卡片区块：① 疾病信息（必填，多行文本框 + 清空）、② 用药处方（必填，逐行结构化卡片：药名输入框 + 删除、剂量输入框 + 服药时机枚举下拉「餐前 / 餐后 / 睡觉前」、周期枚举下拉「每日、每2–5日、每周、每2–5周、每月、每2–6月」+ 次数枚举下拉「1次–6次」+ 底部「+ 添加用药」+ 右上角「清空」）、③ 出院时间（必填，年 / 月 / 日三下拉框）、④ 手术记录（选填，将手术名称与手术时间合并为同一卡片：上方「手术名称」支持「PCI / 球囊 / 瓣膜置换术 / 射频消融术 / 封堵术 / 起搏器植入术」多选 + 「其他」可填写输入框；每选中一项手术下方独立展开「{手术名} · 手术时间」年 / 月 / 日三下拉框）。当三个必填字段非空时右上角「提交」亮起可点，点击进入「确认计划」页。" },
     "first-rest": { code: "CreateScheduleFlowView", note: "【V10.352 分段标题行支持所有被删计划一键点击恢复 + V10.342 卡片规格对齐确认计划 & 恢复按钮常驻】首页底缘「基础康复计划」与选择类型「基础康复计划」第一页「当前计划」：① 包含当前生效的所有基础作息以及用户其它所有循环计划，日常条目按全天时段由早到晚（HH:mm）排布（起床置顶），复查计划置底归入红色「复查计划」区块；② 无论在下方删除了什么类型的计划（基础作息、用药、测血压、运动、饮食、复查等），对应分段标题行（早晨 / 上午 / 午间 / 下午 / 傍晚 / 夜间 / 复查计划）右侧均实时浮现可点击的「＋ 事项名称 HH:mm」胶囊，点击即可就地加回该计划；③ 顶部导航栏右上角「恢复」按钮始终常驻显示：未删除卡片时保持禁用状态（置灰不可点），任意删除卡片后立即点亮可用，点击一键还原初始卡片列表。" },
     "confirm-plan": { code: "InfoWithScreeningHost", note: "schedulesOnly。单页直落背景展示生成的计划列表，时段内严格按 HH:mm 由早到晚排布。【V10.320 首项规则】「起床」必须是一天计划的绝对第一个条目：推算测血压规范为起床后静坐测量（wake + 10 分钟，如 07:00 起床 → 07:10 起床测血压），同刻排序保底置顶「起床」卡。【V10.315 极简三态对比】仅在已有存量基础日程再次排定时展示（首次排定保持纯净），全链路砍掉「将停用」与停用专区（页面所见即接下来要执行的，关掉/删掉即不再提醒）：① 顶部「对比原基础日程」摘要卡展示「新增 / 已调整 / 保留」三态计数 +「其余 M 项手建与运动计划不受影响，确认后继续保留」；② 各时段与复查卡片标题行右侧实时标注「新增 / 已调整 / 保留」胶囊，「已调整」卡内附琥珀色对比行「原计划：…」（用药自动忽略「服用」前缀匹配同一药品）。右上「确认」按类别+名称整套替换上一版基础日程，手建与运动计划不动；左上「稍后」关整段流。" },
     "confirm-exercise": { code: "ExerciseScheduleConfirmView", note: "运动计划数量角标 + 时段「n 项」+ 操作卡。右上「确认」回首页点亮时钟；「稍后」放弃并关评估流回进入处；自主新建 / 卡片编辑开草稿后回到本页。" },
@@ -1728,6 +1807,20 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.474",
+      date: "2026-11-25",
+      time: "16:05",
+      title: "「解析结果」页用药处方的频次与用法升级为结构化下拉枚举（周期 + 次数 + 服药时机）",
+      screens: [
+        { id: "ocr-parsed", label: "解析结果" },
+      ],
+      items: [
+        "用药处方原自由输入的「频次」拆分为「周期」与「次数」两枚枚举下拉框：周期按日→周→月排布（每日、每2–5日、每周、每2–5周、每月、每2–6月），次数枚举为 1次–6次。",
+        "原自由输入的「用法（如口服）」改为服药时机枚举下拉框，选项为「餐前」「餐后」「睡觉前」，并在生成计划时自动对应早/餐前后与睡前服药时刻。",
+        "单条用药采用清爽的 2×2 网格（药名独占首行，次行剂量 + 服药时机，第三行周期 + 次数），点击「+ 添加用药」默认预选「每日」「1次」「餐后」。",
+      ],
+    },
     {
       ver: "V10.473",
       date: "2026-11-25",
@@ -6664,7 +6757,7 @@
       medTimeFor: (combined) => {
         const s = String(combined || "");
         const isBefore = /餐前|饭前|空腹/.test(s);
-        if (/睡前|每晚|qn/i.test(s)) return sleep != null ? fmtClamped(sleep - 60) : "21:00";
+        if (/睡觉前|睡前|每晚|qn/i.test(s)) return sleep != null ? fmtClamped(sleep - 60) : "21:00";
         if (/午餐|午间/.test(s)) return lunch != null ? fmtClamped(lunch + (isBefore ? -30 : 30)) : "12:00";
         if (/晚餐/.test(s)) return dinner != null ? fmtClamped(dinner + (isBefore ? -30 : 30)) : "18:30";
         if (/空腹|餐前/.test(s)) return breakfast != null ? fmtClamped(breakfast - 30) : "07:30";
@@ -10807,7 +10900,7 @@
       },
       addParsedMed() {
         const p = ensureParsedResult(false);
-        p.medications.push({ name: "", dose: "", freq: "", usage: "" });
+        p.medications.push({ name: "", dose: "", period: "每日", times: 1, freq: "每日 1 次", usage: "餐后" });
         render();
       },
       delParsedMed() {
@@ -16017,9 +16110,18 @@
                       <button class="parsed-med-del" data-act="delParsedMed" data-idx="${idx}" type="button" aria-label="删除该用药">−</button>
                     </div>
                     <div class="parsed-med-subgrid">
-                      <input type="text" class="parsed-med-input" data-med-idx="${idx}" data-med-key="dose" value="${escAttr(m.dose || "")}" placeholder="剂量" />
-                      <input type="text" class="parsed-med-input" data-med-idx="${idx}" data-med-key="freq" value="${escAttr(m.freq || "")}" placeholder="频次" />
-                      <input type="text" class="parsed-med-input" data-med-idx="${idx}" data-med-key="usage" value="${escAttr(m.usage || "")}" placeholder="用法" />
+                      <input type="text" class="parsed-med-input" data-med-idx="${idx}" data-med-key="dose" value="${escAttr(m.dose || "")}" placeholder="剂量（如：100 mg）" />
+                      <select class="parsed-med-select" data-med-idx="${idx}" data-med-key="usage" aria-label="服药时机">
+                        ${MED_TIMING_OPTIONS.map((opt) => `<option value="${escAttr(opt)}" ${(m.usage || "餐后") === opt ? "selected" : ""}>${esc(opt)}</option>`).join("")}
+                      </select>
+                    </div>
+                    <div class="parsed-med-subgrid">
+                      <select class="parsed-med-select" data-med-idx="${idx}" data-med-key="period" aria-label="服药周期">
+                        ${MED_PERIOD_OPTIONS.map((opt) => `<option value="${escAttr(opt)}" ${(m.period || "每日") === opt ? "selected" : ""}>${esc(opt)}</option>`).join("")}
+                      </select>
+                      <select class="parsed-med-select" data-med-idx="${idx}" data-med-key="times" aria-label="服药次数">
+                        ${MED_TIMES_OPTIONS.map((t) => `<option value="${t}" ${Number(m.times || 1) === t ? "selected" : ""}>${t}次</option>`).join("")}
+                      </select>
                     </div>
                   </div>
                 `).join("")}
