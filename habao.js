@@ -1808,6 +1808,22 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.479",
+      date: "2026-11-25",
+      time: "17:58",
+      title: "补齐「运动提醒」完整双向回执闭环（A 提醒 → B 首页弹窗去运动/稍后运动 → A 收回执），并补全王芳复查与测血压演示计划",
+      screens: [
+        { id: "family-manage", label: "家属管理" },
+        { id: "home", label: "首页" },
+        { id: "activity", label: "操作记录" },
+      ],
+      items: [
+        "运动提醒 A 端状态反馈：点击「提醒」后按钮立即切换为「✓ 已提醒」，当天不重复点击，清晰可见是否已提醒。",
+        "运动提醒 B 端专属弹窗与回执闭环：B 进入首页弹出「运动提醒」专属弹窗，提供「稍后运动 / 去运动」双按钮；点「去运动」直达该运动计划的散步界面，无论完成运动打卡、点「稍后运动」或中途退出，均自动向 A 发送回执通知并同步记入双方操作记录。",
+        "为默认演示家属「王芳」的今日未完成列表补齐「14:30 心内科门诊复查」与「16:00 下午测血压」，一进家属管理即可完整体验日常代打卡、测血压代打卡、复查代打卡与运动提醒全部 4 类流程。",
+      ],
+    },
+    {
       ver: "V10.478",
       date: "2026-11-25",
       time: "17:42",
@@ -4759,8 +4775,76 @@
   function unshownExerciseInviteRequestsFor(personName) {
     return unshownPopupProxyRequestsFor(personName).filter((r) => r.kind === "inviteExerciseTest");
   }
+  function unshownExerciseRemindRequestsFor(personName) {
+    return unshownPopupProxyRequestsFor(personName).filter((r) => r.kind === "remind");
+  }
   function unshownNormalPopupProxyRequestsFor(personName) {
-    return unshownPopupProxyRequestsFor(personName).filter((r) => r.kind !== "inviteExerciseTest");
+    return unshownPopupProxyRequestsFor(personName).filter((r) => r.kind !== "inviteExerciseTest" && r.kind !== "remind");
+  }
+  function hasRemindedProxyTaskFor(taskId, senderName, recipientName, ymd) {
+    ensureCareGraph();
+    const sender = senderName || S.currentPersonName || "李建国";
+    const dayYMD = ymd || S.calSelYMD || toYMD(demoDate());
+    return (S.careProxyRequests || []).some((r) => {
+      if (r.senderName !== sender || r.recipientName !== recipientName || r.kind !== "remind") return false;
+      if (String(r.targetTaskId || r.taskSnapshot?.id) !== String(taskId)) return false;
+      const rYMD = String(r.onYMD || toYMD(r.createdAt ? new Date(r.createdAt) : demoDate()));
+      return rYMD === String(dayYMD);
+    });
+  }
+  function acknowledgeExerciseRemindRequestFor(reqId, personName) {
+    ensureCareGraph();
+    const nm = personName || S.currentPersonName || "李建国";
+    S.careProxyRequests.forEach((r) => {
+      if (String(r.id) === String(reqId) && r.recipientName === nm) {
+        r.recipientPopupShown = true;
+        r.recipientManageSeen = true;
+      }
+    });
+    if (unshownPopupProxyRequestsFor(nm).length === 0) {
+      if (!S.lastProxyPopupAckAt) S.lastProxyPopupAckAt = {};
+      S.lastProxyPopupAckAt[nm] = Date.now();
+    }
+  }
+  function sendExerciseRemindReceiptFor({ responderName, reminderName, task, completed, deferredFromPopup }) {
+    if (!responderName || !reminderName || responderName === reminderName || !task) return null;
+    const title = task.title || "运动计划";
+    const howTitle = completed
+      ? `收到运动提醒：已完成「${title}」`
+      : (deferredFromPopup ? `收到运动提醒：稍后运动（${title}）` : `收到运动提醒：暂未完成「${title}」`);
+    const snapshot = {
+      id: `proxy_ex_rmd_${Date.now()}_${Math.random().toString(36).slice(2, 5)}`,
+      title: howTitle,
+      cat: "exercise",
+      h: task.h ?? 18,
+      m: task.m ?? 30,
+      cycle: true,
+      rule: "daily",
+      note: howTitle,
+    };
+    return sendProxyRequestFor({
+      senderName: responderName,
+      recipientName: reminderName,
+      kind: completed ? "completeExerciseRemind" : "deferExerciseRemind",
+      targetTaskId: task.id,
+      taskSnapshot: snapshot,
+      summaryNote: howTitle,
+      skipDirectMutation: true,
+    });
+  }
+  function completePendingExerciseRemindIfNeeded(completed) {
+    const ctx = S.pendingExerciseRemindContext;
+    if (!ctx) return;
+    S.pendingExerciseRemindContext = null;
+    const responder = S.currentPersonName || "李建国";
+    if (!ctx.senderName || ctx.senderName === responder) return;
+    sendExerciseRemindReceiptFor({
+      responderName: responder,
+      reminderName: ctx.senderName,
+      task: ctx.task,
+      completed: !!completed,
+      deferredFromPopup: false,
+    });
   }
   function unseenProxyRequestsFor(personName) {
     ensureCareGraph();
@@ -4781,14 +4865,14 @@
     ensureCareGraph();
     const nm = personName || S.currentPersonName || "李建国";
     const unshown = unshownPopupProxyRequestsFor(nm);
-    const hasRemainingExerciseInvite = unshown.some((r) => r.kind === "inviteExerciseTest");
+    const hasRemainingSpecial = unshown.some((r) => r.kind === "inviteExerciseTest" || r.kind === "remind");
     S.careProxyRequests.forEach((r) => {
-      if (r.recipientName === nm && r.kind !== "inviteExerciseTest") {
+      if (r.recipientName === nm && r.kind !== "inviteExerciseTest" && r.kind !== "remind") {
         r.recipientPopupShown = true;
         r.recipientManageSeen = true;
       }
     });
-    if (!hasRemainingExerciseInvite) {
+    if (!hasRemainingSpecial) {
       if (!S.lastProxyPopupAckAt) S.lastProxyPopupAckAt = {};
       S.lastProxyPopupAckAt[nm] = Date.now();
     }
@@ -4820,6 +4904,8 @@
       inviteExerciseTest: "运动体测邀请",
       acceptExerciseInvite: "运动体测回执",
       rejectExerciseInvite: "运动体测回执",
+      completeExerciseRemind: "运动提醒回执",
+      deferExerciseRemind: "运动提醒回执",
       updatePlan: "修改计划",
       deleteOnce: "仅删本次",
       deletePlan: "删除计划",
@@ -4845,6 +4931,8 @@
       inviteExerciseTest: "提醒了",
       acceptExerciseInvite: "回复了",
       rejectExerciseInvite: "回复了",
+      completeExerciseRemind: "回复了",
+      deferExerciseRemind: "回复了",
       checkIn: "打卡了",
       undoCheckIn: "取消了打卡",
       createPlan: "新建了计划",
@@ -5580,7 +5668,9 @@
           { id: "wf_t4", title: "工间颈肩舒展操", h: 10, m: 30, cat: "exercise", note: "久坐活动肩颈 · 10 分钟" },
           { id: "wf_t5", title: "轻食少油午餐", h: 12, m: 15, cat: "diet", note: "杂粮饭 + 鸡胸肉 + 西兰花" },
           { id: "wf_t6", title: "午间呼吸冥想", h: 13, m: 15, cat: "rest", note: "正念呼吸放松 15 分钟" },
+          { id: "wf_t10", title: "心内科门诊复查", h: 14, m: 30, cat: "appointment", note: "每月复查心电图与血脂，带齐近期血压记录" },
           { id: "wf_t7", title: "下午饮水达标", h: 15, m: 30, cat: "diet", note: "补充温水 500 ml，少喝含糖饮料" },
+          { id: "wf_t11", title: "下午测血压", h: 16, m: 0, cat: "monitoring", note: "静坐 5 分钟后测量血压与心率" },
           { id: "wf_t8", title: "傍晚有氧健步走", h: 18, m: 30, cat: "exercise", note: "快走 35 分钟，目标心率 115–125 bpm" },
           { id: "wf_t9", title: "规律早睡打卡", h: 22, m: 30, cat: "rest", note: "放下手机，保证 7.5 小时睡眠" },
         ],
@@ -6546,6 +6636,27 @@
             ${pagerHTML}
             <div style="width:100%;display:flex;gap:10px">
               <button type="button" data-act="ackHomeProxyPopup" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">知道了</button>
+            </div>
+          </div>
+        </div>`;
+    }
+    const unshownExReminds = unshownExerciseRemindRequestsFor(cur);
+    if (unshownExReminds.length > 0) {
+      const curRemind = unshownExReminds[0];
+      return `
+        <div class="care-notice-modal" style="position:absolute;inset:0;z-index:110;background:rgba(10,22,48,.42);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .18s ease">
+          <div style="width:100%;max-width:344px;background:#fff;border-radius:24px;border:1px solid rgba(16,84,224,.14);box-shadow:0 16px 36px rgba(10,26,68,.20);padding:22px 20px 20px;display:flex;flex-direction:column;align-items:stretch;text-align:left">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(16,84,224,.12);color:var(--blue);display:grid;place-items:center;flex-shrink:0">${I.walk || I.bell}</div>
+              <div style="flex:1;min-width:0;font-size:19px;font-weight:800;color:var(--blue);line-height:1.2">运动提醒</div>
+              <span style="padding:4px 10px;border-radius:999px;background:rgba(16,84,224,.10);border:1px solid rgba(16,84,224,.22);color:var(--blue);font-size:12px;font-weight:800;flex-shrink:0">需本人运动</span>
+            </div>
+            <div class="op-card" style="width:100%;padding:15px;border-radius:16px;background:rgba(16,84,224,.05);border:1px solid rgba(16,84,224,.14);box-shadow:none;margin-bottom:16px">
+              <h4>${opHeadlineHTML(proxyToOpItem(curRemind))}</h4>
+            </div>
+            <div style="width:100%;display:flex;gap:10px">
+              <button type="button" data-act="deferHomeExerciseRemind" style="flex:1;height:48px;border-radius:14px;border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit">稍后运动</button>
+              <button type="button" data-act="goHomeExerciseFromRemind" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">去运动</button>
             </div>
           </div>
         </div>`;
@@ -9506,6 +9617,7 @@
         // 散步 + 打卡（自由散步还新建「自主散步」）合成一条
         markProxy(id, null, true);
         logOp("完成了散步", "运动", [["散步", "0.42 公里"], ["打卡", `${taskTitle(id)} 已完成`]]);
+        completePendingExerciseRemindIfNeeded(true);
         S.walkSaved = false;
         S.walkTaskId = null;
         S.centerStage = id;
@@ -13066,6 +13178,33 @@
         if (senders.length) {
           toast(`已向${senders.join("、")}回执「暂不创建运动计划」`);
         }
+      },
+      deferHomeExerciseRemind() {
+        const cur = S.currentPersonName || "李建国";
+        const req = unshownExerciseRemindRequestsFor(cur)[0];
+        if (!req) return;
+        S.pendingExerciseRemindContext = null;
+        acknowledgeExerciseRemindRequestFor(req.id, cur);
+        sendExerciseRemindReceiptFor({
+          responderName: cur,
+          reminderName: req.senderName,
+          task: req.taskSnapshot,
+          completed: false,
+          deferredFromPopup: true,
+        });
+        render();
+        toast(`已向${req.senderName}回执「稍后运动」`);
+      },
+      goHomeExerciseFromRemind() {
+        const cur = S.currentPersonName || "李建国";
+        const req = unshownExerciseRemindRequestsFor(cur)[0];
+        if (!req) return;
+        S.pendingExerciseRemindContext = {
+          senderName: req.senderName,
+          task: { ...req.taskSnapshot },
+        };
+        acknowledgeExerciseRemindRequestFor(req.id, cur);
+        openContraOrBegin(req.targetTaskId || req.taskSnapshot?.id || null);
       },
       ackHomeProxyPopupAndTest() {
         const cur = S.currentPersonName || "李建国";
@@ -18703,15 +18842,21 @@
               : `<div class="s15 fb t" style="line-height:1.35;word-break:break-word">${esc(t.title || "新计划")}</div>`;
 
             const isExercise = kind === "exercise";
+            const isReminded = isExercise && !done && hasRemindedProxyTaskFor(t.id, me.name, selectedFamName, selYMD);
             const rightCircle = done
               ? (isExercise
                 ? `<span title="已完成" style="width:34px;height:34px;border-radius:50%;flex:0 0 34px;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</span>`
                 : `<button type="button" data-act="toggleProxyCheckIn" data-id="${t.id}" title="取消打卡" style="width:34px;height:34px;border-radius:50%;border:0;flex:0 0 34px;background:var(--blue);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</button>`)
               : (isExercise
-                ? `<button type="button" data-act="sendProxyRemind" data-id="${t.id}" title="提醒${esc(selectedFamName)}完成运动" style="height:34px;padding:0 12px;border-radius:999px;border:1.2px solid rgba(16,84,224,.32);background:rgba(16,84,224,.08);color:var(--blue);display:inline-flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap">
-                    <span style="width:12px;height:12px;display:grid;place-items:center">${I.bell}</span>
-                    <span style="font-size:13px;font-weight:800;line-height:1">提醒</span>
-                  </button>`
+                ? (isReminded
+                  ? `<span title="今日已提醒" style="height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(16,84,224,.16);background:rgba(16,84,224,.06);color:var(--secondary);display:inline-flex;align-items:center;justify-content:center;gap:4px;flex-shrink:0;white-space:nowrap">
+                      <span style="width:12px;height:12px;display:grid;place-items:center">${I.check}</span>
+                      <span style="font-size:13px;font-weight:800;line-height:1">已提醒</span>
+                    </span>`
+                  : `<button type="button" data-act="sendProxyRemind" data-id="${t.id}" title="提醒${esc(selectedFamName)}完成运动" style="height:34px;padding:0 12px;border-radius:999px;border:1.2px solid rgba(16,84,224,.32);background:rgba(16,84,224,.08);color:var(--blue);display:inline-flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap">
+                      <span style="width:12px;height:12px;display:grid;place-items:center">${I.bell}</span>
+                      <span style="font-size:13px;font-weight:800;line-height:1">提醒</span>
+                    </button>`)
                 : `<button type="button" data-act="sendProxyCheckIn" data-id="${t.id}" title="帮${esc(selectedFamName)}代打卡" style="height:34px;padding:0 12px;border-radius:999px;border:1.2px solid rgba(16,84,224,.32);background:rgba(16,84,224,.08);color:var(--blue);display:inline-flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap">
                     <span style="width:12px;height:12px;display:grid;place-items:center">${I.check}</span>
                     <span style="font-size:13px;font-weight:800;line-height:1">代打卡</span>
