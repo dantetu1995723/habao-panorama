@@ -1733,6 +1733,23 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.467",
+      date: "2026-11-25",
+      time: "10:21",
+      title: "「测血压打卡」与「硬件管理」统一支持血压计扫码绑定、快捷解绑、两步说明弹窗及测量同步确认弹窗",
+      screens: [
+        { id: "home", label: "测血压打卡" },
+        { id: "hardware", label: "硬件管理" },
+        { id: "hardware-scan", label: "扫码绑定" },
+      ],
+      items: [
+        "测血压打卡面板顶部常驻哈宝血压计绑定状态条：未绑定时点击「扫码绑定」直接走两步绑定并在绑定后自动回到打卡面板；已绑定时精简展示「哈宝血压计 · 3086 · 已绑定」与快捷「解除绑定」（面板内联二次确认）。",
+        "新增「步骤 1：查找二维码」居中说明弹窗（含 ①→② 进度条与机身底部 / 外包装盒位置示意图），确认找到后再进入步骤 2 扫码页；测血压打卡与个人中心「硬件管理」统一复用。",
+        "已绑定状态下打开测血压打卡面板后弹出「检测到血压已测量」同步确认弹窗，展示血压计刚测得的血压与心率，由用户选择「立即同步」或「暂不同步」。",
+        "「个人中心 → 硬件管理」已绑定设备卡片右侧直接放置「解除绑定」按钮，点击弹出确认框即可在列表页原位解绑，无需进入二级详情页。",
+      ],
+    },
+    {
       ver: "V10.466",
       date: "2026-11-24",
       time: "17:22",
@@ -9159,10 +9176,66 @@
         // 填读数 + 打卡合成一条
         markProxy(vid, null, true);
         logOp("打卡了", place, [["计划", taskTitle(vid)], ["读数", `${isHw ? "哈宝血压计，" : ""}血压 ${S.sys}/${S.dia}，心率 ${S.hr} bpm`]]);
+        S.hwMeasuredPrompt = null;
         closeOverlay();
       },
+      selectSheetHw() {
+        const k = el.dataset.kind || "bloodPressure";
+        S.vitalsUnbindAsk = null;
+        if (!hwBound(k)) {
+          const ret = { ...S.overlayData };
+          openOverlay("hwGuide", { kind: k, returnToVitals: ret });
+          return;
+        }
+        if (k === activeBPHwKind() && S.vitalsSyncPhase === "synced") return;
+        startSheetHwSync(k);
+      },
       sheetHwResync() {
+        S.vitalsUnbindAsk = null;
         startSheetHwSync();
+      },
+      hwMeasuredApply() {
+        const p = S.hwMeasuredPrompt;
+        S.hwMeasuredPrompt = null;
+        if (!p) { render(); return; }
+        S.sys = p.sys;
+        S.dia = p.dia;
+        S.hr = p.hr;
+        S.vitalsFromHw = true;
+        S.vitalsHwKind = p.kind || "bloodPressure";
+        S.vitalsSyncPhase = "synced";
+        render();
+        toast("已同步血压计读数");
+      },
+      hwMeasuredSkip() {
+        S.hwMeasuredPrompt = null;
+        render();
+      },
+      vitalsHwUnbindAsk() {
+        const k = activeBPHwKind();
+        if (!k) return;
+        if (sheetHwTimer) { clearTimeout(sheetHwTimer); sheetHwTimer = null; }
+        S.hwMeasuredPrompt = null;
+        S.vitalsUnbindAsk = k;
+        render();
+      },
+      vitalsHwUnbindCancel() {
+        S.vitalsUnbindAsk = null;
+        render();
+      },
+      vitalsHwUnbindConfirm() {
+        const k = S.vitalsUnbindAsk || activeBPHwKind();
+        S.vitalsUnbindAsk = null;
+        S.hwMeasuredPrompt = null;
+        if (k && S.hw) delete S.hw[k];
+        if (S.selectedBPHwKind === k) S.selectedBPHwKind = null;
+        if (S.vitalsHwKind === k) {
+          S.vitalsFromHw = false;
+          S.vitalsHwKind = null;
+          S.vitalsSyncPhase = "idle";
+        }
+        toast(`已解除绑定${k ? hwSpec(k).name : ""}`);
+        render();
       },
       monitorHwSync() {
         startMonitorHwSync();
@@ -11657,12 +11730,41 @@
       openHw() {
         const k = el.dataset.k || "bloodPressure";
         S.hwKind = k;
+        S.hwReturnToVitals = null;
         const bound = !!(S.hw && S.hw[k]);
         if (hwTimer) { clearTimeout(hwTimer); hwTimer = null; }
-        S.hwPhase = bound ? "bound" : "scan";
+        if (!bound) {
+          openOverlay("hwGuide", { kind: k, returnToVitals: null });
+          return;
+        }
+        S.hwPhase = "bound";
         go("hardware-scan");
-        // 进扫码页即自动扫，不用再点「开始查找」
-        if (!bound) act("hwScan", el);
+      },
+      hwGuideConfirm() {
+        const d = S.overlayData || {};
+        const k = d.kind || S.hwKind || "bloodPressure";
+        S.hwKind = k;
+        S.hwReturnToVitals = d.returnToVitals || null;
+        S.overlay = null;
+        if (hwTimer) { clearTimeout(hwTimer); hwTimer = null; }
+        S.hwPhase = "scan";
+        go("hardware-scan");
+        act("hwScan", el);
+      },
+      hwGuideClose() {
+        const ret = (S.overlayData && S.overlayData.returnToVitals) || null;
+        if (ret) {
+          openOverlay("vitals", ret);
+        } else {
+          closeOverlay();
+        }
+      },
+      hwGuideBack() {
+        if (hwTimer) { clearTimeout(hwTimer); hwTimer = null; }
+        const ret = S.hwReturnToVitals;
+        S.hwReturnToVitals = null;
+        dismissCover();
+        if (ret) openOverlay("vitals", ret);
       },
       hwScan() {
         const kind = S.hwKind || "bloodPressure";
@@ -11683,8 +11785,14 @@
         if (!S.hw) S.hw = {};
         S.hw[spec.k] = { name: spec.name, serial: spec.serial, at: Date.now() };
         S.hwPhase = "bound";
+        const ret = S.hwReturnToVitals;
+        S.hwReturnToVitals = null;
         dismissCover();
         toast(`已绑定${spec.name}`);
+        if (ret) {
+          openOverlay("vitals", ret);
+          startSheetHwSync(spec.k);
+        }
       },
       hwUnbindAsk() {
         const spec = hwSpec(S.hwKind);
@@ -11695,6 +11803,27 @@
           danger: true,
           action: "hwUnbind",
         });
+      },
+      hwListUnbindAsk() {
+        const k = el.dataset.k || "bloodPressure";
+        const spec = hwSpec(k);
+        openOverlay("confirm", {
+          title: `解除绑定${spec.title}`,
+          body: `解除后，这台${spec.title}（编号 ${spec.serial}）不再记在本机。`,
+          ok: "解除绑定",
+          danger: true,
+          action: "hwListUnbindConfirm",
+          kind: k,
+        });
+      },
+      hwListUnbindConfirm() {
+        const k = (S.overlayData && S.overlayData.kind) || "bloodPressure";
+        if (S.hw) delete S.hw[k];
+        if (S.selectedBPHwKind === k) S.selectedBPHwKind = null;
+        S.hwPhase = "idle";
+        S.overlay = null;
+        render();
+        toast(`已解除绑定${hwSpec(k).name}`);
       },
       hwUnbind() {
         if (S.hw) delete S.hw[S.hwKind];
@@ -14785,8 +14914,18 @@
   function simulatedBPReading(step = 0) {
     return BP_HW_PRESETS[Math.abs(step) % BP_HW_PRESETS.length];
   }
+  function isHwSyncEnabled() {
+    return S.gen !== "0.0" && !!S.vip;
+  }
+  function boundBPHardwareKinds() {
+    if (!isHwSyncEnabled()) return [];
+    return hwBound("bloodPressure") ? ["bloodPressure"] : [];
+  }
+  function activeBPHwKind() {
+    return boundBPHardwareKinds().length ? "bloodPressure" : null;
+  }
   function hasBoundBPMonitor() {
-    return false;
+    return boundBPHardwareKinds().length > 0;
   }
   function demoNowHMText() {
     const hm = demoNowHM();
@@ -14802,24 +14941,34 @@
       S.taskVitalsHw[S.taskId] = false;
     }
   }
-  function startSheetHwSync() {
+  function startSheetHwSync(kindOverride) {
+    const kind = kindOverride || activeBPHwKind();
+    if (!kind) return;
+    const dev = hwBound(kind);
+    if (!dev) return;
+    S.selectedBPHwKind = kind;
     if (sheetHwTimer) { clearTimeout(sheetHwTimer); sheetHwTimer = null; }
-    S.vitalsSyncPhase = "syncing";
+    S.vitalsSyncPhase = "idle";
     S.vitalsFromHw = false;
+    S.hwMeasuredPrompt = null;
     const step = S.vitalsSyncStep || 0;
     S.vitalsSyncStep = step + 1;
     render();
     sheetHwTimer = setTimeout(() => {
       sheetHwTimer = null;
-      if (S.overlay !== "vitals") return;
+      if (S.overlay !== "vitals" || !hwBound(kind)) return;
       const r = simulatedBPReading(step);
-      S.sys = r.sys;
-      S.dia = r.dia;
-      S.hr = r.hr;
-      S.vitalsFromHw = true;
-      S.vitalsSyncPhase = "synced";
+      S.hwMeasuredPrompt = {
+        kind,
+        name: dev.name,
+        serial: dev.serial,
+        sys: r.sys,
+        dia: r.dia,
+        hr: r.hr,
+        time: demoNowHMText(),
+      };
       render();
-    }, 1200);
+    }, 600);
   }
   function startMonitorHwSync() {
     if (monitorHwTimer) { clearTimeout(monitorHwTimer); monitorHwTimer = null; }
@@ -14926,6 +15075,39 @@
     if (name === "waves") return I.waves;
     return I.ecg;
   }
+  function hwStepBarHTML(step, dark = false) {
+    const s1Bg = step === 1 ? "#1054E0" : "#1AA64A";
+    const s2Bg = step === 2 ? "#1054E0" : (dark ? "rgba(255,255,255,.22)" : "#CBD5E1");
+    const dotColor = dark ? "rgba(255,255,255,.35)" : "#CBD5E1";
+    const dots = Array(5).fill(`<i style="width:4px;height:4px;border-radius:50%;background:${dotColor};display:inline-block"></i>`).join("");
+    return `<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin:${dark ? "4px 0 14px" : "4px 0 18px"}">
+      <span style="width:28px;height:28px;border-radius:50%;background:${s1Bg};color:#fff;font-size:14px;font-weight:800;display:grid;place-items:center">${step > 1 ? "✓" : "1"}</span>
+      <span style="display:inline-flex;align-items:center;gap:6px">${dots}</span>
+      <span style="width:28px;height:28px;border-radius:50%;background:${s2Bg};color:#fff;font-size:14px;font-weight:800;display:grid;place-items:center">2</span>
+    </div>`;
+  }
+  function hwQrSampleCardHTML(variant, label) {
+    const isBody = variant === "body";
+    const qrGrid = `<div style="width:46px;height:46px;border-radius:6px;background:#fff;border:1.5px solid #94A3B8;padding:4px;box-sizing:border-box;display:grid;grid-template-columns:1fr 1fr;gap:3px">
+      <div style="border:3px solid #1E293B;border-radius:2px"></div>
+      <div style="border:3px solid #1E293B;border-radius:2px"></div>
+      <div style="border:3px solid #1E293B;border-radius:2px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px"><i style="background:#1054E0;border-radius:1px"></i><i style="background:#1E293B;border-radius:1px"></i><i style="background:#1E293B;border-radius:1px"></i><i style="background:#1054E0;border-radius:1px"></i></div>
+    </div>`;
+    return `<div style="display:flex;flex-direction:column;align-items:center">
+      <div style="width:100%;height:96px;border-radius:12px;background:#EEF3FA;padding:10px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;border:1px solid #DDE6F5">
+        ${isBody
+          ? `<div style="width:86%;height:74px;border-radius:12px;background:#fff;border:1.5px solid #D3DFEF;display:flex;align-items:center;justify-content:center;position:relative">
+              <div style="width:58px;height:58px;border-radius:50%;background:#F8FAFC;border:1.5px dashed #1054E0;display:grid;place-items:center">${qrGrid}</div>
+            </div>`
+          : `<div style="width:76%;height:78px;border-radius:8px;background:#fff;border:1.5px solid #D3DFEF;overflow:hidden;display:flex;flex-direction:column;align-items:center">
+              <div style="width:100%;height:16px;background:#E6EEFE;display:flex;align-items:center;justify-content:center"><span style="width:42%;height:4px;border-radius:99px;background:#7EA2E6;display:block"></span></div>
+              <div style="flex:1;display:grid;place-items:center"><div style="width:54px;height:54px;border-radius:50%;background:#F8FAFC;border:1.5px dashed #1054E0;display:grid;place-items:center">${qrGrid}</div></div>
+            </div>`}
+      </div>
+      <div class="s13 fb" style="color:#334155;margin-top:8px">${label}</div>
+    </div>`;
+  }
   function hwScanHTML() {
     const spec = hwSpec(S.hwKind);
     const device = hwBound(spec.k);
@@ -14949,19 +15131,20 @@
     const found = phase === "found";
     const tips = found
       ? `<div class="hw-scanhint">识别到一台设备</div><div class="hw-scantip2">确认是你的，再绑定。</div>`
-      : `<div class="hw-scanhint">对准「${spec.name}」包装上的二维码</div><div class="hw-scantip2">${spec.qrTip}</div>`;
+      : `<div class="hw-scanhint">对准「${spec.name}」上的二维码</div><div class="hw-scantip2">${spec.qrTip}</div>`;
     const card = found
       ? `<div class="hw-found"><div class="well">${hwIcon(spec.icon)}</div><div class="grow"><div class="s18 fb t">${spec.name}</div><div class="s14 fm t-sec mono">编号 ${spec.serial}</div></div></div>`
       : "";
     const dock = found
       ? `<button class="cta" data-act="hwBind" type="button">绑定这台</button><button class="cta-darkghost mt8" data-act="hwScan" type="button">重新扫描</button>`
-      : `<button class="cta-darkghost" data-act="back" type="button">取消</button>`;
+      : `<button class="cta-darkghost" data-act="hwGuideBack" type="button">取消</button>`;
     return `<div class="page hw-scanpage">
       <div class="hw-scanbar">
-        <button class="hw-scanback" data-act="back" type="button" aria-label="返回">${I.chevL}</button>
+        <button class="hw-scanback" data-act="hwGuideBack" type="button" aria-label="返回">${I.chevL}</button>
         <span class="hw-scantitle">扫描二维码</span>
       </div>
       <div class="hw-scancol">
+        ${hwStepBarHTML(2, true)}
         <div class="hw-frame ${found ? "ok" : ""}">
           <span class="hw-qr">${I.qr}</span>
           <div class="hw-laserbox"><div class="hw-laser"></div></div>
@@ -17447,14 +17630,17 @@
           <div class="col" style="gap:14px">
             ${HW_KINDS.map((spec) => {
               const d = hwBound(spec.k);
-              const sub = d
-                ? `<span class="t-green">已绑定</span><span class="t-sec"> · 编号 ${d.serial}</span>`
-                : `<span class="t-sec">未绑定</span>`;
-              const tail = d ? I.chevR : `<span class="hw-chip">${I.qr}<span>扫码绑定</span></span>`;
+              if (d) {
+                return `<div class="hw-card" style="cursor:default">
+                  <div class="well">${hwIcon(spec.icon)}</div>
+                  <div class="grow"><h4 class="s18 fb t">${spec.title}</h4><p class="s14 fm"><span class="t-green">已绑定</span><span class="t-sec"> · 编号 ${d.serial}</span></p></div>
+                  <button data-act="hwListUnbindAsk" data-k="${spec.k}" type="button" style="border:1px solid rgba(220,56,56,.26);background:rgba(220,56,56,.06);color:#D6363E;cursor:pointer;flex-shrink:0;padding:7px 12px;border-radius:99px;font-size:13px;font-weight:700">解除绑定</button>
+                </div>`;
+              }
               return `<button class="hw-card" data-act="openHw" data-k="${spec.k}" type="button">
                 <div class="well">${hwIcon(spec.icon)}</div>
-                <div class="grow"><h4 class="s18 fb t">${spec.title}</h4><p class="s14 fm">${sub}</p></div>
-                ${tail}
+                <div class="grow"><h4 class="s18 fb t">${spec.title}</h4><p class="s14 fm"><span class="t-sec">未绑定</span></p></div>
+                <span class="hw-chip">${I.qr}<span>扫码绑定</span></span>
               </button>`;
             }).join("")}
           </div>
@@ -22289,46 +22475,58 @@
       }
       const vSys = S.sys; const vDia = S.dia; const vHr = S.hr;
       const tTitle = (SEED.find((t) => t.id === S.overlayData.id) || {}).title || "起床测血压";
-      const bpDev = hasBoundBPMonitor() ? hwBound("bloodPressure") : null;
-      const syncPhase = S.vitalsSyncPhase || "idle";
-      const isSyncing = bpDev && syncPhase === "syncing";
-      const isSynced = bpDev && syncPhase === "synced" && S.vitalsFromHw;
-      const bannerTint = isSynced ? "#1AA64A" : "#1054E0";
-      const bannerBg = isSynced ? "rgba(26,166,74,.08)" : "rgba(16,84,224,.08)";
-      const bannerBorder = isSynced ? "rgba(26,166,74,.20)" : "rgba(16,84,224,.18)";
-      const bannerTitle = isSyncing
-        ? "正在同步血压计数据…"
-        : isSynced
-          ? "已同步血压计读数"
-          : "已手动微调读数";
-      const bannerSub = isSyncing
-        ? "正在接收哈宝血压计最新测量结果，请稍候"
-        : isSynced
-          ? `刚刚测量 · 血压 ${vSys}/${vDia} mmHg，心率 ${vHr} bpm`
-          : "当前为手动修改值，点右侧可重新恢复血压计读数";
-      const hwSyncBadge = isSynced
-        ? `<span style="font-size:12px;font-weight:700;color:#1AA64A;background:rgba(26,166,74,.12);padding:3px 8px;border-radius:99px">📡 硬件已同步</span>`
-        : "";
-      const hrSyncBadge = hwSyncBadge;
+      const activeKind = activeBPHwKind();
+      const bpDev = activeKind ? hwBound(activeKind) : null;
+      const hwSyncBadge = "";
+      const hrSyncBadge = "";
+      const showHwCard = isHwSyncEnabled();
+      const askUnbind = !!(bpDev && S.vitalsUnbindAsk === activeKind);
+      const cardBg = askUnbind ? "rgba(232,68,74,.07)" : bpDev ? "rgba(26,166,74,.08)" : "rgba(16,84,224,.06)";
+      const cardBorder = askUnbind ? "rgba(232,68,74,.22)" : bpDev ? "rgba(26,166,74,.20)" : "rgba(16,84,224,.15)";
       return `
       <div class="scrim bottom" data-act="close">
         <div class="sheet" style="max-height:90%" onclick="event.stopPropagation()">
           <div class="grab"></div>
           <div class="flex between"><button class="nav-text" data-act="close" type="button">取消</button><h3 class="s17">${tTitle}</h3><span style="width:48px"></span></div>
-          ${bpDev ? `<div class="mt12 flex between gap10" style="padding:12px 14px;border-radius:18px;background:${bannerBg};border:1px solid ${bannerBorder}">
-            <div class="flex gap10" style="min-width:0;flex:1">
-              <div style="width:38px;height:38px;border-radius:50%;background:${isSynced ? "rgba(26,166,74,.14)" : "rgba(16,84,224,.14)"};color:${bannerTint};display:grid;place-items:center;flex-shrink:0">
-                ${isSyncing ? I.waves : isSynced ? I.check : I.ecg}
-              </div>
-              <div style="min-width:0;flex:1">
-                <div class="flex gap6" style="align-items:center;flex-wrap:wrap">
-                  <span class="s15 fb" style="color:${bannerTint}">${bannerTitle}</span>
-                  <span style="font-size:11px;font-weight:700;color:${bannerTint};background:${isSynced ? "rgba(26,166,74,.12)" : "rgba(16,84,224,.12)"};padding:2px 7px;border-radius:99px">${bpDev.name} · ${bpDev.serial}</span>
+          ${showHwCard ? `<div class="mt12" style="padding:12px 14px;border-radius:18px;background:${cardBg};border:1px solid ${cardBorder}">
+            ${!bpDev ? `
+              <div class="flex between gap10" style="align-items:center">
+                <div class="flex gap10" style="min-width:0;flex:1">
+                  <div style="width:36px;height:36px;border-radius:50%;background:rgba(16,84,224,.12);color:#1054E0;display:grid;place-items:center;flex-shrink:0">${I.ecg}</div>
+                  <div style="min-width:0;flex:1">
+                    <div class="flex gap6" style="align-items:center">
+                      <span class="s15 fb t">哈宝血压计</span>
+                      <span style="font-size:11px;font-weight:700;color:#62708A;background:rgba(16,84,224,.08);padding:2px 7px;border-radius:99px">未绑定</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="s12 t-sec mt4" style="line-height:1.35">${bannerSub}</div>
+                <button data-act="selectSheetHw" data-kind="bloodPressure" type="button" style="border:0;cursor:pointer;flex-shrink:0;padding:7px 12px;border-radius:99px;font-size:12.5px;font-weight:700;background:#1054E0;color:#fff">扫码绑定</button>
               </div>
-            </div>
-            ${isSyncing ? "" : `<button data-act="sheetHwResync" type="button" style="border:0;cursor:pointer;flex-shrink:0;padding:6px 10px;border-radius:99px;font-size:12px;font-weight:700;background:#fff;color:#1054E0;box-shadow:0 2px 4px rgba(16,84,224,.10)">重新同步</button>`}
+            ` : askUnbind ? `
+              <div class="flex between gap10" style="align-items:center">
+                <div style="min-width:0;flex:1">
+                  <div class="s14 fb" style="color:#D6363E">确定解除绑定「${bpDev.name} · ${bpDev.serial}」？</div>
+                  <div class="s12 t-sec mt4">解除后可随时重新扫码绑定</div>
+                </div>
+                <div class="flex gap6" style="flex-shrink:0">
+                  <button data-act="vitalsHwUnbindCancel" type="button" style="border:0;cursor:pointer;padding:6px 10px;border-radius:99px;font-size:12px;font-weight:700;background:#fff;color:#62708A">取消</button>
+                  <button data-act="vitalsHwUnbindConfirm" type="button" style="border:0;cursor:pointer;padding:6px 10px;border-radius:99px;font-size:12px;font-weight:700;background:#E8444A;color:#fff">确认解绑</button>
+                </div>
+              </div>
+            ` : `
+              <div class="flex between gap10" style="align-items:center">
+                <div class="flex gap10" style="min-width:0;flex:1">
+                  <div style="width:36px;height:36px;border-radius:50%;background:rgba(26,166,74,.14);color:#1AA64A;display:grid;place-items:center;flex-shrink:0">${I.check}</div>
+                  <div style="min-width:0;flex:1">
+                    <div class="flex gap6" style="align-items:center;flex-wrap:wrap">
+                      <span class="s15 fb" style="color:#1AA64A">${bpDev.name} · ${bpDev.serial}</span>
+                      <span style="font-size:11px;font-weight:700;color:#1AA64A;background:rgba(26,166,74,.12);padding:2px 7px;border-radius:99px">已绑定</span>
+                    </div>
+                  </div>
+                </div>
+                <button data-act="vitalsHwUnbindAsk" type="button" style="border:1px solid rgba(98,112,138,.24);background:#fff;cursor:pointer;flex-shrink:0;padding:6px 11px;border-radius:99px;font-size:12px;font-weight:700;color:#62708A">解除绑定</button>
+              </div>
+            `}
           </div>` : ""}
           <div class="island-card" style="padding:18px;margin-top:12px">
             <div class="flex between">
@@ -22350,7 +22548,59 @@
               ${vitCol("静息心率", vHr, "hr", "#F05A6E", "bpm", [VITAL.hrBand[0], VITAL.hrBand[1]], [40, 180], VITAL.hrStatus(vHr), true)}
             </div>
           </div>
-          <button class="cta mt16 ${isSyncing ? "off" : ""}" data-act="vitalsSave" type="button">${isSyncing ? "正在同步血压计…" : "保存并打卡"}</button>
+          <button class="cta mt16" data-act="vitalsSave" type="button">保存并打卡</button>
+        </div>
+        ${S.hwMeasuredPrompt ? (() => {
+          const p = S.hwMeasuredPrompt;
+          return `
+          <div style="position:absolute;inset:0;background:rgba(15,23,42,.42);display:grid;place-items:center;z-index:20;padding:24px" data-act="hwMeasuredSkip">
+            <div style="width:100%;max-width:320px;background:#fff;border-radius:24px;padding:22px 20px 18px;box-shadow:0 18px 42px rgba(15,23,42,.26);text-align:center" data-act="noop">
+              <div style="width:48px;height:48px;border-radius:50%;background:rgba(16,84,224,.10);color:#1054E0;display:grid;place-items:center;margin:0 auto 12px">${I.ecg}</div>
+              <div class="s19 fb" style="color:#0F172A">检测到血压已测量</div>
+              <div class="s13 t-sec mt6" style="line-height:1.45">${p.name} · ${p.serial} 刚刚完成一次测量，是否同步本次读数？</div>
+              <div style="margin-top:14px;padding:12px 14px;border-radius:16px;background:#F4F7FC;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div>
+                  <div class="s12 t-sec">血压</div>
+                  <div class="s18 fb mono" style="color:#1054E0;margin-top:4px">${p.sys}/${p.dia} <span class="s11" style="opacity:.7">mmHg</span></div>
+                </div>
+                <div style="border-left:1px solid rgba(16,84,224,.10)">
+                  <div class="s12 t-sec">心率</div>
+                  <div class="s18 fb mono" style="color:#F05A6E;margin-top:4px">${p.hr} <span class="s11" style="opacity:.7">bpm</span></div>
+                </div>
+              </div>
+              <div class="flex gap10 mt16">
+                <button data-act="hwMeasuredSkip" type="button" style="flex:1;height:44px;border-radius:99px;border:0;background:#F1F5F9;color:#475569;font-size:15px;font-weight:700;cursor:pointer">暂不同步</button>
+                <button data-act="hwMeasuredApply" type="button" style="flex:1;height:44px;border-radius:99px;border:0;background:#1054E0;color:#fff;font-size:15px;font-weight:700;cursor:pointer">立即同步</button>
+              </div>
+            </div>
+          </div>`;
+        })() : ""}
+      </div>`;
+    },
+    hwGuide: () => {
+      const d = S.overlayData || {};
+      const spec = hwSpec(d.kind || S.hwKind || "bloodPressure");
+      const isBP = spec.k === "bloodPressure";
+      const leftLabel = isBP ? "机身底部" : "表盒背面";
+      const rightLabel = "外包装盒";
+      const desc = isBP
+        ? "在血压计外包装或机身底部找到如下图所示二维码"
+        : "在手表外包装或表盒背面找到如下图所示二维码";
+      return `
+      <div class="scrim center" data-act="hwGuideClose">
+        <div style="width:calc(100% - 40px);max-width:340px;background:#fff;border-radius:24px;padding:22px 20px 20px;box-shadow:0 18px 42px rgba(15,23,42,.26);position:relative" onclick="event.stopPropagation()">
+          <button type="button" data-act="hwGuideClose" aria-label="关闭" style="position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;border:0;background:rgba(15,23,42,.06);color:#64748B;display:grid;place-items:center;cursor:pointer">${I.x}</button>
+          ${hwStepBarHTML(1, false)}
+          <div class="s20 fb" style="color:#0F172A;line-height:1.3">请按步骤进行操作</div>
+          <div class="s14 fm" style="color:#475569;margin-top:8px;line-height:1.5">${desc}</div>
+          <div style="margin-top:16px;padding:14px;border-radius:16px;background:#F4F7FC">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              ${hwQrSampleCardHTML("body", leftLabel)}
+              ${hwQrSampleCardHTML("box", rightLabel)}
+            </div>
+            <div class="s12 t-sec ta-c" style="margin-top:10px;line-height:1.4">找到二维码后，点击下方按钮对准扫描即可自动绑定</div>
+          </div>
+          <button class="cta mt16" data-act="hwGuideConfirm" type="button" style="border-radius:99px">确认找到上述二维码</button>
         </div>
       </div>`;
     },
