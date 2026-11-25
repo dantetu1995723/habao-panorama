@@ -1733,6 +1733,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.470",
+      date: "2026-11-25",
+      time: "13:38",
+      title: "精简「测血压打卡」顶部已绑定血压计状态条，移除多余按钮，仅清爽展示绑定与同步状态",
+      screens: [
+        { id: "home", label: "测血压打卡" },
+      ],
+      items: [
+        "根据产品负责人指示，移除测血压打卡面板顶部已绑定状态卡中的「获取读数 / 重新同步 / 重新获取 / 解除绑定」按钮及冗长副文案，仅干净展示「哈宝血压计 · 3086  已绑定」（解绑统一在「个人中心 → 硬件管理」操作）。",
+        "同步成功与未同步到数据时仅以轻量状态胶囊与一句提示语体现，保持卡片轻盈直观。",
+      ],
+    },
+    {
       ver: "V10.469",
       date: "2026-11-25",
       time: "12:08",
@@ -22646,36 +22659,35 @@
       const hwSyncBadge = "";
       const hrSyncBadge = "";
       const showHwCard = isHwSyncEnabled();
-      const askUnbind = !!(bpDev && S.vitalsUnbindAsk === activeKind);
       const phase = S.vitalsSyncPhase || "idle";
       const isSyncing = phase === "syncing";
       const isNotSynced = phase === "notSynced";
       const isSynced = phase === "synced";
       const isManualAdj = phase === "manualAdjusted";
-      const tint = askUnbind ? "#D6363E" : isNotSynced ? "#D97706" : (isSynced || phase === "idle") ? "#1AA64A" : "#1054E0";
-      const cardBg = askUnbind ? "rgba(232,68,74,.07)" : !bpDev ? "rgba(16,84,224,.06)" : isNotSynced ? "rgba(217,119,6,.08)" : (isSynced || phase === "idle") ? "rgba(26,166,74,.08)" : "rgba(16,84,224,.07)";
-      const cardBorder = askUnbind ? "rgba(232,68,74,.22)" : !bpDev ? "rgba(16,84,224,.15)" : isNotSynced ? "rgba(217,119,6,.24)" : (isSynced || phase === "idle") ? "rgba(26,166,74,.20)" : "rgba(16,84,224,.18)";
+      const tint = isNotSynced ? "#D97706" : (isSynced || phase === "idle") ? "#1AA64A" : "#1054E0";
+      const cardBg = !bpDev ? "rgba(16,84,224,.06)" : isNotSynced ? "rgba(217,119,6,.08)" : (isSynced || phase === "idle") ? "rgba(26,166,74,.08)" : "rgba(16,84,224,.07)";
+      const cardBorder = !bpDev ? "rgba(16,84,224,.15)" : isNotSynced ? "rgba(217,119,6,.24)" : (isSynced || phase === "idle") ? "rgba(26,166,74,.20)" : "rgba(16,84,224,.18)";
       const pillText = isSyncing ? "同步中" : isNotSynced ? "未同步到数据" : isSynced ? "已同步" : isManualAdj ? "手动修改" : "已绑定";
       const subText = isSyncing
-        ? "正在获取血压计测量数据，请稍候…"
+        ? "正在获取血压计测量数据…"
         : isNotSynced
-          ? "暂未收到新的血压测量数据，请确认已用血压计测完并保持联网，也可直接手动录入"
+          ? "暂未收到新测量数据，请确认已测完并保持联网，也可直接手动录入"
           : isSynced
-            ? `已同步 ${S.vitalsHwSyncedTime || demoNowHMText()} 测量 · 血压 ${vSys}/${vDia} mmHg，心率 ${vHr} bpm`
+            ? `已同步 ${S.vitalsHwSyncedTime || demoNowHMText()} 测量 · ${vSys}/${vDia} mmHg`
             : isManualAdj
-              ? "当前为手动修改值，点「重新同步」可恢复血压计读数"
-              : `血压计测完后将自动上传至本次「${tTitle}」，也可直接手动录入`;
+              ? "当前为手动修改值"
+              : "";
       const demoMode = S.vitalsHwDemoMode === "empty" ? "empty" : "synced";
       return `
       <div class="scrim bottom" data-act="close">
         <div class="sheet" style="max-height:90%" onclick="event.stopPropagation()">
           <div class="grab"></div>
           <div class="flex between"><button class="nav-text" data-act="close" type="button">取消</button><h3 class="s17">${tTitle}</h3><span style="width:48px"></span></div>
-          ${showHwCard ? `<div class="mt12" style="padding:12px 14px;border-radius:18px;background:${cardBg};border:1px solid ${cardBorder}">
+          ${showHwCard ? `<div class="mt12" style="padding:11px 14px;border-radius:18px;background:${cardBg};border:1px solid ${cardBorder}">
             ${!bpDev ? `
               <div class="flex between gap10" style="align-items:center">
                 <div class="flex gap10" style="min-width:0;flex:1">
-                  <div style="width:36px;height:36px;border-radius:50%;background:rgba(16,84,224,.12);color:#1054E0;display:grid;place-items:center;flex-shrink:0">${I.ecg}</div>
+                  <div style="width:34px;height:34px;border-radius:50%;background:rgba(16,84,224,.12);color:#1054E0;display:grid;place-items:center;flex-shrink:0">${I.ecg}</div>
                   <div style="min-width:0;flex:1">
                     <div class="flex gap6" style="align-items:center">
                       <span class="s15 fb t">哈宝血压计</span>
@@ -22685,41 +22697,16 @@
                 </div>
                 <button data-act="selectSheetHw" data-kind="bloodPressure" type="button" style="border:0;cursor:pointer;flex-shrink:0;padding:7px 12px;border-radius:99px;font-size:12.5px;font-weight:700;background:#1054E0;color:#fff">扫码绑定</button>
               </div>
-            ` : askUnbind ? `
-              <div class="flex between gap10" style="align-items:center">
-                <div style="min-width:0;flex:1">
-                  <div class="s14 fb" style="color:#D6363E">确定解除绑定「${bpDev.name} · ${bpDev.serial}」？</div>
-                  <div class="s12 t-sec mt4">解除后可随时重新扫码绑定</div>
-                </div>
-                <div class="flex gap6" style="flex-shrink:0">
-                  <button data-act="vitalsHwUnbindCancel" type="button" style="border:0;cursor:pointer;padding:6px 10px;border-radius:99px;font-size:12px;font-weight:700;background:#fff;color:#62708A">取消</button>
-                  <button data-act="vitalsHwUnbindConfirm" type="button" style="border:0;cursor:pointer;padding:6px 10px;border-radius:99px;font-size:12px;font-weight:700;background:#E8444A;color:#fff">确认解绑</button>
-                </div>
-              </div>
             ` : `
-              <div>
-                <div class="flex gap10" style="align-items:flex-start">
-                  <div style="width:36px;height:36px;border-radius:50%;background:${isNotSynced ? "rgba(217,119,6,.15)" : (isSynced || phase === "idle") ? "rgba(26,166,74,.14)" : "rgba(16,84,224,.12)"};color:${tint};display:grid;place-items:center;flex-shrink:0">${isSyncing ? I.waves : isNotSynced ? "!" : (isSynced || phase === "idle") ? I.check : I.ecg}</div>
-                  <div style="min-width:0;flex:1">
-                    <div class="flex gap6" style="align-items:center;flex-wrap:wrap">
-                      <span class="s15 fb" style="color:${tint}">${bpDev.name} · ${bpDev.serial}</span>
-                      <span style="font-size:11px;font-weight:700;color:${tint};background:${isNotSynced ? "rgba(217,119,6,.14)" : (isSynced || phase === "idle") ? "rgba(26,166,74,.12)" : "rgba(16,84,224,.12)"};padding:2px 7px;border-radius:99px">${pillText}</span>
-                    </div>
-                    <div class="s12 t-sec mt4" style="line-height:1.45">${subText}</div>
+              <div class="flex gap10" style="align-items:center">
+                <div style="width:34px;height:34px;border-radius:50%;background:${isNotSynced ? "rgba(217,119,6,.15)" : (isSynced || phase === "idle") ? "rgba(26,166,74,.14)" : "rgba(16,84,224,.12)"};color:${tint};display:grid;place-items:center;flex-shrink:0">${isSyncing ? I.waves : isNotSynced ? "!" : (isSynced || phase === "idle") ? I.check : I.ecg}</div>
+                <div style="min-width:0;flex:1">
+                  <div class="flex gap6" style="align-items:center;flex-wrap:wrap">
+                    <span class="s15 fb" style="color:${tint}">${bpDev.name} · ${bpDev.serial}</span>
+                    <span style="font-size:11px;font-weight:700;color:${tint};background:${isNotSynced ? "rgba(217,119,6,.14)" : (isSynced || phase === "idle") ? "rgba(26,166,74,.12)" : "rgba(16,84,224,.12)"};padding:2px 7px;border-radius:99px">${pillText}</span>
                   </div>
+                  ${subText ? `<div class="s12 t-sec mt4" style="line-height:1.4">${subText}</div>` : ""}
                 </div>
-                ${isSyncing ? "" : `
-                  <div class="flex between gap8 mt8" style="align-items:center">
-                    <div>
-                      ${isNotSynced ? `
-                        <button data-act="sheetHwResync" type="button" style="border:0;cursor:pointer;padding:6px 12px;border-radius:99px;font-size:12px;font-weight:700;background:#D97706;color:#fff">重新获取</button>
-                      ` : `
-                        <button data-act="sheetHwResync" type="button" style="border:0;cursor:pointer;padding:6px 11px;border-radius:99px;font-size:12px;font-weight:700;background:#fff;color:#1054E0;box-shadow:0 1px 4px rgba(16,84,224,.10)">${isSynced ? "重新同步" : "获取读数"}</button>
-                      `}
-                    </div>
-                    <button data-act="vitalsHwUnbindAsk" type="button" style="border:1px solid rgba(98,112,138,.24);background:#fff;cursor:pointer;flex-shrink:0;padding:5px 10px;border-radius:99px;font-size:12px;font-weight:700;color:#62708A">解除绑定</button>
-                  </div>
-                `}
               </div>
             `}
           </div>
