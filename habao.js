@@ -1571,8 +1571,6 @@
     "profile>family-add": "cover",
     "profile>family": "cover",
     "profile>notify": "cover",
-    "profile>hardware": "cover",
-    "hardware>hardware-scan": "cover",
     "health-record>patient-edit": "cover",
     "notify>family": "cover",
     "first-rest>task-add": "cover",
@@ -1624,8 +1622,6 @@
       { id: "family-add", t: "添加家属", code: "FamilyAddView", how: "cover" },
       { id: "family", t: "家属管理", code: "FamilyManageView", how: "cover" },
       { id: "notify", t: "打卡通知", code: "CheckInNotificationView", how: "cover" },
-      { id: "hardware", t: "硬件管理", code: "HardwareManageView", how: "cover" },
-      { id: "hardware-scan", t: "扫码绑定", code: "HardwareScanView", how: "cover" },
       { id: "activity", t: "操作记录", code: "ActivityLogView", how: "cover" },
       { id: "change-phone", t: "更换手机号", code: "ChangePhoneView", how: "cover" },
       { id: "support", t: "联系客服", code: "CustomerSupportView", how: "cover" },
@@ -1732,6 +1728,23 @@
   ];
 
   const CHANGELOG = [
+    {
+      ver: "V10.473",
+      date: "2026-11-25",
+      time: "15:05",
+      title: "全项目移除硬件相关功能、入口与文案（硬件管理、扫码绑定、血压计/手表联动及协议条款）",
+      screens: [
+        { id: "home", label: "测血压打卡" },
+        { id: "profile", label: "个人中心" },
+        { id: "vip", label: "VIP 会员" },
+        { id: "vitals", label: "血压监测" },
+      ],
+      items: [
+        "全面移除个人中心「硬件管理」入口与扫码绑定页面、左侧界面树硬件节点及演示流。",
+        "测血压打卡面板回归纯手工录入，移除顶部血压计绑定状态条、硬件自动打卡与同段多计划选卡弹窗及首页开发菜单硬件模拟项；取消测血压打卡恢复统一删除本次血压记录。",
+        "移除血压监测明细中的「哈宝血压计」来源标签、VIP 会员页「硬件管理」权益卡片及隐私/服务/VIP 协议中的蓝牙与智能硬件条款。",
+      ],
+    },
     {
       ver: "V10.472",
       date: "2026-11-25",
@@ -3802,7 +3815,7 @@
       { act: "openDebug", label: "首页右上「…」打开开发菜单" },
       { act: "debugSeed", optional: true, label: "生成 Demo（铺满档案 + 计划 + 体征）" },
       { act: "debugRegenerate", optional: true, label: "重新生成（清计划与记录，留档案姓名）" },
-      { act: "debugGen", optional: true, label: "设计版本 V0.0 / V0.1（家属、操作记录、硬件管理与哈宝问诊跟着开合）" },
+      { act: "debugGen", optional: true, label: "设计版本 V0.0 / V0.1（家属、操作记录与哈宝问诊跟着开合）" },
       { act: "debugTestLogin", label: "测试登录步骤（只退登录态）" },
       { screen: "onboard-login", label: "回登录向导，计划与记录仍在" },
     ]},
@@ -5246,7 +5259,7 @@
         ops: [
           { id: "pr_preset_2", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "打卡了", place: "家属管理", at: baseHour - 900000, how: "晨起测血压与心率", notifiedNames: [] },
           { id: "op_zgl_1", role: "patient", actor: "张桂兰", targetName: "张桂兰", action: "打卡了", place: "首页", at: baseHour - 1800000, how: "服用苯磺酸氨氯地平片", notifiedNames: [] },
-          { id: "op_zgl_2", role: "patient", actor: "张桂兰", targetName: "张桂兰", action: "同步了血压", place: "血压监测", at: baseHour - 3600000, how: "哈宝血压计，血压 134/83，心率 76 bpm", notifiedNames: [] },
+          { id: "op_zgl_2", role: "patient", actor: "张桂兰", targetName: "张桂兰", action: "打卡了", place: "首页", at: baseHour - 3600000, how: "起床测血压（血压 134/83，心率 76 bpm）", notifiedNames: [] },
           { id: "op_zgl_3", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "提醒了", place: "家属管理", at: baseHour - 86400000, how: "傍晚复测血压", notifiedNames: [] },
         ],
       };
@@ -5381,8 +5394,7 @@
         { id: "op_ljg_2", role: "patient", actor: "李建国", targetName: "李建国", action: "完成了散步", place: "运动", at: baseHour - 1800000, how: "1.24 公里（晨间散步 已完成）", notifiedNames: [] },
         { id: "op_ljg_3", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "修改了计划", place: "家属管理", at: baseHour - 2400000, how: "晚间散步", notifiedNames: [] },
         { id: "op_ljg_4", role: "patient", actor: "李建国", targetName: "李建国", action: "打卡了", place: "首页", at: baseHour - 5400000, how: "服用阿司匹林肠溶片", notifiedNames: [] },
-        { id: "op_ljg_bp1", role: "patient", actor: "李建国", targetName: "李建国", action: "打卡了", place: "首页", at: baseHour - 6600000, how: "起床测血压（哈宝血压计，血压 126/78，心率 72 bpm）", notifiedNames: [] },
-        { id: "op_ljg_5", role: "patient", actor: "李建国", targetName: "李建国", action: "同步了血压", place: "血压监测", at: baseHour - 7200000, how: "哈宝血压计，血压 122/76，心率 70 bpm", notifiedNames: [] },
+        { id: "op_ljg_bp1", role: "patient", actor: "李建国", targetName: "李建国", action: "打卡了", place: "首页", at: baseHour - 6600000, how: "起床测血压（血压 126/78，心率 72 bpm）", notifiedNames: [] },
         { id: "pr_preset_1", role: "family", actor: "王芳", actorId: "bond_wf_ljg", targetName: "李建国", action: "提醒了", place: "家属管理", at: baseHour - 86400000, how: "晚间散步", notifiedNames: [] },
         { id: "op_ljg_7", role: "family", actor: "李建国", actorId: "bond_ljg_zgl", targetName: "张桂兰", action: "提醒了", place: "家属管理", at: baseHour - 90000000, how: "傍晚复测血压", notifiedNames: [] },
       ],
@@ -7934,12 +7946,7 @@
       const existing = log[idx];
       S.lastRemovedVitalsByTask = S.lastRemovedVitalsByTask || {};
       S.lastRemovedVitalsByTask[id] = { ...existing };
-      if (existing.hw) {
-        // 同步数据与打卡分离：取消硬件关联打卡仅解除关联，退回未关联池并保留原始血压计测量
-        existing.taskId = null;
-      } else {
-        log.splice(idx, 1);
-      }
+      log.splice(idx, 1);
       if (VITALS_WEEK.length && log.length) {
         VITALS_WEEK[VITALS_WEEK.length - 1] = { day: "日", sys: log[0].sys, dia: log[0].dia, hr: log[0].hr };
       }
@@ -7964,11 +7971,6 @@
   function undoCheckInPrompt(t) {
     const title = `取消「${t.title}」打卡？`;
     if (t.cat === "monitoring" && t.title !== "测心率") {
-      const boundRec = (S.vitalsLog || []).find((r) => r.taskId === t.id);
-      const isHw = boundRec ? !!boundRec.hw : !!(S.taskVitalsHw && S.taskVitalsHw[t.id]);
-      if (isHw) {
-        return { title, body: "取消后仅解除与本计划的关联，血压计同步的测量记录仍保留在血压监测中。" };
-      }
       return { title, body: "取消后将同时删除本次血压记录。" };
     }
     if (t.cat === "exercise") {
@@ -9249,24 +9251,15 @@
         }
         const vid = S.overlayData.id;
         const place = S.overlayData.place || "首页";
-        const isHw = !!(hasBoundBPMonitor() && S.vitalsFromHw && S.vitalsSyncPhase === "synced");
-        const nowHM = S.vitalsHwSyncedTime || demoNowHMText();
+        const nowHM = demoNowHMText();
         S.completed[vid] = true;
-        S.taskVitalsHw = S.taskVitalsHw || {};
-        S.taskVitalsHw[vid] = isHw;
-        S.vitalsLog = S.vitalsLog || [];
-        // 保留同计划旧硬件测量记录在血压监测明细中（仅解绑 taskId），手动旧记录直接覆写
-        S.vitalsLog.forEach((r) => {
-          if (r.taskId === vid && r.hw) r.taskId = null;
-        });
-        S.vitalsLog = S.vitalsLog.filter((r) => !(r.taskId === vid && !r.hw));
+        S.vitalsLog = (S.vitalsLog || []).filter((r) => r.taskId !== vid);
         S.vitalsLog.unshift({
-          id: `vl_${isHw ? "hw" : "manual"}_${Date.now()}`,
+          id: `vl_manual_${Date.now()}`,
           time: nowHM,
           sys: S.sys,
           dia: S.dia,
           hr: S.hr,
-          hw: isHw,
           taskId: vid,
         });
         if (S.lastRemovedVitalsByTask) delete S.lastRemovedVitalsByTask[vid];
@@ -9275,10 +9268,7 @@
         }
         // 填读数 + 打卡合成一条
         markProxy(vid, null, true);
-        logOp("打卡了", place, [["计划", taskTitle(vid)], ["读数", `${isHw ? "哈宝血压计，" : ""}血压 ${S.sys}/${S.dia}，心率 ${S.hr} bpm`]]);
-        S.hwMeasuredPrompt = null;
-        S.vitalsHwSelectedId = null;
-        S.vitalsHwSyncedTime = "";
+        logOp("打卡了", place, [["计划", taskTitle(vid)], ["读数", `血压 ${S.sys}/${S.dia}，心率 ${S.hr} bpm`]]);
         closeOverlay();
       },
       sheetSimHwDone() {
@@ -16526,7 +16516,6 @@
                 <div class="s15 fb t mono">${r.time}</div>
                 <div class="s13 t-sec">血压 ${r.sys}/${r.dia} mmHg　心率 ${r.hr} bpm</div>
               </div>
-              ${showHwTag && r.hw ? `<span style="font-size:12px;font-weight:700;color:#1054E0;background:rgba(16,84,224,.10);padding:4px 9px;border-radius:99px;flex-shrink:0">📡 哈宝血压计</span>` : ""}
             </div>`).join("")}
         </div>
       </div>`;
@@ -17336,15 +17325,6 @@
           ],
         },
         {
-          ico: I.waves,
-          title: "硬件管理",
-          tag: "智能血压计 + 手表",
-          subtitle: "居家测量自动上传，异常指标智能预警与干预",
-          subs: [
-            ["远程实时监测", "数据趋势追踪与异常指标预警", "配备并绑定可穿戴智能监测设备（血压计和手表），患者居家测量后实时上传管理中心，医生和家属均可远程实时监测数据（血压和心率），记录数据变化趋势，及时干预异常指标，降低不良事件发生率。"],
-          ],
-        },
-        {
           ico: I.clock,
           title: "操作记录",
           tag: "全流程照护留痕",
@@ -17362,7 +17342,7 @@
               <div class="hero-crown-circle">${I.crown}</div>
               <div>
                 <div class="s18 fb">哈宝 VIP</div>
-                <div class="s13" style="opacity:.85">哈宝医生、支架保险理赔、家属共管、智能硬件及操作记录</div>
+                <div class="s13" style="opacity:.85">哈宝医生、支架保险理赔、家属共管及操作记录</div>
               </div>
             </div>
             <div class="frost"></div>
@@ -17526,7 +17506,6 @@
                 [I.steth, "哈宝医生"],
                 [I.shieldCheck, "支架保险"],
                 [I.two, "家属共管"],
-                [I.waves, "智能硬件"],
                 [I.clock, "照护记录"],
               ].map(([ico, txt]) => `
                 <button class="hero-benefit-capsule active" data-go="vip" type="button">
@@ -17537,7 +17516,6 @@
           </div>
           <div class="list-island mt16">
             ${[
-              ["hardware", I.waves, "硬件管理", hwCaption()],
               ["activity", I.clock, "操作记录", (() => { const latest = opVisibleOps()[0]; return latest ? opHeadlineHTML(latest) : "还没有记录"; })()],
               ["family-add", I.personPlus, "添加家属", familyAddCaptionFor(curPerson.name)],
             ].map(([id, ico, t, s]) => vipFeatureRowHTML(id, ico, t, s)).join("")}
@@ -17705,7 +17683,6 @@
             [I.pin, "位置", "记录户外散步 GPS 路线与地图定位", "已开启", true],
             [I.walk, "运动与健身", "统计户外散步步数与距离", "已开启", true],
             [I.mic, "麦克风与语音", "哈宝医生按住说话转文字", "去设置", false],
-            [I.waves, "蓝牙", "连接智能血压计与手表", "去设置", false],
             [I.bell, "通知提醒", "发送吃药、测血压与复查提醒", "已开启", true],
           ].map(([ico, name, desc, state, on]) => `
             <button type="button" data-act="openSysSettingsHint" class="island-card" style="padding:14px 16px;border-radius:18px;display:flex;align-items:center;gap:14px;border:0;width:100%;text-align:left;cursor:pointer;font-family:inherit">
@@ -17816,7 +17793,7 @@
           </div>
           ${[
             ["一、收费标准与服务周期", "¥2400 / 年（按年一次性开通，不自动扣费）", "哈宝 VIP 会员服务费为人民币 2400 元 / 年，自开通成功之日起算，有效期为 365 天。本服务为固定年包，不设连续包年或自动扣费续订，到期后您可根据康复需要自主决定是否续期。"],
-            ["二、五项核心会员权益", "哈宝医生、支架保险、家属共管、智能硬件及操作记录", "开通有效期内，患者档案享有：① 哈宝医生专属服务（心内科与多学科康复团队全年不限次在线问诊与 7 天一期康复方案指导）；② 支架保险理赔服务（符合条件的支架术后用户享中国人民保险再狭窄介入自费报销与住院津贴）；③ 最多绑定 5 位守护家属多端协同；④ 智能血压计与手表绑定监测；⑤ 全流程照护操作留痕。"],
+            ["二、四项核心会员权益", "哈宝医生、支架保险、家属共管及操作记录", "开通有效期内，患者档案享有：① 哈宝医生专属服务（心内科与多学科康复团队全年不限次在线问诊与 7 天一期康复方案指导）；② 支架保险理赔服务（符合条件的支架术后用户享中国人民保险再狭窄介入自费报销与住院津贴）；③ 最多绑定 5 位守护家属多端协同；④ 全流程照护操作留痕。"],
             ["三、家庭共享与权益归属", "随患者康复档案生效，守护家属免重复付费", "VIP 会员权益绑定在开通患者的康复档案上，经双向确认绑定的守护家属在看护该患者时，可直接协同使用家属共管、哈宝医生咨询与操作记录核对，无需单独重复购买。"],
             ["四、恢复购买、服务到期与数据保留", "支持跨设备恢复购买，个人健康档案永久留存", "1. 恢复购买：更换设备或重装应用后，您可在「VIP 会员」页右上角点击「恢复购买」找回有效期内权益。<br>2. 服务到期与数据保留：会员到期后，VIP 专属功能将重新上锁，但您已建立的健康档案、康复计划、病历照片与历史记录仍完好保留在账号下。如有订单疑问请致电 400-1666-199。"],
           ].map(([badge, title, body]) => `
@@ -17904,9 +17881,9 @@
           </div>
           ${[
             ["一、收集与使用", "我们如何收集和使用您的信息", "1. 账号注册与身份识别：当您注册或登录哈宝时，我们需要收集您的手机号码及短信验证码，用于创建账号、识别患者本人或守护家属身份。<br>2. 康复档案与日常监测：为向您提供个性化的康复计划、血压心率趋势分析与身体报告管理，您可自主填写姓名、性别、出生日期、身高、体重，以及录入血压、心率、散步记录和随访问卷。<br>3. 病历与报告识别（OCR）：当您使用「拍照上传病历/复查报告」功能时，我们会根据您的主动上传，解析出院诊断、用药医嘱与复查时间，帮您一键生成提醒计划。"],
-            ["二、设备权限（iOS & Android 通用）", "系统权限调用遵循「用时方申请」原则", "在您同意本隐私政策时，我们不会提前索取任何系统敏感权限；仅在您实际触发对应功能时，才会向系统发起动态权限申请，且拒绝授权不影响其他功能正常使用：<br>• 相机与相册权限：仅在您拍摄或从相册导入出院记录、检查化验单及在哈宝医生发送图片时调用。<br>• 位置权限：仅在您开启「户外散步」记录 GPS 轨迹路线与地图定位时调用。<br>• 运动与健身权限：仅在您开启「户外散步」统计步数与距离时调用。<br>• 麦克风与语音识别权限：仅在您于「哈宝医生」按住说话语音提问时调用。<br>• 蓝牙与本地网络权限：仅在您扫码绑定或同步哈宝智能血压计、智能手表读数时调用。<br>• 通知推送权限：用于向您及已绑定的守护人/被守护人发送服药、测血压、复查与打卡提醒。"],
+            ["二、设备权限（iOS & Android 通用）", "系统权限调用遵循「用时方申请」原则", "在您同意本隐私政策时，我们不会提前索取任何系统敏感权限；仅在您实际触发对应功能时，才会向系统发起动态权限申请，且拒绝授权不影响其他功能正常使用：<br>• 相机与相册权限：仅在您拍摄或从相册导入出院记录、检查化验单及在哈宝医生发送图片时调用。<br>• 位置权限：仅在您开启「户外散步」记录 GPS 轨迹路线与地图定位时调用。<br>• 运动与健身权限：仅在您开启「户外散步」统计步数与距离时调用。<br>• 麦克风与语音识别权限：仅在您于「哈宝医生」按住说话语音提问时调用。<br>• 通知推送权限：用于向您及已绑定的守护人/被守护人发送服药、测血压、复查与打卡提醒。"],
             ["三、存储、加密与家属共享", "数据安全保护与家庭协同规则", "1. 境内加密存储与脱敏：您的个人信息存储于中华人民共和国境内服务器，手机号在界面默认脱敏显示（如 138****5678），通信传输全程采用 TLS 加密。<br>2. 家属共管授权：仅在您与家人双向确认建立「守护人 / 被守护人」绑定关系后，授权对方查看您的康复计划、血压监测与身体报告进展；您可随时在「个人中心」一键解除守护关系，解除后立即停止数据共享。<br>3. Apple HealthKit / 运动健康数据特别承诺：经您授权读取或写入的步数、运动与健康指标仅用于本应用内的院外心肺康复评估与展示，绝不用于任何广告营销、用户画像或出售给第三方数据经纪商。"],
-            ["四、您的权利", "查询、更正、撤回同意与注销账号", "1. 清单透明查阅：您可随时在「个人中心 → 隐私管理」查看系统权限状态、个人信息收集清单与第三方信息共享清单。<br>2. 撤回权限授权：您可随时在手机系统「设置 → 隐私/应用权限管理」中关闭相机、位置、运动与健身、麦克风、蓝牙或通知权限。<br>3. 注销账号：所有登录用户均可通过「个人中心 → 注销账号」经短信验证后申请永久注销，我们将立即清空或不可逆匿名化您的全部个人健康档案、计划记录与绑定信息。"],
+            ["四、您的权利", "查询、更正、撤回同意与注销账号", "1. 清单透明查阅：您可随时在「个人中心 → 隐私管理」查看系统权限状态、个人信息收集清单与第三方信息共享清单。<br>2. 撤回权限授权：您可随时在手机系统「设置 → 隐私/应用权限管理」中关闭相机、位置、运动与健身、麦克风或通知权限。<br>3. 注销账号：所有登录用户均可通过「个人中心 → 注销账号」经短信验证后申请永久注销，我们将立即清空或不可逆匿名化您的全部个人健康档案、计划记录与绑定信息。"],
             ["五、未成年人保护与联系我们", "运营主体与隐私保护专员联系方式", "哈宝主要面向成年心血管及慢病康复人群；若涉及未满 14 周岁未成年人使用，须在监护人知情同意并陪同下建档。如您对本隐私政策或个人信息保护有任何疑问、投诉或建议，可通过「个人中心 → 联系客服」或拨打客服热线 400-1666-199（08:00–21:00）联系哈瑞特医疗隐私保护团队，我们将在 15 个工作日内核实并回复。"],
           ].map(([badge, title, body]) => `
             <div class="island-card" style="padding:18px;border-radius:20px">
@@ -17930,7 +17907,7 @@
             <div style="font-size:15px;font-weight:500;color:#1E293B;line-height:1.55;margin-top:8px">欢迎您使用哈宝院外心肺康复管理软件及相关服务。本协议由您与哈瑞特医疗（哈宝团队）共同缔结，适用于 iOS 与 Android 客户端。请在使用前仔细阅读以下条款，特别是健康安全免责声明与账号管理规则。</div>
           </div>
           ${[
-            ["一、服务内容", "哈宝院外康复管理服务范围", "哈宝为心血管及慢病康复人群提供院外日程提醒（服药、测血压、运动、饮食、作息、复查）、体征记录、病历归档、集章鼓励以及 VIP 专属服务（哈宝医生在线咨询、家属多端共管、智能硬件互联、操作记录留痕与支架保险理赔协助）。"],
+            ["一、服务内容", "哈宝院外康复管理服务范围", "哈宝为心血管及慢病康复人群提供院外日程提醒（服药、测血压、运动、饮食、作息、复查）、体征记录、病历归档、集章鼓励以及 VIP 专属服务（哈宝医生在线咨询、家属多端共管、操作记录留痕与支架保险理赔协助）。"],
             ["二、医疗安全提示", "非急诊诊疗声明与紧急呼救准则", "1. 辅助康复属性：哈宝及「哈宝医生」提供的健康建议、报告解读与康复计划旨在协助您执行出院医嘱与日常健康管理，不能替代医院急诊或线下面诊处置。<br>2. 危急症状立即呼救：若您或被守护患者出现剧烈胸痛、胸口压榨感不缓解、严重呼吸困难、大汗淋漓、晕厥、黑便或血压触发危急报警值（如 ≥180/110 mmHg），请立即停止一切活动并拨打 120 急救电话或前往就近医院急诊就医。"],
             ["三、账号与家庭守护", "实名手机号登录与守护人协同规范", "1. 账号使用：您应使用本人合法拥有的手机号码注册登录，支持在「个人中心 → 更换手机号」安全换绑，并妥善保管短信验证码。<br>2. 家庭守护规范：添加守护家属须征得家人知情同意。代为打卡、修改计划将如实记录在「操作记录」中，便于家庭成员与康复团队协同核对。"],
             ["四、VIP 会员与联系我们", "按年开通、家庭共享与客服渠道", "1. VIP 随患者档案生效：开通 VIP 会员后，绑定确认的守护家属在看护该患者时可自动共享协同权益，无需重复付费。<br>2. 恢复与咨询：您可在「个人中心 → VIP 会员」查看权益详情与有效期，或点击右上角「恢复购买」找回有效期内权益；如有任何服务疑问或投诉建议，请前往「个人中心 → 联系客服」或致电 400-1666-199。"],
@@ -22669,8 +22646,6 @@
           <button class="dbg-row" data-act="debugSeed" type="button">${I.spark}<span>生成 Demo</span></button>
           <button class="dbg-row danger" data-act="debugRegenerate" type="button">${I.undo}<span>重新生成</span></button>
           <button class="dbg-row" data-act="debugTestLogin" type="button">${I.person}<span>测试登录步骤</span></button>
-          <button class="dbg-row" data-act="debugSimBPAuto" type="button">${I.ecg}<span>模拟血压计测完上传<em>当前时段自动打卡</em></span></button>
-          <button class="dbg-row" data-act="debugSimBPMultiPlan" type="button">${I.list}<span>模拟同段多计划测血压上传<em>弹出选计划 Sheet</em></span></button>
           <div class="dbg-sep"></div>
           ${["0.0", "0.1"].map((v) => `
             <button class="dbg-row" data-act="debugGen" data-gen="${v}" type="button">
@@ -22799,52 +22774,14 @@
       }
       const vSys = S.sys; const vDia = S.dia; const vHr = S.hr;
       const tTitle = (SEED.find((t) => t.id === S.overlayData.id) || {}).title || "起床测血压";
-      const activeKind = activeBPHwKind();
-      const bpDev = activeKind ? hwBound(activeKind) : null;
-      const hwSyncBadge = "";
-      const hrSyncBadge = "";
-      const showHwCard = isHwSyncEnabled();
       return `
       <div class="scrim bottom" data-act="close">
         <div class="sheet" style="max-height:90%" onclick="event.stopPropagation()">
           <div class="grab"></div>
           <div class="flex between"><button class="nav-text" data-act="close" type="button">取消</button><h3 class="s17">${tTitle}</h3><span style="width:48px"></span></div>
-          ${showHwCard ? `<div class="mt12" style="padding:11px 14px;border-radius:18px;background:${bpDev ? "rgba(26,166,74,.08)" : "rgba(16,84,224,.06)"};border:1px solid ${bpDev ? "rgba(26,166,74,.20)" : "rgba(16,84,224,.15)"}">
-            ${!bpDev ? `
-              <div class="flex between gap10" style="align-items:center">
-                <div class="flex gap10" style="min-width:0;flex:1">
-                  <div style="width:34px;height:34px;border-radius:50%;background:rgba(16,84,224,.12);color:#1054E0;display:grid;place-items:center;flex-shrink:0">${I.ecg}</div>
-                  <div style="min-width:0;flex:1">
-                    <div class="flex gap6" style="align-items:center">
-                      <span class="s15 fb t">哈宝血压计</span>
-                      <span style="font-size:11px;font-weight:700;color:#62708A;background:rgba(16,84,224,.08);padding:2px 7px;border-radius:99px">未绑定</span>
-                    </div>
-                  </div>
-                </div>
-                <button data-act="selectSheetHw" data-kind="bloodPressure" type="button" style="border:0;cursor:pointer;flex-shrink:0;padding:7px 12px;border-radius:99px;font-size:12.5px;font-weight:700;background:#1054E0;color:#fff">扫码绑定</button>
-              </div>
-            ` : `
-              <div class="flex gap10" style="align-items:center">
-                <div style="width:34px;height:34px;border-radius:50%;background:rgba(26,166,74,.14);color:#1AA64A;display:grid;place-items:center;flex-shrink:0">${I.check}</div>
-                <div style="min-width:0;flex:1">
-                  <div class="flex gap6" style="align-items:center;flex-wrap:wrap">
-                    <span class="s15 fb" style="color:#1AA64A">${bpDev.name} · ${bpDev.serial}</span>
-                    <span style="font-size:11px;font-weight:700;color:#1AA64A;background:rgba(26,166,74,.12);padding:2px 7px;border-radius:99px">已绑定</span>
-                  </div>
-                </div>
-              </div>
-            `}
-          </div>
-          ${bpDev ? `
-            <div class="flex gap6 mt8" style="align-items:center">
-              <span class="s12 fb t-sec">测试态</span>
-              <button type="button" data-act="sheetSimHwDone" style="border:0;cursor:pointer;padding:4px 10px;border-radius:99px;font-size:11.5px;font-weight:700;background:rgba(16,84,224,.10);color:#1054E0">模拟硬件测完</button>
-            </div>
-          ` : ""}` : ""}
           <div class="island-card" style="padding:18px;margin-top:12px">
             <div class="flex between">
               <div class="s15 fb t sheet-sec">${I.heartSq}血压</div>
-              ${hwSyncBadge}
             </div>
             <div class="flex gap16 mt12">
               ${vitCol("收缩压", vSys, "sys", "#1054E0", "mmHg", [VITAL.systolicLower, VITAL.bpTarget(VIT_AGE).sys - 1], [70, 220], VITAL.bpStatus(vSys, vDia, VIT_AGE))}
@@ -22854,7 +22791,6 @@
           <div class="island-card" style="padding:16px;margin-top:12px">
             <div class="flex between">
               <div class="s15 fb t-heart sheet-sec">${I.ecg}心率</div>
-              ${hrSyncBadge}
             </div>
             <div class="ecg-strip"><svg viewBox="0 0 300 40" preserveAspectRatio="none" height="30"><path class="line-path" d="M0 24h34l6-14 6 26 6-12h40l6-14 6 26 6-12h40l6-14 6 26 6-12h40l6-14 6 26 6-12h40"/></svg></div>
             <div class="flex gap16 mt12">
@@ -23000,7 +22936,7 @@
           <h3 style="font-size:21px;font-weight:800;color:var(--blue);margin:0;text-align:center">用户隐私保护提示</h3>
           <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;font-size:15px;color:#1E293B;line-height:1.6">
             <div>1. 为帮助您管理康复计划、记录血压与身体报告，我们会收集必要的个人及健康信息；</div>
-            <div>2. 相机、位置、运动与健身、麦克风、蓝牙与通知等权限不会默认开启，仅在您使用对应功能时才按需询问；</div>
+            <div>2. 相机、位置、运动与健身、麦克风与通知等权限不会默认开启，仅在您使用对应功能时才按需询问；</div>
             <div>3. 您的健康档案全程加密存储，未经您本人授权不会向任何第三方提供；</div>
             <div>4. 详情请阅读<button type="button" data-act="openAgreementModal" data-kind="service" style="border:0;background:none;padding:0;color:var(--blue);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">《服务协议》</button>与<button type="button" data-act="openAgreementModal" data-kind="privacy" style="border:0;background:none;padding:0;color:var(--blue);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">《隐私协议》</button>。</div>
           </div>
