@@ -1808,6 +1808,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.491",
+      date: "2026-11-26",
+      time: "15:35",
+      title: "调整「确认计划」页顶部提示语，明确提交后可在「健康计划」页自由添加其他计划",
+      screens: [
+        { id: "confirm-plan", label: "确认计划" },
+      ],
+      items: [
+        "将「确认计划」列表顶部的浅蓝轻提示语由「如需添加其他计划，请先确认基础计划，随后可在「健康计划」页自由添加。」调整为「如需添加其他计划，提交后可在「健康计划」页自由添加。」",
+      ],
+    },
+    {
       ver: "V10.490",
       date: "2026-11-26",
       time: "11:35",
@@ -16946,7 +16958,7 @@
         <div class="scroll px20" style="padding-top:12px;padding-bottom:120px">
           <div class="confirm-add-more-tip">
             <span class="confirm-add-more-ico" aria-hidden="true">i</span>
-            <span class="confirm-add-more-txt">如需添加其他计划，请先确认基础计划，随后可在「健康计划」页自由添加。</span>
+            <span class="confirm-add-more-txt">如需添加其他计划，提交后可在「健康计划」页自由添加。</span>
           </div>
           ${periodSections.map((g) => `
             <div class="confirm-period">
