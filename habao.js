@@ -1808,6 +1808,22 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.480",
+      date: "2026-11-26",
+      time: "09:22",
+      title: "「运动打卡提醒」弹窗按钮改为「稍后打卡 / 去打卡」，点「去打卡」与本人运动打卡流程完全一致",
+      screens: [
+        { id: "home", label: "首页" },
+        { id: "family-manage", label: "家属管理" },
+        { id: "activity", label: "操作记录" },
+      ],
+      items: [
+        "B 端首页专属弹窗标题调整为「运动打卡提醒（需本人打卡）」，底部双按钮改为「稍后打卡 ｜ 去打卡」。",
+        "点击「去打卡」不再直接跳散步页，而是弹出与本人自己打卡完全一致的运动打卡三选一面板（「开始散步 / 已完成运动，直接打卡 / 暂不打卡」），无论通过散步打卡还是直接打卡完成，均自动向 A 发送完成回执并记入双方操作记录。",
+        "修复交互全景当天提醒误带演示日期后缀（如「9月11日」）的小瑕疵。",
+      ],
+    },
+    {
       ver: "V10.479",
       date: "2026-11-25",
       time: "17:58",
@@ -4810,8 +4826,8 @@
     if (!responderName || !reminderName || responderName === reminderName || !task) return null;
     const title = task.title || "运动计划";
     const howTitle = completed
-      ? `收到运动提醒：已完成「${title}」`
-      : (deferredFromPopup ? `收到运动提醒：稍后运动（${title}）` : `收到运动提醒：暂未完成「${title}」`);
+      ? `收到运动打卡提醒：已完成「${title}」`
+      : (deferredFromPopup ? `收到运动打卡提醒：稍后打卡（${title}）` : `收到运动打卡提醒：暂未完成「${title}」`);
     const snapshot = {
       id: `proxy_ex_rmd_${Date.now()}_${Math.random().toString(36).slice(2, 5)}`,
       title: howTitle,
@@ -4915,8 +4931,8 @@
   function proxyNonSameDayLabel(r) {
     const ymd = String(r.onYMD || "").trim();
     if (!ymd) return "";
-    const createdYMD = toYMD(r.createdAt ? new Date(r.createdAt) : demoDate());
-    if (ymd === createdYMD) return "";
+    const todayYMD = toYMD(demoDate());
+    if (ymd === todayYMD) return "";
     const parts = ymd.split("-");
     if (parts.length !== 3) return "";
     const m = Number(parts[1]);
@@ -6648,15 +6664,15 @@
           <div style="width:100%;max-width:344px;background:#fff;border-radius:24px;border:1px solid rgba(16,84,224,.14);box-shadow:0 16px 36px rgba(10,26,68,.20);padding:22px 20px 20px;display:flex;flex-direction:column;align-items:stretch;text-align:left">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
               <div style="width:36px;height:36px;border-radius:50%;background:rgba(16,84,224,.12);color:var(--blue);display:grid;place-items:center;flex-shrink:0">${I.walk || I.bell}</div>
-              <div style="flex:1;min-width:0;font-size:19px;font-weight:800;color:var(--blue);line-height:1.2">运动提醒</div>
-              <span style="padding:4px 10px;border-radius:999px;background:rgba(16,84,224,.10);border:1px solid rgba(16,84,224,.22);color:var(--blue);font-size:12px;font-weight:800;flex-shrink:0">需本人运动</span>
+              <div style="flex:1;min-width:0;font-size:19px;font-weight:800;color:var(--blue);line-height:1.2">运动打卡提醒</div>
+              <span style="padding:4px 10px;border-radius:999px;background:rgba(16,84,224,.10);border:1px solid rgba(16,84,224,.22);color:var(--blue);font-size:12px;font-weight:800;flex-shrink:0">需本人打卡</span>
             </div>
             <div class="op-card" style="width:100%;padding:15px;border-radius:16px;background:rgba(16,84,224,.05);border:1px solid rgba(16,84,224,.14);box-shadow:none;margin-bottom:16px">
               <h4>${opHeadlineHTML(proxyToOpItem(curRemind))}</h4>
             </div>
             <div style="width:100%;display:flex;gap:10px">
-              <button type="button" data-act="deferHomeExerciseRemind" style="flex:1;height:48px;border-radius:14px;border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit">稍后运动</button>
-              <button type="button" data-act="goHomeExerciseFromRemind" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">去运动</button>
+              <button type="button" data-act="deferHomeExerciseRemind" style="flex:1;height:48px;border-radius:14px;border:0;background:rgba(16,84,224,.10);color:var(--blue);font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit">稍后打卡</button>
+              <button type="button" data-act="goHomeExerciseFromRemind" style="flex:1;height:48px;border-radius:14px;border:0;background:var(--blue);color:#fff;font-size:16.5px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 14px rgba(16,84,224,.24)">去打卡</button>
             </div>
           </div>
         </div>`;
@@ -9641,6 +9657,7 @@
         const id = S.overlayData.id;
         S.completed[id] = true;
         markProxy(id);
+        completePendingExerciseRemindIfNeeded(true);
         closeOverlay();
       },
       appointmentGo() {
@@ -13193,7 +13210,7 @@
           deferredFromPopup: true,
         });
         render();
-        toast(`已向${req.senderName}回执「稍后运动」`);
+        toast(`已向${req.senderName}回执「稍后打卡」`);
       },
       goHomeExerciseFromRemind() {
         const cur = S.currentPersonName || "李建国";
@@ -13204,7 +13221,10 @@
           task: { ...req.taskSnapshot },
         };
         acknowledgeExerciseRemindRequestFor(req.id, cur);
-        openContraOrBegin(req.targetTaskId || req.taskSnapshot?.id || null);
+        openOverlay("exercise", {
+          id: req.targetTaskId || req.taskSnapshot?.id || null,
+          remindTitle: req.taskSnapshot?.title || "运动计划",
+        });
       },
       ackHomeProxyPopupAndTest() {
         const cur = S.currentPersonName || "李建国";
@@ -23291,7 +23311,7 @@
       <div class="scrim bottom" data-act="close">
         <div class="sheet" style="min-height:400px" onclick="event.stopPropagation()">
           <div class="grab"></div>
-          <div class="s18 fsb t ta-c" style="padding:6px 8px 8px">${(SEED.find((t) => t.id === S.overlayData.id) || {}).title || "晨间散步"}</div>
+          <div class="s18 fsb t ta-c" style="padding:6px 8px 8px">${esc(S.overlayData?.remindTitle || (SEED.find((t) => t.id === S.overlayData.id) || {}).title || "晨间散步")}</div>
           <div class="col gap16" style="margin-top:12px;padding:16px 6px 24px">
             <button class="ex-choice primary" data-act="exerciseGo" type="button"><span class="ico">${I.walk}</span>进入运动，开始散步</button>
             <button class="ex-choice secondary" data-act="exerciseDone" type="button"><span class="ico">${I.check}</span>我已完成散步，直接打卡</button>
