@@ -1808,6 +1808,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.492",
+      date: "2026-11-26",
+      time: "15:40",
+      title: "「确认计划」页底栏主按钮文案由「确认」改为「提交」",
+      screens: [
+        { id: "confirm-plan", label: "确认计划" },
+      ],
+      items: [
+        "将「确认计划」页底栏右侧主按钮文案由「确认」调整为「提交」，与页面顶部「提交后可在健康计划页自由添加」提示语保持一致。",
+      ],
+    },
+    {
       ver: "V10.491",
       date: "2026-11-26",
       time: "15:35",
@@ -17025,7 +17037,7 @@
         </div>
         <div class="px20 flex gap12 confirm-bottom-row" style="padding-bottom:28px">
           <button class="cta-line h52" data-act="reparseCase" type="button">${I.cam}重新拍照解析</button>
-          <button class="cta h52" data-act="confirmPlan" type="button">确认</button>
+          <button class="cta h52" data-act="confirmPlan" type="button">提交</button>
         </div>
       </div>`;
     },
