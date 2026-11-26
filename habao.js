@@ -1808,6 +1808,20 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.482",
+      date: "2026-11-26",
+      time: "09:38",
+      title: "精简「家属管理」复查计划代打卡为直接打卡，不弹出代传资料流程",
+      screens: [
+        { id: "family-manage", label: "家属管理" },
+        { id: "activity", label: "操作记录" },
+      ],
+      items: [
+        "复查计划在「家属管理」点击「代打卡」直接完成代打卡并向对方发送通知、写入双方操作记录，不再弹出上传复查资料与资料合集流程（复查资料仍由患者本人在自己界面上传管理）。",
+        "取消复查打卡维持直接取消、不弹窗且保留对方已有复查资料。",
+      ],
+    },
+    {
       ver: "V10.481",
       date: "2026-11-26",
       time: "09:28",
@@ -8342,24 +8356,17 @@
       S.reportReturnHome = false;
       S.reportArchiveEditing = false;
       S.reportArchiveDraft = null;
-      const isProxyAppt = !!S.proxyApptContext;
       // 保持与真机 AppointmentReviewFlowHost 一致：
-      // 稍后打卡停留在资料合集页 (report-archive)，点左上角「返回」直接回到首页或家属管理
-      S.frames = isProxyAppt
-        ? [
-            { id: "home", how: "root" },
-            { id: "family-manage", how: "cover" },
-            { id: "report-archive", how: "cover" },
-          ]
-        : [
-            { id: "home", how: "root" },
-            { id: "report-archive", how: "cover" },
-          ];
+      // 稍后打卡停留在资料合集页 (report-archive)，点左上角「返回」直接回到首页 (home)
+      S.frames = [
+        { id: "home", how: "root" },
+        { id: "report-archive", how: "cover" }
+      ];
       S.screen = "report-archive";
       render();
       openOverlay("confirm", {
         title: "复查资料已保存",
-        body: isProxyAppt ? "是否立即返回家属管理完成打卡？" : "是否立即返回首页完成打卡？",
+        body: "是否立即返回首页完成打卡？",
         cancel: "稍后打卡",
         ok: "立即打卡",
         action: "confirmAppointmentCheckIn",
@@ -9709,40 +9716,15 @@
         closeOverlay();
       },
       appointmentGo() {
-        const proxyTarget = S.overlayData?.proxyTarget || null;
-        const proxyTask = S.overlayData?.proxyTask || null;
-        const proxyYMD = S.overlayData?.proxyYMD || null;
         closeOverlay();
         S.reportKind = "visit";
-        // V10.49：这条拍摄来自复查打卡，提交后接复查资料合集页并弹窗确认打卡
+        // V10.49：这条拍摄来自首页复查打卡，提交后接复查报告页而不是直接回首页
         S.apptCapture = true;
-        if (proxyTarget && proxyTask) {
-          S.proxyApptContext = { famName: proxyTarget, task: proxyTask, ymd: proxyYMD || S.calSelYMD || toYMD(demoDate()) };
-          S.archivePlace = "家属管理";
-        } else {
-          S.proxyApptContext = null;
-          S.archivePlace = "首页";
-        }
+        S.archivePlace = "首页";
         startArchive("capture");
       },
       appointmentDone() {
-        const d = S.overlayData || {};
-        if (d.proxyTarget && d.proxyTask) {
-          const me = currentDemoPerson();
-          sendProxyRequestFor({
-            senderName: me.name,
-            recipientName: d.proxyTarget,
-            kind: "checkIn",
-            targetTaskId: d.proxyTask.id,
-            taskSnapshot: d.proxyTask,
-            summaryNote: "代为完成打卡",
-            onYMD: d.proxyYMD || S.calSelYMD || toYMD(demoDate()),
-          });
-          closeOverlay();
-          toast(`已为${d.proxyTarget}完成「${d.proxyTask.title}」代打卡`);
-          return;
-        }
-        const id = d.id;
+        const id = S.overlayData.id;
         S.completed[id] = true;
         markProxy(id);
         closeOverlay();
@@ -13073,15 +13055,6 @@
           });
           return;
         }
-        if (task.cat === "appointment") {
-          openOverlay("appointment", {
-            id: task.id,
-            proxyTarget: famName,
-            proxyTask: { ...task },
-            proxyYMD: ymd,
-          });
-          return;
-        }
         sendProxyRequestFor({
           senderName: me.name,
           recipientName: famName,
@@ -15275,23 +15248,6 @@
       hr(d) { markManualVitalsStep(); S.hr = stepOrSeed(S.hr, d, 72, 40, 180); render(); },
       confirmAppointmentCheckIn() {
         closeOverlay();
-        if (S.proxyApptContext) {
-          const ctx = S.proxyApptContext;
-          S.proxyApptContext = null;
-          const me = currentDemoPerson();
-          sendProxyRequestFor({
-            senderName: me.name,
-            recipientName: ctx.famName,
-            kind: "checkIn",
-            targetTaskId: ctx.task.id,
-            taskSnapshot: ctx.task,
-            summaryNote: "已上传复查资料",
-            onYMD: ctx.ymd || S.calSelYMD || toYMD(demoDate()),
-          });
-          toast(`已为${ctx.famName}完成「${ctx.task.title}」复查打卡`);
-          dismissCover();
-          return;
-        }
         const doneAppts = completeTodayAppointments();
         logOp("完成复查打卡", "复查报告", [
           ["打卡", doneAppts.length ? `${opNames(doneAppts)} 已完成` : "复查计划已完成"],
