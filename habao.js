@@ -1808,6 +1808,25 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.483",
+      date: "2026-11-26",
+      time: "09:45",
+      title: "全面修复家属管理代打卡与运动打卡提醒的 8 项边界逻辑漏洞",
+      screens: [
+        { id: "family-manage", label: "家属管理" },
+        { id: "home", label: "首页" },
+        { id: "task-view", label: "查看计划" },
+        { id: "activity", label: "操作记录" },
+      ],
+      items: [
+        "修复 B 点击运动提醒「去打卡 → 开始散步」提前误发暂未完成回执，以及点「暂不打卡」或中途退出不发回执、残留串单的问题。",
+        "收口日期权限边界：家属管理仅「今天」支持代打卡、取消打卡与运动提醒；历史日与未来日不可操作打卡/提醒（未来日仍可修改与删除计划）。",
+        "修复测血压「取消打卡 → 未读期内重录新数值」被静默抵消的问题，重录新数值时照常通知对方并留痕；统一纯测心率计划的直接代打卡判定。",
+        "完善运动提醒状态重置：B 回复「稍后打卡」、完成运动或打卡被取消后，A 端「已提醒」自动恢复为「提醒」，支持再次提醒。",
+        "修复代录血压未同步更新对方本周血压趋势图，以及取消代打卡时按日期精准删除对应血压与散步记录的问题。",
+      ],
+    },
+    {
       ver: "V10.482",
       date: "2026-11-26",
       time: "09:38",
@@ -4830,12 +4849,31 @@
     ensureCareGraph();
     const sender = senderName || S.currentPersonName || "李建国";
     const dayYMD = ymd || S.calSelYMD || toYMD(demoDate());
-    return (S.careProxyRequests || []).some((r) => {
-      if (r.senderName !== sender || r.recipientName !== recipientName || r.kind !== "remind") return false;
-      if (String(r.targetTaskId || r.taskSnapshot?.id) !== String(taskId)) return false;
-      const rYMD = String(r.onYMD || toYMD(r.createdAt ? new Date(r.createdAt) : demoDate()));
-      return rYMD === String(dayYMD);
+    const reqYMD = (r) => String(r.onYMD || toYMD(r.createdAt ? new Date(r.createdAt) : demoDate()));
+    const sameTask = (r) => String(r.targetTaskId || r.taskSnapshot?.id) === String(taskId);
+    const reminds = (S.careProxyRequests || []).filter((r) => (
+      r.senderName === sender &&
+      r.recipientName === recipientName &&
+      r.kind === "remind" &&
+      sameTask(r) &&
+      reqYMD(r) === String(dayYMD)
+    ));
+    if (!reminds.length) return false;
+    const lastCreatedAt = reminds.reduce((m, r) => Math.max(m, r.createdAt || 0), 0);
+    const settled = (S.careProxyRequests || []).some((r) => {
+      if ((r.createdAt || 0) <= lastCreatedAt) return false;
+      if (!sameTask(r) || reqYMD(r) !== String(dayYMD)) return false;
+      if ((r.kind === "deferExerciseRemind" || r.kind === "completeExerciseRemind") &&
+          r.senderName === recipientName &&
+          r.recipientName === sender) {
+        return true;
+      }
+      if (r.kind === "undoCheckIn" && r.recipientName === recipientName) {
+        return true;
+      }
+      return false;
     });
+    return !settled;
   }
   function acknowledgeExerciseRemindRequestFor(reqId, personName) {
     ensureCareGraph();
@@ -5194,25 +5232,40 @@
     });
     return removed;
   }
-  /// 统一处理「帮家属取消打卡」：未读期内刚代打则直接抵消原通知与操作记录，否则发出「取消了打卡」通知并双端记账；测血压/运动同步删对应记录
+  /// 统一判定监测任务是否为「测血压（或血压+心率）」；仅含心率/脉搏不含血压的纯测心率计划返回 false（与真机 monitoringKind != .heartRate 一致）
+  function isBPMonitoringTask(t) {
+    if (!t || t.cat !== "monitoring") return false;
+    const title = String(t.title || "");
+    const hasBP = title.includes("血压");
+    const hasHR = title.includes("心率") || title.includes("脉搏");
+    if (hasHR && !hasBP) return false;
+    return true;
+  }
+  /// 统一处理「帮家属取消打卡」：未读期内刚代打则直接抵消原通知与操作记录，否则发出「取消了打卡」通知并双端记账；测血压/运动按日期精准同步删对应记录
   function cancelProxyCheckInFor({ senderName, recipientName, task, ymd }) {
     if (!senderName || !recipientName || !task) return;
     const dayYMD = ymd || S.calSelYMD || toYMD(demoDate());
+    const todayYMD = toYMD(demoDate());
     setFamilyTaskCompletedOn(recipientName, task.id, dayYMD, false);
-    if (task.cat === "monitoring" && task.title !== "测心率") {
+    if (isBPMonitoringTask(task)) {
       const bucket = ensurePersonStore(recipientName);
+      const matchVital = (r) => String(r.taskId) === String(task.id) && (!r.ymd || String(r.ymd) === String(dayYMD));
       if (bucket.vitalsLog) {
-        bucket.vitalsLog = bucket.vitalsLog.filter((r) => String(r.taskId) !== String(task.id));
+        bucket.vitalsLog = bucket.vitalsLog.filter((r) => !matchVital(r));
       }
       if ((S.boundPersonKey || "李建国") === recipientName && S.vitalsLog) {
-        S.vitalsLog = S.vitalsLog.filter((r) => String(r.taskId) !== String(task.id));
+        S.vitalsLog = S.vitalsLog.filter((r) => !matchVital(r));
       }
     } else if (task.cat === "exercise") {
       const bucket = ensurePersonStore(recipientName);
-      if (bucket.walkRecords && bucket.walkRecords[0] && Array.isArray(bucket.walkRecords[0].items)) {
-        bucket.walkRecords[0].items = bucket.walkRecords[0].items.filter((it) => String(it.taskId) !== String(task.id));
+      if (Array.isArray(bucket.walkRecords)) {
+        const dayGroup = bucket.walkRecords.find((g) => g.ymd === dayYMD)
+          || (dayYMD === todayYMD ? bucket.walkRecords[0] : null);
+        if (dayGroup && Array.isArray(dayGroup.items)) {
+          dayGroup.items = dayGroup.items.filter((it) => String(it.taskId) !== String(task.id));
+        }
       }
-      if ((S.boundPersonKey || "李建国") === recipientName) {
+      if ((S.boundPersonKey || "李建国") === recipientName && dayYMD === todayYMD) {
         removeTaskWalkRecord(task.id);
       }
     }
@@ -5260,7 +5313,9 @@
       createdAt: Date.now() + 1,
     };
 
-    // 对称抵消 ①：B 未读前，A 刚取消了打卡又重新帮 B 代打卡 → 直接恢复打卡并撤回刚才的未读取消通知与操作记录
+    // 对称抵消 ①：B 未读前，A 刚取消了打卡又重新帮 B 代打卡：
+    // - 纯勾选型计划（日常/复查/纯测心率）：直接恢复打卡并撤回未读取消通知与双方操作记录；
+    // - 带测量数值的测血压或含有效新数值摘要：清理旧未读取消通知与记录，但继续发送带新数值的代打卡通知并留痕。
     if (kind === "checkIn") {
       const canceledUndos = removeUnreadProxyRequestsAndLogs((existing) => (
         existing.senderName === senderName &&
@@ -5270,7 +5325,10 @@
         sameTask(existing) &&
         sameDay(existing)
       ));
-      if (canceledUndos.length > 0) {
+      const isMeasuredBP = isBPMonitoringTask(taskSnapshot);
+      const cleanSummary = String(summaryNote || "").trim();
+      const hasCustomPayload = !!cleanSummary && cleanSummary !== "代为完成打卡";
+      if (canceledUndos.length > 0 && !isMeasuredBP && !hasCustomPayload) {
         if (!skipDirectMutation) applyAcceptedProxyMutationInStore(req);
         return req;
       }
@@ -8123,6 +8181,12 @@
     if (how == null || how === true) how = inferHow(S.screen, id);
     present(id, how);
   }
+  function settlePendingExerciseRemindIfExitedWalk() {
+    if (!S.pendingExerciseRemindContext || S.walking) return;
+    if (!["walk", "walk-session", "walk-contra"].includes(S.screen)) {
+      completePendingExerciseRemindIfNeeded(false);
+    }
+  }
   function back() {
     // V10.49：离开复查报告页即撤掉复诊打卡形态
     S.reportReturnHome = false;
@@ -8136,12 +8200,14 @@
       S.screen = S.loggedIn ? "home" : "onboard-login";
       S.frames = [{ id: S.screen, how: "root" }];
       S.overlay = null;
+      settlePendingExerciseRemindIfExitedWalk();
       render();
       return;
     }
     S.frames.pop();
     S.screen = topFrame().id;
     S.overlay = null;
+    settlePendingExerciseRemindIfExitedWalk();
     render();
   }
   /// 家属管理返回：从计划页「去填写」进来且已绑定 → 返回后接着进打卡通知页开总闸（V10.52）
@@ -8214,6 +8280,7 @@
     S.chatMenu = false;
     S.walking = false;
     S.paused = false;
+    settlePendingExerciseRemindIfExitedWalk();
     render();
   }
   function finishGeneratedPlan(msg) {
@@ -8237,6 +8304,7 @@
     S.screen = topFrame().id;
     S.overlay = null;
     S.chatMenu = false;
+    settlePendingExerciseRemindIfExitedWalk();
     render();
   }
   function startArchive(open) {
@@ -8415,7 +8483,7 @@
   function requiresUndoConfirm(t) {
     if (!t) return false;
     if (t.cat === "exercise") return true;
-    if (t.cat === "monitoring" && t.title !== "测心率") return true;
+    if (isBPMonitoringTask(t)) return true;
     return false;
   }
 
@@ -8455,7 +8523,7 @@
 
   function undoCheckInPrompt(t) {
     const title = `取消「${t.title}」打卡？`;
-    if (t.cat === "monitoring" && t.title !== "测心率") {
+    if (isBPMonitoringTask(t)) {
       return { title, body: "取消后将同时删除本次血压记录。" };
     }
     if (t.cat === "exercise") {
@@ -8470,7 +8538,7 @@
     if (S.taskVitalsHw) delete S.taskVitalsHw[id];
     unmarkProxy(id);
     if (t) {
-      if (t.cat === "monitoring" && t.title !== "测心率") removeTaskVitalRecord(id);
+      if (isBPMonitoringTask(t)) removeTaskVitalRecord(id);
       else if (t.cat === "exercise") removeTaskWalkRecord(id);
     }
   }
@@ -9381,6 +9449,9 @@
           openOverlay("customDur");
           return;
         }
+        if (S.overlay === "exercise" && S.pendingExerciseRemindContext) {
+          completePendingExerciseRemindIfNeeded(false);
+        }
         closeOverlay();
       },
       login() {
@@ -9496,7 +9567,7 @@
         }
         if (t.cat === "exercise") { openOverlay("exercise", { id }); return; }
         if (t.cat === "appointment") { openOverlay("appointment", { id }); return; }
-        if (t.cat === "monitoring" && t.title !== "测心率") {
+        if (isBPMonitoringTask(t)) {
           const place = S.screen === "schedule" ? "健康计划" : "首页";
           openOverlay("vitals", { id, place });
           if (hasBoundBPMonitor()) startSheetHwSync();
@@ -9688,7 +9759,9 @@
         // 散步 + 打卡（自由散步还新建「自主散步」）合成一条
         markProxy(id, null, true);
         logOp("完成了散步", "运动", [["散步", "0.42 公里"], ["打卡", `${taskTitle(id)} 已完成`]]);
-        completePendingExerciseRemindIfNeeded(true);
+        if (S.pendingExerciseRemindContext && String(id) === String(S.pendingExerciseRemindContext.task?.id)) {
+          completePendingExerciseRemindIfNeeded(true);
+        }
         S.walkSaved = false;
         S.walkTaskId = null;
         S.centerStage = id;
@@ -9743,12 +9816,18 @@
           const famName = d.proxyTarget;
           const task = d.proxyTask;
           const ymd = d.proxyYMD || S.calSelYMD || toYMD(demoDate());
+          const todayYMD = toYMD(demoDate());
+          if (ymd !== todayYMD) {
+            closeOverlay();
+            return;
+          }
           const bucket = ensurePersonStore(famName);
           if (!bucket.vitalsLog) bucket.vitalsLog = [];
-          bucket.vitalsLog = bucket.vitalsLog.filter((r) => String(r.taskId) !== String(task.id));
+          bucket.vitalsLog = bucket.vitalsLog.filter((r) => !(String(r.taskId) === String(task.id) && (!r.ymd || String(r.ymd) === String(ymd))));
           const entry = {
             id: `vl_proxy_${Date.now()}`,
             time: nowHM,
+            ymd,
             sys: S.sys,
             dia: S.dia,
             hr: S.hr,
@@ -9756,9 +9835,20 @@
             proxy: me.name,
           };
           bucket.vitalsLog.unshift(entry);
+          if (Array.isArray(bucket.vitalsWeek) && bucket.vitalsWeek.length) {
+            bucket.vitalsWeek[bucket.vitalsWeek.length - 1] = {
+              day: bucket.vitalsWeek[bucket.vitalsWeek.length - 1].day || "日",
+              sys: S.sys,
+              dia: S.dia,
+              hr: S.hr,
+            };
+          }
           if ((S.boundPersonKey || "李建国") === famName) {
-            S.vitalsLog = (S.vitalsLog || []).filter((r) => String(r.taskId) !== String(task.id));
+            S.vitalsLog = (S.vitalsLog || []).filter((r) => !(String(r.taskId) === String(task.id) && (!r.ymd || String(r.ymd) === String(ymd))));
             S.vitalsLog.unshift({ ...entry });
+            if (VITALS_WEEK.length) {
+              VITALS_WEEK[VITALS_WEEK.length - 1] = { day: "日", sys: S.sys, dia: S.dia, hr: S.hr };
+            }
           }
           sendProxyRequestFor({
             senderName: me.name,
@@ -13016,6 +13106,8 @@
         const famName = resolvedSelectedFamilyNameFor(me.name);
         const tid = el.dataset.id;
         if (!famName || !tid) return;
+        const ymd = S.calSelYMD || toYMD(demoDate());
+        if (ymd !== toYMD(demoDate())) return;
         const bucket = ensurePersonStore(famName);
         const task = (bucket.tasks || []).find((t) => String(t.id) === String(tid));
         if (!task) return;
@@ -13026,7 +13118,7 @@
           targetTaskId: task.id,
           taskSnapshot: task,
           summaryNote: "按时提醒",
-          onYMD: S.calSelYMD || toYMD(demoDate()),
+          onYMD: ymd,
         });
         toast(`已提醒${famName}按时完成「${task.title}」，对方进入首页将收到弹窗通知`);
         render();
@@ -13038,10 +13130,11 @@
         const tid = el.dataset.id;
         if (!famName || !tid) return;
         const ymd = S.calSelYMD || toYMD(demoDate());
+        if (ymd !== toYMD(demoDate())) return;
         const bucket = ensurePersonStore(famName);
         const task = (bucket.tasks || []).find((t) => String(t.id) === String(tid));
         if (!task) return;
-        if (task.cat === "monitoring" && task.title !== "测心率") {
+        if (isBPMonitoringTask(task)) {
           const latest = (bucket.vitalsLog || [])[0];
           S.sys = latest?.sys ?? 120;
           S.dia = latest?.dia ?? 78;
@@ -13074,12 +13167,13 @@
         const tid = el.dataset.id;
         if (!famName || !tid) return;
         const ymd = S.calSelYMD || toYMD(demoDate());
+        if (ymd !== toYMD(demoDate())) return;
         const bucket = ensurePersonStore(famName);
         const task = (bucket.tasks || []).find((t) => String(t.id) === String(tid));
         if (!task) return;
         const wasDone = isFamilyTaskCompletedOn(famName, tid, ymd);
         if (wasDone) {
-          if ((task.cat === "monitoring" && task.title !== "测心率") || task.cat === "exercise") {
+          if (isBPMonitoringTask(task) || task.cat === "exercise") {
             const prompt = undoCheckInPrompt(task);
             openOverlay("confirm", {
               title: prompt.title,
@@ -18865,11 +18959,16 @@
               ? `<div class="act-title-row"><div class="s15 fb t" style="line-height:1.35;word-break:break-word">${esc(t.title || "新计划")}</div><span class="diff-badge routine-badge">基础作息</span></div>`
               : `<div class="s15 fb t" style="line-height:1.35;word-break:break-word">${esc(t.title || "新计划")}</div>`;
 
+            const isToday = selYMD === todayYMD;
             const isExercise = kind === "exercise";
-            const isReminded = isExercise && !done && hasRemindedProxyTaskFor(t.id, me.name, selectedFamName, selYMD);
+            const isReminded = isToday && isExercise && !done && hasRemindedProxyTaskFor(t.id, me.name, selectedFamName, selYMD);
             const rightCircle = done
-              ? `<button type="button" data-act="toggleProxyCheckIn" data-id="${t.id}" title="取消打卡" style="width:34px;height:34px;border-radius:50%;border:0;flex:0 0 34px;background:var(--blue);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</button>`
-              : (isExercise
+              ? (isToday
+                ? `<button type="button" data-act="toggleProxyCheckIn" data-id="${t.id}" title="取消打卡" style="width:34px;height:34px;border-radius:50%;border:0;flex:0 0 34px;background:var(--blue);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</button>`
+                : `<span title="已完成" style="width:34px;height:34px;border-radius:50%;flex:0 0 34px;background:rgba(16,84,224,.82);color:#fff;display:grid;place-items:center">${I.check}</span>`)
+              : (!isToday
+                ? ""
+                : (isExercise
                 ? (isReminded
                   ? `<span title="今日已提醒" style="height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(16,84,224,.16);background:rgba(16,84,224,.06);color:var(--secondary);display:inline-flex;align-items:center;justify-content:center;gap:4px;flex-shrink:0;white-space:nowrap">
                       <span style="width:12px;height:12px;display:grid;place-items:center">${I.check}</span>
@@ -18882,7 +18981,7 @@
                 : `<button type="button" data-act="sendProxyCheckIn" data-id="${t.id}" title="帮${esc(selectedFamName)}代打卡" style="height:34px;padding:0 12px;border-radius:999px;border:1.2px solid rgba(16,84,224,.32);background:rgba(16,84,224,.08);color:var(--blue);display:inline-flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-family:inherit;flex-shrink:0;white-space:nowrap">
                     <span style="width:12px;height:12px;display:grid;place-items:center">${I.check}</span>
                     <span style="font-size:13px;font-weight:800;line-height:1">代打卡</span>
-                  </button>`);
+                  </button>`));
 
             const showDelete = !done && (selYMD >= todayYMD);
             const barCls = showDelete && isCycle ? " triple" : "";
@@ -23092,7 +23191,7 @@
               <button class="del-plan" style="margin-top:0;width:100%" data-act="delAll" type="button">${I.trash}删除本次和后续计划</button>
             </div>`
           : `<button class="del-plan" style="margin-top:0;width:100%" data-act="delTask" type="button">${I.trash}删除计划</button>`}</div>`;
-      } else if (viewing && done && !past) {
+      } else if (viewing && done && (S.proxyTargetPersonName ? (S.taskOccurrence || S.calSelYMD || toYMD(demoDate())) === toYMD(demoDate()) : !past)) {
         bottomDockHTML = `<div class="v02-bottom-dock"><button class="cta-ghost" style="color:${accent.fg};background:${accent.muted};margin-top:0" data-act="undoCheckIn" type="button">${I.undo}取消本次打卡</button></div>`;
       } else if (isConfirmEdit) {
         bottomDockHTML = `<div class="v02-bottom-dock"><button class="del-plan" style="margin-top:0;width:100%" data-act="delDraftInEditor" type="button">${I.trash}删除计划</button></div>`;
