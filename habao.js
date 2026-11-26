@@ -1808,6 +1808,23 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.484",
+      date: "2026-11-26",
+      time: "10:07",
+      title: "交互全景全场景测试后，统一收口纯测心率详情、VIP/账号弹窗遗留文案与 PRD 需求表述",
+      screens: [
+        { id: "family-manage", label: "家属管理" },
+        { id: "task-view", label: "查看计划" },
+        { id: "profile", label: "个人中心" },
+        { id: "activity", label: "操作记录" },
+      ],
+      items: [
+        "纯测心率计划（如「晨起测静息心率」）进入「查看计划」时不再展示空的「今日血压」录入栏，仅测血压计划在查看态展示今日血压。",
+        "清理 VIP 开通/取消订阅与退出/注销账号确认弹窗中遗留的「硬件管理 / 硬件绑定」文案。",
+        "同步修订 PRD 中家属管理与操作记录的 5 处细节：补全「纯测心率」直接打卡口径、纠正运动体测提醒节号引用、删除与「仅限今天代打卡」冲突的跨天代打卡描述、补齐总览模板中的运动打卡提醒与回执，并清理 VIP 列表残留的硬件描述。",
+      ],
+    },
+    {
       ver: "V10.483",
       date: "2026-11-26",
       time: "09:45",
@@ -12612,7 +12629,7 @@
         S.overlay = null;
         openOverlay("confirm", {
           title: "开通 VIP",
-          body: "费用 ¥2400 / 年。这是演示，不会真实扣款。开通后可以使用家属管理、硬件管理、操作记录、哈宝医生专属服务，并享有支架保险理赔服务。",
+          body: "费用 ¥2400 / 年。这是演示，不会真实扣款。开通后可以使用家属管理、操作记录、哈宝医生专属服务，并享有支架保险理赔服务。",
           ok: "确认开通",
           action: "activateVip",
         });
@@ -12624,7 +12641,7 @@
         }
         openOverlay("confirm", {
           title: "开通 VIP",
-          body: "费用 ¥2400 / 年。这是演示，不会真实扣款。开通后可以使用家属管理、硬件管理、操作记录、哈宝医生专属服务，并享有支架保险理赔服务。",
+          body: "费用 ¥2400 / 年。这是演示，不会真实扣款。开通后可以使用家属管理、操作记录、哈宝医生专属服务，并享有支架保险理赔服务。",
           ok: "确认开通",
           action: "activateVip",
         });
@@ -12685,7 +12702,7 @@
       askCancelVip() {
         openOverlay("confirm", {
           title: "取消订阅",
-          body: "取消后当前账号变为免费用户，硬件管理、操作记录和哈宝医生服务会重新锁上，家属管理降级为受邀基础模式（不能主动发起绑定或新增代办计划），支架保险理赔服务同步终止。已经绑定的家属、记录和硬件还会留在手机里。",
+          body: "取消后当前账号变为免费用户，操作记录和哈宝医生服务会重新锁上，家属管理降级为受邀基础模式（不能主动发起绑定或新增代办计划），支架保险理赔服务同步终止。已经绑定的家属和记录还会留在手机里。",
           ok: "取消订阅",
           danger: true,
           action: "cancelVip",
@@ -22596,7 +22613,7 @@
   }
 
   function editorVitalsBlock(d, mode, done, accent) {
-    if (d.cat !== "monitoring" || mode !== "view") return "";
+    if (!isBPMonitoringTask(d) || mode !== "view") return "";
     const canStep = false;
     const sys = done ? S.sys : null;
     const dia = done ? S.dia : null;
