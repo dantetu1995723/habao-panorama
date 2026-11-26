@@ -1808,6 +1808,21 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.481",
+      date: "2026-11-26",
+      time: "09:28",
+      title: "补齐家属管理「运动计划取消打卡」完整逻辑（弹窗确认 + 同步删除散步记录），并平滑补齐王芳老缓存中的复查与测血压计划",
+      screens: [
+        { id: "family-manage", label: "家属管理" },
+        { id: "task-view", label: "查看计划" },
+        { id: "activity", label: "操作记录" },
+      ],
+      items: [
+        "已完成运动计划支持取消打卡：在「家属管理」已完成列表点击蓝色对勾或进入查看计划页点「取消本次打卡」，均弹出与本人一致的「取消后将同时删除本次散步记录」确认窗，点击「坚持取消」同步删除对方散步记录、发送「取消了打卡」通知并记入双方操作记录。",
+        "修复交互全景已有本地缓存未加载新演示计划的问题：自动为「王芳」平滑补齐「14:30 心内科门诊复查」与「16:00 下午测血压」，刷新即见。",
+      ],
+    },
+    {
       ver: "V10.480",
       date: "2026-11-26",
       time: "09:22",
@@ -5165,7 +5180,7 @@
     });
     return removed;
   }
-  /// 统一处理「帮家属取消打卡」：未读期内刚代打则直接抵消原通知与操作记录，否则发出「取消了打卡」通知并双端记账；测血压同步删对应血压记录
+  /// 统一处理「帮家属取消打卡」：未读期内刚代打则直接抵消原通知与操作记录，否则发出「取消了打卡」通知并双端记账；测血压/运动同步删对应记录
   function cancelProxyCheckInFor({ senderName, recipientName, task, ymd }) {
     if (!senderName || !recipientName || !task) return;
     const dayYMD = ymd || S.calSelYMD || toYMD(demoDate());
@@ -5177,6 +5192,14 @@
       }
       if ((S.boundPersonKey || "李建国") === recipientName && S.vitalsLog) {
         S.vitalsLog = S.vitalsLog.filter((r) => String(r.taskId) !== String(task.id));
+      }
+    } else if (task.cat === "exercise") {
+      const bucket = ensurePersonStore(recipientName);
+      if (bucket.walkRecords && bucket.walkRecords[0] && Array.isArray(bucket.walkRecords[0].items)) {
+        bucket.walkRecords[0].items = bucket.walkRecords[0].items.filter((it) => String(it.taskId) !== String(task.id));
+      }
+      if ((S.boundPersonKey || "李建国") === recipientName) {
+        removeTaskWalkRecord(task.id);
       }
     }
     const canceledCheckIns = removeUnreadProxyRequestsAndLogs((r) => (
@@ -5819,7 +5842,32 @@
     if (!S.personStoreMap[nm]) {
       S.personStoreMap[nm] = buildPresetDataForPerson(nm);
     }
-    return S.personStoreMap[nm];
+    const bucket = S.personStoreMap[nm];
+    // V10.481 平滑补齐王芳老缓存中缺失的「心内科门诊复查」与「下午测血压」，方便一进家属管理即可实验全分类
+    if (nm === "王芳" && !bucket._v10481Patched && Array.isArray(bucket.tasks)) {
+      bucket._v10481Patched = true;
+      let changed = false;
+      if (!bucket.tasks.some((t) => t.id === "wf_t10" || t.title === "心内科门诊复查")) {
+        bucket.tasks.push({ id: "wf_t10", title: "心内科门诊复查", h: 14, m: 30, cat: "appointment", note: "每月复查心电图与血脂，带齐近期血压记录" });
+        changed = true;
+      }
+      if (!bucket.tasks.some((t) => t.id === "wf_t11" || t.title === "下午测血压")) {
+        bucket.tasks.push({ id: "wf_t11", title: "下午测血压", h: 16, m: 0, cat: "monitoring", note: "静坐 5 分钟后测量血压与心率" });
+        changed = true;
+      }
+      if (changed) {
+        bucket.tasks.sort((a, b) => (a.h * 60 + a.m) - (b.h * 60 + b.m));
+        if ((S.boundPersonKey || "李建国") === "王芳") {
+          for (const extra of bucket.tasks.filter((t) => t.id === "wf_t10" || t.id === "wf_t11")) {
+            if (!SEED.some((x) => x.id === extra.id || x.title === extra.title)) {
+              SEED.push({ ...extra });
+            }
+          }
+          SEED.sort((a, b) => (a.h * 60 + a.m) - (b.h * 60 + b.m));
+        }
+      }
+    }
+    return bucket;
   }
   function activePersonStore() {
     return ensurePersonStore(activePersonName());
@@ -13058,7 +13106,7 @@
         if (!task) return;
         const wasDone = isFamilyTaskCompletedOn(famName, tid, ymd);
         if (wasDone) {
-          if (task.cat === "monitoring" && task.title !== "测心率") {
+          if ((task.cat === "monitoring" && task.title !== "测心率") || task.cat === "exercise") {
             const prompt = undoCheckInPrompt(task);
             openOverlay("confirm", {
               title: prompt.title,
@@ -18864,9 +18912,7 @@
             const isExercise = kind === "exercise";
             const isReminded = isExercise && !done && hasRemindedProxyTaskFor(t.id, me.name, selectedFamName, selYMD);
             const rightCircle = done
-              ? (isExercise
-                ? `<span title="已完成" style="width:34px;height:34px;border-radius:50%;flex:0 0 34px;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</span>`
-                : `<button type="button" data-act="toggleProxyCheckIn" data-id="${t.id}" title="取消打卡" style="width:34px;height:34px;border-radius:50%;border:0;flex:0 0 34px;background:var(--blue);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</button>`)
+              ? `<button type="button" data-act="toggleProxyCheckIn" data-id="${t.id}" title="取消打卡" style="width:34px;height:34px;border-radius:50%;border:0;flex:0 0 34px;background:var(--blue);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 6px rgba(16,84,224,.25)">${I.check}</button>`
               : (isExercise
                 ? (isReminded
                   ? `<span title="今日已提醒" style="height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(16,84,224,.16);background:rgba(16,84,224,.06);color:var(--secondary);display:inline-flex;align-items:center;justify-content:center;gap:4px;flex-shrink:0;white-space:nowrap">
@@ -23090,7 +23136,7 @@
               <button class="del-plan" style="margin-top:0;width:100%" data-act="delAll" type="button">${I.trash}删除本次和后续计划</button>
             </div>`
           : `<button class="del-plan" style="margin-top:0;width:100%" data-act="delTask" type="button">${I.trash}删除计划</button>`}</div>`;
-      } else if (viewing && done && !past && !(S.proxyTargetPersonName && (persisted?.cat === "exercise" || d.cat === "exercise"))) {
+      } else if (viewing && done && !past) {
         bottomDockHTML = `<div class="v02-bottom-dock"><button class="cta-ghost" style="color:${accent.fg};background:${accent.muted};margin-top:0" data-act="undoCheckIn" type="button">${I.undo}取消本次打卡</button></div>`;
       } else if (isConfirmEdit) {
         bottomDockHTML = `<div class="v02-bottom-dock"><button class="del-plan" style="margin-top:0;width:100%" data-act="delDraftInEditor" type="button">${I.trash}删除计划</button></div>`;
