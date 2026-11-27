@@ -1808,6 +1808,18 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.494",
+      date: "2026-11-27",
+      time: "14:15",
+      title: "「今日集章」分享卡片顶部话术改为按集齐徽章类别数（1–7 类）固定对应",
+      screens: [
+        { id: "stamps", label: "今日集章" },
+      ],
+      items: [
+        "取消按完成百分比进度切换分享话术的逻辑，改为按当日已集齐的健康徽章类别数（0 类 / 1–7 类）一一对应固定鼓励话术，并在 V0.0 / V0.1《今日集章》PRD 中同步更新话术表。",
+      ],
+    },
+    {
       ver: "V10.493",
       date: "2026-11-27",
       time: "14:10",
@@ -24553,17 +24565,17 @@
           cats.push({ key, ...catMeta[key] });
         }
       });
-      const headline = pct === 100 && dayTasks.length > 0
-        ? "真棒！完成所有打卡"
-        : pct >= 80
-          ? "太棒了！今日打卡接近满分"
-          : pct >= 50
-            ? "稳步推进！已完成过半打卡"
-            : doneN > 0 && cats.length === 1
-              ? "好样的！迈出今日健康第一步"
-              : doneN > 0
-                ? "继续加油！每一枚徽章都很棒"
-                : "今日计划已就绪，快来点亮第一枚徽章";
+      const HEADLINES_BY_CAT_COUNT = {
+        0: "今日计划已就绪，快来点亮第一枚徽章",
+        1: "好样的！点亮今日首枚健康徽章",
+        2: "双份守护！健康节奏稳稳开启",
+        3: "渐入佳境！今日已收集三类徽章",
+        4: "过半收获！康复日常越来越规律",
+        5: "活力满满！五类健康徽章已收入",
+        6: "接近圆满！今日已集齐六类徽章",
+        7: "真棒！完成所有打卡",
+      };
+      const headline = HEADLINES_BY_CAT_COUNT[Math.min(7, cats.length)];
       const dateStr = `${d.getMonth() + 1}月${d.getDate()}日`;
       const summaryHTML = cats.length === 0
         ? `${dateStr}暂未点亮健康徽章`
