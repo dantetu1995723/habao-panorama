@@ -3334,6 +3334,236 @@ button svg, .cta svg, .fab svg, .cta-ghost svg, .cta-line svg,
   box-shadow: none;
 }
 
+/* 集章分享弹窗：居中挂牌式「哈宝健康卡」（对齐最新 UI 设计） */
+.scrim.center-scrim {
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+  background: rgba(8, 15, 35, .64);
+}
+.stamp-share-wrap {
+  width: 100%;
+  max-width: 312px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.stamp-share-card {
+  position: relative;
+  width: 100%;
+  border-radius: 22px;
+  padding: 36px 14px 16px;
+  background: linear-gradient(180deg, #D5E1FF 0%, #EAF0FF 34%, #FFFFFF 100%);
+  box-shadow: 0 20px 44px rgba(8, 18, 52, .38);
+  text-align: center;
+}
+.stamp-share-tie {
+  position: absolute;
+  top: -14px;
+  left: 8px;
+  width: 56px;
+  height: 42px;
+  pointer-events: none;
+}
+.stamp-share-ribbon-title {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: calc(16px * var(--fs));
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #FFCA28;
+  text-shadow:
+    0 1.5px 0 #1B52D8,
+    1.5px 0 0 #1B52D8,
+    -1px 0 0 #1B52D8,
+    0 -1px 0 #1B52D8,
+    0 3px 6px rgba(27, 82, 216, .28);
+  transform: rotate(-3deg);
+}
+.stamp-share-user-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.stamp-share-user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.stamp-share-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2D6BFF, #1054E0);
+  color: #fff;
+  font-size: calc(11px * var(--fs));
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1.5px solid #fff;
+}
+.stamp-share-uname {
+  font-size: calc(13px * var(--fs));
+  font-weight: 700;
+  color: #1A233A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stamp-share-card-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #1B62F0;
+  color: #fff;
+  font-size: calc(10px * var(--fs));
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.stamp-share-card-pill i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff;
+  display: inline-block;
+}
+.stamp-share-headline {
+  font-size: calc(18px * var(--fs));
+  font-weight: 800;
+  color: #111827;
+  line-height: 1.3;
+  margin-bottom: 12px;
+}
+.stamp-share-inner {
+  background: #EAF1FF;
+  border-radius: 16px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.stamp-share-master {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 22px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #FFE885 0%, #FFD644 100%);
+  color: #2B2410;
+  font-size: calc(13px * var(--fs));
+  font-weight: 800;
+  box-shadow: 0 2px 6px rgba(245, 185, 32, .25);
+}
+.stamp-share-badges {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 10px 8px;
+  padding: 4px 2px;
+}
+.stamp-share-badge-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.stamp-share-badge-item img {
+  display: block;
+  object-fit: contain;
+}
+.stamp-share-badge-label {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .92);
+  color: #34405A;
+  font-size: calc(10px * var(--fs));
+  font-weight: 700;
+  line-height: 1.35;
+  box-shadow: 0 1px 3px rgba(16, 84, 224, .10);
+}
+.stamp-share-badges.n-1 .stamp-share-badge-item img { width: 92px; height: 92px; }
+.stamp-share-badges.n-1 .stamp-share-badge-label { font-size: calc(12px * var(--fs)); padding: 2px 12px; }
+.stamp-share-badges.n-2 { gap: 10px 18px; }
+.stamp-share-badges.n-2 .stamp-share-badge-item img { width: 76px; height: 76px; }
+.stamp-share-badges.n-2 .stamp-share-badge-label { font-size: calc(11px * var(--fs)); padding: 2px 10px; }
+.stamp-share-badges.n-3 .stamp-share-badge-item img,
+.stamp-share-badges.n-4 .stamp-share-badge-item img { width: 58px; height: 58px; }
+.stamp-share-badges.n-many { gap: 8px 6px; }
+.stamp-share-badges.n-many .stamp-share-badge-item { width: calc(25% - 6px); }
+.stamp-share-badges.n-many .stamp-share-badge-item img { width: 50px; height: 50px; }
+.stamp-share-empty {
+  padding: 20px 0;
+  font-size: calc(13px * var(--fs));
+  font-weight: 600;
+  color: var(--secondary);
+}
+.stamp-share-summary {
+  width: 100%;
+  background: rgba(255, 255, 255, .92);
+  border: 1px dashed #B6CBF2;
+  border-radius: 10px;
+  padding: 10px 10px;
+  font-size: calc(11.5px * var(--fs));
+  font-weight: 500;
+  color: #4A5568;
+  line-height: 1.5;
+}
+.stamp-share-summary .hl {
+  color: #1B62F0;
+  font-weight: 700;
+}
+.stamp-share-join {
+  margin-top: 12px;
+  font-size: calc(13px * var(--fs));
+  font-weight: 700;
+  color: #1F2937;
+}
+.stamp-share-actions {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+}
+.stamp-share-btn {
+  flex: 1;
+  height: 44px;
+  border-radius: 999px;
+  border: 0;
+  font-family: inherit;
+  font-size: calc(15px * var(--fs));
+  font-weight: 700;
+  cursor: pointer;
+}
+.stamp-share-btn.cancel {
+  background: #FFFFFF;
+  color: #1F2937;
+}
+.stamp-share-btn.share {
+  background: #1B62F0;
+  color: #FFFFFF;
+  box-shadow: 0 6px 16px rgba(27, 98, 240, .32);
+}
+.stamp-share-channels {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  padding: 12px 10px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .96);
+}
+
 /* 集章 / 散步 / 指标 / 报告分享海报：统一极光蓝白渐变 + 哈宝品牌页眉 + 底部落款 */
 .poster-full {
   width: 100%; max-width: 308px; margin: 0 auto 18px;

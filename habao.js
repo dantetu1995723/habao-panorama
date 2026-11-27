@@ -1808,6 +1808,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.493",
+      date: "2026-11-27",
+      time: "14:10",
+      title: "「今日集章」集章分享弹窗对齐新 UI 设计，并在 PRD 罗列不同完成态顶部话术",
+      screens: [
+        { id: "stamps", label: "今日集章" },
+      ],
+      items: [
+        "重构「今日集章」分享弹窗为居中挂牌式「哈宝健康卡」：左上角圆孔配浅黄绿挂绳、右上角「日程详情」贴纸、患者头像姓名与「哈宝健康卡」蓝胶囊、动态顶部大字主话术、浅蓝内卡「集章达人」黄胶囊+去重类别徽章自适应排布+虚线框总结语、「加入哈宝，一起每日打卡」落款，以及底栏「取消 / 分享」双胶囊按钮。",
+        "根据当日完成度动态切换顶部主话术（100% 全达标 / 80%–99% 接近完成 / 50%–79% 过半 / 1%–49% 单类或多类起步 / 0% 暂未完成），并在 PRD 中完整罗列话术与总结语规则。",
+      ],
+    },
+    {
       ver: "V10.492",
       date: "2026-11-26",
       time: "15:40",
@@ -8679,6 +8692,7 @@
   function closeOverlay() {
     stopCountdown(); // 倒数中关掉弹层要一并停表
     S.overlay = null;
+    S.shareChannelsOpen = false;
     render();
   }
   let countdownTimer = null;
@@ -15100,7 +15114,12 @@
       shareStamp() {
         const st = stampViewState(S.stampSelYMD || toYMD(demoDate()));
         if (!st.canShare) return;
+        S.shareChannelsOpen = false;
         openOverlay("share");
+      },
+      openShareChannels() {
+        S.shareChannelsOpen = true;
+        render();
       },
       openCal() { openOverlay("stampCal"); },
       opDel() {
@@ -24510,40 +24529,91 @@
         </div>
         <div class="preview-body"><span class="preview-page">${I.doc}</span></div>
       </div>`,
-    // 集章分享：竖版全尺寸海报预览 + 56pt 渠道圆钮（真机 TodayStampShareView sharePoster）
+    // 集章分享：居中挂牌式「哈宝健康卡」弹窗（对齐最新 UI 设计）
     share: () => {
       const sel = S.stampSelYMD || toYMD(demoDate());
       const d = parseYMD(sel);
-      const { dayTasks, doneSet } = stampViewState(sel);
+      const { dayTasks, doneSet, doneN, pct } = stampViewState(sel);
       const completedTasks = dayTasks.filter((t) => doneSet.has(t.id));
-      const bodyHTML = completedTasks.length === 0 ? `
-        <div class="ta-c" style="padding:20px 0">
-          <div class="poster-foot">暂未完成打卡</div>
-        </div>` : `
-        <div class="poster-scroll-grid" style="margin-top:8px">
-          <div class="stamp-grid poster-grid">
-            ${completedTasks.map((t) => `<div><div class="stamp"><img src="${A.stamp[t.cat]}" alt="" /></div><div class="stamp-cap">${t.title}</div></div>`).join("")}
-          </div>
-        </div>
-        <div class="poster-foot">已收下 ${completedTasks.length} 枚健康章</div>`;
-      return `
-      <div class="scrim bottom" data-act="close">
-        <div class="sheet ta-c" onclick="event.stopPropagation()">
-          <div class="grab"></div>
-          <div class="poster-full">
-            <div class="poster-brand">
-              <div class="poster-head"><img src="${A.logo}" width="26" height="26" alt="" /><span>哈宝 · 康复打卡</span></div>
-              <span class="poster-badge">健康名信片</span>
-            </div>
-            <div class="poster-title">${d.getMonth() + 1}月${d.getDate()}日集章</div>
-            ${rxPosterLine(sel)}
-            ${bodyHTML}
-            <div class="poster-foot-brand"><span></span><i>循光而行 · 一天一节律</i><span></span></div>
-          </div>
-          <div class="flex center gap16">
+      const catMeta = {
+        custom: { label: "计划", img: A.stamp.bloom },
+        diet: { label: "吃饭", img: A.stamp.diet },
+        medication: { label: "吃药", img: A.stamp.medication },
+        rest: { label: "休息", img: A.stamp.rest },
+        monitoring: { label: "测血压", img: A.stamp.monitoring },
+        exercise: { label: "运动", img: A.stamp.exercise },
+        appointment: { label: "复查", img: A.stamp.appointment },
+      };
+      const seen = new Set();
+      const cats = [];
+      completedTasks.forEach((t) => {
+        const key = catMeta[t.cat] ? t.cat : "custom";
+        if (!seen.has(key)) {
+          seen.add(key);
+          cats.push({ key, ...catMeta[key] });
+        }
+      });
+      const headline = pct === 100 && dayTasks.length > 0
+        ? "真棒！完成所有打卡"
+        : pct >= 80
+          ? "太棒了！今日打卡接近满分"
+          : pct >= 50
+            ? "稳步推进！已完成过半打卡"
+            : doneN > 0 && cats.length === 1
+              ? "好样的！迈出今日健康第一步"
+              : doneN > 0
+                ? "继续加油！每一枚徽章都很棒"
+                : "今日计划已就绪，快来点亮第一枚徽章";
+      const dateStr = `${d.getMonth() + 1}月${d.getDate()}日`;
+      const summaryHTML = cats.length === 0
+        ? `${dateStr}暂未点亮健康徽章`
+        : `${dateStr}集齐了 <span class="hl">${cats.map((c) => esc(c.label)).join("、")}</span>${cats.length >= 7 ? `共${cats.length}类` : " "}健康徽章`;
+      const countCls = cats.length <= 1 ? "n-1" : cats.length === 2 ? "n-2" : cats.length <= 4 ? `n-${cats.length}` : "n-many";
+      const badgesHTML = cats.length === 0
+        ? `<div class="stamp-share-empty">暂未完成打卡</div>`
+        : `<div class="stamp-share-badges ${countCls}">
+            ${cats.map((c) => `
+              <div class="stamp-share-badge-item">
+                <img src="${c.img}" alt="${esc(c.label)}" />
+                <span class="stamp-share-badge-label">${esc(c.label)}</span>
+              </div>`).join("")}
+          </div>`;
+      const userName = S.name || "张富贵";
+      const actionsHTML = S.shareChannelsOpen
+        ? `<div class="stamp-share-channels" onclick="event.stopPropagation()">
             ${[["微信", "demoShare", "#07C160"], ["小红书", "demoShare", "#FF2442"], ["保存图片", "savedAlbum", "#1054E0"], ["取消", "close", "#828EA5"]]
               .map(([t, a, c]) => `<button class="share-ch" data-act="${a}" type="button" style="--ch:${c}"><i></i><span>${t}</span></button>`).join("")}
+          </div>`
+        : `<div class="stamp-share-actions" onclick="event.stopPropagation()">
+            <button class="stamp-share-btn cancel" data-act="close" type="button">取消</button>
+            <button class="stamp-share-btn share" data-act="openShareChannels" type="button">分享</button>
+          </div>`;
+      return `
+      <div class="scrim center-scrim" data-act="close">
+        <div class="stamp-share-wrap" onclick="event.stopPropagation()">
+          <div class="stamp-share-card">
+            <svg class="stamp-share-tie" viewBox="0 0 56 42" fill="none" aria-hidden="true">
+              <path d="M22 30 C16 20, 12 12, 8 4" stroke="#D2EE5B" stroke-width="4.5" stroke-linecap="round"/>
+              <path d="M24 30 C28 19, 36 12, 46 6" stroke="#C5E64B" stroke-width="4.5" stroke-linecap="round"/>
+              <circle cx="23" cy="31" r="4.5" fill="#1D2A44" stroke="#F4F7FF" stroke-width="1.5"/>
+            </svg>
+            <div class="stamp-share-ribbon-title">日程详情</div>
+            <div class="stamp-share-user-row">
+              <div class="stamp-share-user">
+                <span class="stamp-share-avatar">${esc(userName.slice(0, 1))}</span>
+                <span class="stamp-share-uname">${esc(userName)}</span>
+              </div>
+              <span class="stamp-share-card-pill"><i></i>哈宝健康卡</span>
+            </div>
+            <div class="stamp-share-headline">${esc(headline)}</div>
+            <div class="stamp-share-inner">
+              <div class="stamp-share-master">集章达人</div>
+              ${badgesHTML}
+              <div class="stamp-share-summary">${summaryHTML}</div>
+            </div>
+            <div class="stamp-share-join">加入哈宝，一起每日打卡</div>
           </div>
+          ${actionsHTML}
         </div>
       </div>`;
     },
