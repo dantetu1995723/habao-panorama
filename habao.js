@@ -1808,6 +1808,19 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.495",
+      date: "2026-11-27",
+      time: "14:28",
+      title: "「今日集章」分享卡片顶部改用通用情绪价值话术、底部改为项数与类数总结，0 打卡提示先打卡",
+      screens: [
+        { id: "stamps", label: "今日集章" },
+      ],
+      items: [
+        "集章分享卡片顶部 1–7 类主话术去掉数字计数与渐进感，改为 7 句纯情绪价值鼓励话术；底部虚线框取消类别枚举，统一改为「M月d日，完成x项健康计划，点亮x类徽章」。",
+        "当日有计划但尚未完成任何打卡（完成数为 0）时，点击分享轻提示「先完成一项打卡再来分享吧」，不再打开空白分享卡片；同步更新 V0.0 / V0.1《今日集章》PRD。",
+      ],
+    },
+    {
       ver: "V10.494",
       date: "2026-11-27",
       time: "14:15",
@@ -15126,6 +15139,10 @@
       shareStamp() {
         const st = stampViewState(S.stampSelYMD || toYMD(demoDate()));
         if (!st.canShare) return;
+        if (st.doneN === 0) {
+          toast("先完成一项打卡再来分享吧");
+          return;
+        }
         S.shareChannelsOpen = false;
         openOverlay("share");
       },
@@ -24566,20 +24583,17 @@
         }
       });
       const HEADLINES_BY_CAT_COUNT = {
-        0: "今日计划已就绪，快来点亮第一枚徽章",
-        1: "好样的！点亮今日首枚健康徽章",
-        2: "双份守护！健康节奏稳稳开启",
-        3: "渐入佳境！今日已收集三类徽章",
-        4: "过半收获！康复日常越来越规律",
-        5: "活力满满！五类健康徽章已收入",
-        6: "接近圆满！今日已集齐六类徽章",
-        7: "真棒！完成所有打卡",
+        1: "真棒！今天也在好好爱自己",
+        2: "太赞了！自律的你状态真好",
+        3: "元气满满！健康节奏稳稳的",
+        4: "好样的！规律生活自带光芒",
+        5: "超赞！你的坚持值得点赞",
+        6: "真厉害！稳稳守住健康日常",
+        7: "满分自律！今天闪闪发光",
       };
-      const headline = HEADLINES_BY_CAT_COUNT[Math.min(7, cats.length)];
+      const headline = HEADLINES_BY_CAT_COUNT[Math.max(1, Math.min(7, cats.length))];
       const dateStr = `${d.getMonth() + 1}月${d.getDate()}日`;
-      const summaryHTML = cats.length === 0
-        ? `${dateStr}暂未点亮健康徽章`
-        : `${dateStr}集齐了 <span class="hl">${cats.map((c) => esc(c.label)).join("、")}</span>${cats.length >= 7 ? `共${cats.length}类` : " "}健康徽章`;
+      const summaryHTML = `${dateStr}，完成<span class="hl">${doneN}</span>项健康计划，点亮<span class="hl">${cats.length}</span>类徽章`;
       const countCls = cats.length <= 1 ? "n-1" : cats.length === 2 ? "n-2" : cats.length <= 4 ? `n-${cats.length}` : "n-many";
       const badgesHTML = cats.length === 0
         ? `<div class="stamp-share-empty">暂未完成打卡</div>`
