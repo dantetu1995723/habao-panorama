@@ -1808,6 +1808,21 @@
 
   const CHANGELOG = [
     {
+      ver: "V10.496",
+      date: "2026-11-27",
+      time: "16:14",
+      title: "「健康计划」复查上传资料打卡改为返回健康计划已完成页，并统一「复查资料已保存」通用提示文案",
+      screens: [
+        { id: "schedule", label: "健康计划" },
+        { id: "home", label: "首页" },
+        { id: "report-archive", label: "资料合集" },
+      ],
+      items: [
+        "在「健康计划」中对复查计划点击上传复查资料并保存后，点击「立即打卡」完成打卡并自动返回「健康计划」的「已完成」界面；点击「稍后打卡」停留在资料合集页，点击返回直接回到「健康计划」。",
+        "将「复查资料已保存」弹窗正文文案调整为通用的「是否立即返回完成复查打卡？」，同时覆盖从「首页」与「健康计划」两处发起的复查资料打卡流程，并同步更新 V0.0 / V0.1 相关 PRD。",
+      ],
+    },
+    {
       ver: "V10.495",
       date: "2026-11-27",
       time: "14:28",
@@ -3921,6 +3936,7 @@
     unreadBaselineArchive: false,
     unreadReviewArchive: false,
     apptCapture: false,
+    apptReturnTarget: null,
     qDone: false,
     walkTaskId: null,
     walkStartedAt: null,
@@ -8354,6 +8370,9 @@
   function back() {
     // V10.49：离开复查报告页即撤掉复诊打卡形态
     S.reportReturnHome = false;
+    if (S.screen === "report-archive") {
+      S.apptReturnTarget = null;
+    }
     if (S.screen === "task-add") {
       S.draftReturn = null;
       S.confirmEditIndex = null;
@@ -8412,6 +8431,7 @@
     // V10.49：复诊打卡形态只活在「打卡 → 提交 → 报告页」这一程，离开即清
     S.reportReturnHome = false;
     S.apptCapture = false;
+    S.apptReturnTarget = null;
     S.archivePlace = null;
     S.docStock = null;
     seedDocGroups(0);
@@ -8479,9 +8499,9 @@
   }
   /// 复查资料提交后完成当天未打卡的复查计划（真机 ReviewVisitCaptureHost）；
   /// 打卡并进上传那条记录，返回完成的计划名
-  function completeTodayAppointments() {
+  function completeTodayAppointments(ymd) {
     const done = [];
-    liveTasks().forEach((t) => {
+    liveTasks(ymd).forEach((t) => {
       if (t.cat === "appointment" && !S.completed[t.id]) {
         S.completed[t.id] = true;
         markProxy(t.id, null, true);
@@ -8580,25 +8600,32 @@
     S.archivePlace = null;
     S.reportArchiveEmpty = false;
     markReportMaterialUpdated(visit ? "review" : "baseline");
-    // V10.339 / V10.459：打卡复查拍完照之后直接进入复查报告的资料合集界面；
-    // 跳出「复查资料已保存」确认弹窗（主按钮「立即打卡」自动回首页完成打卡，次按钮「稍后打卡」留在资料合集页，且从资料合集页返回直接回到首页）
+    // V10.339 / V10.459 / V10.496：打卡复查拍完照之后直接进入复查报告的资料合集界面；
+    // 跳出「复查资料已保存」通用确认弹窗（主按钮「立即打卡」按原入口回首页或健康计划「已完成」，次按钮「稍后打卡」留在资料合集页，点击返回直达原入口）
     if (fromCheckIn) {
+      const returnToSchedule = S.apptReturnTarget === "schedule";
       S.apptCapture = false;
       S.reportKind = "visit";
       S.reportReturnHome = false;
       S.reportArchiveEditing = false;
       S.reportArchiveDraft = null;
       // 保持与真机 AppointmentReviewFlowHost 一致：
-      // 稍后打卡停留在资料合集页 (report-archive)，点左上角「返回」直接回到首页 (home)
-      S.frames = [
-        { id: "home", how: "root" },
-        { id: "report-archive", how: "cover" }
-      ];
+      // 稍后打卡停留在资料合集页 (report-archive)，点左上角「返回」直接回到原入口（首页或健康计划）
+      S.frames = returnToSchedule
+        ? [
+            { id: "home", how: "root" },
+            { id: "schedule", how: "cover" },
+            { id: "report-archive", how: "cover" }
+          ]
+        : [
+            { id: "home", how: "root" },
+            { id: "report-archive", how: "cover" }
+          ];
       S.screen = "report-archive";
       render();
       openOverlay("confirm", {
         title: "复查资料已保存",
-        body: "是否立即返回首页完成打卡？",
+        body: "是否立即返回完成复查打卡？",
         cancel: "稍后打卡",
         ok: "立即打卡",
         action: "confirmAppointmentCheckIn",
@@ -8627,6 +8654,8 @@
         return;
       }
       S.captureMode = "intake";
+      S.apptCapture = false;
+      S.apptReturnTarget = null;
       seedDocGroups(0);
       dismissCover();
       return;
@@ -9731,7 +9760,10 @@
           return;
         }
         if (t.cat === "exercise") { openOverlay("exercise", { id }); return; }
-        if (t.cat === "appointment") { openOverlay("appointment", { id }); return; }
+        if (t.cat === "appointment") {
+          openOverlay("appointment", { id, source: S.screen === "schedule" ? "schedule" : "home" });
+          return;
+        }
         if (isBPMonitoringTask(t)) {
           const place = S.screen === "schedule" ? "健康计划" : "首页";
           openOverlay("vitals", { id, place });
@@ -9954,11 +9986,13 @@
         closeOverlay();
       },
       appointmentGo() {
+        const fromSchedule = (S.overlayData && S.overlayData.source === "schedule") || S.screen === "schedule";
         closeOverlay();
         S.reportKind = "visit";
-        // V10.49：这条拍摄来自首页复查打卡，提交后接复查报告页而不是直接回首页
+        // V10.49 / V10.496：拍摄来自首页或健康计划复查打卡，提交后接复查资料合集页并按原入口返回
         S.apptCapture = true;
-        S.archivePlace = "首页";
+        S.apptReturnTarget = fromSchedule ? "schedule" : "home";
+        S.archivePlace = fromSchedule ? "健康计划" : "首页";
         startArchive("capture");
       },
       appointmentDone() {
@@ -15515,11 +15549,26 @@
       dia(d) { markManualVitalsStep(); S.dia = stepOrSeed(S.dia, d, 78, 40, 140); render(); },
       hr(d) { markManualVitalsStep(); S.hr = stepOrSeed(S.hr, d, 72, 40, 180); render(); },
       confirmAppointmentCheckIn() {
+        const returnToSchedule = S.apptReturnTarget === "schedule";
         closeOverlay();
-        const doneAppts = completeTodayAppointments();
-        logOp("完成复查打卡", "复查报告", [
+        const doneAppts = completeTodayAppointments(returnToSchedule ? S.calSelYMD : undefined);
+        logOp("完成复查打卡", returnToSchedule ? "健康计划" : "首页", [
           ["打卡", doneAppts.length ? `${opNames(doneAppts)} 已完成` : "复查计划已完成"],
         ]);
+        if (returnToSchedule) {
+          resetFlowFlags();
+          S.scheduleFilter = "done";
+          S.frames = [
+            { id: "home", how: "root" },
+            { id: "schedule", how: "cover" },
+          ];
+          S.screen = "schedule";
+          S.overlay = null;
+          S.chatMenu = false;
+          render();
+          toast("已完成复查打卡，已进入健康计划已完成");
+          return;
+        }
         toast("已完成复查打卡并返回首页");
         goHome();
       },
